@@ -1,0 +1,12 @@
+[package]
+name = "kotosiro-sharing"
+version = "0.1.0"
+authors = ["Shingo OKAWA <shingo.okawa.g.h.c@gmail.com>"]
+edition = "2021"
+rust-version = "1.67"
+
+[dependencies]
+anyhow = { version = "1.0.69", features = ["backtrace"] }
+axum = { version = "0.6.7", features = ["headers"] }
+clap = "4.1.4"
+tokio = { version = "1.25.0", features = [ "full", "rt-multi-thread" ] }
