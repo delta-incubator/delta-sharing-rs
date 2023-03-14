@@ -2,6 +2,7 @@ use anyhow::Context;
 use anyhow::Result;
 use kotosiro_sharing::config::Config;
 use kotosiro_sharing::logging;
+use kotosiro_sharing::server::Server;
 use tracing::debug;
 
 #[tokio::main]
@@ -27,11 +28,17 @@ async fn main() -> Result<()> {
     let conf = args.get_one::<String>("config").map(AsRef::as_ref);
     let conf = Config::load(conf)?;
     logging::setup(&conf);
-    debug!(db_url = &conf.db_url, use_json_log = &conf.use_json_log);
+    debug!(
+        db_url = &conf.db_url,
+        server_addr = &conf.server_addr,
+        server_bind = &conf.server_bind,
+        use_json_log = &conf.use_json_log
+    );
     match args.subcommand().expect("subcommand is required") {
         ("server", _args) => {
-            debug!("controller is called");
-            Ok(())
+            debug!("server is called");
+            let server = Server::new(conf).await.context("failed to create server")?;
+            server.start().await.context("failed to start server")
         }
         _ => unreachable!("clap should have already checked the subcommands"),
     }

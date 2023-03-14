@@ -63,6 +63,10 @@ pub fn url() -> String {
     format!("{}://{}:{}", string(5), string(10), port())
 }
 
+pub fn email() -> String {
+    format!("{}@{}.{}", string(5), string(10), string(3))
+}
+
 pub fn uuid() -> String {
     Uuid::new_v4().to_string()
 }

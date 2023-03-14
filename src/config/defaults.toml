@@ -1,3 +1,5 @@
 db_url = "postgres://127.0.0.1"
+server_addr = "http://127.0.0.1:8080/"
+server_bind = "127.0.0.1:8080"
 use_json_log = false
 log_filter = "warn,kotosiro_sharing=info"
