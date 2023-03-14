@@ -14,6 +14,7 @@ pub struct AccountRow {
     pub id: Uuid,
     pub name: String,
     pub email: String,
+    #[serde(skip_serializing)]
     pub password: String,
     pub namespace: String,
     pub created_at: DateTime<Utc>,

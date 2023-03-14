@@ -1,3 +1,4 @@
+pub mod argon2;
 pub mod postgres;
 use crate::config::Config;
 use anyhow::Result;
