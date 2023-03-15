@@ -59,6 +59,7 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn test_connect() {
+        dotenv::dotenv().ok();
         let docker = clients::Cli::default();
         let node = docker.run(postgres::Postgres::default());
         let url = format!(

@@ -1,5 +1,6 @@
 pub mod api;
 pub mod internal;
+use crate::config;
 use crate::server::Server;
 use anyhow::Context;
 use anyhow::Result;
@@ -77,9 +78,10 @@ pub async fn bind(server: Arc<Server>) -> Result<()> {
     let app = route(server.clone())
         .await
         .context("failed to create axum router")?;
-    let addr = server.config.server_bind.as_str().parse().context(format!(
+    let server_bind = config::fetch::<String>("server_bind");
+    let addr = server_bind.as_str().parse().context(format!(
         r#"failed to parse "{}" to SocketAddr"#,
-        server.config.server_bind
+        server_bind
     ))?;
     debug!("kotosiro sharing server listening on {}", addr);
     axum::Server::bind(&addr)
@@ -87,7 +89,7 @@ pub async fn bind(server: Arc<Server>) -> Result<()> {
         .await
         .context(format!(
             r#"failed to bind "{}" to hyper::Server"#,
-            server.config.server_bind,
+            server_bind,
         ))?;
     Ok(())
 }

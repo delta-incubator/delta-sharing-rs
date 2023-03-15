@@ -12,12 +12,13 @@ async-trait = "0.1.64"
 axum = { version = "0.6.7", features = ["headers"] }
 clap = "4.1.4"
 tokio = { version = "1.25.0", features = [ "full", "rt-multi-thread" ] }
-config = { version = "0.13.3", default-features = false, features = ["json", "toml", "yaml"] }
+config = "0.13.3"
 chrono = { version = "0.4.23", features = ["serde"] }
 colored = "2.0.0"
-dotenv = "0.15.0"
 getset = "0.1.2"
+glob = "0.3.1"
 git-version = "0.3.5"
+once_cell = "1.17.1"
 rand = "0.8.5"
 redis = { version = "0.22.3", features = ["tokio-comp"] }
 serde = { version = "1.0.152", features = ["derive"] }
@@ -33,6 +34,7 @@ uuid = { version = "1.3.0", features = [ "v4", "serde" ] }
 validator = { version = "0.16.0", features = ["derive"] }
 
 [dev-dependencies]
+dotenv = "0.15.0"
 futures = "0.3.26"
 serial_test = "0.4.0"
 testutils = { path = "testutils" }

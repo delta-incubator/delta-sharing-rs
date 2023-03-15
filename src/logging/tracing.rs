@@ -92,9 +92,9 @@ impl Visit for LogVisitor {
     }
 }
 
-pub fn init(use_json: bool, filter: &str) {
+pub fn init(use_json: &bool, filter: &str) {
     let filter_layer = EnvFilter::new(filter);
-    if use_json {
+    if *use_json {
         tracing_subscriber::registry()
             .with(filter_layer)
             .with(fmt::layer().json().with_file(true).with_line_number(true))

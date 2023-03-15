@@ -1,6 +1,9 @@
 mod tracing;
-use crate::config::Config;
+use crate::config;
 
-pub fn setup(config: &Config) {
-    tracing::init(config.use_json_log, &config.log_filter)
+pub fn setup() {
+    tracing::init(
+        &config::fetch::<bool>("use_json_log"),
+        &config::fetch::<String>("log_filter"),
+    )
 }
