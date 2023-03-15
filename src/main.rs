@@ -21,6 +21,7 @@ async fn main() -> Result<()> {
     logging::setup();
     debug!(
         db_url = config::fetch::<String>("db_url"),
+        kvs_url = config::fetch::<String>("kvs_url"),
         server_addr = config::fetch::<String>("server_addr"),
         server_bind = config::fetch::<String>("server_bind"),
         use_json_log = config::fetch::<bool>("use_json_log"),

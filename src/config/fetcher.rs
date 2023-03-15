@@ -6,14 +6,14 @@ use tracing::info;
 use tracing::warn;
 
 pub static CONFIG: Lazy<Config> = Lazy::new(|| {
-    let mut glob_path = "conf/dev/*";
+    let mut glob_path = "config/dev/*";
     let mode = match std::env::var("RUST_ENV") {
         Ok(value) => value,
         Err(_) => String::new(),
     };
     if mode.eq("production") {
-        glob_path = "conf/prod/*";
-        info!("RUST_ENV={}", mode);
+        glob_path = "config/prod/*";
+        info!(r#"RUST_ENV = "{}""#, mode);
     }
     let mut builder = Config::builder();
     if let Ok(paths) = glob(glob_path) {
@@ -87,6 +87,7 @@ mod tests {
     fn test_get() {
         let config = CONFIG.clone();
         assert!(matches!(config.get::<String>("db_url"), Ok(_)));
+        assert!(matches!(config.get::<String>("kvs_url"), Ok(_)));
         assert!(matches!(config.get::<String>("server_addr"), Ok(_)));
         assert!(matches!(config.get::<String>("server_bind"), Ok(_)));
         assert!(matches!(config.get::<String>("use_json_log"), Ok(_)));

@@ -1,4 +1,5 @@
 db_url = "replaceme"
+kvs_url = "replaceme"
 server_addr = "replaceme"
 server_bind = "replaceme"
 use_json_log = false

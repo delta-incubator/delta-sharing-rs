@@ -61,11 +61,8 @@ mod tests {
     async fn test_connect() {
         dotenv::dotenv().ok();
         let docker = clients::Cli::default();
-        let node = docker.run(postgres::Postgres::default());
-        let url = format!(
-            "postgres://postgres:secret@127.0.0.1:{}",
-            node.get_host_port_ipv4(5432)
-        );
+        docker.run(postgres::Postgres::default());
+        let url = "postgres://postgres:secret@127.0.0.1:5432";
         let expected: HashSet<_> = [String::from("account")].iter().cloned().collect();
         let pool = connect(&url)
             .await
