@@ -183,7 +183,7 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
-    async fn update_session() {
+    async fn test_update_session() {
         let store = create_store().await.expect("store should be created");
         let mut session = Session::new();
         let key = testutils::rand::string(10);
@@ -227,7 +227,7 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
-    async fn update_session_with_extending_expiry() {
+    async fn test_update_session_with_extending_expiry() {
         let store = create_store().await.expect("store should be created");
         let mut session = Session::new();
         session.expire_in(Duration::from_secs(5));
@@ -274,6 +274,59 @@ mod tests {
         assert!(ttl > 8 && ttl < 10);
         assert_eq!(store.count().await.unwrap(), 1);
         task::sleep(Duration::from_secs(10)).await;
+        assert_eq!(store.count().await.unwrap(), 0);
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_destroy_single_session() {
+        let store = create_store().await.expect("store should be created");
+        let attempt = testutils::rand::usize(10);
+        for _ in 0..attempt {
+            store
+                .store_session(Session::new())
+                .await
+                .expect("should store session properly");
+        }
+        let cookie = store
+            .store_session(Session::new())
+            .await
+            .expect("should store session properly");
+        assert!(matches!(cookie, Some(_)));
+        let cookie = cookie.unwrap();
+        assert_eq!(store.count().await.unwrap(), attempt + 1);
+        let session = store
+            .load_session(cookie.clone())
+            .await
+            .expect("should load session properly");
+        assert!(matches!(session, Some(_)));
+        let session = session.unwrap();
+        store
+            .destroy_session(session.clone())
+            .await
+            .expect("should store session properly");
+        let none = store
+            .load_session(cookie)
+            .await
+            .expect("should store session properly");
+        assert_eq!(none, None);
+        assert_eq!(store.count().await.unwrap(), attempt);
+        assert!(store.destroy_session(session).await.is_ok());
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_clear_whole_store() {
+        let store = create_store().await.expect("store should be created");
+        let attempt = testutils::rand::usize(10);
+        for _ in 0..attempt {
+            store
+                .store_session(Session::new())
+                .await
+                .expect("should store session properly");
+        }
+        assert_eq!(store.count().await.unwrap(), attempt);
+        store.clear_store().await.unwrap();
         assert_eq!(store.count().await.unwrap(), 0);
     }
 }
