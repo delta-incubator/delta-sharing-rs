@@ -3,7 +3,7 @@ mod interactors;
 mod repositories;
 mod services;
 use crate::config::Config;
-use crate::infra;
+use crate::wrappers;
 use anyhow::Context;
 use anyhow::Result;
 use sqlx::PgPool;
@@ -18,7 +18,7 @@ pub struct Server {
 
 impl Server {
     pub async fn new(config: Config) -> Result<Arc<Self>> {
-        let db_pool = infra::new_pg_pool(&config)
+        let db_pool = wrappers::new_pg_pool(&config)
             .await
             .context("failed to create postgres connection pool")?;
         Ok(Arc::new(Server {

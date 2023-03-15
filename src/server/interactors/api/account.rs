@@ -1,10 +1,10 @@
-use crate::infra::postgres::has_conflict;
-use crate::infra::postgres::pg_error;
 use crate::server::entities::account::Account;
 use crate::server::entities::account::AccountId;
 use crate::server::interactors::InteractorError;
 use crate::server::interactors::SharedState;
 use crate::server::services::account::AccountService;
+use crate::wrappers::postgres::has_conflict;
+use crate::wrappers::postgres::pg_error;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;

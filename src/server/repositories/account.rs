@@ -1,6 +1,6 @@
-use crate::infra::postgres::PgAcquire;
 use crate::server::entities::account::Account;
 use crate::server::entities::account::AccountId;
+use crate::wrappers::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;
