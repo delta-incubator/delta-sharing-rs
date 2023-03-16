@@ -5,16 +5,11 @@ use crate::server::Server;
 use anyhow::Context;
 use anyhow::Result;
 use axum::extract::Extension;
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::response::Response;
 use axum::routing::delete;
 use axum::routing::get;
 use axum::routing::post;
 use axum::routing::put;
-use axum::Json;
 use axum::Router;
-use serde_json::json;
 use std::sync::Arc;
 use tracing::debug;
 
@@ -23,41 +18,6 @@ pub struct State {
 }
 
 type SharedState = Arc<State>;
-
-pub enum InteractorError {
-    InternalServerProblem(anyhow::Error),
-    BadRequest,
-    Unauthorized,
-    ValidationFailed,
-    Conflict,
-}
-
-impl From<anyhow::Error> for InteractorError {
-    fn from(e: anyhow::Error) -> Self {
-        InteractorError::InternalServerProblem(e)
-    }
-}
-
-impl IntoResponse for InteractorError {
-    fn into_response(self) -> Response {
-        let (status, message) = match self {
-            InteractorError::InternalServerProblem(e) => {
-                debug!("stacktrace: {}", e.backtrace());
-                (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong")
-            }
-            InteractorError::BadRequest => (StatusCode::BAD_REQUEST, "Bad request"),
-            InteractorError::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
-            InteractorError::ValidationFailed => {
-                (StatusCode::UNPROCESSABLE_ENTITY, "Validation errors")
-            }
-            InteractorError::Conflict => (StatusCode::CONFLICT, "Confliction occured"),
-        };
-        let body = Json(json!({
-            "error": message,
-        }));
-        (status, body).into_response()
-    }
-}
 
 async fn route(server: Arc<Server>) -> Result<Router> {
     let state = Arc::new(State { server });

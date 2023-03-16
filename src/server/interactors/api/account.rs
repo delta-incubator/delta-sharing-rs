@@ -1,6 +1,6 @@
+use crate::error::Error;
 use crate::server::entities::account::Account;
 use crate::server::entities::account::AccountId;
-use crate::server::interactors::InteractorError;
 use crate::server::interactors::SharedState;
 use crate::server::services::account::AccountService;
 use crate::utils::postgres::has_conflict;
@@ -28,7 +28,7 @@ pub struct CreateJson {
 pub async fn create(
     Extension(state): Extension<SharedState>,
     Json(payload): Json<CreateJson>,
-) -> Result<Response, InteractorError> {
+) -> Result<Response, Error> {
     let id = payload.id.unwrap_or(uuid::Uuid::new_v4().to_string());
     let account = if let Ok(account) = Account::new(
         id,
@@ -40,7 +40,7 @@ pub async fn create(
         account
     } else {
         error!("invalid account specification found");
-        return Err(InteractorError::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     match pg_error(AccountService::create(&state.server.db_pool, &account).await)? {
         Ok(_) => {
@@ -53,23 +53,21 @@ pub async fn create(
         }
         Err(e) if has_conflict(&e) => {
             warn!("failed to update account: {}", e);
-            Err(InteractorError::Conflict)
+            Err(Error::Conflict)
         }
-        _ => Err(InteractorError::InternalServerProblem(anyhow!(
-            "Internal server error"
-        ))),
+        _ => Err(anyhow!("Internal server error").into()),
     }
 }
 
 pub async fn delete(
     Extension(state): Extension<SharedState>,
     Path(id): Path<String>,
-) -> Result<Response, InteractorError> {
+) -> Result<Response, Error> {
     let id = if let Ok(id) = AccountId::try_from(id) {
         id
     } else {
         error!("account id must be uuid v4");
-        return Err(InteractorError::BadRequest);
+        return Err(Error::BadRequest);
     };
     match pg_error(AccountService::delete(&state.server.db_pool, &id).await)? {
         Ok(done) => {
@@ -83,9 +81,7 @@ pub async fn delete(
         }
         Err(e) => {
             warn!("failed to delete account: {}", e);
-            Err(InteractorError::InternalServerProblem(anyhow!(
-                "Internal server error"
-            )))
+            Err(anyhow!("Internal server error").into())
         }
     }
 }

@@ -1,4 +1,4 @@
-pub mod fetcher;
+mod fetcher;
 
 pub fn fetch<T>(flag: &str) -> T
 where
