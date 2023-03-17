@@ -1,4 +1,5 @@
 mod fetcher;
+pub use fetcher::JWT_SECRET;
 
 pub fn fetch<T>(flag: &str) -> T
 where

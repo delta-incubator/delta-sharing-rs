@@ -1,4 +1,5 @@
 pub mod argon2;
+pub mod jsonwebtoken;
 pub mod postgres;
 pub mod redis;
 use crate::config;

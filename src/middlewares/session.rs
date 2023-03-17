@@ -19,30 +19,10 @@ use cookie::SameSite;
 use std::str::FromStr;
 use tracing::debug;
 use tracing::error;
-use uuid::Uuid;
 
 const KOTOSIRO_SHARING_SESSION_COOKIE: &str = "kotosiro-sharing-session";
 
 const KOTOSIRO_SHARING_SESSION_ID: &str = "kotosiro-sharing-session-id";
-
-#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
-struct SessionId(pub Uuid);
-
-impl SessionId {
-    pub fn new() -> Self {
-        Self(Uuid::new_v4())
-    }
-
-    fn from(uuid: Uuid) -> Self {
-        Self(uuid)
-    }
-}
-
-impl Default for SessionId {
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 pub async fn handler<
     B,
@@ -66,8 +46,6 @@ pub async fn handler<
     debug!("session cookie: {:?}", &cookie);
     // If session cookie is not set, then create and store it.
     if cookie.is_none() {
-        let session_id = SessionId::new();
-        let session_uuid = session_id.0.hyphenated().to_string();
         let mut session = Session::new();
         match session.insert("user", U::default()) {
             Ok(value) => value,
@@ -92,8 +70,8 @@ pub async fn handler<
         };
         debug!("updated Session: {:?}", &session_before.id());
         debug!(
-            r#"created cookie "{:?}" = "{:?}" for UUID "{}" / for session: "{:?}""#,
-            KOTOSIRO_SHARING_SESSION_COOKIE, &cookie, &session_uuid, &session_before
+            r#"created cookie "{:?}" = "{:?}" for session: "{:?}""#,
+            KOTOSIRO_SHARING_SESSION_COOKIE, &cookie, &session_before
         );
         let body = Body::empty().boxed_unsync();
         let mut response = Response::builder()
@@ -115,7 +93,7 @@ pub async fn handler<
         let cookie = HeaderValue::from_str(cookie.to_string().as_str()).unwrap();
         headers.insert(http::header::SET_COOKIE, cookie);
         let response = response.into_response();
-        debug!(r#"session UUID creation: done. response: "{:?}""#, response);
+        debug!(r#"session creation: done. response: "{:?}""#, response);
         return Ok(response);
     }
     // Session cookie is found.

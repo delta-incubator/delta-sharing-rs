@@ -1,3 +1,4 @@
+use crate::utils::jsonwebtoken::Keys;
 use config::Config;
 use config::File;
 use glob::glob;
@@ -29,6 +30,11 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     builder.build().unwrap_or(Config::default())
 });
 
+pub static JWT_SECRET: Lazy<Keys> = Lazy::new(|| {
+    let secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "Your secret here".to_owned());
+    Keys::new(secret.as_bytes())
+});
+
 pub struct Flag<V> {
     pub key: V,
 }
@@ -56,6 +62,101 @@ where
             }
         } else {
             false
+        }
+    }
+}
+
+impl<V> Fetch<usize> for Flag<V>
+where
+    V: std::fmt::Debug + std::fmt::Display,
+{
+    fn fetch(&self, config: &Config) -> usize {
+        let value = match config.get::<String>(&self.key.to_string()) {
+            Ok(value) => value.to_string(),
+            _ => String::new(),
+        };
+        match value.parse::<usize>() {
+            Ok(value) => value,
+            Err(e) => panic!(
+                r#"Unknown error parsing configuration flag "{}": {:?}"#,
+                &self.key, e
+            ),
+        }
+    }
+}
+
+impl<V> Fetch<u32> for Flag<V>
+where
+    V: std::fmt::Debug + std::fmt::Display,
+{
+    fn fetch(&self, config: &Config) -> u32 {
+        let value = match config.get::<String>(&self.key.to_string()) {
+            Ok(value) => value.to_string(),
+            _ => String::new(),
+        };
+        match value.parse::<u32>() {
+            Ok(value) => value,
+            Err(e) => panic!(
+                r#"Unknown error parsing configuration flag "{}": {:?}"#,
+                &self.key, e
+            ),
+        }
+    }
+}
+
+impl<V> Fetch<i32> for Flag<V>
+where
+    V: std::fmt::Debug + std::fmt::Display,
+{
+    fn fetch(&self, config: &Config) -> i32 {
+        let value = match config.get::<String>(&self.key.to_string()) {
+            Ok(value) => value.to_string(),
+            _ => String::new(),
+        };
+        match value.parse::<i32>() {
+            Ok(value) => value,
+            Err(e) => panic!(
+                r#"Unknown error parsing configuration flag "{}": {:?}"#,
+                &self.key, e
+            ),
+        }
+    }
+}
+
+impl<V> Fetch<u64> for Flag<V>
+where
+    V: std::fmt::Debug + std::fmt::Display,
+{
+    fn fetch(&self, config: &Config) -> u64 {
+        let value = match config.get::<String>(&self.key.to_string()) {
+            Ok(value) => value.to_string(),
+            _ => String::new(),
+        };
+        match value.parse::<u64>() {
+            Ok(value) => value,
+            Err(e) => panic!(
+                r#"Unknown error parsing configuration flag "{}": {:?}"#,
+                &self.key, e
+            ),
+        }
+    }
+}
+
+impl<V> Fetch<i64> for Flag<V>
+where
+    V: std::fmt::Debug + std::fmt::Display,
+{
+    fn fetch(&self, config: &Config) -> i64 {
+        let value = match config.get::<String>(&self.key.to_string()) {
+            Ok(value) => value.to_string(),
+            _ => String::new(),
+        };
+        match value.parse::<i64>() {
+            Ok(value) => value,
+            Err(e) => panic!(
+                r#"Unknown error parsing configuration flag "{}": {:?}"#,
+                &self.key, e
+            ),
         }
     }
 }

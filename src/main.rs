@@ -24,6 +24,7 @@ async fn main() -> Result<()> {
         kvs_url = config::fetch::<String>("kvs_url"),
         server_addr = config::fetch::<String>("server_addr"),
         server_bind = config::fetch::<String>("server_bind"),
+        jwt_expiration_sec = config::fetch::<u64>("jwt_expiration_sec"),
         use_json_log = config::fetch::<bool>("use_json_log"),
         log_filter = config::fetch::<String>("log_filter"),
     );

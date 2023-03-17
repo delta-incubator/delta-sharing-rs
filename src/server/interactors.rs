@@ -1,7 +1,7 @@
 pub mod api;
 pub mod internal;
 use crate::config;
-use crate::server::Server;
+use crate::middlewares::session;
 use anyhow::Context;
 use anyhow::Result;
 use axum::extract::Extension;
@@ -10,17 +10,28 @@ use axum::routing::get;
 use axum::routing::post;
 use axum::routing::put;
 use axum::Router;
+use redis::Client;
+use sqlx::PgPool;
 use std::sync::Arc;
+use tower::ServiceBuilder;
 use tracing::debug;
 
 pub struct State {
-    server: Arc<Server>,
+    pub pg_pool: PgPool,
+    pub redis_client: Client,
 }
 
 type SharedState = Arc<State>;
 
-async fn route(server: Arc<Server>) -> Result<Router> {
-    let state = Arc::new(State { server });
+async fn route(pg_pool: PgPool, redis_client: Client) -> Result<Router> {
+    let state = Arc::new(State {
+        pg_pool,
+        redis_client,
+    });
+    //    let service = ServiceBuilder::new().layer(axum_extra::middleware::from_fn(
+    //        session::handler<_, RedisSessionStore, User>,
+    //    ));
+
     let app = Router::new()
         .route(
             "/api/account",
@@ -34,8 +45,8 @@ async fn route(server: Arc<Server>) -> Result<Router> {
     Ok(app)
 }
 
-pub async fn bind(server: Arc<Server>) -> Result<()> {
-    let app = route(server.clone())
+pub async fn bind(pg_pool: PgPool, redis_client: Client) -> Result<()> {
+    let app = route(pg_pool, redis_client)
         .await
         .context("failed to create axum router")?;
     let server_bind = config::fetch::<String>("server_bind");

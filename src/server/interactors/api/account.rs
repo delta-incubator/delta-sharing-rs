@@ -42,7 +42,7 @@ pub async fn create(
         error!("invalid account specification found");
         return Err(Error::ValidationFailed);
     };
-    match pg_error(AccountService::create(&state.server.db_pool, &account).await)? {
+    match pg_error(AccountService::create(&state.pg_pool, &account).await)? {
         Ok(_) => {
             info!(
                 r#"updated account id: "{}" name: "{}""#,
@@ -69,7 +69,7 @@ pub async fn delete(
         error!("account id must be uuid v4");
         return Err(Error::BadRequest);
     };
-    match pg_error(AccountService::delete(&state.server.db_pool, &id).await)? {
+    match pg_error(AccountService::delete(&state.pg_pool, &id).await)? {
         Ok(done) => {
             if done.rows_affected() == 1 {
                 info!(r#"deleted account id: "{}""#, id.as_uuid());

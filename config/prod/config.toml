@@ -2,5 +2,6 @@ db_url = "replaceme"
 kvs_url = "replaceme"
 server_addr = "replaceme"
 server_bind = "replaceme"
+jwt_expiration_sec = 28800
 use_json_log = false
 log_filter = "warn,kotosiro_sharing=info"

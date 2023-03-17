@@ -2,5 +2,6 @@ db_url = "postgres://postgres:secret@127.0.0.1:5432/kotosiro_sharing"
 kvs_url = "redis://127.0.0.1:6379/"
 server_addr = "http://127.0.0.1:8080"
 server_bind = "127.0.0.1:8080"
+jwt_expiration_sec = 28800
 use_json_log = false
 log_filter = "warn,kotosiro_sharing=debug"
