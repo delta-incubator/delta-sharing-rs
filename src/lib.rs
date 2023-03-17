@@ -2,6 +2,7 @@
 pub mod config;
 pub mod error;
 pub mod logging;
+pub mod middlewares;
 pub mod server;
 pub mod utils;
 

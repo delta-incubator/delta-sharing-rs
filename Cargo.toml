@@ -16,6 +16,7 @@ tokio = { version = "1.25.0", features = [ "full", "rt-multi-thread" ] }
 config = "0.13.3"
 chrono = { version = "0.4.23", features = ["serde"] }
 colored = "2.0.0"
+cookie = "0.17.0"
 getset = "0.1.2"
 glob = "0.3.1"
 git-version = "0.3.5"
