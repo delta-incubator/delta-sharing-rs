@@ -26,6 +26,9 @@ async fn main() -> Result<()> {
         server_bind = config::fetch::<String>("server_bind"),
         jwt_secret = config::fetch::<String>("jwt_secret"),
         jwt_expiration_sec = config::fetch::<u64>("jwt_expiration_sec"),
+        gcp_sa_private_key = config::fetch::<String>("gcp_sa_private_key"),
+        aws_credentials = config::fetch::<String>("aws_credentials"),
+        aws_profile = config::fetch::<String>("aws_profile"),
         use_json_log = config::fetch::<bool>("use_json_log"),
         log_filter = config::fetch::<String>("log_filter"),
     );

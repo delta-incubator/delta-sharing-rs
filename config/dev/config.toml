@@ -4,5 +4,8 @@ server_addr = "http://127.0.0.1:8080"
 server_bind = "127.0.0.1:8080"
 jwt_secret = "your secret here"
 jwt_expiration_sec = 28800
+gcp_sa_private_key = "creds/gcp/sa-private-key.json"
+aws_credentials = "creds/aws/credentials"
+aws_profile = "kotosiro-sharing"
 use_json_log = false
 log_filter = "warn,kotosiro_sharing=debug"

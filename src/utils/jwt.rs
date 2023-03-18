@@ -79,7 +79,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_hash() {
+    async fn test() {
         println!("TEST JWT!!!");
     }
 }

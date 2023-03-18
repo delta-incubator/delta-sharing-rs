@@ -12,19 +12,26 @@ use axum::Router;
 use redis::Client;
 use sqlx::PgPool;
 use std::sync::Arc;
+use tame_gcs::signing::ServiceAccount;
 use tracing::debug;
 
 pub struct State {
     pub pg_pool: PgPool,
     pub redis_client: Client,
+    pub gcp_service_account: ServiceAccount,
 }
 
 type SharedState = Arc<State>;
 
-async fn route(pg_pool: PgPool, redis_client: Client) -> Result<Router> {
+async fn route(
+    pg_pool: PgPool,
+    redis_client: Client,
+    gcp_service_account: ServiceAccount,
+) -> Result<Router> {
     let state = Arc::new(State {
         pg_pool,
         redis_client,
+        gcp_service_account,
     });
     let app = Router::new()
         .route(
@@ -40,8 +47,12 @@ async fn route(pg_pool: PgPool, redis_client: Client) -> Result<Router> {
     Ok(app)
 }
 
-pub async fn bind(pg_pool: PgPool, redis_client: Client) -> Result<()> {
-    let app = route(pg_pool, redis_client)
+pub async fn bind(
+    pg_pool: PgPool,
+    redis_client: Client,
+    gcp_service_account: ServiceAccount,
+) -> Result<()> {
+    let app = route(pg_pool, redis_client, gcp_service_account)
         .await
         .context("failed to create axum router")?;
     let server_bind = config::fetch::<String>("server_bind");
