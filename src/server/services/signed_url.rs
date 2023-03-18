@@ -106,26 +106,42 @@ mod tests {
 
     //#[tokio::test]
     async fn test_aws_signup_local() {
-        if let Ok(pp) = aws::new(
+        let pp = if let Ok(pp) = aws::new(
             &config::fetch::<String>("aws_credentials"),
             &config::fetch::<String>("aws_profile"),
         ) {
-            if let Ok(url) =
-                SignedUrlService::signup(&pp, "kotosiro-sharing-test", "sample.txt", &300).await
-            {
-                println!("{:?}", url);
-            }
+            pp
+        } else {
+            panic!("failed to create AWS profile provider");
+        };
+        let (bucket, path) = if let Ok(SignedUrl::AWS { bucket, path }) =
+            SignedUrl::from_str("s3://kotosiro-sharing-test/sample.txt")
+        {
+            (bucket, path)
+        } else {
+            panic!("failed to parse S3 url");
+        };
+        if let Ok(url) = SignedUrlService::signup(&pp, &bucket, &path, &300).await {
+            println!("{:?}", url);
         }
     }
 
     //#[tokio::test]
     async fn test_gcp_signup_local() {
-        if let Ok(sa) = gcp::new(&config::fetch::<String>("gcp_sa_private_key")) {
-            if let Ok(url) =
-                SignedUrlService::signup(&sa, "kotosiro-sharing-test", "sample.txt", &300).await
-            {
-                println!("{:?}", url);
-            }
+        let sa = if let Ok(sa) = gcp::new(&config::fetch::<String>("gcp_sa_private_key")) {
+            sa
+        } else {
+            panic!("failed to create GCP service account");
+        };
+        let (bucket, path) = if let Ok(SignedUrl::GCP { bucket, path }) =
+            SignedUrl::from_str("gs://kotosiro-sharing-test/sample.txt")
+        {
+            (bucket, path)
+        } else {
+            panic!("failed to parse GS url");
+        };
+        if let Ok(url) = SignedUrlService::signup(&sa, &bucket, &path, &300).await {
+            println!("{:?}", url);
         }
     }
 }
