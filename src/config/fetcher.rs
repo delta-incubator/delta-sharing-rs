@@ -1,4 +1,3 @@
-use crate::utils::jsonwebtoken::Keys;
 use config::Config;
 use config::File;
 use glob::glob;
@@ -28,11 +27,6 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
         }
     }
     builder.build().unwrap_or(Config::default())
-});
-
-pub static JWT_SECRET: Lazy<Keys> = Lazy::new(|| {
-    let secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "Your secret here".to_owned());
-    Keys::new(secret.as_bytes())
 });
 
 pub struct Flag<V> {

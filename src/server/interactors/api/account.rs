@@ -51,7 +51,7 @@ pub async fn register(
     ) {
         account
     } else {
-        error!("invalid account specification");
+        error!("failed to validate account");
         return Err(Error::ValidationFailed);
     };
     match pg_error(AccountService::create(&state.pg_pool, &account).await)? {
@@ -67,7 +67,7 @@ pub async fn register(
             warn!("failed to update account: {}", e);
             Err(Error::Conflict)
         }
-        _ => Err(anyhow!("Internal server error").into()),
+        _ => Err(anyhow!("Unknown error").into()),
     }
 }
 
@@ -78,27 +78,28 @@ pub async fn login(
     let name = if let Ok(name) = AccountName::new(payload.name) {
         name
     } else {
-        error!("invalid account name");
+        error!("failed to validate account name");
         return Err(Error::ValidationFailed);
     };
     match AccountService::get_by_name(&state.pg_pool, &name).await? {
         None => {
-            warn!("failed to authorize user");
+            warn!("failed to authorize account, no accuont found");
             return Err(Error::Unauthorized);
         }
         Some(row) => {
             if let Err(_) = argon2::verify(payload.password.as_bytes(), row.password.as_str()) {
-                warn!("failed to authorize user");
+                warn!("failed to authorize account, password did not match");
                 return Err(Error::Unauthorized);
             }
             let expiry = if let Ok(expiry) = expires_at() {
                 expiry
             } else {
-                error!("failed to create JWT expiration date");
-                return Err(anyhow!("Internal server error").into());
+                error!("failed to create JWT expiry");
+                return Err(anyhow!("Setting expiration date in the past").into());
             };
             let claims = Claims {
                 email: row.email.to_owned(),
+                namespace: row.namespace.to_owned(),
                 exp: expiry,
             };
             let token = if let Ok(token) = encode(&Header::default(), &claims, &JWT_SECRET.encoding)
@@ -106,7 +107,7 @@ pub async fn login(
                 token
             } else {
                 error!("failed to create JWT token");
-                return Err(anyhow!("Internal server error").into());
+                return Err(anyhow!("JWT creation failed").into());
             };
             Ok((
                 StatusCode::OK,
@@ -115,4 +116,12 @@ pub async fn login(
                 .into_response())
         }
     }
+}
+
+pub async fn profile(claims: Claims) -> Result<Response, Error> {
+    Ok((
+        StatusCode::OK,
+        Json(json!({ "email": claims.email, "namespace": claims.namespace })),
+    )
+        .into_response())
 }

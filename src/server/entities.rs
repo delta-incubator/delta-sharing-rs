@@ -1,4 +1,5 @@
 pub mod account;
+pub mod signed_url;
 
 #[macro_export]
 macro_rules! impl_bool_property {
@@ -133,6 +134,73 @@ macro_rules! impl_i32_property {
 }
 
 #[macro_export]
+macro_rules! impl_u32_property {
+    ( $type:tt ) => {
+        impl $type {
+            pub fn new<I>(value: I) -> anyhow::Result<Self>
+            where
+                I: Into<u32>,
+            {
+                let object = Self {
+                    value: value.into(),
+                };
+                object.validate()?;
+                Ok(object)
+            }
+
+            pub fn as_u32(&self) -> &u32 {
+                &self.value
+            }
+
+            pub fn to_u32(&self) -> u32 {
+                self.value
+            }
+        }
+
+        impl sqlx::types::Type<sqlx::postgres::Postgres> for $type {
+            fn type_info() -> sqlx::postgres::PgTypeInfo {
+                <u32 as sqlx::types::Type<sqlx::postgres::Postgres>>::type_info()
+            }
+
+            fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
+                <u32 as sqlx::types::Type<sqlx::postgres::Postgres>>::compatible(ty)
+            }
+        }
+
+        impl sqlx::postgres::PgHasArrayType for $type {
+            fn array_type_info() -> sqlx::postgres::PgTypeInfo {
+                <u32 as sqlx::postgres::PgHasArrayType>::array_type_info()
+            }
+
+            fn array_compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
+                <u32 as sqlx::postgres::PgHasArrayType>::array_compatible(ty)
+            }
+        }
+
+        impl sqlx::encode::Encode<'_, sqlx::postgres::Postgres> for $type {
+            fn encode_by_ref(
+                &self,
+                buf: &mut sqlx::postgres::PgArgumentBuffer,
+            ) -> sqlx::encode::IsNull {
+                <u32 as sqlx::encode::Encode<sqlx::postgres::Postgres>>::encode_by_ref(
+                    &self.value,
+                    buf,
+                )
+            }
+        }
+
+        impl serde::Serialize for $type {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                <u32 as serde::Serialize>::serialize(&self.value, serializer)
+            }
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! impl_i64_property {
     ( $type:tt ) => {
         impl $type {
@@ -194,6 +262,41 @@ macro_rules! impl_i64_property {
                 S: serde::Serializer,
             {
                 <i64 as serde::Serialize>::serialize(&self.value, serializer)
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! impl_u64_property {
+    ( $type:tt ) => {
+        impl $type {
+            pub fn new<I>(value: I) -> anyhow::Result<Self>
+            where
+                I: Into<u64>,
+            {
+                let object = Self {
+                    value: value.into(),
+                };
+                object.validate()?;
+                Ok(object)
+            }
+
+            pub fn as_u64(&self) -> &u64 {
+                &self.value
+            }
+
+            pub fn to_u64(&self) -> u64 {
+                self.value
+            }
+        }
+
+        impl serde::Serialize for $type {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                <u64 as serde::Serialize>::serialize(&self.value, serializer)
             }
         }
     };

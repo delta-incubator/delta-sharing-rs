@@ -1,7 +1,6 @@
 pub mod api;
 pub mod internal;
 use crate::config;
-use crate::middlewares::session;
 use anyhow::Context;
 use anyhow::Result;
 use axum::extract::Extension;
@@ -13,7 +12,6 @@ use axum::Router;
 use redis::Client;
 use sqlx::PgPool;
 use std::sync::Arc;
-use tower::ServiceBuilder;
 use tracing::debug;
 
 pub struct State {
@@ -28,10 +26,6 @@ async fn route(pg_pool: PgPool, redis_client: Client) -> Result<Router> {
         pg_pool,
         redis_client,
     });
-    //    let service = ServiceBuilder::new().layer(axum_extra::middleware::from_fn(
-    //        session::handler<_, RedisSessionStore, User>,
-    //    ));
-
     let app = Router::new()
         .route(
             "/api/register",
@@ -41,10 +35,7 @@ async fn route(pg_pool: PgPool, redis_client: Client) -> Result<Router> {
             "/api/login",
             post(self::api::account::login).put(self::api::account::login),
         )
-        //        .route(
-        //            "/api/account/:id",
-        //            get(self::api::account::get_by_id).delete(self::api::account::delete),
-        //        )
+        .route("/api/profile", get(self::api::account::profile))
         .layer(Extension(state));
     Ok(app)
 }

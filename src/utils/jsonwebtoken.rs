@@ -21,6 +21,7 @@ use std::time::UNIX_EPOCH;
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct Claims {
     pub email: String,
+    pub namespace: String,
     pub exp: u64,
 }
 

@@ -1,5 +1,11 @@
 mod fetcher;
-pub use fetcher::JWT_SECRET;
+use crate::utils::jsonwebtoken::Keys;
+use once_cell::sync::Lazy;
+
+pub static JWT_SECRET: Lazy<Keys> = Lazy::new(|| {
+    let secret = fetch::<String>("jwt_secret");
+    Keys::new(secret.as_bytes())
+});
 
 pub fn fetch<T>(flag: &str) -> T
 where
