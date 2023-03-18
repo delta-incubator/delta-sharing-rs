@@ -12,11 +12,11 @@ pub fn new(path: &str) -> Result<ServiceAccount> {
     info!("creating GCP service account");
     let sa = ServiceAccount::load_json_file(path)
         .context("failed to load GCP service account private key JSON")?;
-    info!("connected GCP service account");
+    info!("created GCP service account");
     Ok(sa)
 }
 
-fn signed_url(service_account: &ServiceAccount, bucket: &str, object: &str) -> Result<Url> {
+pub fn signed_url(service_account: &ServiceAccount, bucket: &str, object: &str) -> Result<Url> {
     let bucket = BucketName::try_from(bucket).context("failed to parse bucket name")?;
     let object = ObjectName::try_from(object).context("failed to parse object name")?;
     let signer = UrlSigner::with_ring();

@@ -12,7 +12,7 @@ use url::Url;
 pub fn new(path: &str, profile: &str) -> Result<ProfileProvider> {
     info!("creating AWS profile provider");
     let pp = ProfileProvider::with_configuration(path, profile);
-    info!("connected GCP service account");
+    info!("created AWS profile provider");
     Ok(pp)
 }
 

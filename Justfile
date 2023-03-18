@@ -22,6 +22,10 @@ testdb:
 docker:
     @docker compose -f devops/local/docker-compose.yaml up
 
+# Run server locally
+server:
+    @cargo run -- server
+
 # Build Kotosiro into a docker image for local use
 package:
     DOCKER_BUILDKIT=1 docker build . -t kotosiro-sharing:local -f devops/docker/Dockerfile

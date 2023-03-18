@@ -10,6 +10,7 @@ use axum::routing::post;
 use axum::routing::put;
 use axum::Router;
 use redis::Client;
+use rusoto_credential::ProfileProvider;
 use sqlx::PgPool;
 use std::sync::Arc;
 use tame_gcs::signing::ServiceAccount;
@@ -19,6 +20,7 @@ pub struct State {
     pub pg_pool: PgPool,
     pub redis_client: Client,
     pub gcp_service_account: ServiceAccount,
+    pub aws_profile_provider: ProfileProvider,
 }
 
 type SharedState = Arc<State>;
@@ -27,11 +29,13 @@ async fn route(
     pg_pool: PgPool,
     redis_client: Client,
     gcp_service_account: ServiceAccount,
+    aws_profile_provider: ProfileProvider,
 ) -> Result<Router> {
     let state = Arc::new(State {
         pg_pool,
         redis_client,
         gcp_service_account,
+        aws_profile_provider,
     });
     let app = Router::new()
         .route(
@@ -51,10 +55,16 @@ pub async fn bind(
     pg_pool: PgPool,
     redis_client: Client,
     gcp_service_account: ServiceAccount,
+    aws_profile_provider: ProfileProvider,
 ) -> Result<()> {
-    let app = route(pg_pool, redis_client, gcp_service_account)
-        .await
-        .context("failed to create axum router")?;
+    let app = route(
+        pg_pool,
+        redis_client,
+        gcp_service_account,
+        aws_profile_provider,
+    )
+    .await
+    .context("failed to create axum router")?;
     let server_bind = config::fetch::<String>("server_bind");
     let addr = server_bind.as_str().parse().context(format!(
         r#"failed to parse "{}" to SocketAddr"#,
