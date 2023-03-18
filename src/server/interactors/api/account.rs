@@ -1,23 +1,29 @@
+use crate::config::JWT_SECRET;
 use crate::error::Error;
 use crate::server::entities::account::Account;
-use crate::server::entities::account::AccountId;
+use crate::server::entities::account::AccountName;
 use crate::server::interactors::SharedState;
 use crate::server::services::account::AccountService;
+use crate::utils::argon2;
+use crate::utils::jsonwebtoken::expires_at;
+use crate::utils::jsonwebtoken::Claims;
 use crate::utils::postgres::has_conflict;
 use crate::utils::postgres::pg_error;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
-use axum::extract::Path;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
+use jsonwebtoken::encode;
+use jsonwebtoken::Header;
+use serde_json::json;
 use tracing::error;
 use tracing::info;
 use tracing::warn;
 
 #[derive(serde::Deserialize)]
-pub struct CreateJson {
+pub struct RegisterJson {
     id: Option<String>,
     name: String,
     email: String,
@@ -25,21 +31,27 @@ pub struct CreateJson {
     namespace: String,
 }
 
-pub async fn create(
+#[derive(serde::Deserialize)]
+pub struct LoginJson {
+    name: String,
+    password: String,
+}
+
+pub async fn register(
     Extension(state): Extension<SharedState>,
-    Json(payload): Json<CreateJson>,
+    Json(payload): Json<RegisterJson>,
 ) -> Result<Response, Error> {
     let id = payload.id.unwrap_or(uuid::Uuid::new_v4().to_string());
     let account = if let Ok(account) = Account::new(
         id,
         payload.name,
         payload.email,
-        payload.password,
+        argon2::hash(payload.password.as_bytes()).unwrap(),
         payload.namespace,
     ) {
         account
     } else {
-        error!("invalid account specification found");
+        error!("invalid account specification");
         return Err(Error::ValidationFailed);
     };
     match pg_error(AccountService::create(&state.pg_pool, &account).await)? {
@@ -59,29 +71,48 @@ pub async fn create(
     }
 }
 
-pub async fn delete(
+pub async fn login(
     Extension(state): Extension<SharedState>,
-    Path(id): Path<String>,
+    Json(payload): Json<LoginJson>,
 ) -> Result<Response, Error> {
-    let id = if let Ok(id) = AccountId::try_from(id) {
-        id
+    let name = if let Ok(name) = AccountName::new(payload.name) {
+        name
     } else {
-        error!("account id must be uuid v4");
-        return Err(Error::BadRequest);
+        error!("invalid account name");
+        return Err(Error::ValidationFailed);
     };
-    match pg_error(AccountService::delete(&state.pg_pool, &id).await)? {
-        Ok(done) => {
-            if done.rows_affected() == 1 {
-                info!(r#"deleted account id: "{}""#, id.as_uuid());
-                Ok(StatusCode::NO_CONTENT.into_response())
-            } else {
-                info!(r#"no account was found with id: "{}""#, id.as_uuid());
-                Ok(StatusCode::NOT_FOUND.into_response())
-            }
+    match AccountService::get_by_name(&state.pg_pool, &name).await? {
+        None => {
+            warn!("failed to authorize user");
+            return Err(Error::Unauthorized);
         }
-        Err(e) => {
-            warn!("failed to delete account: {}", e);
-            Err(anyhow!("Internal server error").into())
+        Some(row) => {
+            if let Err(_) = argon2::verify(payload.password.as_bytes(), row.password.as_str()) {
+                warn!("failed to authorize user");
+                return Err(Error::Unauthorized);
+            }
+            let expiry = if let Ok(expiry) = expires_at() {
+                expiry
+            } else {
+                error!("failed to create JWT expiration date");
+                return Err(anyhow!("Internal server error").into());
+            };
+            let claims = Claims {
+                email: row.email.to_owned(),
+                exp: expiry,
+            };
+            let token = if let Ok(token) = encode(&Header::default(), &claims, &JWT_SECRET.encoding)
+            {
+                token
+            } else {
+                error!("failed to create JWT token");
+                return Err(anyhow!("Internal server error").into());
+            };
+            Ok((
+                StatusCode::OK,
+                Json(json!({ "access_token": token, "type": "Bearer" })),
+            )
+                .into_response())
         }
     }
 }

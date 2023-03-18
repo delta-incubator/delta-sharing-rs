@@ -34,8 +34,12 @@ async fn route(pg_pool: PgPool, redis_client: Client) -> Result<Router> {
 
     let app = Router::new()
         .route(
-            "/api/account",
-            post(self::api::account::create).put(self::api::account::create),
+            "/api/register",
+            post(self::api::account::register).put(self::api::account::register),
+        )
+        .route(
+            "/api/login",
+            post(self::api::account::login).put(self::api::account::login),
         )
         //        .route(
         //            "/api/account/:id",
