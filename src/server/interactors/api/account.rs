@@ -3,7 +3,6 @@ use crate::error::Error;
 use crate::server::entities::account::Account;
 use crate::server::entities::account::AccountName;
 use crate::server::interactors::SharedState;
-use crate::server::services::account::AccountService;
 use crate::utils::argon2;
 use crate::utils::jwt::expires_at;
 use crate::utils::jwt::Claims;
@@ -41,9 +40,8 @@ pub async fn register(
     Extension(state): Extension<SharedState>,
     Json(payload): Json<RegisterJson>,
 ) -> Result<Response, Error> {
-    let id = payload.id.unwrap_or(uuid::Uuid::new_v4().to_string());
     let account = if let Ok(account) = Account::new(
-        id,
+        payload.id,
         payload.name,
         payload.email,
         argon2::hash(payload.password.as_bytes()).unwrap(),
@@ -54,7 +52,7 @@ pub async fn register(
         error!("failed to validate account");
         return Err(Error::ValidationFailed);
     };
-    match pg_error(AccountService::create(&state.pg_pool, &account).await)? {
+    match pg_error(account.register(&state.pg_pool).await)? {
         Ok(_) => {
             info!(
                 r#"updated account id: "{}" name: "{}""#,
@@ -81,41 +79,38 @@ pub async fn login(
         error!("failed to validate account name");
         return Err(Error::ValidationFailed);
     };
-    match AccountService::get_by_name(&state.pg_pool, &name).await? {
-        None => {
-            warn!("failed to authorize account, no accuont found");
-            return Err(Error::Unauthorized);
-        }
-        Some(row) => {
-            if let Err(_) = argon2::verify(payload.password.as_bytes(), row.password.as_str()) {
-                warn!("failed to authorize account, password did not match");
-                return Err(Error::Unauthorized);
-            }
-            let expiry = if let Ok(expiry) = expires_at() {
-                expiry
-            } else {
-                error!("failed to create JWT expiry");
-                return Err(anyhow!("Setting expiration date in the past").into());
-            };
-            let claims = Claims {
-                email: row.email.to_owned(),
-                namespace: row.namespace.to_owned(),
-                exp: expiry,
-            };
-            let token = if let Ok(token) = encode(&Header::default(), &claims, &JWT_SECRET.encoding)
-            {
-                token
-            } else {
-                error!("failed to create JWT token");
-                return Err(anyhow!("JWT creation failed").into());
-            };
-            Ok((
-                StatusCode::OK,
-                Json(json!({ "access_token": token, "type": "Bearer" })),
-            )
-                .into_response())
-        }
+    let account = if let Some(account) = Account::find_by_name(&name, &state.pg_pool).await? {
+        account
+    } else {
+        warn!("failed to authorize account, no account found");
+        return Err(Error::Unauthorized);
+    };
+    if let Err(_) = account.verify(payload.password.as_bytes()) {
+        warn!("failed to authorize account, password did not match");
+        return Err(Error::Unauthorized);
     }
+    let expiry = if let Ok(expiry) = expires_at() {
+        expiry
+    } else {
+        error!("failed to create JWT expiry");
+        return Err(anyhow!("Setting expiration date in the past").into());
+    };
+    let claims = Claims {
+        email: account.email().to_string(),
+        namespace: account.namespace().to_string(),
+        exp: expiry,
+    };
+    let token = if let Ok(token) = encode(&Header::default(), &claims, &JWT_SECRET.encoding) {
+        token
+    } else {
+        error!("failed to create JWT token");
+        return Err(anyhow!("JWT creation failed").into());
+    };
+    Ok((
+        StatusCode::OK,
+        Json(json!({ "access_token": token, "type": "Bearer" })),
+    )
+        .into_response())
 }
 
 pub async fn profile(claims: Claims) -> Result<Response, Error> {

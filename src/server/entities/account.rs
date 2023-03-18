@@ -1,8 +1,13 @@
 use crate::impl_string_property;
 use crate::impl_uuid_property;
+use crate::server::repositories::account::AccountRepository;
+use crate::server::repositories::account::PgAccountRepository;
+use crate::utils::argon2;
 use anyhow::Result;
 use getset::Getters;
 use getset::Setters;
+use sqlx::postgres::PgQueryResult;
+use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -61,19 +66,58 @@ pub struct Account {
 
 impl Account {
     pub fn new(
-        id: String,
+        id: impl Into<Option<String>>,
         name: String,
         email: String,
         password: String,
         namespace: String,
     ) -> Result<Self> {
         Ok(Self {
-            id: AccountId::try_from(id)?,
+            id: AccountId::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
             name: AccountName::new(name)?,
             email: AccountEmail::new(email)?,
             password: AccountPassword::new(password)?,
             namespace: AccountNamespace::new(namespace)?,
         })
+    }
+
+    pub async fn find_by_id(id: &AccountId, pg_pool: &PgPool) -> Result<Option<Self>> {
+        let repo = PgAccountRepository;
+        match repo.select_by_id(&id, pg_pool).await? {
+            Some(row) => Ok(Self {
+                id: AccountId::new(row.id),
+                name: AccountName::new(row.name)?,
+                email: AccountEmail::new(row.email)?,
+                password: AccountPassword::new(row.password)?,
+                namespace: AccountNamespace::new(row.namespace)?,
+            }
+            .into()),
+            _ => Ok(None),
+        }
+    }
+
+    pub async fn find_by_name(name: &AccountName, pg_pool: &PgPool) -> Result<Option<Self>> {
+        let repo = PgAccountRepository;
+        match repo.select_by_name(&name, pg_pool).await? {
+            Some(row) => Ok(Self {
+                id: AccountId::new(row.id),
+                name: AccountName::new(row.name)?,
+                email: AccountEmail::new(row.email)?,
+                password: AccountPassword::new(row.password)?,
+                namespace: AccountNamespace::new(row.namespace)?,
+            }
+            .into()),
+            _ => Ok(None),
+        }
+    }
+
+    pub async fn register(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
+        let repo = PgAccountRepository;
+        repo.upsert(&self, pg_pool).await
+    }
+
+    pub fn verify(&self, password: &[u8]) -> Result<()> {
+        argon2::verify(password.into(), self.password().as_str())
     }
 }
 

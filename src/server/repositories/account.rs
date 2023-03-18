@@ -24,7 +24,7 @@ pub struct AccountRow {
 
 #[async_trait]
 pub trait AccountRepository: Send + Sync + 'static {
-    async fn create(
+    async fn upsert(
         &self,
         account: &Account,
         executor: impl PgAcquire<'_> + 'async_trait,
@@ -36,13 +36,13 @@ pub trait AccountRepository: Send + Sync + 'static {
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<PgQueryResult>;
 
-    async fn get_by_id(
+    async fn select_by_id(
         &self,
         id: &AccountId,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<Option<AccountRow>>;
 
-    async fn get_by_name(
+    async fn select_by_name(
         &self,
         name: &AccountName,
         executor: impl PgAcquire<'_> + 'async_trait,
@@ -53,7 +53,7 @@ pub struct PgAccountRepository;
 
 #[async_trait]
 impl AccountRepository for PgAccountRepository {
-    async fn create(
+    async fn upsert(
         &self,
         account: &Account,
         executor: impl PgAcquire<'_> + 'async_trait,
@@ -112,7 +112,7 @@ impl AccountRepository for PgAccountRepository {
         ))
     }
 
-    async fn get_by_id(
+    async fn select_by_id(
         &self,
         id: &AccountId,
         executor: impl PgAcquire<'_> + 'async_trait,
@@ -143,7 +143,7 @@ impl AccountRepository for PgAccountRepository {
         Ok(row)
     }
 
-    async fn get_by_name(
+    async fn select_by_name(
         &self,
         name: &AccountName,
         executor: impl PgAcquire<'_> + 'async_trait,
@@ -183,7 +183,7 @@ mod tests {
     use sqlx::PgConnection;
     use sqlx::PgPool;
 
-    async fn create_account(tx: &mut PgConnection) -> Result<Account> {
+    async fn upsert_account(tx: &mut PgConnection) -> Result<Account> {
         let repo = PgAccountRepository;
         let account = Account::new(
             testutils::rand::uuid(),
@@ -192,8 +192,8 @@ mod tests {
             testutils::rand::string(10),
             testutils::rand::string(10),
         )
-        .context("failed to create account")?;
-        repo.create(&account, tx)
+        .context("failed to upsert account")?;
+        repo.upsert(&account, tx)
             .await
             .context("failed to insert account")?;
         Ok(account)
@@ -201,17 +201,17 @@ mod tests {
 
     #[sqlx::test]
     #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
-    async fn test_create_and_get_by_id(pool: PgPool) -> Result<()> {
+    async fn test_upsert_and_select_by_id(pool: PgPool) -> Result<()> {
         let repo = PgAccountRepository;
         let mut tx = pool
             .begin()
             .await
             .expect("transaction should be started properly");
-        let account = create_account(&mut tx)
+        let account = upsert_account(&mut tx)
             .await
-            .expect("new account should be created");
+            .expect("new account should be upserted");
         let fetched = repo
-            .get_by_id(&account.id(), &mut tx)
+            .select_by_id(&account.id(), &mut tx)
             .await
             .expect("inserted account should be found");
         if let Some(fetched) = fetched {
@@ -231,17 +231,17 @@ mod tests {
 
     #[sqlx::test]
     #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
-    async fn test_create_and_get_by_name(pool: PgPool) -> Result<()> {
+    async fn test_upsert_and_select_by_name(pool: PgPool) -> Result<()> {
         let repo = PgAccountRepository;
         let mut tx = pool
             .begin()
             .await
             .expect("transaction should be started properly");
-        let account = create_account(&mut tx)
+        let account = upsert_account(&mut tx)
             .await
-            .expect("new account should be created");
+            .expect("new account should be upserted");
         let fetched = repo
-            .get_by_name(&account.name(), &mut tx)
+            .select_by_name(&account.name(), &mut tx)
             .await
             .expect("inserted account should be found");
         if let Some(fetched) = fetched {
