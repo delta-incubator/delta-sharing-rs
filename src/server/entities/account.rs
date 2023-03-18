@@ -76,7 +76,7 @@ impl Account {
             id: AccountId::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
             name: AccountName::new(name)?,
             email: AccountEmail::new(email)?,
-            password: AccountPassword::new(password)?,
+            password: AccountPassword::new(argon2::hash(password.as_bytes()).unwrap())?,
             namespace: AccountNamespace::new(namespace)?,
         })
     }

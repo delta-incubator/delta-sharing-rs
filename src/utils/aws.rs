@@ -6,6 +6,7 @@ use rusoto_credential::ProvideAwsCredentials;
 use rusoto_s3::util::PreSignedRequest;
 use rusoto_s3::util::PreSignedRequestOption;
 use rusoto_s3::GetObjectRequest;
+use std::time::Duration;
 use tracing::info;
 use url::Url;
 
@@ -20,18 +21,22 @@ pub async fn signed_url(
     profile_provider: &ProfileProvider,
     bucket: &str,
     object: &str,
+    duration: &u64,
 ) -> Result<Url> {
     let credentials = profile_provider
         .credentials()
         .await
         .context("failed to acquire AWS credentials")?;
     let region = Region::default();
+    let options = PreSignedRequestOption {
+        expires_in: Duration::from_secs(*duration),
+    };
     let request = GetObjectRequest {
         bucket: bucket.to_string(),
         key: object.to_string(),
         ..Default::default()
     };
-    let url = request.get_presigned_url(&region, &credentials, &PreSignedRequestOption::default());
+    let url = request.get_presigned_url(&region, &credentials, &options);
     let url = Url::parse(&url).context("failed to parse AWS signed URL")?;
     Ok(url)
 }
@@ -50,17 +55,5 @@ mod tests {
             ),
             Ok(_)
         ));
-    }
-
-    //#[tokio::test]
-    async fn test_signed_url_local() {
-        if let Ok(pp) = new(
-            &config::fetch::<String>("aws_credentials"),
-            &config::fetch::<String>("aws_profile"),
-        ) {
-            if let Ok(url) = signed_url(&pp, "kotosiro-sharing-test", "sample.txt").await {
-                println!("{:?}", url);
-            }
-        }
     }
 }

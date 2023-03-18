@@ -1,5 +1,4 @@
 pub mod account;
-pub mod signed_url;
 
 #[macro_export]
 macro_rules! impl_bool_property {
@@ -262,41 +261,6 @@ macro_rules! impl_i64_property {
                 S: serde::Serializer,
             {
                 <i64 as serde::Serialize>::serialize(&self.value, serializer)
-            }
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! impl_u64_property {
-    ( $type:tt ) => {
-        impl $type {
-            pub fn new<I>(value: I) -> anyhow::Result<Self>
-            where
-                I: Into<u64>,
-            {
-                let object = Self {
-                    value: value.into(),
-                };
-                object.validate()?;
-                Ok(object)
-            }
-
-            pub fn as_u64(&self) -> &u64 {
-                &self.value
-            }
-
-            pub fn to_u64(&self) -> u64 {
-                self.value
-            }
-        }
-
-        impl serde::Serialize for $type {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: serde::Serializer,
-            {
-                <u64 as serde::Serialize>::serialize(&self.value, serializer)
             }
         }
     };

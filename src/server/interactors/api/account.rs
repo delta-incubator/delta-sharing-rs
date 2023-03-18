@@ -3,7 +3,6 @@ use crate::error::Error;
 use crate::server::entities::account::Account;
 use crate::server::entities::account::AccountName;
 use crate::server::interactors::SharedState;
-use crate::utils::argon2;
 use crate::utils::jwt::expires_at;
 use crate::utils::jwt::Claims;
 use crate::utils::postgres::has_conflict;
@@ -44,7 +43,7 @@ pub async fn register(
         payload.id,
         payload.name,
         payload.email,
-        argon2::hash(payload.password.as_bytes()).unwrap(),
+        payload.password,
         payload.namespace,
     ) {
         account
