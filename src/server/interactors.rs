@@ -1,5 +1,5 @@
+pub mod admin;
 pub mod api;
-pub mod internal;
 use crate::config;
 use anyhow::Context;
 use anyhow::Result;
@@ -39,14 +39,11 @@ async fn route(
     });
     let app = Router::new()
         .route(
-            "/api/register",
-            post(self::api::account::register).put(self::api::account::register),
+            "/admin/api/auth/register",
+            post(self::admin::api::auth::register).put(self::admin::api::auth::register),
         )
-        .route(
-            "/api/login",
-            post(self::api::account::login).put(self::api::account::login),
-        )
-        .route("/api/profile", get(self::api::account::profile))
+        .route("/admin/api/auth/login", post(self::admin::api::auth::login))
+        .route("/api/user/profile", get(self::api::user::profile))
         .layer(Extension(state));
     Ok(app)
 }

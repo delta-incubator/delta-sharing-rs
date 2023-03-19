@@ -18,16 +18,7 @@ pub trait PgAcquire<'c>: Acquire<'c, Database = Postgres> + Send {}
 
 impl<'c, T> PgAcquire<'c> for T where T: Acquire<'c, Database = Postgres> + Send {}
 
-pub async fn connect(url: &str) -> Result<PgPool> {
-    info!("connecting to database");
-    let pool = PgPool::connect(&url)
-        .await
-        .context("failed to acquire postgres connection")?;
-    sqlx::migrate!("./migrations")
-        .run(&pool)
-        .await
-        .context("failed to migrate postgres")?;
-    trace!("schema created");
+async fn create_admin(pool: &PgPool) -> Result<()> {
     let admin = if let Ok(admin) = Account::new(
         None,
         config::fetch::<String>("admin_name"),
@@ -38,7 +29,7 @@ pub async fn connect(url: &str) -> Result<PgPool> {
         admin
     } else {
         error!("failed to validate admin account");
-        return Err(anyhow!("failed to create admin account"));
+        return Err(anyhow!("failed to validate admin account"));
     };
     match pg_error(admin.register(&pool).await)? {
         Ok(_) => {
@@ -47,15 +38,32 @@ pub async fn connect(url: &str) -> Result<PgPool> {
                 admin.id().as_uuid(),
                 admin.name().as_str()
             );
+            Ok(())
         }
         Err(e) if has_conflict(&e) => {
-            warn!("failed to update admin account: {}", e);
+            warn!("confliction occured while creating admin account: {}", e);
+            Ok(())
         }
-        _ => {
-            error!("failed to create admin account");
-            return Err(anyhow!("failed to create admin account"));
+        Err(e) => {
+            error!("unknown error occured while creating admin account: {}", e);
+            Err(anyhow!("failed to create admin account"))
         }
     }
+}
+
+pub async fn connect(url: &str) -> Result<PgPool> {
+    info!("connecting to database");
+    let pool = PgPool::connect(&url)
+        .await
+        .context("failed to acquire postgres connection")?;
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .context("failed to migrate postgres")?;
+    trace!("schema created");
+    create_admin(&pool)
+        .await
+        .context("failed to create admin account")?;
     trace!("admin account created");
     info!("connected to database");
     Ok(pool)

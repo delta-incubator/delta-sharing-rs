@@ -36,9 +36,20 @@ pub struct LoginJson {
 }
 
 pub async fn register(
+    claims: Claims,
     Extension(state): Extension<SharedState>,
     Json(payload): Json<RegisterJson>,
 ) -> Result<Response, Error> {
+    let name = if let Ok(name) = AccountName::new(claims.name) {
+        name
+    } else {
+        error!("failed to validate admin account name");
+        return Err(Error::ValidationFailed);
+    };
+    if None == Account::find_by_name(&name, &state.pg_pool).await? {
+        warn!("failed to authorize admin account");
+        return Err(Error::Unauthorized);
+    };
     let account = if let Ok(account) = Account::new(
         payload.id,
         payload.name,
@@ -48,20 +59,28 @@ pub async fn register(
     ) {
         account
     } else {
-        error!("failed to validate account");
+        error!("failed to validate new admin account");
         return Err(Error::ValidationFailed);
     };
     match pg_error(account.register(&state.pg_pool).await)? {
         Ok(_) => {
             info!(
-                r#"updated account id: "{}" name: "{}""#,
+                r#"updated admin account id: "{}" name: "{}""#,
                 account.id().as_uuid(),
                 account.name().as_str()
             );
-            Ok((StatusCode::CREATED, Json(account)).into_response())
+            Ok((
+                StatusCode::CREATED,
+                Json(json!({
+                    "name": account.name(),
+                    "email": account.email(),
+                    "namespace": account.namespace()
+                })),
+            )
+                .into_response())
         }
         Err(e) if has_conflict(&e) => {
-            warn!("failed to update account: {}", e);
+            warn!("failed to update admin account: {}", e);
             Err(Error::Conflict)
         }
         _ => Err(anyhow!("Unknown error").into()),
@@ -75,17 +94,17 @@ pub async fn login(
     let name = if let Ok(name) = AccountName::new(payload.name) {
         name
     } else {
-        error!("failed to validate account name");
+        error!("failed to validate admin account name");
         return Err(Error::ValidationFailed);
     };
-    let account = if let Some(account) = Account::find_by_name(&name, &state.pg_pool).await? {
-        account
+    let admin = if let Some(admin) = Account::find_by_name(&name, &state.pg_pool).await? {
+        admin
     } else {
-        warn!("failed to authorize account, no account found");
+        warn!("failed to authorize admin account");
         return Err(Error::Unauthorized);
     };
-    if let Err(_) = account.verify(payload.password.as_bytes()) {
-        warn!("failed to authorize account, password did not match");
+    if let Err(_) = admin.verify(payload.password.as_bytes()) {
+        warn!("password did not match");
         return Err(Error::Unauthorized);
     }
     let expiry = if let Ok(expiry) = expires_at() {
@@ -95,8 +114,9 @@ pub async fn login(
         return Err(anyhow!("Setting expiration date in the past").into());
     };
     let claims = Claims {
-        email: account.email().to_string(),
-        namespace: account.namespace().to_string(),
+        name: admin.name().to_string(),
+        email: admin.email().to_string(),
+        namespace: admin.namespace().to_string(),
         exp: expiry,
     };
     let token = if let Ok(token) = encode(&Header::default(), &claims, &JWT_SECRET.encoding) {
@@ -108,14 +128,6 @@ pub async fn login(
     Ok((
         StatusCode::OK,
         Json(json!({ "access_token": token, "type": "Bearer" })),
-    )
-        .into_response())
-}
-
-pub async fn profile(claims: Claims) -> Result<Response, Error> {
-    Ok((
-        StatusCode::OK,
-        Json(json!({ "email": claims.email, "namespace": claims.namespace })),
     )
         .into_response())
 }
