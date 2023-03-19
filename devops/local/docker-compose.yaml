@@ -2,13 +2,22 @@ version: "3.9"
 services:
   postgres:
     image: postgres:alpine
+    restart: always
     environment:
       - POSTGRES_DB=kotosiro_sharing
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret
     ports:
-      - "5432:5432"
+      - 5432:5432
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
   redis:
     image: redis:7-alpine
+    restart: always
     ports:
-      - "6379:6379"
+      - 6379:6379

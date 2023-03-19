@@ -185,6 +185,10 @@ mod tests {
         assert!(matches!(config.get::<String>("kvs_url"), Ok(_)));
         assert!(matches!(config.get::<String>("server_addr"), Ok(_)));
         assert!(matches!(config.get::<String>("server_bind"), Ok(_)));
+        assert!(matches!(config.get::<String>("admin_name"), Ok(_)));
+        assert!(matches!(config.get::<String>("admin_email"), Ok(_)));
+        assert!(matches!(config.get::<String>("admin_password"), Ok(_)));
+        assert!(matches!(config.get::<String>("admin_namespace"), Ok(_)));
         assert!(matches!(config.get::<String>("jwt_secret"), Ok(_)));
         assert!(matches!(config.get::<u64>("jwt_expiration_sec"), Ok(_)));
         assert!(matches!(config.get::<String>("gcp_sa_private_key"), Ok(_)));
