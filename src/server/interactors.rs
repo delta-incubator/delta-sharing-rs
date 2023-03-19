@@ -43,6 +43,10 @@ async fn route(
             post(self::admin::api::auth::register).put(self::admin::api::auth::register),
         )
         .route("/admin/api/auth/login", post(self::admin::api::auth::login))
+        .route(
+            "/admin/api/auth/accounts",
+            get(self::admin::api::auth::list),
+        )
         .route("/api/user/profile", get(self::api::user::profile))
         .layer(Extension(state));
     Ok(app)

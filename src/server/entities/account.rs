@@ -58,6 +58,7 @@ pub struct Account {
     name: AccountName,
     #[getset(get = "pub", set = "pub")]
     email: AccountEmail,
+    #[serde(skip_serializing)]
     #[getset(get = "pub", set = "pub")]
     password: AccountPassword,
     #[getset(get = "pub", set = "pub")]
@@ -79,6 +80,26 @@ impl Account {
             password: AccountPassword::new(argon2::hash(password.as_bytes()).unwrap())?,
             namespace: AccountNamespace::new(namespace)?,
         })
+    }
+
+    pub async fn list(
+        limit: impl Into<Option<&i64>> + Send,
+        offset: impl Into<Option<&i64>> + Send,
+        pg_pool: &PgPool,
+    ) -> Result<Vec<Self>> {
+        let repo = PgAccountRepository;
+        let rows = repo.select(limit.into(), offset.into(), pg_pool).await?;
+        rows.into_iter()
+            .map(|row| {
+                Self::new(
+                    row.id.to_string(),
+                    row.name,
+                    row.email,
+                    row.password,
+                    row.namespace,
+                )
+            })
+            .collect()
     }
 
     pub async fn find_by_id(id: &AccountId, pg_pool: &PgPool) -> Result<Option<Self>> {

@@ -15,7 +15,6 @@ pub struct AccountRow {
     pub id: Uuid,
     pub name: String,
     pub email: String,
-    #[serde(skip_serializing)]
     pub password: String,
     pub namespace: String,
     pub created_at: DateTime<Utc>,
@@ -35,6 +34,13 @@ pub trait AccountRepository: Send + Sync + 'static {
         id: &AccountId,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<PgQueryResult>;
+
+    async fn select(
+        &self,
+        limit: Option<&i64>,
+        offset: Option<&i64>,
+        executor: impl PgAcquire<'_> + 'async_trait,
+    ) -> Result<Vec<AccountRow>>;
 
     async fn select_by_id(
         &self,
@@ -112,6 +118,42 @@ impl AccountRepository for PgAccountRepository {
         ))
     }
 
+    async fn select(
+        &self,
+        limit: Option<&i64>,
+        offset: Option<&i64>,
+        executor: impl PgAcquire<'_> + 'async_trait,
+    ) -> Result<Vec<AccountRow>> {
+        let limit = limit.unwrap_or(&10);
+        let offset = offset.unwrap_or(&0);
+        let mut conn = executor
+            .acquire()
+            .await
+            .context("failed to acquire postgres connection")?;
+        let rows: Vec<AccountRow> = sqlx::query_as::<_, AccountRow>(
+            "SELECT
+                 id,
+                 name,
+                 email,
+                 password,
+                 namespace,
+                 created_at,
+                 updated_at
+             FROM account
+             ORDER BY created_at DESC
+             LIMIT $1 OFFSET $2",
+        )
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&mut *conn)
+        .await
+        .context(format!(
+            "failed to list {} account(s) from [account]",
+            limit
+        ))?;
+        Ok(rows)
+    }
+
     async fn select_by_id(
         &self,
         id: &AccountId,
@@ -182,6 +224,7 @@ mod tests {
     use anyhow::Result;
     use sqlx::PgConnection;
     use sqlx::PgPool;
+    use std::cmp::min;
 
     async fn upsert_account(tx: &mut PgConnection) -> Result<Account> {
         let repo = PgAccountRepository;
@@ -197,6 +240,57 @@ mod tests {
             .await
             .context("failed to insert account")?;
         Ok(account)
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_select_with_default_limit(pool: PgPool) -> Result<()> {
+        let repo = PgAccountRepository;
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let records = testutils::rand::i64(0, 20);
+        for _ in 0..records {
+            upsert_account(&mut tx)
+                .await
+                .expect("new account should be created");
+        }
+        let fetched = repo
+            .select(None, None, &mut tx)
+            .await
+            .expect("inserted account should be listed");
+        assert_eq!(min(records, 10) as usize, fetched.len());
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_select_with_specified_limit(pool: PgPool) -> Result<()> {
+        let repo = PgAccountRepository;
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let records = testutils::rand::i64(0, 20);
+        for _ in 0..records {
+            upsert_account(&mut tx)
+                .await
+                .expect("new account should be created");
+        }
+        let limit = testutils::rand::i64(0, 20);
+        let fetched = repo
+            .select(Some(&limit), None, &mut tx)
+            .await
+            .expect("inserted account should be listed");
+        assert_eq!(min(records, limit) as usize, fetched.len());
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
     }
 
     #[sqlx::test]

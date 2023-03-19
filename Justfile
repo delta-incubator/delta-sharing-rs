@@ -2,6 +2,10 @@
 help:
     @just --list
 
+# Conduct a rust checking
+check:
+    @cargo check
+
 # Conduct a full release build
 build:
     @# This causes cargo to have to rebuild the binary,

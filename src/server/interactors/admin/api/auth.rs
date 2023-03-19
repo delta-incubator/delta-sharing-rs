@@ -10,6 +10,7 @@ use crate::utils::postgres::pg_error;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
+use axum::extract::Query;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
@@ -33,6 +34,12 @@ pub struct RegisterJson {
 pub struct LoginJson {
     name: String,
     password: String,
+}
+
+#[derive(serde::Deserialize)]
+pub struct ListQuery {
+    page: Option<i64>,
+    results: Option<i64>,
 }
 
 pub async fn register(
@@ -69,15 +76,7 @@ pub async fn register(
                 account.id().as_uuid(),
                 account.name().as_str()
             );
-            Ok((
-                StatusCode::CREATED,
-                Json(json!({
-                    "name": account.name(),
-                    "email": account.email(),
-                    "namespace": account.namespace()
-                })),
-            )
-                .into_response())
+            Ok((StatusCode::CREATED, Json(account)).into_response())
         }
         Err(e) if has_conflict(&e) => {
             warn!("failed to update admin account: {}", e);
@@ -130,4 +129,26 @@ pub async fn login(
         Json(json!({ "access_token": token, "type": "Bearer" })),
     )
         .into_response())
+}
+
+pub async fn list(
+    claims: Claims,
+    Extension(state): Extension<SharedState>,
+    query: Query<ListQuery>,
+) -> Result<Response, Error> {
+    let name = if let Ok(name) = AccountName::new(claims.name) {
+        name
+    } else {
+        error!("failed to validate admin account name");
+        return Err(Error::ValidationFailed);
+    };
+    if None == Account::find_by_name(&name, &state.pg_pool).await? {
+        warn!("failed to authorize admin account");
+        return Err(Error::Unauthorized);
+    };
+    let limit = query.results.unwrap_or(10);
+    let page = query.page.unwrap_or(0);
+    let offset = limit * page;
+    let accounts = Account::list(&limit, &offset, &state.pg_pool).await?;
+    Ok((StatusCode::OK, Json(accounts)).into_response())
 }
