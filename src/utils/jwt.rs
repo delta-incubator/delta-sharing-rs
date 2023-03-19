@@ -14,6 +14,7 @@ use jsonwebtoken::decode;
 use jsonwebtoken::DecodingKey;
 use jsonwebtoken::EncodingKey;
 use jsonwebtoken::Validation;
+use std::str::FromStr;
 use std::time::Duration;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
@@ -23,7 +24,18 @@ pub struct Claims {
     pub name: String,
     pub email: String,
     pub namespace: String,
+    pub role: Role,
     pub exp: u64,
+}
+
+#[derive(PartialEq, Eq, serde::Deserialize, serde::Serialize, strum_macros::EnumString)]
+pub enum Role {
+    #[strum(ascii_case_insensitive)]
+    #[serde(rename = "admin")]
+    Admin,
+    #[strum(ascii_case_insensitive)]
+    #[serde(rename = "guest")]
+    Guest,
 }
 
 pub struct Keys {
@@ -48,6 +60,16 @@ pub fn expires_at() -> Result<u64> {
     Ok(expiry.as_secs())
 }
 
+fn required_role_of(path: &str) -> Role {
+    let path = path.trim_start_matches("/");
+    let path = path.split("/").next().unwrap_or("");
+    if let Ok(role) = Role::from_str(path) {
+        role
+    } else {
+        Role::Guest
+    }
+}
+
 #[async_trait]
 impl<B> FromRequestParts<B> for Claims
 where
@@ -68,7 +90,14 @@ where
                 let jwt =
                     decode::<Claims>(bearer.token(), &JWT_SECRET.decoding, &Validation::default())
                         .map_err(|_| Error::Unauthorized)?;
-                Ok(jwt.claims)
+                let required_role = required_role_of(&parts.uri.path());
+                if required_role == Role::Guest {
+                    return Ok(jwt.claims);
+                }
+                if jwt.claims.role == Role::Guest {
+                    return Err(Error::Unauthorized);
+                }
+                return Ok(jwt.claims);
             }
             _ => Err(Error::Unauthorized),
         }
