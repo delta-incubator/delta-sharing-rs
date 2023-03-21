@@ -109,6 +109,7 @@ mod tests {
             String::from("share"),
             String::from("table"),
             String::from("schema"),
+            String::from("token"),
         ]
         .iter()
         .cloned()

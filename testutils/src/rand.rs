@@ -31,7 +31,7 @@ pub fn usize(upper: usize) -> usize {
 
 pub fn bool() -> bool {
     let mut rng = rand::thread_rng();
-    rng.gen_range(0..CHARSET.len()) % 2 == 0
+    rng.gen_range(0..1) % 2 == 0
 }
 
 pub fn string(length: usize) -> String {
@@ -81,11 +81,11 @@ pub fn uuid() -> String {
     Uuid::new_v4().to_string()
 }
 
-pub fn choice<T>(candidates: &Vec<T>) -> &T {
+pub fn choose<T>(candidates: &Vec<T>) -> &T {
     &candidates[self::usize(candidates.len())]
 }
 
-pub fn choose<T>(value: T) -> Option<T> {
+pub fn or_none<T>(value: T) -> Option<T> {
     let mut rng = rand::thread_rng();
     if rng.gen_range(0..1) % 2 == 0 {
         Some(value)

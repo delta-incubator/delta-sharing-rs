@@ -249,8 +249,8 @@ mod tests {
         for _ in 0..records {
             upsert_schema(
                 account.id(),
-                testutils::rand::choose(table.id()),
-                testutils::rand::choose(share.id()),
+                testutils::rand::or_none(table.id()),
+                testutils::rand::or_none(share.id()),
                 &mut tx,
             )
             .await
@@ -288,8 +288,8 @@ mod tests {
         for _ in 0..records {
             upsert_schema(
                 account.id(),
-                testutils::rand::choose(table.id()),
-                testutils::rand::choose(share.id()),
+                testutils::rand::or_none(table.id()),
+                testutils::rand::or_none(share.id()),
                 &mut tx,
             )
             .await
