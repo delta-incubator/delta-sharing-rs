@@ -104,10 +104,14 @@ mod tests {
         let docker = clients::Cli::default();
         docker.run(postgres::Postgres::default());
         let url = "postgres://postgres:secret@127.0.0.1:5432";
-        let expected: HashSet<_> = [String::from("account"), String::from("share")]
-            .iter()
-            .cloned()
-            .collect();
+        let expected: HashSet<_> = [
+            String::from("account"),
+            String::from("share"),
+            String::from("table"),
+        ]
+        .iter()
+        .cloned()
+        .collect();
         let pool = connect(&url)
             .await
             .expect("connection should be established");

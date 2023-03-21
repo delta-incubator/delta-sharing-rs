@@ -23,18 +23,18 @@ use tracing::info;
 use tracing::warn;
 
 #[derive(serde::Deserialize)]
+pub struct LoginJson {
+    name: String,
+    password: String,
+}
+
+#[derive(serde::Deserialize)]
 pub struct RegisterJson {
     id: Option<String>,
     name: String,
     email: String,
     password: String,
     namespace: String,
-}
-
-#[derive(serde::Deserialize)]
-pub struct LoginJson {
-    name: String,
-    password: String,
 }
 
 #[derive(serde::Deserialize)]
