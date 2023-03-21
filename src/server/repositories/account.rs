@@ -1,6 +1,6 @@
-use crate::server::entities::account::Account;
-use crate::server::entities::account::AccountId;
-use crate::server::entities::account::AccountName;
+use crate::server::entities::account::Entity;
+use crate::server::entities::account::Id;
+use crate::server::entities::account::Name;
 use crate::utils::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
@@ -11,7 +11,7 @@ use sqlx::postgres::PgQueryResult;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, serde::Serialize, sqlx::FromRow)]
-pub struct AccountRow {
+pub struct Row {
     pub id: Uuid,
     pub name: String,
     pub email: String,
@@ -22,16 +22,16 @@ pub struct AccountRow {
 }
 
 #[async_trait]
-pub trait AccountRepository: Send + Sync + 'static {
+pub trait Repository: Send + Sync + 'static {
     async fn upsert(
         &self,
-        account: &Account,
+        account: &Entity,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<PgQueryResult>;
 
     async fn delete(
         &self,
-        id: &AccountId,
+        id: &Id,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<PgQueryResult>;
 
@@ -40,28 +40,28 @@ pub trait AccountRepository: Send + Sync + 'static {
         limit: Option<&i64>,
         offset: Option<&i64>,
         executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Vec<AccountRow>>;
+    ) -> Result<Vec<Row>>;
 
     async fn select_by_id(
         &self,
-        id: &AccountId,
+        id: &Id,
         executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Option<AccountRow>>;
+    ) -> Result<Option<Row>>;
 
     async fn select_by_name(
         &self,
-        name: &AccountName,
+        name: &Name,
         executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Option<AccountRow>>;
+    ) -> Result<Option<Row>>;
 }
 
-pub struct PgAccountRepository;
+pub struct PgRepository;
 
 #[async_trait]
-impl AccountRepository for PgAccountRepository {
+impl Repository for PgRepository {
     async fn upsert(
         &self,
-        account: &Account,
+        account: &Entity,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<PgQueryResult> {
         let mut conn = executor
@@ -98,7 +98,7 @@ impl AccountRepository for PgAccountRepository {
 
     async fn delete(
         &self,
-        id: &AccountId,
+        id: &Id,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<PgQueryResult> {
         let mut conn = executor
@@ -123,14 +123,14 @@ impl AccountRepository for PgAccountRepository {
         limit: Option<&i64>,
         offset: Option<&i64>,
         executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Vec<AccountRow>> {
+    ) -> Result<Vec<Row>> {
         let limit = limit.unwrap_or(&10);
         let offset = offset.unwrap_or(&0);
         let mut conn = executor
             .acquire()
             .await
             .context("failed to acquire postgres connection")?;
-        let rows: Vec<AccountRow> = sqlx::query_as::<_, AccountRow>(
+        let rows: Vec<Row> = sqlx::query_as::<_, Row>(
             "SELECT
                  id,
                  name,
@@ -156,14 +156,14 @@ impl AccountRepository for PgAccountRepository {
 
     async fn select_by_id(
         &self,
-        id: &AccountId,
+        id: &Id,
         executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Option<AccountRow>> {
+    ) -> Result<Option<Row>> {
         let mut conn = executor
             .acquire()
             .await
             .context("failed to acquire postgres connection")?;
-        let row: Option<AccountRow> = sqlx::query_as::<_, AccountRow>(
+        let row: Option<Row> = sqlx::query_as::<_, Row>(
             "SELECT
                  id,
                  name,
@@ -187,14 +187,14 @@ impl AccountRepository for PgAccountRepository {
 
     async fn select_by_name(
         &self,
-        name: &AccountName,
+        name: &Name,
         executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Option<AccountRow>> {
+    ) -> Result<Option<Row>> {
         let mut conn = executor
             .acquire()
             .await
             .context("failed to acquire postgres connection")?;
-        let row: Option<AccountRow> = sqlx::query_as::<_, AccountRow>(
+        let row: Option<Row> = sqlx::query_as::<_, Row>(
             "SELECT
                  id,
                  name,
@@ -226,9 +226,9 @@ mod tests {
     use sqlx::PgPool;
     use std::cmp::min;
 
-    async fn upsert_account(tx: &mut PgConnection) -> Result<Account> {
-        let repo = PgAccountRepository;
-        let account = Account::new(
+    async fn upsert(tx: &mut PgConnection) -> Result<Entity> {
+        let repo = PgRepository;
+        let account = Entity::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
             testutils::rand::email(),
@@ -245,14 +245,14 @@ mod tests {
     #[sqlx::test]
     #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
     async fn test_create_and_select_with_default_limit(pool: PgPool) -> Result<()> {
-        let repo = PgAccountRepository;
+        let repo = PgRepository;
         let mut tx = pool
             .begin()
             .await
             .expect("transaction should be started properly");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            upsert_account(&mut tx)
+            upsert(&mut tx)
                 .await
                 .expect("new account should be created");
         }
@@ -270,14 +270,14 @@ mod tests {
     #[sqlx::test]
     #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
     async fn test_create_and_select_with_specified_limit(pool: PgPool) -> Result<()> {
-        let repo = PgAccountRepository;
+        let repo = PgRepository;
         let mut tx = pool
             .begin()
             .await
             .expect("transaction should be started properly");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            upsert_account(&mut tx)
+            upsert(&mut tx)
                 .await
                 .expect("new account should be created");
         }
@@ -296,12 +296,12 @@ mod tests {
     #[sqlx::test]
     #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
     async fn test_upsert_and_select_by_id(pool: PgPool) -> Result<()> {
-        let repo = PgAccountRepository;
+        let repo = PgRepository;
         let mut tx = pool
             .begin()
             .await
             .expect("transaction should be started properly");
-        let account = upsert_account(&mut tx)
+        let account = upsert(&mut tx)
             .await
             .expect("new account should be upserted");
         let fetched = repo
@@ -326,12 +326,12 @@ mod tests {
     #[sqlx::test]
     #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
     async fn test_upsert_and_select_by_name(pool: PgPool) -> Result<()> {
-        let repo = PgAccountRepository;
+        let repo = PgRepository;
         let mut tx = pool
             .begin()
             .await
             .expect("transaction should be started properly");
-        let account = upsert_account(&mut tx)
+        let account = upsert(&mut tx)
             .await
             .expect("new account should be upserted");
         let fetched = repo

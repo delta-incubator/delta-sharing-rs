@@ -1,7 +1,7 @@
 use crate::config::JWT_SECRET;
 use crate::error::Error;
-use crate::server::entities::account::Account;
-use crate::server::entities::account::AccountName;
+use crate::server::entities::account::Entity as Account;
+use crate::server::entities::account::Name as AccountName;
 use crate::server::interactors::SharedState;
 use crate::utils::jwt::expires_at;
 use crate::utils::jwt::Claims;

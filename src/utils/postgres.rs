@@ -1,5 +1,5 @@
 use crate::config;
-use crate::server::entities::account::Account;
+use crate::server::entities::account::Entity;
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
@@ -19,7 +19,7 @@ pub trait PgAcquire<'c>: Acquire<'c, Database = Postgres> + Send {}
 impl<'c, T> PgAcquire<'c> for T where T: Acquire<'c, Database = Postgres> + Send {}
 
 async fn create_admin(pool: &PgPool) -> Result<()> {
-    let admin = if let Ok(admin) = Account::new(
+    let admin = if let Ok(admin) = Entity::new(
         None,
         config::fetch::<String>("admin_name"),
         config::fetch::<String>("admin_email"),
@@ -104,7 +104,10 @@ mod tests {
         let docker = clients::Cli::default();
         docker.run(postgres::Postgres::default());
         let url = "postgres://postgres:secret@127.0.0.1:5432";
-        let expected: HashSet<_> = [String::from("account")].iter().cloned().collect();
+        let expected: HashSet<_> = [String::from("account"), String::from("share")]
+            .iter()
+            .cloned()
+            .collect();
         let pool = connect(&url)
             .await
             .expect("connection should be established");
