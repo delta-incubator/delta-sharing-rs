@@ -84,3 +84,12 @@ pub fn uuid() -> String {
 pub fn choice<T>(candidates: &Vec<T>) -> &T {
     &candidates[self::usize(candidates.len())]
 }
+
+pub fn choose<T>(value: T) -> Option<T> {
+    let mut rng = rand::thread_rng();
+    if rng.gen_range(0..1) % 2 == 0 {
+        Some(value)
+    } else {
+        None
+    }
+}

@@ -10,16 +10,16 @@ use tame_gcs::signing::ServiceAccount as GCP;
 use url::Url;
 
 #[derive(Debug)]
-pub enum SignedUrl {
+pub enum Provider {
     AWS { bucket: String, path: String },
     GCP { bucket: String, path: String },
 }
 
-impl FromStr for SignedUrl {
+impl FromStr for Provider {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> std::result::Result<Self, Self::Err> {
-        let url = Url::parse(input).context("failed to parse signed url")?;
+        let url = Url::parse(input).context("failed to parse signed url provider")?;
         match url.scheme() {
             "s3" => Ok(Self::AWS {
                 bucket: String::from(url.domain().unwrap_or("")),
@@ -33,25 +33,25 @@ impl FromStr for SignedUrl {
                 bucket: String::from(url.domain().unwrap_or("")),
                 path: String::from(url.path()),
             }),
-            _ => Err(anyhow!("failed to parse signed url")),
+            _ => Err(anyhow!("failed to parse signed url provider")),
         }
     }
 }
 
 #[async_trait]
-pub trait SignedUrlService {
+pub trait Service {
     async fn signup(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url>;
 }
 
 #[async_trait]
-impl SignedUrlService for AWS {
+impl Service for AWS {
     async fn signup(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
         aws::signed_url(&self, bucket, path, duration).await
     }
 }
 
 #[async_trait]
-impl SignedUrlService for GCP {
+impl Service for GCP {
     async fn signup(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
         gcp::signed_url(&self, bucket, path, duration)
     }
@@ -69,11 +69,11 @@ mod tests {
         let bucket = testutils::rand::string(10);
         let path = testutils::rand::string(10);
         let url = format!("s3://{}/{}", bucket, path);
-        let signed_url = SignedUrl::from_str(&url).expect("should parse s3 url properly");
-        if let SignedUrl::AWS {
+        let provider = Provider::from_str(&url).expect("should parse s3 url properly");
+        if let Provider::AWS {
             bucket: parsed_bucket,
             path: parsed_path,
-        } = signed_url
+        } = provider
         {
             let mut with_slash: String = "/".to_owned();
             with_slash.push_str(&path);
@@ -89,11 +89,11 @@ mod tests {
         let bucket = testutils::rand::string(10);
         let path = testutils::rand::string(10);
         let url = format!("gs://{}/{}", bucket, path);
-        let signed_url = SignedUrl::from_str(&url).expect("should parse s3 url properly");
-        if let SignedUrl::GCP {
+        let provider = Provider::from_str(&url).expect("should parse s3 url properly");
+        if let Provider::GCP {
             bucket: parsed_bucket,
             path: parsed_path,
-        } = signed_url
+        } = provider
         {
             let mut with_slash: String = "/".to_owned();
             with_slash.push_str(&path);
@@ -114,14 +114,14 @@ mod tests {
         } else {
             panic!("failed to create AWS profile provider");
         };
-        let (bucket, path) = if let Ok(SignedUrl::AWS { bucket, path }) =
-            SignedUrl::from_str("s3://kotosiro-sharing-test/sample.txt")
+        let (bucket, path) = if let Ok(Provider::AWS { bucket, path }) =
+            Provider::from_str("s3://kotosiro-sharing-test/sample.txt")
         {
             (bucket, path)
         } else {
             panic!("failed to parse S3 url");
         };
-        if let Ok(url) = SignedUrlService::signup(&pp, &bucket, &path, &300).await {
+        if let Ok(url) = Service::signup(&pp, &bucket, &path, &300).await {
             println!("{:?}", url);
         }
     }
@@ -133,14 +133,14 @@ mod tests {
         } else {
             panic!("failed to create GCP service account");
         };
-        let (bucket, path) = if let Ok(SignedUrl::GCP { bucket, path }) =
-            SignedUrl::from_str("gs://kotosiro-sharing-test/sample.txt")
+        let (bucket, path) = if let Ok(Provider::GCP { bucket, path }) =
+            Provider::from_str("gs://kotosiro-sharing-test/sample.txt")
         {
             (bucket, path)
         } else {
             panic!("failed to parse GS url");
         };
-        if let Ok(url) = SignedUrlService::signup(&sa, &bucket, &path, &300).await {
+        if let Ok(url) = Service::signup(&sa, &bucket, &path, &300).await {
             println!("{:?}", url);
         }
     }
