@@ -17,6 +17,7 @@ pub struct Row {
     pub email: String,
     pub password: String,
     pub namespace: String,
+    pub ttl: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -74,20 +75,23 @@ impl Repository for PgRepository {
                  name,
                  email,
                  password,
-                 namespace
-             ) VALUES ($1, $2, $3, $4, $5)
+                 namespace,
+                 ttl
+             ) VALUES ($1, $2, $3, $4, $5, $6)
              ON CONFLICT(id)
              DO UPDATE
              SET name = $2,
                  email = $3,
                  password = $4,
-                 namespace = $5",
+                 namespace = $5,
+                 ttl = $6",
         )
         .bind(account.id())
         .bind(account.name())
         .bind(account.email())
         .bind(account.password())
         .bind(account.namespace())
+        .bind(account.ttl())
         .execute(&mut *conn)
         .await
         .context(format!(
@@ -137,6 +141,7 @@ impl Repository for PgRepository {
                  email,
                  password,
                  namespace,
+                 ttl,
                  created_at,
                  updated_at
              FROM account
@@ -170,6 +175,7 @@ impl Repository for PgRepository {
                  email,
                  password,
                  namespace,
+                 ttl,
                  created_at,
                  updated_at
              FROM account
@@ -201,6 +207,7 @@ impl Repository for PgRepository {
                  email,
                  password,
                  namespace,
+                 ttl,
                  created_at,
                  updated_at
              FROM account
@@ -234,6 +241,7 @@ mod tests {
             testutils::rand::email(),
             testutils::rand::string(10),
             testutils::rand::string(10),
+            testutils::rand::i32(1, 100000),
         )
         .context("failed to upsert account")?;
         repo.upsert(&account, tx)
@@ -314,6 +322,7 @@ mod tests {
             assert_eq!(&fetched.email, account.email().as_str());
             assert_eq!(&fetched.password, account.password().as_str());
             assert_eq!(&fetched.namespace, account.namespace().as_str());
+            assert_eq!(&fetched.ttl, account.ttl().as_i32());
         } else {
             panic!("inserted account should be found");
         }
@@ -344,6 +353,7 @@ mod tests {
             assert_eq!(&fetched.email, account.email().as_str());
             assert_eq!(&fetched.password, account.password().as_str());
             assert_eq!(&fetched.namespace, account.namespace().as_str());
+            assert_eq!(&fetched.ttl, account.ttl().as_i32());
         } else {
             panic!("inserted account should be found");
         }

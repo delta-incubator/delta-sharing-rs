@@ -1,9 +1,5 @@
-use crate::server::entities::account::Id as AccountId;
 use crate::server::entities::schema::Entity;
 use crate::server::entities::schema::Id;
-use crate::server::entities::schema::Name;
-use crate::server::entities::share::Id as ShareId;
-use crate::server::entities::table::Id as TableId;
 use crate::utils::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
@@ -170,6 +166,7 @@ mod tests {
             testutils::rand::email(),
             testutils::rand::string(10),
             testutils::rand::string(10),
+            testutils::rand::i32(1, 100000),
         )
         .context("failed to upsert account")?;
         repo.upsert(&account, tx)

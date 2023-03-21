@@ -3,7 +3,7 @@ use crate::error::Error;
 use crate::server::entities::account::Entity as Account;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::interactors::SharedState;
-use crate::utils::jwt::expires_at;
+use crate::utils::jwt::expires_in;
 use crate::utils::jwt::Claims;
 use crate::utils::jwt::Role;
 use crate::utils::postgres::has_conflict;
@@ -35,6 +35,7 @@ pub struct RegisterJson {
     email: String,
     password: String,
     namespace: String,
+    ttl: i32,
 }
 
 #[derive(serde::Deserialize)]
@@ -63,7 +64,7 @@ pub async fn login(
         warn!("password did not match");
         return Err(Error::Unauthorized);
     }
-    let expiry = if let Ok(expiry) = expires_at() {
+    let expiry = if let Ok(expiry) = expires_in(admin.ttl().to_i32()) {
         expiry
     } else {
         error!("failed to create JWT expiry");
@@ -100,6 +101,7 @@ pub async fn register(
         payload.email,
         payload.password,
         payload.namespace,
+        payload.ttl,
     ) {
         account
     } else {

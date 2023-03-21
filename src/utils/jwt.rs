@@ -1,4 +1,3 @@
-use crate::config;
 use crate::config::JWT_SECRET;
 use crate::error::Error;
 use anyhow::Context;
@@ -14,6 +13,7 @@ use jsonwebtoken::decode;
 use jsonwebtoken::DecodingKey;
 use jsonwebtoken::EncodingKey;
 use jsonwebtoken::Validation;
+use std::convert::TryFrom;
 use std::str::FromStr;
 use std::time::Duration;
 use std::time::SystemTime;
@@ -52,11 +52,12 @@ impl Keys {
     }
 }
 
-pub fn expires_at() -> Result<u64> {
+pub fn expires_in(ttl: i32) -> Result<u64> {
+    let ttl = u64::try_from(ttl).context("failed to convert i32 ttl to u64")?;
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .context("failed to create JWT token expiry")?;
-    let expiry = now + Duration::from_secs(config::fetch::<u64>("jwt_expiration_sec"));
+    let expiry = now + Duration::from_secs(ttl.into());
     Ok(expiry.as_secs())
 }
 

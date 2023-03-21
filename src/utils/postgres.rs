@@ -1,5 +1,5 @@
 use crate::config;
-use crate::server::entities::account::Entity;
+use crate::server::entities::account::Entity as Account;
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
@@ -18,13 +18,14 @@ pub trait PgAcquire<'c>: Acquire<'c, Database = Postgres> + Send {}
 
 impl<'c, T> PgAcquire<'c> for T where T: Acquire<'c, Database = Postgres> + Send {}
 
-async fn create_admin(pool: &PgPool) -> Result<()> {
-    let admin = if let Ok(admin) = Entity::new(
+async fn create_admin(pool: &PgPool) -> Result<Account> {
+    let admin = if let Ok(admin) = Account::new(
         None,
         config::fetch::<String>("admin_name"),
         config::fetch::<String>("admin_email"),
         config::fetch::<String>("admin_password"),
         config::fetch::<String>("admin_namespace"),
+        config::fetch::<i32>("admin_ttl"),
     ) {
         admin
     } else {
@@ -38,11 +39,11 @@ async fn create_admin(pool: &PgPool) -> Result<()> {
                 admin.id().as_uuid(),
                 admin.name().as_str()
             );
-            Ok(())
+            Ok(admin)
         }
         Err(e) if has_conflict(&e) => {
             warn!("confliction occured while creating admin account: {}", e);
-            Ok(())
+            Ok(admin)
         }
         Err(e) => {
             error!("unknown error occured while creating admin account: {}", e);
@@ -109,7 +110,6 @@ mod tests {
             String::from("share"),
             String::from("table"),
             String::from("schema"),
-            String::from("ttl"),
         ]
         .iter()
         .cloned()

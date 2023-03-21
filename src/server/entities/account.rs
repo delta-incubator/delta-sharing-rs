@@ -1,3 +1,4 @@
+use crate::impl_i32_property;
 use crate::impl_string_property;
 use crate::impl_uuid_property;
 use crate::server::repositories::account::PgRepository;
@@ -48,6 +49,14 @@ pub struct Namespace {
     value: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Validate)]
+pub struct Ttl {
+    #[validate(range(min = 0))]
+    value: i32,
+}
+
+impl_i32_property!(Ttl);
+
 impl_string_property!(Namespace);
 
 #[derive(Debug, Clone, PartialEq, Eq, Getters, Setters, serde::Serialize)]
@@ -63,6 +72,8 @@ pub struct Entity {
     password: Password,
     #[getset(get = "pub", set = "pub")]
     namespace: Namespace,
+    #[getset(get = "pub", set = "pub")]
+    ttl: Ttl,
 }
 
 impl Entity {
@@ -72,6 +83,7 @@ impl Entity {
         email: String,
         password: String,
         namespace: String,
+        ttl: i32,
     ) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
@@ -79,6 +91,7 @@ impl Entity {
             email: Email::new(email)?,
             password: Password::new(argon2::hash(password.as_bytes()).unwrap())?,
             namespace: Namespace::new(namespace)?,
+            ttl: Ttl::new(ttl)?,
         })
     }
 
@@ -97,6 +110,7 @@ impl Entity {
                     row.email,
                     row.password,
                     row.namespace,
+                    row.ttl,
                 )
             })
             .collect()
@@ -111,6 +125,7 @@ impl Entity {
                 email: Email::new(row.email)?,
                 password: Password::new(row.password)?,
                 namespace: Namespace::new(row.namespace)?,
+                ttl: Ttl::new(row.ttl)?,
             }
             .into()),
             _ => Ok(None),
@@ -126,6 +141,7 @@ impl Entity {
                 email: Email::new(row.email)?,
                 password: Password::new(row.password)?,
                 namespace: Namespace::new(row.namespace)?,
+                ttl: Ttl::new(row.ttl)?,
             }
             .into()),
             _ => Ok(None),
@@ -197,5 +213,18 @@ mod tests {
     #[test]
     fn test_invalid_namespace() {
         assert!(matches!(Namespace::new(""), Err(_)));
+    }
+
+    #[test]
+    fn test_valid_ttl() {
+        assert!(matches!(Ttl::new(testutils::rand::i32(0, 100000)), Ok(_)));
+    }
+
+    #[test]
+    fn test_invalid_ttl() {
+        assert!(matches!(
+            Ttl::new(testutils::rand::i32(-100000, -1)),
+            Err(_)
+        ));
     }
 }

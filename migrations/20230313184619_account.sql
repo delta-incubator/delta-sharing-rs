@@ -2,9 +2,10 @@
 CREATE TABLE IF NOT EXISTS account (
     id UUID PRIMARY KEY,
     name VARCHAR NOT NULL UNIQUE,
-    email VARCHAR,
-    password VARCHAR,
-    namespace VARCHAR,
+    email VARCHAR NOT NULL,
+    password VARCHAR NOT NULL,
+    namespace VARCHAR NOT NULL,
+    ttl INT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL default CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL default CURRENT_TIMESTAMP
 );
