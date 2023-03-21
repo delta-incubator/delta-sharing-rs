@@ -15,29 +15,29 @@ pub struct Id {
 impl_uuid_property!(Id);
 
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
-pub struct Expiry {
+pub struct Seconds {
     #[validate(range(min = 0))]
     value: i32,
 }
 
-impl_i32_property!(Expiry);
+impl_i32_property!(Seconds);
 
 #[derive(Debug, Clone, PartialEq, Eq, Getters, Setters, serde::Serialize)]
 pub struct Entity {
     #[getset(get = "pub")]
     id: Id,
     #[getset(get = "pub", set = "pub")]
-    expiry: Expiry,
+    seconds: Seconds,
     #[getset(get = "pub")]
-    created_by: AccountId,
+    account_id: AccountId,
 }
 
 impl Entity {
-    pub fn new(id: impl Into<Option<String>>, expiry: i32, created_by: String) -> Result<Self> {
+    pub fn new(id: impl Into<Option<String>>, seconds: i32, account_id: String) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
-            expiry: Expiry::new(expiry)?,
-            created_by: AccountId::try_from(created_by)?,
+            seconds: Seconds::new(seconds)?,
+            account_id: AccountId::try_from(account_id)?,
         })
     }
 }
@@ -57,17 +57,17 @@ mod tests {
     }
 
     #[test]
-    fn test_valid_expiry() {
+    fn test_valid_seconds() {
         assert!(matches!(
-            Expiry::new(testutils::rand::i32(0, 100000)),
+            Seconds::new(testutils::rand::i32(0, 100000)),
             Ok(_)
         ));
     }
 
     #[test]
-    fn test_invalid_expiry() {
+    fn test_invalid_seconds() {
         assert!(matches!(
-            Expiry::new(testutils::rand::i32(-100000, -1)),
+            Seconds::new(testutils::rand::i32(-100000, -1)),
             Err(_)
         ));
     }

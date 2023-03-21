@@ -1,7 +1,7 @@
 use crate::server::entities::account::Id as AccountId;
-use crate::server::entities::token::Entity;
-use crate::server::entities::token::Expiry;
-use crate::server::entities::token::Id;
+use crate::server::entities::ttl::Entity;
+use crate::server::entities::ttl::Id;
+use crate::server::entities::ttl::Seconds;
 use crate::utils::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
@@ -14,8 +14,8 @@ use uuid::Uuid;
 #[derive(Debug, Clone, serde::Serialize, sqlx::FromRow)]
 pub struct Row {
     pub id: Uuid,
-    pub expiry: i32,
-    pub created_by: Uuid,
+    pub seconds: i32,
+    pub account_id: Uuid,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -24,7 +24,7 @@ pub struct Row {
 pub trait Repository: Send + Sync + 'static {
     async fn upsert(
         &self,
-        token: &Entity,
+        ttl: &Entity,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<PgQueryResult>;
 
@@ -48,7 +48,7 @@ pub struct PgRepository;
 impl Repository for PgRepository {
     async fn upsert(
         &self,
-        token: &Entity,
+        ttl: &Entity,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<PgQueryResult> {
         let mut conn = executor
@@ -56,24 +56,24 @@ impl Repository for PgRepository {
             .await
             .context("failed to acquire postgres connection")?;
         sqlx::query(
-            "INSERT INTO token (
+            "INSERT INTO ttl (
                  id,
-                 expiry,
-                 created_by
+                 seconds,
+                 account_id
              ) VALUES ($1, $2, $3)
              ON CONFLICT(id)
              DO UPDATE
-             SET expiry = $2,
-                 created_by = $3",
+             SET seconds = $2,
+                 account_id = $3",
         )
-        .bind(token.id())
-        .bind(token.expiry())
-        .bind(token.created_by())
+        .bind(ttl.id())
+        .bind(ttl.seconds())
+        .bind(ttl.account_id())
         .execute(&mut *conn)
         .await
         .context(format!(
-            r#"failed to upsert "{}" into [token]"#,
-            token.id().as_uuid()
+            r#"failed to upsert "{}" into [ttl]"#,
+            ttl.id().as_uuid()
         ))
     }
 
@@ -87,16 +87,13 @@ impl Repository for PgRepository {
             .await
             .context("failed to acquire postgres connection")?;
         sqlx::query(
-            "DELETE FROM token
+            "DELETE FROM ttl
              WHERE id = $1",
         )
         .bind(id)
         .execute(&mut *conn)
         .await
-        .context(format!(
-            r#"failed to delete "{}" from [token]"#,
-            id.as_uuid()
-        ))
+        .context(format!(r#"failed to delete "{}" from [ttl]"#, id.as_uuid()))
     }
 
     async fn select(
@@ -114,11 +111,11 @@ impl Repository for PgRepository {
         let rows: Vec<Row> = sqlx::query_as::<_, Row>(
             "SELECT
                  id,
-                 expiry,
-                 created_by,
+                 seconds,
+                 account_id,
                  created_at,
                  updated_at
-             FROM token
+             FROM ttl
              ORDER BY created_at DESC
              LIMIT $1 OFFSET $2",
         )
@@ -126,7 +123,7 @@ impl Repository for PgRepository {
         .bind(offset)
         .fetch_all(&mut *conn)
         .await
-        .context(format!("failed to list {} token(s) from [token]", limit))?;
+        .context(format!("failed to list {} ttl(s) from [ttl]", limit))?;
         Ok(rows)
     }
 }
@@ -160,18 +157,18 @@ mod tests {
         Ok(account)
     }
 
-    async fn upsert_token(account_id: &AccountId, tx: &mut PgConnection) -> Result<Entity> {
+    async fn upsert_ttl(account_id: &AccountId, tx: &mut PgConnection) -> Result<Entity> {
         let repo = PgRepository;
-        let token = Entity::new(
+        let ttl = Entity::new(
             testutils::rand::uuid(),
             testutils::rand::i32(0, 100000),
             account_id.to_uuid().to_string(),
         )
-        .context("failed to upsert token")?;
-        repo.upsert(&token, tx)
+        .context("failed to upsert ttl")?;
+        repo.upsert(&ttl, tx)
             .await
-            .context("failed to insert token")?;
-        Ok(token)
+            .context("failed to insert ttl")?;
+        Ok(ttl)
     }
 
     #[sqlx::test]
@@ -187,14 +184,14 @@ mod tests {
             .expect("new account should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            upsert_token(account.id(), &mut tx)
+            upsert_ttl(account.id(), &mut tx)
                 .await
-                .expect("new token should be created");
+                .expect("new ttl should be created");
         }
         let fetched = repo
             .select(None, None, &mut tx)
             .await
-            .expect("inserted token should be listed");
+            .expect("inserted ttl should be listed");
         assert_eq!(min(records, 10) as usize, fetched.len());
         tx.rollback()
             .await
@@ -215,15 +212,15 @@ mod tests {
             .expect("new account should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            upsert_token(account.id(), &mut tx)
+            upsert_ttl(account.id(), &mut tx)
                 .await
-                .expect("new token should be created");
+                .expect("new ttl should be created");
         }
         let limit = testutils::rand::i64(0, 20);
         let fetched = repo
             .select(Some(&limit), None, &mut tx)
             .await
-            .expect("inserted token should be listed");
+            .expect("inserted ttl should be listed");
         assert_eq!(min(records, limit) as usize, fetched.len());
         tx.rollback()
             .await
