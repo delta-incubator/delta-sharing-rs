@@ -1,3 +1,4 @@
+use crate::server::entities::account::Name as AccountName;
 use crate::server::entities::share::Entity;
 use crate::server::entities::share::Id;
 use crate::utils::postgres::PgAcquire;
@@ -34,6 +35,14 @@ pub trait Repository: Send + Sync + 'static {
 
     async fn select(
         &self,
+        limit: Option<&i64>,
+        offset: Option<&i64>,
+        executor: impl PgAcquire<'_> + 'async_trait,
+    ) -> Result<Vec<Row>>;
+
+    async fn select_by_account_name(
+        &self,
+        name: &AccountName,
         limit: Option<&i64>,
         offset: Option<&i64>,
         executor: impl PgAcquire<'_> + 'async_trait,
@@ -120,6 +129,41 @@ impl Repository for PgRepository {
              ORDER BY created_at DESC
              LIMIT $1 OFFSET $2",
         )
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&mut *conn)
+        .await
+        .context(format!("failed to list {} share(s) from [share]", limit))?;
+        Ok(rows)
+    }
+
+    async fn select_by_account_name(
+        &self,
+        name: &AccountName,
+        limit: Option<&i64>,
+        offset: Option<&i64>,
+        executor: impl PgAcquire<'_> + 'async_trait,
+    ) -> Result<Vec<Row>> {
+        let limit = limit.unwrap_or(&10);
+        let offset = offset.unwrap_or(&0);
+        let mut conn = executor
+            .acquire()
+            .await
+            .context("failed to acquire postgres connection")?;
+        let rows: Vec<Row> = sqlx::query_as::<_, Row>(
+            "SELECT
+                 share.id,
+                 share.name,
+                 share.created_by,
+                 share.created_at,
+                 share.updated_at
+             FROM share
+             JOIN account ON account.id = share.created_by
+             WHERE account.name = $1
+             ORDER BY share.created_at DESC
+             LIMIT $2 OFFSET $3",
+        )
+        .bind(name)
         .bind(limit)
         .bind(offset)
         .fetch_all(&mut *conn)
@@ -221,6 +265,83 @@ mod tests {
         let limit = testutils::rand::i64(0, 20);
         let fetched = repo
             .select(Some(&limit), None, &mut tx)
+            .await
+            .expect("inserted share should be listed");
+        assert_eq!(min(records, limit) as usize, fetched.len());
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_select_by_account_name_with_default_limit(pool: PgPool) -> Result<()> {
+        let repo = PgRepository;
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let account = upsert_account(&mut tx)
+            .await
+            .expect("new account should be created");
+        let records = testutils::rand::i64(0, 20);
+        for _ in 0..records {
+            upsert_share(account.id(), &mut tx)
+                .await
+                .expect("new share should be created");
+        }
+        let account = upsert_account(&mut tx)
+            .await
+            .expect("new account should be created");
+        let records = testutils::rand::i64(0, 20);
+        for _ in 0..records {
+            upsert_share(account.id(), &mut tx)
+                .await
+                .expect("new share should be created");
+        }
+        let fetched = repo
+            .select_by_account_name(account.name(), None, None, &mut tx)
+            .await
+            .expect("inserted share should be listed");
+        assert_eq!(min(records, 10) as usize, fetched.len());
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_select_by_account_name_with_specified_limit(
+        pool: PgPool,
+    ) -> Result<()> {
+        let repo = PgRepository;
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let account = upsert_account(&mut tx)
+            .await
+            .expect("new account should be created");
+        let records = testutils::rand::i64(0, 20);
+        for _ in 0..records {
+            upsert_share(account.id(), &mut tx)
+                .await
+                .expect("new share should be created");
+        }
+        let account = upsert_account(&mut tx)
+            .await
+            .expect("new account should be created");
+        let records = testutils::rand::i64(0, 20);
+        for _ in 0..records {
+            upsert_share(account.id(), &mut tx)
+                .await
+                .expect("new share should be created");
+        }
+        let limit = testutils::rand::i64(0, 20);
+        let fetched = repo
+            .select_by_account_name(account.name(), Some(&limit), None, &mut tx)
             .await
             .expect("inserted share should be listed");
         assert_eq!(min(records, limit) as usize, fetched.len());

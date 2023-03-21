@@ -47,6 +47,14 @@ async fn route(
             "/admin/api/auth/accounts",
             get(self::admin::api::auth::list),
         )
+        .route(
+            "/admin/api/sharing/register",
+            post(self::admin::api::sharing::register).put(self::admin::api::sharing::register),
+        )
+        .route(
+            "/admin/api/sharing/shares",
+            get(self::admin::api::sharing::list),
+        )
         .route("/api/user/profile", get(self::api::user::profile))
         .layer(Extension(state));
     Ok(app)
