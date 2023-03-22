@@ -25,7 +25,7 @@ async fn create_admin(pool: &PgPool) -> Result<Account> {
         config::fetch::<String>("admin_email"),
         config::fetch::<String>("admin_password"),
         config::fetch::<String>("admin_namespace"),
-        config::fetch::<i32>("admin_ttl"),
+        config::fetch::<i64>("admin_ttl"),
     ) {
         admin
     } else {

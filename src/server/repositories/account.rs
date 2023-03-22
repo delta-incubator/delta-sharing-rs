@@ -17,7 +17,7 @@ pub struct Row {
     pub email: String,
     pub password: String,
     pub namespace: String,
-    pub ttl: i32,
+    pub ttl: i64,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -241,7 +241,7 @@ mod tests {
             testutils::rand::email(),
             testutils::rand::string(10),
             testutils::rand::string(10),
-            testutils::rand::i32(1, 100000),
+            testutils::rand::i64(1, 100000),
         )
         .context("failed to upsert account")?;
         repo.upsert(&account, tx)
@@ -322,7 +322,7 @@ mod tests {
             assert_eq!(&fetched.email, account.email().as_str());
             assert_eq!(&fetched.password, account.password().as_str());
             assert_eq!(&fetched.namespace, account.namespace().as_str());
-            assert_eq!(&fetched.ttl, account.ttl().as_i32());
+            assert_eq!(&fetched.ttl, account.ttl().as_i64());
         } else {
             panic!("inserted account should be found");
         }
@@ -353,7 +353,7 @@ mod tests {
             assert_eq!(&fetched.email, account.email().as_str());
             assert_eq!(&fetched.password, account.password().as_str());
             assert_eq!(&fetched.namespace, account.namespace().as_str());
-            assert_eq!(&fetched.ttl, account.ttl().as_i32());
+            assert_eq!(&fetched.ttl, account.ttl().as_i64());
         } else {
             panic!("inserted account should be found");
         }

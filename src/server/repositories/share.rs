@@ -194,7 +194,7 @@ mod tests {
             testutils::rand::email(),
             testutils::rand::string(10),
             testutils::rand::string(10),
-            testutils::rand::i32(1, 100000),
+            testutils::rand::i64(1, 100000),
         )
         .context("failed to upsert account")?;
         repo.upsert(&account, tx)

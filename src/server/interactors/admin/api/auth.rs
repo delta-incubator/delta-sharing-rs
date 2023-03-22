@@ -1,9 +1,8 @@
-use crate::config::JWT_SECRET;
 use crate::error::Error;
 use crate::server::entities::account::Entity as Account;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::interactors::SharedState;
-use crate::utils::jwt::expires_in;
+use crate::server::services::sharing::Service as SharingService;
 use crate::utils::jwt::Claims;
 use crate::utils::jwt::Role;
 use crate::utils::postgres::has_conflict;
@@ -15,9 +14,6 @@ use axum::extract::Query;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use jsonwebtoken::encode;
-use jsonwebtoken::Header;
-use serde_json::json;
 use tracing::error;
 use tracing::info;
 use tracing::warn;
@@ -35,7 +31,7 @@ pub struct RegisterJson {
     email: String,
     password: String,
     namespace: String,
-    ttl: i32,
+    ttl: i64,
 }
 
 #[derive(serde::Deserialize)]
@@ -64,30 +60,19 @@ pub async fn login(
         warn!("password did not match");
         return Err(Error::Unauthorized);
     }
-    let expiry = if let Ok(expiry) = expires_in(admin.ttl().to_i32()) {
-        expiry
+    let profile = if let Ok(profile) = SharingService::profile_v1(
+        admin.name().to_string(),
+        admin.email().to_string(),
+        admin.namespace().to_string(),
+        Role::Admin,
+        admin.ttl().to_i64(),
+    ) {
+        profile
     } else {
-        error!("failed to create JWT expiry");
-        return Err(anyhow!("Setting expiration date in the past").into());
+        error!("failed to create sharing profile");
+        return Err(anyhow!("Profile creation failed").into());
     };
-    let claims = Claims {
-        name: admin.name().to_string(),
-        email: admin.email().to_string(),
-        namespace: admin.namespace().to_string(),
-        role: Role::Admin,
-        exp: expiry,
-    };
-    let token = if let Ok(token) = encode(&Header::default(), &claims, &JWT_SECRET.encoding) {
-        token
-    } else {
-        error!("failed to create JWT token");
-        return Err(anyhow!("JWT creation failed").into());
-    };
-    Ok((
-        StatusCode::OK,
-        Json(json!({ "access_token": token, "type": "Bearer" })),
-    )
-        .into_response())
+    Ok((StatusCode::OK, Json(profile)).into_response())
 }
 
 pub async fn register(

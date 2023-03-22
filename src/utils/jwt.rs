@@ -1,7 +1,5 @@
 use crate::config::JWT_SECRET;
 use crate::error::Error;
-use anyhow::Context;
-use anyhow::Result;
 use axum::async_trait;
 use axum::extract::FromRequestParts;
 use axum::headers::authorization::Bearer;
@@ -13,11 +11,7 @@ use jsonwebtoken::decode;
 use jsonwebtoken::DecodingKey;
 use jsonwebtoken::EncodingKey;
 use jsonwebtoken::Validation;
-use std::convert::TryFrom;
 use std::str::FromStr;
-use std::time::Duration;
-use std::time::SystemTime;
-use std::time::UNIX_EPOCH;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct Claims {
@@ -25,7 +19,7 @@ pub struct Claims {
     pub email: String,
     pub namespace: String,
     pub role: Role,
-    pub exp: u64,
+    pub exp: i64,
 }
 
 #[derive(PartialEq, Eq, serde::Deserialize, serde::Serialize, strum_macros::EnumString)]
@@ -50,15 +44,6 @@ impl Keys {
             decoding: DecodingKey::from_secret(secret),
         }
     }
-}
-
-pub fn expires_in(ttl: i32) -> Result<u64> {
-    let ttl = u64::try_from(ttl).context("failed to convert i32 ttl to u64")?;
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .context("failed to create JWT token expiry")?;
-    let expiry = now + Duration::from_secs(ttl.into());
-    Ok(expiry.as_secs())
 }
 
 fn required_role_of(path: &str) -> Role {

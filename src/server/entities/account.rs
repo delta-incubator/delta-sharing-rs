@@ -1,4 +1,4 @@
-use crate::impl_i32_property;
+use crate::impl_i64_property;
 use crate::impl_string_property;
 use crate::impl_uuid_property;
 use crate::server::repositories::account::PgRepository;
@@ -52,10 +52,10 @@ pub struct Namespace {
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Ttl {
     #[validate(range(min = 0))]
-    value: i32,
+    value: i64,
 }
 
-impl_i32_property!(Ttl);
+impl_i64_property!(Ttl);
 
 impl_string_property!(Namespace);
 
@@ -83,7 +83,7 @@ impl Entity {
         email: String,
         password: String,
         namespace: String,
-        ttl: i32,
+        ttl: i64,
     ) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
@@ -217,13 +217,13 @@ mod tests {
 
     #[test]
     fn test_valid_ttl() {
-        assert!(matches!(Ttl::new(testutils::rand::i32(0, 100000)), Ok(_)));
+        assert!(matches!(Ttl::new(testutils::rand::i64(0, 100000)), Ok(_)));
     }
 
     #[test]
     fn test_invalid_ttl() {
         assert!(matches!(
-            Ttl::new(testutils::rand::i32(-100000, -1)),
+            Ttl::new(testutils::rand::i64(-100000, -1)),
             Err(_)
         ));
     }

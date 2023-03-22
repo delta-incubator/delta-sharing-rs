@@ -6,6 +6,10 @@ help:
 check:
     @cargo check
 
+# Clean up the pre-build target
+clean:
+    @cargo clean
+
 # Conduct a full release build
 build:
     @# This causes cargo to have to rebuild the binary,

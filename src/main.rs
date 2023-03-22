@@ -29,7 +29,7 @@ async fn main() -> Result<()> {
         admin_email = config::fetch::<String>("admin_email"),
         admin_password = config::fetch::<String>("admin_password"),
         admin_namespace = config::fetch::<String>("admin_namespace"),
-        admin_ttl = config::fetch::<i32>("admin_ttl"),
+        admin_ttl = config::fetch::<i64>("admin_ttl"),
         gcp_sa_private_key = config::fetch::<String>("gcp_sa_private_key"),
         aws_credentials = config::fetch::<String>("aws_credentials"),
         aws_profile = config::fetch::<String>("aws_profile"),
