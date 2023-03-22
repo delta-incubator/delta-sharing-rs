@@ -97,11 +97,11 @@ impl Entity {
 
     pub async fn list(
         limit: impl Into<Option<&i64>> + Send,
-        offset: impl Into<Option<&i64>> + Send,
+        after: impl Into<Option<&Name>> + Send,
         pg_pool: &PgPool,
     ) -> Result<Vec<Self>> {
         let repo = PgRepository;
-        let rows = repo.select(limit.into(), offset.into(), pg_pool).await?;
+        let rows = repo.select(limit.into(), after.into(), pg_pool).await?;
         rows.into_iter()
             .map(|row| {
                 Self::new(

@@ -189,7 +189,7 @@ mod tests {
         assert!(matches!(config.get::<String>("admin_email"), Ok(_)));
         assert!(matches!(config.get::<String>("admin_password"), Ok(_)));
         assert!(matches!(config.get::<String>("admin_namespace"), Ok(_)));
-        assert!(matches!(config.get::<i32>("admin_ttl"), Ok(_)));
+        assert!(matches!(config.get::<i64>("admin_ttl"), Ok(_)));
         assert!(matches!(config.get::<String>("jwt_secret"), Ok(_)));
         assert!(matches!(config.get::<String>("gcp_sa_private_key"), Ok(_)));
         assert!(matches!(config.get::<String>("aws_credentials"), Ok(_)));

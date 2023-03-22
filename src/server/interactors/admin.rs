@@ -18,6 +18,8 @@ use tracing::error;
 use tracing::info;
 use tracing::warn;
 
+const DEFAULT_PAGE_RESULTS: usize = 10;
+
 #[derive(serde::Deserialize)]
 pub struct LoginJson {
     name: String,
@@ -35,9 +37,17 @@ pub struct RegisterJson {
 }
 
 #[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AccountsQuery {
-    page: Option<i64>,
-    results: Option<i64>,
+    max_results: Option<usize>,
+    page_token: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountsPage {
+    pub items: Vec<Account>,
+    pub next_page_token: String,
 }
 
 pub async fn login(
@@ -115,9 +125,36 @@ pub async fn accounts(
     Extension(state): Extension<SharedState>,
     query: Query<AccountsQuery>,
 ) -> Result<Response, Error> {
-    let limit = query.results.unwrap_or(10);
-    let page = query.page.unwrap_or(0);
-    let offset = limit * page;
-    let accounts = Account::list(&limit, &offset, &state.pg_pool).await?;
-    Ok((StatusCode::OK, Json(accounts)).into_response())
+    let limit = query.max_results.unwrap_or(DEFAULT_PAGE_RESULTS);
+    let after = if let Some(name) = &query.page_token {
+        if let Ok(name) = AccountName::new(name) {
+            Some(name)
+        } else {
+            error!("failed to validate account name");
+            return Err(Error::ValidationFailed);
+        }
+    } else {
+        None
+    };
+    let accounts = Account::list(&((limit + 1) as i64), &after, &state.pg_pool).await?;
+    if accounts.len() == limit + 1 {
+        let last = &accounts[limit];
+        let accounts = &accounts[..limit];
+        return Ok((
+            StatusCode::OK,
+            Json(AccountsPage {
+                items: accounts.to_vec(),
+                next_page_token: last.name().to_string(),
+            }),
+        )
+            .into_response());
+    }
+    Ok((
+        StatusCode::OK,
+        Json(AccountsPage {
+            items: accounts,
+            next_page_token: None.unwrap_or_default(),
+        }),
+    )
+        .into_response())
 }

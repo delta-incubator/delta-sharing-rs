@@ -2,8 +2,14 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::Json;
-use serde_json::json;
 use tracing::debug;
+
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ErrorResponse {
+    pub error_code: String,
+    pub message: String,
+}
 
 pub enum Error {
     InternalServerProblem(anyhow::Error),
@@ -80,9 +86,10 @@ impl IntoResponse for Error {
             ),
             Error::NotImplemented => (StatusCode::NOT_IMPLEMENTED, "Not implemented"),
         };
-        let body = Json(json!({
-            "error": message,
-        }));
+        let body = Json(ErrorResponse {
+            error_code: status.as_str().into(),
+            message: message.into(),
+        });
         (status, body).into_response()
     }
 }

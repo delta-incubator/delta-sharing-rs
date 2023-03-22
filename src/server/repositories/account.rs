@@ -5,9 +5,9 @@ use crate::utils::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;
-use chrono::DateTime;
-use chrono::Utc;
 use sqlx::postgres::PgQueryResult;
+use sqlx::query_builder::QueryBuilder;
+use sqlx::Execute;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, serde::Serialize, sqlx::FromRow)]
@@ -18,8 +18,6 @@ pub struct Row {
     pub password: String,
     pub namespace: String,
     pub ttl: i64,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
 }
 
 #[async_trait]
@@ -39,7 +37,7 @@ pub trait Repository: Send + Sync + 'static {
     async fn select(
         &self,
         limit: Option<&i64>,
-        offset: Option<&i64>,
+        after: Option<&Name>,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<Vec<Row>>;
 
@@ -125,37 +123,43 @@ impl Repository for PgRepository {
     async fn select(
         &self,
         limit: Option<&i64>,
-        offset: Option<&i64>,
+        after: Option<&Name>,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<Vec<Row>> {
-        let limit = limit.unwrap_or(&10);
-        let offset = offset.unwrap_or(&0);
         let mut conn = executor
             .acquire()
             .await
             .context("failed to acquire postgres connection")?;
-        let rows: Vec<Row> = sqlx::query_as::<_, Row>(
+        let mut builder = QueryBuilder::new(
             "SELECT
                  id,
                  name,
                  email,
                  password,
                  namespace,
-                 ttl,
-                 created_at,
-                 updated_at
-             FROM account
-             ORDER BY created_at DESC
-             LIMIT $1 OFFSET $2",
-        )
-        .bind(limit)
-        .bind(offset)
-        .fetch_all(&mut *conn)
-        .await
-        .context(format!(
-            "failed to list {} account(s) from [account]",
-            limit
-        ))?;
+                 ttl
+             FROM account",
+        );
+        if let Some(name) = after {
+            builder.push(" WHERE name >= ");
+            builder.push_bind(name);
+        }
+        builder.push(" ORDER BY name ");
+        if let Some(limit) = limit {
+            builder.push(" LIMIT ");
+            builder.push_bind(limit);
+        }
+        let mut query = sqlx::query_as::<_, Row>(builder.build().sql().into());
+        if let Some(name) = after {
+            query = query.bind(name);
+        }
+        if let Some(limit) = limit {
+            query = query.bind(limit);
+        }
+        let rows: Vec<Row> = query
+            .fetch_all(&mut *conn)
+            .await
+            .context("failed to list accounts from [account]")?;
         Ok(rows)
     }
 
@@ -175,9 +179,7 @@ impl Repository for PgRepository {
                  email,
                  password,
                  namespace,
-                 ttl,
-                 created_at,
-                 updated_at
+                 ttl
              FROM account
              WHERE id = $1",
         )
@@ -207,9 +209,7 @@ impl Repository for PgRepository {
                  email,
                  password,
                  namespace,
-                 ttl,
-                 created_at,
-                 updated_at
+                 ttl
              FROM account
              WHERE name = $1",
         )
@@ -268,7 +268,7 @@ mod tests {
             .select(None, None, &mut tx)
             .await
             .expect("inserted account should be listed");
-        assert_eq!(min(records, 10) as usize, fetched.len());
+        assert_eq!(records as usize, fetched.len());
         tx.rollback()
             .await
             .expect("rollback should be done properly");
