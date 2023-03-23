@@ -41,3 +41,22 @@ message AdminLoginRequest {
     string name = 1;
     string password = 2;
 }
+
+message AdminRegisterRequest {
+    optional string id = 1;
+    string name = 2;
+    string email = 3;
+    string password = 4;
+    string namespace = 5;
+    int64 ttl = 6;
+}
+
+message AdminAccountsRequest {
+    optional int64 max_results = 1;
+    optional string page_token = 2;
+}
+
+message AdminAccountsResponse {
+    repeated Account items = 1;
+    string next_page_token = 2;
+}

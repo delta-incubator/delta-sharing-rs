@@ -1,7 +1,10 @@
 use crate::config;
 use crate::error::Error;
 use crate::protos::protocol::Account;
+use crate::protos::protocol::AdminAccountsRequest;
+use crate::protos::protocol::AdminAccountsResponse;
 use crate::protos::protocol::AdminLoginRequest;
+use crate::protos::protocol::AdminRegisterRequest;
 use crate::protos::protocol::Profile;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
@@ -25,30 +28,6 @@ use tracing::info;
 use tracing::warn;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
-
-#[derive(serde::Deserialize)]
-pub struct RegisterJson {
-    id: Option<String>,
-    name: String,
-    email: String,
-    password: String,
-    namespace: String,
-    ttl: i64,
-}
-
-#[derive(serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AccountsQuery {
-    max_results: Option<usize>,
-    page_token: Option<String>,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AccountsPage {
-    pub items: Vec<Account>,
-    pub next_page_token: String,
-}
 
 pub async fn login(
     Extension(state): Extension<SharedState>,
@@ -100,7 +79,7 @@ pub async fn login(
 pub async fn register(
     _claims: Claims,
     Extension(state): Extension<SharedState>,
-    Json(payload): Json<RegisterJson>,
+    Json(payload): Json<AdminRegisterRequest>,
 ) -> Result<Response, Error> {
     let entity = if let Ok(entity) = AccountEntity::new(
         payload.id,
@@ -137,12 +116,21 @@ pub async fn register(
     }
 }
 
-/*pub async fn accounts(
+pub async fn accounts(
     _claims: Claims,
     Extension(state): Extension<SharedState>,
-    query: Query<AccountsQuery>,
+    query: Query<AdminAccountsRequest>,
 ) -> Result<Response, Error> {
-    let limit = query.max_results.unwrap_or(DEFAULT_PAGE_RESULTS);
+    let limit = if let Some(limit) = &query.max_results {
+        if let Ok(limit) = usize::try_from(*limit) {
+            limit
+        } else {
+            error!("failed to validate max results query");
+            return Err(Error::ValidationFailed);
+        }
+    } else {
+        DEFAULT_PAGE_RESULTS
+    };
     let after = if let Some(name) = &query.page_token {
         if let Ok(name) = AccountName::new(name) {
             Some(name)
@@ -157,21 +145,33 @@ pub async fn register(
     if entities.len() == limit + 1 {
         let next = &entities[limit];
         let entities = &entities[..limit];
-        return Ok((
-            StatusCode::OK,
-            Json(AccountsPage {
-                items: entities.to_vec(),
-                next_page_token: next.name().to_string(),
-            }),
-        )
-            .into_response());
+        let mut accounts = AdminAccountsResponse::new();
+        accounts.items = entities
+            .iter()
+            .map(|entity| {
+                let mut account = Account::new();
+                account.name = entity.name().to_string();
+                account.email = entity.email().to_string();
+                account.namespace = entity.namespace().to_string();
+                account.ttl = entity.ttl().to_i64();
+                account
+            })
+            .collect();
+        accounts.next_page_token = next.name().to_string();
+        return Ok((StatusCode::OK, Json(accounts)).into_response());
     }
-    Ok((
-        StatusCode::OK,
-        Json(AccountsPage {
-            items: entities,
-            next_page_token: None.unwrap_or_default(),
-        }),
-    )
-        .into_response())
-}*/
+    let mut accounts = AdminAccountsResponse::new();
+    accounts.items = entities
+        .iter()
+        .map(|entity| {
+            let mut account = Account::new();
+            account.name = entity.name().to_string();
+            account.email = entity.email().to_string();
+            account.namespace = entity.namespace().to_string();
+            account.ttl = entity.ttl().to_i64();
+            account
+        })
+        .collect();
+    accounts.next_page_token = None.unwrap_or_default();
+    Ok((StatusCode::OK, Json(accounts)).into_response())
+}
