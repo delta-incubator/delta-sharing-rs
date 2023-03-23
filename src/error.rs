@@ -1,14 +1,21 @@
-use crate::protos::protocol::ErrorResponse;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::Json;
 use tracing::debug;
 
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ErrorResponse {
+    pub error_code: String,
+    pub message: String,
+}
+
 pub enum Error {
     InternalServerProblem(anyhow::Error),
     BadRequest,
     Unauthorized,
+    NotFound,
     ValidationFailed,
     Conflict,
     EnvironmentVariableMissing,
@@ -27,6 +34,9 @@ impl std::fmt::Debug for Error {
             }
             Error::Unauthorized => {
                 f.field(&"Unauthorized");
+            }
+            Error::NotFound => {
+                f.field(&"Not found");
             }
             Error::ValidationFailed => {
                 f.field(&"Validation failed");
@@ -72,6 +82,7 @@ impl IntoResponse for Error {
             }
             Error::BadRequest => (StatusCode::BAD_REQUEST, "Bad request"),
             Error::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
+            Error::NotFound => (StatusCode::NOT_FOUND, "Not found"),
             Error::ValidationFailed => (StatusCode::UNPROCESSABLE_ENTITY, "Validation errors"),
             Error::Conflict => (StatusCode::CONFLICT, "Confliction occured"),
             Error::EnvironmentVariableMissing => (
@@ -80,10 +91,13 @@ impl IntoResponse for Error {
             ),
             Error::NotImplemented => (StatusCode::NOT_IMPLEMENTED, "Not implemented"),
         };
-        let mut response = ErrorResponse::new();
-        response.error_code = status.as_str().into();
-        response.message = message.into();
-        let body = Json(response);
-        (status, body).into_response()
+        (
+            status,
+            Json(ErrorResponse {
+                error_code: status.as_str().into(),
+                message: message.into(),
+            }),
+        )
+            .into_response()
     }
 }

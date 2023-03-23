@@ -4,7 +4,6 @@ pub mod error;
 pub mod logging;
 mod macros;
 pub mod middlewares;
-mod protos;
 pub mod server;
 pub mod utils;
 
