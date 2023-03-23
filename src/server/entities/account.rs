@@ -49,6 +49,8 @@ pub struct Namespace {
     value: String,
 }
 
+impl_string_property!(Namespace);
+
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Ttl {
     #[validate(range(min = 0))]
@@ -57,9 +59,7 @@ pub struct Ttl {
 
 impl_i64_property!(Ttl);
 
-impl_string_property!(Namespace);
-
-#[derive(Debug, Clone, PartialEq, Eq, Getters, Setters, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Getters, Setters)]
 pub struct Entity {
     #[getset(get = "pub")]
     id: Id,
@@ -67,7 +67,6 @@ pub struct Entity {
     name: Name,
     #[getset(get = "pub", set = "pub")]
     email: Email,
-    #[serde(skip_serializing)]
     #[getset(get = "pub", set = "pub")]
     password: Password,
     #[getset(get = "pub", set = "pub")]

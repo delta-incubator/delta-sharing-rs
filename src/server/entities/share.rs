@@ -27,7 +27,7 @@ pub struct Name {
 
 impl_string_property!(Name);
 
-#[derive(Debug, Clone, PartialEq, Eq, Getters, Setters, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Getters, Setters)]
 pub struct Entity {
     #[getset(get = "pub")]
     id: Id,

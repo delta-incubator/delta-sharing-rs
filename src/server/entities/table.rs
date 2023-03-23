@@ -30,7 +30,7 @@ pub struct Location {
 
 impl_string_property!(Location);
 
-#[derive(Debug, Clone, PartialEq, Eq, Getters, Setters, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Getters, Setters)]
 pub struct Entity {
     #[getset(get = "pub")]
     id: Id,

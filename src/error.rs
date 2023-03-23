@@ -1,15 +1,9 @@
+use crate::protos::protocol::ErrorResponse;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::Json;
 use tracing::debug;
-
-#[derive(Debug, Clone, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-struct ErrorResponse {
-    pub error_code: String,
-    pub message: String,
-}
 
 pub enum Error {
     InternalServerProblem(anyhow::Error),
@@ -86,10 +80,10 @@ impl IntoResponse for Error {
             ),
             Error::NotImplemented => (StatusCode::NOT_IMPLEMENTED, "Not implemented"),
         };
-        let body = Json(ErrorResponse {
-            error_code: status.as_str().into(),
-            message: message.into(),
-        });
+        let mut response = ErrorResponse::new();
+        response.error_code = status.as_str().into();
+        response.message = message.into();
+        let body = Json(response);
         (status, body).into_response()
     }
 }

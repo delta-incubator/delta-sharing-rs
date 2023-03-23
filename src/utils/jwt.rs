@@ -13,7 +13,16 @@ use jsonwebtoken::EncodingKey;
 use jsonwebtoken::Validation;
 use std::str::FromStr;
 
-#[derive(serde::Deserialize, serde::Serialize)]
+use anyhow::Context;
+use anyhow::Result;
+use chrono::DateTime;
+use chrono::NaiveDateTime;
+use chrono::Utc;
+use std::time::Duration;
+use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub struct Claims {
     pub name: String,
     pub email: String,
@@ -22,7 +31,9 @@ pub struct Claims {
     pub exp: i64,
 }
 
-#[derive(PartialEq, Eq, serde::Deserialize, serde::Serialize, strum_macros::EnumString)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize, strum_macros::EnumString,
+)]
 pub enum Role {
     #[strum(ascii_case_insensitive)]
     #[serde(rename = "admin")]
@@ -46,7 +57,21 @@ impl Keys {
     }
 }
 
-fn required_role_of(path: &str) -> Role {
+pub fn expires_in(ttl: i64) -> Result<(i64, DateTime<Utc>)> {
+    let ttl = u64::try_from(ttl).context("failed to convert i64 ttl to u64")?;
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .context("failed to create JWT token expiry")?;
+    let expiry = now + Duration::from_secs(ttl);
+    let expiry = expiry.as_millis();
+    let expiry = i64::try_from(expiry).context("failed to convert u128 expiry to i64")?;
+    let expiration_time = NaiveDateTime::from_timestamp_millis(expiry)
+        .context("faield to parse expiry millis to datetime")?;
+    let expiration_time = DateTime::<Utc>::from_utc(expiration_time, Utc);
+    Ok((expiry, expiration_time))
+}
+
+pub fn required_role_of(path: &str) -> Role {
     let path = path.trim_start_matches("/");
     let path = path.split("/").next().unwrap_or("");
     if let Ok(role) = Role::from_str(path) {

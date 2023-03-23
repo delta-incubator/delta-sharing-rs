@@ -40,7 +40,7 @@ async fn route(
     let app = Router::new()
         .route("/admin/login", post(self::admin::login))
         .route("/admin/register", post(self::admin::register))
-        .route("/admin/accounts", get(self::admin::accounts))
+        //        .route("/admin/accounts", get(self::admin::accounts))
         .route("/api/user/profile", get(self::api::user::profile))
         .layer(Extension(state));
     Ok(app)

@@ -1,2 +1,2 @@
 pub mod sharing;
-pub mod signed_url;
+pub mod signer;

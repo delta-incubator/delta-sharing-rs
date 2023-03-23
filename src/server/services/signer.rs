@@ -40,19 +40,19 @@ impl FromStr for Provider {
 
 #[async_trait]
 pub trait Service {
-    async fn signup(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url>;
+    async fn sign(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url>;
 }
 
 #[async_trait]
 impl Service for AWS {
-    async fn signup(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
+    async fn sign(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
         aws::signed_url(&self, bucket, path, duration).await
     }
 }
 
 #[async_trait]
 impl Service for GCP {
-    async fn signup(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
+    async fn sign(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
         gcp::signed_url(&self, bucket, path, duration)
     }
 }
@@ -105,7 +105,7 @@ mod tests {
     }
 
     //#[tokio::test]
-    async fn test_aws_signup_local() {
+    async fn test_aws_sign_local() {
         let pp = if let Ok(pp) = aws::new(
             &config::fetch::<String>("aws_credentials"),
             &config::fetch::<String>("aws_profile"),
@@ -121,13 +121,13 @@ mod tests {
         } else {
             panic!("failed to parse S3 url");
         };
-        if let Ok(url) = Service::signup(&pp, &bucket, &path, &300).await {
+        if let Ok(url) = Service::sign(&pp, &bucket, &path, &300).await {
             println!("{:?}", url);
         }
     }
 
     //#[tokio::test]
-    async fn test_gcp_signup_local() {
+    async fn test_gcp_sign_local() {
         let sa = if let Ok(sa) = gcp::new(&config::fetch::<String>("gcp_sa_private_key")) {
             sa
         } else {
@@ -140,7 +140,7 @@ mod tests {
         } else {
             panic!("failed to parse GS url");
         };
-        if let Ok(url) = Service::signup(&sa, &bucket, &path, &300).await {
+        if let Ok(url) = Service::sign(&sa, &bucket, &path, &300).await {
             println!("{:?}", url);
         }
     }
