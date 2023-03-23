@@ -3,10 +3,11 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::Json;
 use tracing::debug;
+use utoipa::ToSchema;
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-struct ErrorResponse {
+pub struct ErrorResponse {
     pub error_code: String,
     pub message: String,
 }

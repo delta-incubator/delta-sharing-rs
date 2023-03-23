@@ -15,6 +15,8 @@ use sqlx::PgPool;
 use std::sync::Arc;
 use tame_gcs::signing::ServiceAccount;
 use tracing::debug;
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 pub struct State {
     pub pg_pool: PgPool,
@@ -31,6 +33,21 @@ async fn route(
     gcp_service_account: ServiceAccount,
     aws_profile_provider: ProfileProvider,
 ) -> Result<Router> {
+    #[derive(OpenApi)]
+    #[openapi(
+        paths(
+            admin::login,
+            admin::accounts::post,
+        ),
+        components(
+            schemas(admin::Profile, admin::LoginRequest, admin::LoginResponse, crate::error::ErrorResponse),
+            schemas(admin::accounts::Account, admin::accounts::PostRequest, admin::accounts::PostResponse, crate::error::ErrorResponse)
+        ),
+        tags(
+            (name = "Kotosiro Sharing", description = "Kotosiro Deltalake Sharing API")
+        )
+    )]
+    struct ApiDoc;
     let state = Arc::new(State {
         pg_pool,
         redis_client,
@@ -38,6 +55,12 @@ async fn route(
         aws_profile_provider,
     });
     let app = Router::new()
+        .merge(
+            SwaggerUi::new(config::fetch::<String>("swagger_ui_path")).url(
+                config::fetch::<String>("open_api_doc_path"),
+                ApiDoc::openapi(),
+            ),
+        )
         .route("/admin/login", post(self::admin::login))
         .route("/admin/accounts", post(self::admin::accounts::post))
         .route("/admin/accounts", get(self::admin::accounts::list))

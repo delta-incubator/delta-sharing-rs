@@ -16,10 +16,12 @@ use axum::response::Response;
 use tracing::error;
 use tracing::info;
 use tracing::warn;
+use utoipa::IntoParams;
+use utoipa::ToSchema;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
     pub name: String,
@@ -28,7 +30,7 @@ pub struct Account {
     pub ttl: i64,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PostRequest {
     pub id: Option<String>,
@@ -39,12 +41,20 @@ pub struct PostRequest {
     pub ttl: i64,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PostResponse {
     pub account: Account,
 }
 
+#[utoipa::path(
+    post,
+    path = "/admin/accounts",
+    request_body = PostRequest,
+    responses(
+        (status = 201, description = "Registered account successfully", body = PostResponse),
+    )
+)]
 pub async fn post(
     _claims: Claims,
     Extension(state): Extension<SharedState>,

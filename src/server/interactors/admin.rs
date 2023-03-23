@@ -17,10 +17,11 @@ use axum::response::Response;
 use tracing::error;
 use tracing::info;
 use tracing::warn;
+use utoipa::ToSchema;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
     pub share_credentials_version: i64,
@@ -29,19 +30,27 @@ pub struct Profile {
     pub expiration_time: String,
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginRequest {
     pub name: String,
     pub password: String,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginResponse {
     pub profile: Profile,
 }
 
+#[utoipa::path(
+    post,
+    path = "/admin/login",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Logged-in successfully", body = LoginResponse),
+    )
+)]
 pub async fn login(
     Extension(state): Extension<SharedState>,
     Json(payload): Json<LoginRequest>,
