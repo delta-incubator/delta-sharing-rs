@@ -1,5 +1,5 @@
 pub mod admin;
-pub mod api;
+pub mod root;
 pub mod shares;
 use crate::config;
 use crate::server::schemas::ApiDoc;
@@ -57,6 +57,7 @@ async fn route(
         .layer(Extension(state.clone()));
 
     let guest = Router::new()
+        .route("/", get(self::root::get))
         .route("/shares", get(self::shares::list))
         .route("/shares/:name", get(self::shares::get))
         .route_layer(middleware::from_fn(jwt::as_guest))

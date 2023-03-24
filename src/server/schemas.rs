@@ -1,7 +1,19 @@
 use crate::server::interactors::admin;
+use crate::server::interactors::root;
 use crate::server::interactors::shares;
+use crate::utils::jwt::Role;
 use utoipa::OpenApi;
 use utoipa::ToSchema;
+
+#[derive(serde::Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Claims {
+    pub name: String,
+    pub email: String,
+    pub namespace: String,
+    pub role: Role,
+    pub exp: i64,
+}
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -31,6 +43,7 @@ pub struct Share {
 #[derive(OpenApi)]
 #[openapi(
     paths(
+	root::get,
         admin::login,
         admin::accounts::post,
         admin::accounts::get,
@@ -40,7 +53,8 @@ pub struct Share {
         shares::list,
     ),
     components(
-	schemas(Profile, Account, Share),
+	schemas(Claims, Profile, Account, Share),
+        schemas(root::RootResponse, crate::error::ErrorResponse),
         schemas(admin::AdminLoginRequest, admin::AdminLoginResponse, crate::error::ErrorResponse),
         schemas(admin::accounts::AdminAccountsPostRequest, admin::accounts::AdminAccountsPostResponse, crate::error::ErrorResponse),
         schemas(admin::accounts::AdminAccountsGetResponse, crate::error::ErrorResponse),
