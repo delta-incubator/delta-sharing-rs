@@ -4,10 +4,10 @@ Kotosiro Sharing Server
 TODO
 ==============================
 
-[APIs](https://github.com/delta-io/delta-sharing/blob/main/PROTOCOL.md)
+The following [API](https://github.com/delta-io/delta-sharing/blob/main/PROTOCOL.md)s must be implemented.
 
-- [ ] GET  {prefix}/shares
-- [ ] GET  {prefix}/shares/{share}
+- [x] GET  {prefix}/shares
+- [x] GET  {prefix}/shares/{share}
 - [ ] GET  {prefix}/shares/{share}/schemas
 - [ ] GET  {prefix}/shares/{share}/schemas/{schema}/tables
 - [ ] GET  {prefix}/shares/{share}/all-tables

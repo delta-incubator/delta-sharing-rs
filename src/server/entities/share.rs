@@ -1,7 +1,6 @@
 use crate::impl_string_property;
 use crate::impl_uuid_property;
 use crate::server::entities::account::Id as AccountId;
-use crate::server::entities::account::Name as AccountName;
 use crate::server::repositories::share::PgRepository;
 use crate::server::repositories::share::Repository;
 use anyhow::Result;
@@ -48,29 +47,27 @@ impl Entity {
 
     pub async fn list(
         limit: impl Into<Option<&i64>> + Send,
-        offset: impl Into<Option<&i64>> + Send,
+        after: impl Into<Option<&Name>> + Send,
         pg_pool: &PgPool,
     ) -> Result<Vec<Self>> {
         let repo = PgRepository;
-        let rows = repo.select(limit.into(), offset.into(), pg_pool).await?;
+        let rows = repo.select(limit.into(), after.into(), pg_pool).await?;
         rows.into_iter()
             .map(|row| Self::new(row.id.to_string(), row.name, row.created_by.to_string()))
             .collect()
     }
 
-    pub async fn list_by_account_name(
-        name: &AccountName,
-        limit: impl Into<Option<&i64>> + Send,
-        offset: impl Into<Option<&i64>> + Send,
-        pg_pool: &PgPool,
-    ) -> Result<Vec<Self>> {
+    pub async fn find_by_name(name: &Name, pg_pool: &PgPool) -> Result<Option<Self>> {
         let repo = PgRepository;
-        let rows = repo
-            .select_by_account_name(name, limit.into(), offset.into(), pg_pool)
-            .await?;
-        rows.into_iter()
-            .map(|row| Self::new(row.id.to_string(), row.name, row.created_by.to_string()))
-            .collect()
+        match repo.select_by_name(&name, pg_pool).await? {
+            Some(row) => Ok(Self {
+                id: Id::new(row.id),
+                name: Name::new(row.name)?,
+                created_by: AccountId::new(row.created_by),
+            }
+            .into()),
+            _ => Ok(None),
+        }
     }
 
     pub async fn register(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {

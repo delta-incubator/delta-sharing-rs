@@ -1,6 +1,6 @@
-use crate::server::entities::account::Name as AccountName;
 use crate::server::entities::share::Entity;
 use crate::server::entities::share::Id;
+use crate::server::entities::share::Name;
 use crate::utils::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
@@ -8,6 +8,8 @@ use async_trait::async_trait;
 use chrono::DateTime;
 use chrono::Utc;
 use sqlx::postgres::PgQueryResult;
+use sqlx::query_builder::QueryBuilder;
+use sqlx::Execute;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, serde::Serialize, sqlx::FromRow)]
@@ -36,17 +38,15 @@ pub trait Repository: Send + Sync + 'static {
     async fn select(
         &self,
         limit: Option<&i64>,
-        offset: Option<&i64>,
+        after: Option<&Name>,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<Vec<Row>>;
 
-    async fn select_by_account_name(
+    async fn select_by_name(
         &self,
-        name: &AccountName,
-        limit: Option<&i64>,
-        offset: Option<&i64>,
+        name: &Name,
         executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Vec<Row>>;
+    ) -> Result<Option<Row>>;
 }
 
 pub struct PgRepository;
@@ -109,16 +109,55 @@ impl Repository for PgRepository {
     async fn select(
         &self,
         limit: Option<&i64>,
-        offset: Option<&i64>,
+        after: Option<&Name>,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<Vec<Row>> {
-        let limit = limit.unwrap_or(&10);
-        let offset = offset.unwrap_or(&0);
         let mut conn = executor
             .acquire()
             .await
             .context("failed to acquire postgres connection")?;
-        let rows: Vec<Row> = sqlx::query_as::<_, Row>(
+        let mut builder = QueryBuilder::new(
+            "SELECT
+                 id,
+                 name,
+                 created_by,
+                 created_at,
+                 updated_at
+             FROM share",
+        );
+        if let Some(name) = after {
+            builder.push(" WHERE name >= ");
+            builder.push_bind(name);
+        }
+        builder.push(" ORDER BY name ");
+        if let Some(limit) = limit {
+            builder.push(" LIMIT ");
+            builder.push_bind(limit);
+        }
+        let mut query = sqlx::query_as::<_, Row>(builder.build().sql().into());
+        if let Some(name) = after {
+            query = query.bind(name);
+        }
+        if let Some(limit) = limit {
+            query = query.bind(limit);
+        }
+        let rows: Vec<Row> = query
+            .fetch_all(&mut *conn)
+            .await
+            .context("failed to list shares from [share]")?;
+        Ok(rows)
+    }
+
+    async fn select_by_name(
+        &self,
+        name: &Name,
+        executor: impl PgAcquire<'_> + 'async_trait,
+    ) -> Result<Option<Row>> {
+        let mut conn = executor
+            .acquire()
+            .await
+            .context("failed to acquire postgres connection")?;
+        let row: Option<Row> = sqlx::query_as::<_, Row>(
             "SELECT
                  id,
                  name,
@@ -126,50 +165,16 @@ impl Repository for PgRepository {
                  created_at,
                  updated_at
              FROM share
-             ORDER BY created_at DESC
-             LIMIT $1 OFFSET $2",
-        )
-        .bind(limit)
-        .bind(offset)
-        .fetch_all(&mut *conn)
-        .await
-        .context(format!("failed to list {} share(s) from [share]", limit))?;
-        Ok(rows)
-    }
-
-    async fn select_by_account_name(
-        &self,
-        name: &AccountName,
-        limit: Option<&i64>,
-        offset: Option<&i64>,
-        executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Vec<Row>> {
-        let limit = limit.unwrap_or(&10);
-        let offset = offset.unwrap_or(&0);
-        let mut conn = executor
-            .acquire()
-            .await
-            .context("failed to acquire postgres connection")?;
-        let rows: Vec<Row> = sqlx::query_as::<_, Row>(
-            "SELECT
-                 share.id,
-                 share.name,
-                 share.created_by,
-                 share.created_at,
-                 share.updated_at
-             FROM share
-             JOIN account ON account.id = share.created_by
-             WHERE account.name = $1
-             ORDER BY share.created_at DESC
-             LIMIT $2 OFFSET $3",
+             WHERE name = $1",
         )
         .bind(name)
-        .bind(limit)
-        .bind(offset)
-        .fetch_all(&mut *conn)
+        .fetch_optional(&mut *conn)
         .await
-        .context(format!("failed to list {} share(s) from [share]", limit))?;
-        Ok(rows)
+        .context(format!(
+            r#"failed to select "{}" from [share]"#,
+            name.as_str()
+        ))?;
+        Ok(row)
     }
 }
 
@@ -276,7 +281,7 @@ mod tests {
 
     #[sqlx::test]
     #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
-    async fn test_create_and_select_by_account_name_with_default_limit(pool: PgPool) -> Result<()> {
+    async fn test_upsert_and_select_by_name(pool: PgPool) -> Result<()> {
         let repo = PgRepository;
         let mut tx = pool
             .begin()
@@ -285,66 +290,20 @@ mod tests {
         let account = upsert_account(&mut tx)
             .await
             .expect("new account should be created");
-        let records = testutils::rand::i64(0, 20);
-        for _ in 0..records {
-            upsert_share(account.id(), &mut tx)
-                .await
-                .expect("new share should be created");
-        }
-        let account = upsert_account(&mut tx)
+        let share = upsert_share(account.id(), &mut tx)
             .await
-            .expect("new account should be created");
-        let records = testutils::rand::i64(0, 20);
-        for _ in 0..records {
-            upsert_share(account.id(), &mut tx)
-                .await
-                .expect("new share should be created");
-        }
+            .expect("new share should be created");
         let fetched = repo
-            .select_by_account_name(account.name(), None, None, &mut tx)
+            .select_by_name(&share.name(), &mut tx)
             .await
-            .expect("inserted share should be listed");
-        assert_eq!(min(records, 10) as usize, fetched.len());
-        tx.rollback()
-            .await
-            .expect("rollback should be done properly");
-        Ok(())
-    }
-
-    #[sqlx::test]
-    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
-    async fn test_create_and_select_by_account_name_with_specified_limit(
-        pool: PgPool,
-    ) -> Result<()> {
-        let repo = PgRepository;
-        let mut tx = pool
-            .begin()
-            .await
-            .expect("transaction should be started properly");
-        let account = upsert_account(&mut tx)
-            .await
-            .expect("new account should be created");
-        let records = testutils::rand::i64(0, 20);
-        for _ in 0..records {
-            upsert_share(account.id(), &mut tx)
-                .await
-                .expect("new share should be created");
+            .expect("inserted share should be found");
+        if let Some(fetched) = fetched {
+            assert_eq!(&fetched.id, share.id().as_uuid());
+            assert_eq!(&fetched.name, share.name().as_str());
+            assert_eq!(&fetched.created_by, share.created_by().as_uuid());
+        } else {
+            panic!("inserted account should be found");
         }
-        let account = upsert_account(&mut tx)
-            .await
-            .expect("new account should be created");
-        let records = testutils::rand::i64(0, 20);
-        for _ in 0..records {
-            upsert_share(account.id(), &mut tx)
-                .await
-                .expect("new share should be created");
-        }
-        let limit = testutils::rand::i64(0, 20);
-        let fetched = repo
-            .select_by_account_name(account.name(), Some(&limit), None, &mut tx)
-            .await
-            .expect("inserted share should be listed");
-        assert_eq!(min(records, limit) as usize, fetched.len());
         tx.rollback()
             .await
             .expect("rollback should be done properly");

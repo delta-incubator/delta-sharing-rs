@@ -5,6 +5,8 @@ use crate::utils::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;
+use chrono::DateTime;
+use chrono::Utc;
 use sqlx::postgres::PgQueryResult;
 use sqlx::query_builder::QueryBuilder;
 use sqlx::Execute;
@@ -18,6 +20,8 @@ pub struct Row {
     pub password: String,
     pub namespace: String,
     pub ttl: i64,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 #[async_trait]
@@ -131,7 +135,9 @@ impl Repository for PgRepository {
                  email,
                  password,
                  namespace,
-                 ttl
+                 ttl,
+                 created_at,
+                 updated_at
              FROM account",
         );
         if let Some(name) = after {
@@ -173,7 +179,9 @@ impl Repository for PgRepository {
                  email,
                  password,
                  namespace,
-                 ttl
+                 ttl,
+                 created_at,
+                 updated_at
              FROM account
              WHERE name = $1",
         )

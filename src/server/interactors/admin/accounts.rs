@@ -32,7 +32,7 @@ pub struct Account {
 
 #[derive(serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct PostRequest {
+pub struct AdminAccountsPostRequest {
     pub id: Option<String>,
     pub name: String,
     pub email: String,
@@ -43,16 +43,16 @@ pub struct PostRequest {
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct PostResponse {
+pub struct AdminAccountsPostResponse {
     pub account: Account,
 }
 
 #[utoipa::path(
     post,
     path = "/admin/accounts",
-    request_body = PostRequest,
+    request_body = AdminAccountsPostRequest,
     responses(
-        (status = 201, description = "Registered account successfully", body = PostResponse),
+        (status = 201, description = "Registered account successfully", body = AdminAccountsPostResponse),
         (status = 401, description = "Authorization failed", body = ErrorResponse),
         (status = 409, description = "Confliction occured", body = ErrorResponse),
         (status = 422, description = "Validation failed", body = ErrorResponse),
@@ -62,7 +62,7 @@ pub struct PostResponse {
 pub async fn post(
     _claims: Claims,
     Extension(state): Extension<SharedState>,
-    Json(payload): Json<PostRequest>,
+    Json(payload): Json<AdminAccountsPostRequest>,
 ) -> Result<Response, Error> {
     let entity = if let Ok(entity) = AccountEntity::new(
         payload.id,
@@ -86,7 +86,7 @@ pub async fn post(
             );
             Ok((
                 StatusCode::CREATED,
-                Json(PostResponse {
+                Json(AdminAccountsPostResponse {
                     account: Account {
                         name: entity.name().to_string(),
                         email: entity.email().to_string(),
@@ -107,13 +107,13 @@ pub async fn post(
 
 #[derive(serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct GetParams {
+pub struct AdminAccountsGetParams {
     name: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct GetResponse {
+pub struct AdminAccountsGetResponse {
     pub account: Account,
 }
 
@@ -121,10 +121,10 @@ pub struct GetResponse {
     get,
     path = "/admin/accounts/{name}",
     params(
-        GetParams,
+        AdminAccountsGetParams,
     ),
     responses(
-        (status = 200, description = "Show matching account successfully", body = GetResponse),
+        (status = 200, description = "Show matching account successfully", body = AdminAccountsGetResponse),
         (status = 401, description = "Authorization failed", body = ErrorResponse),
         (status = 404, description = "Account not found", body = ErrorResponse),
         (status = 422, description = "Validation failed", body = ErrorResponse),
@@ -134,7 +134,7 @@ pub struct GetResponse {
 pub async fn get(
     _claims: Claims,
     Extension(state): Extension<SharedState>,
-    Path(GetParams { name }): Path<GetParams>,
+    Path(AdminAccountsGetParams { name }): Path<AdminAccountsGetParams>,
 ) -> Result<Response, Error> {
     let name = if let Ok(name) = AccountName::new(name) {
         name
@@ -147,7 +147,7 @@ pub async fn get(
             info!(r#"found account name: "{}""#, entity.name().as_str());
             Ok((
                 StatusCode::OK,
-                Json(GetResponse {
+                Json(AdminAccountsGetResponse {
                     account: Account {
                         name: entity.name().to_string(),
                         email: entity.email().to_string(),
@@ -167,14 +167,14 @@ pub async fn get(
 
 #[derive(serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct ListQuery {
+pub struct AdminAccountsListQuery {
     pub max_results: Option<i64>,
     pub page_token: Option<String>,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct ListResponse {
+pub struct AdminAccountsListResponse {
     pub items: Vec<Account>,
     pub next_page_token: String,
 }
@@ -183,10 +183,10 @@ pub struct ListResponse {
     get,
     path = "/admin/accounts",
     params(
-        ListQuery,
+        AdminAccountsListQuery,
     ),
     responses(
-        (status = 200, description = "List matching account(s) successfully", body = GetResponse),
+        (status = 200, description = "List matching account(s) successfully", body = AdminAccountsListResponse),
         (status = 401, description = "Authorization failed", body = ErrorResponse),
         (status = 422, description = "Validation failed", body = ErrorResponse),
         (status = 500, description = "Error occured while selecting account(s) on database", body = ErrorResponse),
@@ -195,7 +195,7 @@ pub struct ListResponse {
 pub async fn list(
     _claims: Claims,
     Extension(state): Extension<SharedState>,
-    query: Query<ListQuery>,
+    query: Query<AdminAccountsListQuery>,
 ) -> Result<Response, Error> {
     let limit = if let Some(limit) = &query.max_results {
         if let Ok(limit) = usize::try_from(*limit) {
@@ -224,7 +224,7 @@ pub async fn list(
         info!(r"found {} account(s)", entities.len());
         return Ok((
             StatusCode::OK,
-            Json(ListResponse {
+            Json(AdminAccountsListResponse {
                 items: entities
                     .iter()
                     .map(|entity| Account {
@@ -242,7 +242,7 @@ pub async fn list(
     info!(r"found {} account(s)", entities.len());
     Ok((
         StatusCode::OK,
-        Json(ListResponse {
+        Json(AdminAccountsListResponse {
             items: entities
                 .iter()
                 .map(|entity| Account {

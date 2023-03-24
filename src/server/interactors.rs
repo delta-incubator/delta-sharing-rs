@@ -1,5 +1,6 @@
 pub mod admin;
 pub mod api;
+pub mod shares;
 use crate::config;
 use anyhow::Context;
 use anyhow::Result;
@@ -40,12 +41,18 @@ async fn route(
             admin::accounts::post,
             admin::accounts::get,
             admin::accounts::list,
+            admin::shares::post,
+            shares::get,
+            shares::list,
         ),
         components(
-            schemas(admin::Profile, admin::LoginRequest, admin::LoginResponse, crate::error::ErrorResponse),
-            schemas(admin::accounts::Account, admin::accounts::PostRequest, admin::accounts::PostResponse, crate::error::ErrorResponse),
-            schemas(admin::accounts::Account, admin::accounts::GetResponse, crate::error::ErrorResponse),
-            schemas(admin::accounts::Account, admin::accounts::ListResponse, crate::error::ErrorResponse),
+            schemas(admin::Profile, admin::AdminLoginRequest, admin::AdminLoginResponse, crate::error::ErrorResponse),
+            schemas(admin::accounts::Account, admin::accounts::AdminAccountsPostRequest, admin::accounts::AdminAccountsPostResponse, crate::error::ErrorResponse),
+            schemas(admin::accounts::Account, admin::accounts::AdminAccountsGetResponse, crate::error::ErrorResponse),
+            schemas(admin::accounts::Account, admin::accounts::AdminAccountsListResponse, crate::error::ErrorResponse),
+            schemas(admin::shares::Share, admin::shares::AdminSharesPostRequest, admin::shares::AdminSharesPostResponse, crate::error::ErrorResponse),
+            schemas(shares::Share, shares::SharesGetResponse, crate::error::ErrorResponse),
+            schemas(shares::Share, shares::SharesListResponse, crate::error::ErrorResponse),
         ),
         tags(
             (name = "Kotosiro Sharing", description = "Kotosiro Deltalake Sharing API")
@@ -69,7 +76,10 @@ async fn route(
         .route("/admin/accounts", post(self::admin::accounts::post))
         .route("/admin/accounts", get(self::admin::accounts::list))
         .route("/admin/accounts/:name", get(self::admin::accounts::get))
-        .route("/api/user/profile", get(self::api::user::profile))
+        .route("/admin/shares", post(self::admin::shares::post))
+        .route("/shares", get(self::shares::list))
+        .route("/shares/:name", get(self::shares::get))
+        //        .route("/api/user/profile", get(self::api::user::profile))
         .layer(Extension(state));
     Ok(app)
 }

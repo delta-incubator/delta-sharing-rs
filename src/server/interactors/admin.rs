@@ -1,4 +1,5 @@
 pub mod accounts;
+pub mod shares;
 use crate::config;
 use crate::error::Error;
 use crate::server::entities::account::Entity as AccountEntity;
@@ -19,8 +20,6 @@ use tracing::info;
 use tracing::warn;
 use utoipa::ToSchema;
 
-const DEFAULT_PAGE_RESULTS: usize = 10;
-
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
@@ -32,23 +31,23 @@ pub struct Profile {
 
 #[derive(serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct LoginRequest {
+pub struct AdminLoginRequest {
     pub name: String,
     pub password: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct LoginResponse {
+pub struct AdminLoginResponse {
     pub profile: Profile,
 }
 
 #[utoipa::path(
     post,
     path = "/admin/login",
-    request_body = LoginRequest,
+    request_body = AdminLoginRequest,
     responses(
-        (status = 200, description = "Logged-in successfully", body = LoginResponse),
+        (status = 200, description = "Logged-in successfully", body = AdminLoginResponse),
         (status = 401, description = "Authorization failed", body = ErrorResponse),
         (status = 422, description = "Validation failed", body = ErrorResponse),
         (status = 500, description = "Expiration time calculation and/or profile creation failed", body = ErrorResponse),
@@ -56,7 +55,7 @@ pub struct LoginResponse {
 )]
 pub async fn login(
     Extension(state): Extension<SharedState>,
-    Json(payload): Json<LoginRequest>,
+    Json(payload): Json<AdminLoginRequest>,
 ) -> Result<Response, Error> {
     let name = if let Ok(name) = AccountName::new(payload.name) {
         name
@@ -96,7 +95,7 @@ pub async fn login(
     info!(r#"account "{}" logged in"#, entity.name().as_str());
     Ok((
         StatusCode::OK,
-        Json(LoginResponse {
+        Json(AdminLoginResponse {
             profile: Profile {
                 share_credentials_version: SHARE_CREDENTIALS_VERSION,
                 endpoint: config::fetch::<String>("server_bind"),
