@@ -2,6 +2,7 @@ use crate::error::Error;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::interactors::SharedState;
+use crate::server::schemas::Account;
 use crate::utils::jwt::Claims;
 use crate::utils::postgres::has_conflict;
 use crate::utils::postgres::pg_error;
@@ -20,15 +21,6 @@ use utoipa::IntoParams;
 use utoipa::ToSchema;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
-
-#[derive(serde::Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct Account {
-    pub name: String,
-    pub email: String,
-    pub namespace: String,
-    pub ttl: i64,
-}
 
 #[derive(serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]

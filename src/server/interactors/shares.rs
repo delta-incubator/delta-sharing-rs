@@ -2,6 +2,7 @@ use crate::error::Error;
 use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::interactors::SharedState;
+use crate::server::schemas::Share;
 use crate::utils::jwt::Claims;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -16,13 +17,6 @@ use utoipa::IntoParams;
 use utoipa::ToSchema;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
-
-#[derive(serde::Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct Share {
-    pub id: String,
-    pub name: String,
-}
 
 #[derive(serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]

@@ -2,6 +2,7 @@ pub mod admin;
 pub mod api;
 pub mod shares;
 use crate::config;
+use crate::server::schemas;
 use anyhow::Context;
 use anyhow::Result;
 use axum::extract::Extension;
@@ -46,13 +47,14 @@ async fn route(
             shares::list,
         ),
         components(
-            schemas(admin::Profile, admin::AdminLoginRequest, admin::AdminLoginResponse, crate::error::ErrorResponse),
-            schemas(admin::accounts::Account, admin::accounts::AdminAccountsPostRequest, admin::accounts::AdminAccountsPostResponse, crate::error::ErrorResponse),
-            schemas(admin::accounts::Account, admin::accounts::AdminAccountsGetResponse, crate::error::ErrorResponse),
-            schemas(admin::accounts::Account, admin::accounts::AdminAccountsListResponse, crate::error::ErrorResponse),
-            schemas(admin::shares::Share, admin::shares::AdminSharesPostRequest, admin::shares::AdminSharesPostResponse, crate::error::ErrorResponse),
-            schemas(shares::Share, shares::SharesGetResponse, crate::error::ErrorResponse),
-            schemas(shares::Share, shares::SharesListResponse, crate::error::ErrorResponse),
+	    schemas(schemas::Profile, schemas::Account, schemas::Share),
+            schemas(admin::AdminLoginRequest, admin::AdminLoginResponse, crate::error::ErrorResponse),
+            schemas(admin::accounts::AdminAccountsPostRequest, admin::accounts::AdminAccountsPostResponse, crate::error::ErrorResponse),
+            schemas(admin::accounts::AdminAccountsGetResponse, crate::error::ErrorResponse),
+            schemas(admin::accounts::AdminAccountsListResponse, crate::error::ErrorResponse),
+            schemas(admin::shares::AdminSharesPostRequest, admin::shares::AdminSharesPostResponse, crate::error::ErrorResponse),
+            schemas(shares::SharesGetResponse, crate::error::ErrorResponse),
+            schemas(shares::SharesListResponse, crate::error::ErrorResponse),
         ),
         tags(
             (name = "Kotosiro Sharing", description = "Kotosiro Deltalake Sharing API")

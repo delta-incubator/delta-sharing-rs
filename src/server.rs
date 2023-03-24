@@ -1,6 +1,7 @@
 pub mod entities;
 mod interactors;
 mod repositories;
+mod schemas;
 mod services;
 use crate::utils;
 use anyhow::Context;

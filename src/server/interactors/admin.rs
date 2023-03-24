@@ -5,6 +5,7 @@ use crate::error::Error;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::interactors::SharedState;
+use crate::server::schemas::Profile;
 use crate::server::services::sharing::Service as SharingService;
 use crate::server::services::sharing::VERSION as SHARE_CREDENTIALS_VERSION;
 use crate::utils::jwt::expires_in;
@@ -19,15 +20,6 @@ use tracing::error;
 use tracing::info;
 use tracing::warn;
 use utoipa::ToSchema;
-
-#[derive(serde::Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct Profile {
-    pub share_credentials_version: i64,
-    pub endpoint: String,
-    pub bearer_token: String,
-    pub expiration_time: String,
-}
 
 #[derive(serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]

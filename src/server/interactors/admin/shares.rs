@@ -3,6 +3,7 @@ use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::interactors::SharedState;
+use crate::server::schemas::Share;
 use crate::utils::jwt::Claims;
 use crate::utils::postgres::has_conflict;
 use crate::utils::postgres::pg_error;
@@ -16,13 +17,6 @@ use tracing::error;
 use tracing::info;
 use tracing::warn;
 use utoipa::ToSchema;
-
-#[derive(serde::Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct Share {
-    pub id: String,
-    pub name: String,
-}
 
 #[derive(serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
