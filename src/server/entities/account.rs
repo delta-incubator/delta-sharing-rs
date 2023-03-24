@@ -115,22 +115,6 @@ impl Entity {
             .collect()
     }
 
-    pub async fn find_by_id(id: &Id, pg_pool: &PgPool) -> Result<Option<Self>> {
-        let repo = PgRepository;
-        match repo.select_by_id(&id, pg_pool).await? {
-            Some(row) => Ok(Self {
-                id: Id::new(row.id),
-                name: Name::new(row.name)?,
-                email: Email::new(row.email)?,
-                password: Password::new(row.password)?,
-                namespace: Namespace::new(row.namespace)?,
-                ttl: Ttl::new(row.ttl)?,
-            }
-            .into()),
-            _ => Ok(None),
-        }
-    }
-
     pub async fn find_by_name(name: &Name, pg_pool: &PgPool) -> Result<Option<Self>> {
         let repo = PgRepository;
         match repo.select_by_name(&name, pg_pool).await? {

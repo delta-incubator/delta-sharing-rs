@@ -41,12 +41,6 @@ pub trait Repository: Send + Sync + 'static {
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<Vec<Row>>;
 
-    async fn select_by_id(
-        &self,
-        id: &Id,
-        executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Option<Row>>;
-
     async fn select_by_name(
         &self,
         name: &Name,
@@ -163,36 +157,6 @@ impl Repository for PgRepository {
         Ok(rows)
     }
 
-    async fn select_by_id(
-        &self,
-        id: &Id,
-        executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Option<Row>> {
-        let mut conn = executor
-            .acquire()
-            .await
-            .context("failed to acquire postgres connection")?;
-        let row: Option<Row> = sqlx::query_as::<_, Row>(
-            "SELECT
-                 id,
-                 name,
-                 email,
-                 password,
-                 namespace,
-                 ttl
-             FROM account
-             WHERE id = $1",
-        )
-        .bind(id)
-        .fetch_optional(&mut *conn)
-        .await
-        .context(format!(
-            r#"failed to select "{}" from [account]"#,
-            id.as_uuid()
-        ))?;
-        Ok(row)
-    }
-
     async fn select_by_name(
         &self,
         name: &Name,
@@ -295,37 +259,6 @@ mod tests {
             .await
             .expect("inserted account should be listed");
         assert_eq!(min(records, limit) as usize, fetched.len());
-        tx.rollback()
-            .await
-            .expect("rollback should be done properly");
-        Ok(())
-    }
-
-    #[sqlx::test]
-    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
-    async fn test_upsert_and_select_by_id(pool: PgPool) -> Result<()> {
-        let repo = PgRepository;
-        let mut tx = pool
-            .begin()
-            .await
-            .expect("transaction should be started properly");
-        let account = upsert(&mut tx)
-            .await
-            .expect("new account should be upserted");
-        let fetched = repo
-            .select_by_id(&account.id(), &mut tx)
-            .await
-            .expect("inserted account should be found");
-        if let Some(fetched) = fetched {
-            assert_eq!(&fetched.id, account.id().as_uuid());
-            assert_eq!(&fetched.name, account.name().as_str());
-            assert_eq!(&fetched.email, account.email().as_str());
-            assert_eq!(&fetched.password, account.password().as_str());
-            assert_eq!(&fetched.namespace, account.namespace().as_str());
-            assert_eq!(&fetched.ttl, account.ttl().as_i64());
-        } else {
-            panic!("inserted account should be found");
-        }
         tx.rollback()
             .await
             .expect("rollback should be done properly");
