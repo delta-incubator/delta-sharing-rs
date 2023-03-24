@@ -1,49 +1,15 @@
+pub mod account;
+pub mod claims;
+pub mod error;
+pub mod profile;
+pub mod share;
 use crate::server::interactors::admin;
-use crate::server::interactors::root;
 use crate::server::interactors::shares;
-use crate::utils::jwt::Role;
 use utoipa::OpenApi;
-use utoipa::ToSchema;
-
-#[derive(serde::Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct Claims {
-    pub name: String,
-    pub email: String,
-    pub namespace: String,
-    pub role: Role,
-    pub exp: i64,
-}
-
-#[derive(serde::Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct Profile {
-    pub share_credentials_version: i64,
-    pub endpoint: String,
-    pub bearer_token: String,
-    pub expiration_time: String,
-}
-
-#[derive(serde::Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct Account {
-    pub name: String,
-    pub email: String,
-    pub namespace: String,
-    pub ttl: i64,
-}
-
-#[derive(serde::Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct Share {
-    pub id: String,
-    pub name: String,
-}
 
 #[derive(OpenApi)]
 #[openapi(
     paths(
-	root::get,
         admin::login,
         admin::accounts::post,
         admin::accounts::get,
@@ -53,15 +19,14 @@ pub struct Share {
         shares::list,
     ),
     components(
-	schemas(Claims, Profile, Account, Share),
-        schemas(root::RootResponse, crate::error::ErrorResponse),
-        schemas(admin::AdminLoginRequest, admin::AdminLoginResponse, crate::error::ErrorResponse),
-        schemas(admin::accounts::AdminAccountsPostRequest, admin::accounts::AdminAccountsPostResponse, crate::error::ErrorResponse),
-        schemas(admin::accounts::AdminAccountsGetResponse, crate::error::ErrorResponse),
-        schemas(admin::accounts::AdminAccountsListResponse, crate::error::ErrorResponse),
-        schemas(admin::shares::AdminSharesPostRequest, admin::shares::AdminSharesPostResponse, crate::error::ErrorResponse),
-        schemas(shares::SharesGetResponse, crate::error::ErrorResponse),
-        schemas(shares::SharesListResponse, crate::error::ErrorResponse),
+	schemas(claims::Claims, profile::Profile, account::Account, share::Share, error::Error),
+        schemas(admin::AdminLoginRequest, admin::AdminLoginResponse),
+        schemas(admin::accounts::AdminAccountsPostRequest, admin::accounts::AdminAccountsPostResponse),
+        schemas(admin::accounts::AdminAccountsGetResponse),
+        schemas(admin::accounts::AdminAccountsListResponse),
+        schemas(admin::shares::AdminSharesPostRequest, admin::shares::AdminSharesPostResponse),
+        schemas(shares::SharesGetResponse),
+        schemas(shares::SharesListResponse),
     ),
     tags(
         (name = "Kotosiro Sharing", description = "Kotosiro Deltalake Sharing API")

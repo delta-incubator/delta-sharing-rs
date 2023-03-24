@@ -3,8 +3,14 @@ use crate::impl_string_property;
 use crate::impl_uuid_property;
 use crate::server::repositories::account::PgRepository;
 use crate::server::repositories::account::Repository;
-use crate::utils::argon2;
+use anyhow::anyhow;
 use anyhow::Result;
+use argon2::password_hash::rand_core::OsRng;
+use argon2::password_hash::PasswordHash;
+use argon2::password_hash::PasswordHasher;
+use argon2::password_hash::PasswordVerifier;
+use argon2::password_hash::SaltString;
+use argon2::Argon2;
 use getset::Getters;
 use getset::Setters;
 use sqlx::postgres::PgQueryResult;
@@ -75,6 +81,22 @@ pub struct Entity {
     ttl: Ttl,
 }
 
+fn hash(password: &[u8]) -> Result<String> {
+    let salt = SaltString::generate(&mut OsRng);
+    let hashed = Argon2::default()
+        .hash_password(password, &salt)
+        .map_err(|_| anyhow!("falield to hash password"))?;
+    Ok(hashed.to_string())
+}
+
+fn verify(password: &[u8], hash: &str) -> Result<()> {
+    let parsed =
+        PasswordHash::new(hash).map_err(|_| anyhow!("falield to parse hashed password"))?;
+    Argon2::default()
+        .verify_password(password, &parsed)
+        .map_err(|_| anyhow!("falield to verify password"))
+}
+
 impl Entity {
     pub fn new(
         id: impl Into<Option<String>>,
@@ -88,7 +110,7 @@ impl Entity {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
             name: Name::new(name)?,
             email: Email::new(email)?,
-            password: Password::new(argon2::hash(password.as_bytes()).unwrap())?,
+            password: Password::new(self::hash(password.as_bytes()).unwrap())?,
             namespace: Namespace::new(namespace)?,
             ttl: Ttl::new(ttl)?,
         })
@@ -137,7 +159,7 @@ impl Entity {
     }
 
     pub fn verify(&self, password: &[u8]) -> Result<()> {
-        argon2::verify(password.into(), self.password().as_str())
+        self::verify(password.into(), self.password().as_str())
     }
 }
 

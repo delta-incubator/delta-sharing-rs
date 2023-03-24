@@ -1,6 +1,6 @@
 use crate::server::entities::table::Entity;
 use crate::server::entities::table::Id;
-use crate::utils::postgres::PgAcquire;
+use crate::server::utils::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;

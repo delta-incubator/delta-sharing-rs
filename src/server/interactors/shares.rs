@@ -1,9 +1,9 @@
 pub mod schemas;
-use crate::error::Error;
 use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::entities::share::Name as ShareName;
+use crate::server::error::Error;
 use crate::server::interactors::SharedState;
-use crate::server::schemas::Share;
+use crate::server::schemas::share::Share;
 use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -38,10 +38,10 @@ pub struct SharesGetResponse {
     ),
     responses(
         (status = 200, description = "Show matching share successfully", body = SharesGetResponse),
-        (status = 401, description = "Authorization failed", body = ErrorResponse),
-        (status = 404, description = "Share not found", body = ErrorResponse),
-        (status = 422, description = "Validation failed", body = ErrorResponse),
-        (status = 500, description = "Error occured while selecting share on database", body = ErrorResponse),
+        (status = 401, description = "Authorization failed", body = Error),
+        (status = 404, description = "Share not found", body = Error),
+        (status = 422, description = "Validation failed", body = Error),
+        (status = 500, description = "Error occured while selecting share on database", body = Error),
     )
 )]
 pub async fn get(
@@ -94,9 +94,9 @@ pub struct SharesListResponse {
     ),
     responses(
         (status = 200, description = "List matching share(s) successfully", body = SharesListResponse),
-        (status = 401, description = "Authorization failed", body = ErrorResponse),
-        (status = 422, description = "Validation failed", body = ErrorResponse),
-        (status = 500, description = "Error occured while selecting share(s) on database", body = ErrorResponse),
+        (status = 401, description = "Authorization failed", body = Error),
+        (status = 422, description = "Validation failed", body = Error),
+        (status = 500, description = "Error occured while selecting share(s) on database", body = Error),
     )
 )]
 pub async fn list(

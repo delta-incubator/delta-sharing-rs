@@ -1,9 +1,8 @@
 pub mod admin;
-pub mod root;
 pub mod shares;
 use crate::config;
+use crate::server::middlewares::jwt;
 use crate::server::schemas::ApiDoc;
-use crate::utils::jwt;
 use anyhow::Context;
 use anyhow::Result;
 use axum::extract::Extension;
@@ -11,7 +10,6 @@ use axum::middleware;
 use axum::routing::get;
 use axum::routing::post;
 use axum::Router;
-use redis::Client;
 use rusoto_credential::ProfileProvider;
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -22,7 +20,6 @@ use utoipa_swagger_ui::SwaggerUi;
 
 pub struct State {
     pub pg_pool: PgPool,
-    pub redis_client: Client,
     pub gcp_service_account: ServiceAccount,
     pub aws_profile_provider: ProfileProvider,
 }
@@ -31,13 +28,11 @@ pub type SharedState = Arc<State>;
 
 async fn route(
     pg_pool: PgPool,
-    redis_client: Client,
     gcp_service_account: ServiceAccount,
     aws_profile_provider: ProfileProvider,
 ) -> Result<Router> {
     let state = Arc::new(State {
         pg_pool,
-        redis_client,
         gcp_service_account,
         aws_profile_provider,
     });
@@ -57,7 +52,6 @@ async fn route(
         .layer(Extension(state.clone()));
 
     let guest = Router::new()
-        .route("/", get(self::root::get))
         .route("/shares", get(self::shares::list))
         .route("/shares/:name", get(self::shares::get))
         .route_layer(middleware::from_fn(jwt::as_guest))
@@ -70,18 +64,12 @@ async fn route(
 
 pub async fn bind(
     pg_pool: PgPool,
-    redis_client: Client,
     gcp_service_account: ServiceAccount,
     aws_profile_provider: ProfileProvider,
 ) -> Result<()> {
-    let app = route(
-        pg_pool,
-        redis_client,
-        gcp_service_account,
-        aws_profile_provider,
-    )
-    .await
-    .context("failed to create axum router")?;
+    let app = route(pg_pool, gcp_service_account, aws_profile_provider)
+        .await
+        .context("failed to create axum router")?;
     let server_bind = config::fetch::<String>("server_bind");
     let addr = server_bind.as_str().parse().context(format!(
         r#"failed to parse "{}" to SocketAddr"#,

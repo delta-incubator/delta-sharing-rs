@@ -1,22 +1,15 @@
 use crate::config;
 use crate::server::entities::account::Entity as Account;
+use crate::server::utils::postgres::has_conflict;
+use crate::server::utils::postgres::pg_error;
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
-use sqlx::postgres::PgDatabaseError;
-use sqlx::Acquire;
 use sqlx::PgPool;
-use sqlx::Postgres;
 use tracing::error;
 use tracing::info;
 use tracing::trace;
 use tracing::warn;
-
-const INTEGRITY_ERROR: &str = "23";
-
-pub trait PgAcquire<'c>: Acquire<'c, Database = Postgres> + Send {}
-
-impl<'c, T> PgAcquire<'c> for T where T: Acquire<'c, Database = Postgres> + Send {}
 
 async fn create_admin(pool: &PgPool) -> Result<Account> {
     let admin = if let Ok(admin) = Account::new(
@@ -68,22 +61,6 @@ pub async fn connect(url: &str) -> Result<PgPool> {
     trace!("admin account created");
     info!("connected to database");
     Ok(pool)
-}
-
-pub fn pg_error<T>(
-    response: anyhow::Result<T>,
-) -> Result<std::result::Result<T, Box<PgDatabaseError>>> {
-    match response {
-        Ok(v) => Ok(Ok(v)),
-        Err(e) => match e.downcast::<sqlx::Error>() {
-            Ok(sqlx::Error::Database(e)) => Ok(Err(e.downcast::<PgDatabaseError>())),
-            _ => Err(anyhow!("unknow database error")),
-        },
-    }
-}
-
-pub fn has_conflict(error: &PgDatabaseError) -> bool {
-    &error.code()[..2] == INTEGRITY_ERROR
 }
 
 #[cfg(test)]

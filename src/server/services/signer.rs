@@ -1,12 +1,20 @@
-use crate::utils::aws;
-use crate::utils::gcp;
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;
+use rusoto_core::Region;
 use rusoto_credential::ProfileProvider as AWS;
+use rusoto_credential::ProvideAwsCredentials;
+use rusoto_s3::util::PreSignedRequest;
+use rusoto_s3::util::PreSignedRequestOption;
+use rusoto_s3::GetObjectRequest;
 use std::str::FromStr;
+use std::time::Duration;
+use tame_gcs::signed_url::SignedUrlOptional;
+use tame_gcs::signed_url::UrlSigner;
 use tame_gcs::signing::ServiceAccount as GCP;
+use tame_gcs::BucketName;
+use tame_gcs::ObjectName;
 use url::Url;
 
 #[derive(Debug)]
@@ -46,14 +54,39 @@ pub trait Service {
 #[async_trait]
 impl Service for AWS {
     async fn sign(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
-        aws::signed_url(&self, bucket, path, duration).await
+        let credentials = self
+            .credentials()
+            .await
+            .context("failed to acquire AWS credentials")?;
+        let region = Region::default();
+        let options = PreSignedRequestOption {
+            expires_in: Duration::from_secs(*duration),
+        };
+        let request = GetObjectRequest {
+            bucket: bucket.to_string(),
+            key: path.to_string(),
+            ..Default::default()
+        };
+        let url = request.get_presigned_url(&region, &credentials, &options);
+        let url = Url::parse(&url).context("failed to parse AWS signed URL")?;
+        Ok(url)
     }
 }
 
 #[async_trait]
 impl Service for GCP {
     async fn sign(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
-        gcp::signed_url(&self, bucket, path, duration)
+        let bucket = BucketName::try_from(bucket).context("failed to parse bucket name")?;
+        let object = ObjectName::try_from(path).context("failed to parse object name")?;
+        let options = SignedUrlOptional {
+            duration: Duration::from_secs(*duration),
+            ..Default::default()
+        };
+        let signer = UrlSigner::with_ring();
+        let url = signer
+            .generate(self, &(&bucket, &object), options)
+            .context("failed to generate signed url")?;
+        Ok(url)
     }
 }
 

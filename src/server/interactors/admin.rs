@@ -1,15 +1,14 @@
 pub mod accounts;
 pub mod shares;
 use crate::config;
-use crate::error::Error;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
+use crate::server::error::Error;
 use crate::server::interactors::SharedState;
-use crate::server::schemas::Profile;
+use crate::server::schemas::claims::Role;
+use crate::server::schemas::profile::Profile;
 use crate::server::services::sharing::Service as SharingService;
 use crate::server::services::sharing::VERSION as SHARE_CREDENTIALS_VERSION;
-use crate::utils::jwt::expires_in;
-use crate::utils::jwt::Role;
 use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -38,9 +37,9 @@ pub struct AdminLoginResponse {
     request_body = AdminLoginRequest,
     responses(
         (status = 200, description = "Logged-in successfully", body = AdminLoginResponse),
-        (status = 401, description = "Authorization failed", body = ErrorResponse),
-        (status = 422, description = "Validation failed", body = ErrorResponse),
-        (status = 500, description = "Expiration time calculation and/or profile creation failed", body = ErrorResponse),
+        (status = 401, description = "Authorization failed", body = Error),
+        (status = 422, description = "Validation failed", body = Error),
+        (status = 500, description = "Expiration time calculation and/or profile creation failed", body = Error),
     )
 )]
 pub async fn login(
@@ -57,8 +56,8 @@ pub async fn login(
     entity
         .verify(payload.password.as_bytes())
         .map_err(|_| Error::Unauthorized)?;
-    let (expiration_secs, expiration_time) =
-        expires_in(entity.ttl().to_i64()).context("expiration time calculation failed")?;
+    let (expiration_secs, expiration_time) = SharingService::expires_in(entity.ttl().to_i64())
+        .context("expiration time calculation failed")?;
     let token = SharingService::token(
         entity.name().to_string(),
         entity.email().to_string(),

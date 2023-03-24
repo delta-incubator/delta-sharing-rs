@@ -1,11 +1,11 @@
 pub mod schemas;
-use crate::error::Error;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::share::Entity as ShareEntity;
+use crate::server::error::Error;
 use crate::server::interactors::SharedState;
-use crate::server::schemas::Share;
-use crate::utils::postgres::has_conflict;
-use crate::utils::postgres::pg_error;
+use crate::server::schemas::share::Share;
+use crate::server::utils::postgres::has_conflict;
+use crate::server::utils::postgres::pg_error;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -34,10 +34,10 @@ pub struct AdminSharesPostResponse {
     request_body = AdminSharesPostRequest,
     responses(
         (status = 201, description = "Registered share successfully", body = AdminSharesPostResponse),
-        (status = 401, description = "Authorization failed", body = ErrorResponse),
-        (status = 409, description = "Confliction occured", body = ErrorResponse),
-        (status = 422, description = "Validation failed", body = ErrorResponse),
-        (status = 500, description = "Error occured while creating share on database", body = ErrorResponse),
+        (status = 401, description = "Authorization failed", body = Error),
+        (status = 409, description = "Confliction occured", body = Error),
+        (status = 422, description = "Validation failed", body = Error),
+        (status = 500, description = "Error occured while creating share on database", body = Error),
     )
 )]
 pub async fn post(
