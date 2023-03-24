@@ -38,10 +38,14 @@ async fn route(
         paths(
             admin::login,
             admin::accounts::post,
+            admin::accounts::get,
+            admin::accounts::list,
         ),
         components(
             schemas(admin::Profile, admin::LoginRequest, admin::LoginResponse, crate::error::ErrorResponse),
-            schemas(admin::accounts::Account, admin::accounts::PostRequest, admin::accounts::PostResponse, crate::error::ErrorResponse)
+            schemas(admin::accounts::Account, admin::accounts::PostRequest, admin::accounts::PostResponse, crate::error::ErrorResponse),
+            schemas(admin::accounts::Account, admin::accounts::GetResponse, crate::error::ErrorResponse),
+            schemas(admin::accounts::Account, admin::accounts::ListResponse, crate::error::ErrorResponse),
         ),
         tags(
             (name = "Kotosiro Sharing", description = "Kotosiro Deltalake Sharing API")

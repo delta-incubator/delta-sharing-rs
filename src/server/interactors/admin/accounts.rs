@@ -53,6 +53,10 @@ pub struct PostResponse {
     request_body = PostRequest,
     responses(
         (status = 201, description = "Registered account successfully", body = PostResponse),
+        (status = 401, description = "Authorization failed", body = ErrorResponse),
+        (status = 409, description = "Confliction occured", body = ErrorResponse),
+        (status = 422, description = "Validation failed", body = ErrorResponse),
+        (status = 500, description = "Error occured while creating account on database", body = ErrorResponse),
     )
 )]
 pub async fn post(
@@ -101,18 +105,32 @@ pub async fn post(
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct GetParams {
     name: String,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct GetResponse {
     pub account: Account,
 }
 
+#[utoipa::path(
+    get,
+    path = "/admin/accounts/{name}",
+    params(
+        GetParams,
+    ),
+    responses(
+        (status = 200, description = "Show matching account successfully", body = GetResponse),
+        (status = 401, description = "Authorization failed", body = ErrorResponse),
+        (status = 404, description = "Account not found", body = ErrorResponse),
+        (status = 422, description = "Validation failed", body = ErrorResponse),
+        (status = 500, description = "Error occured while selecting account on database", body = ErrorResponse),
+    )
+)]
 pub async fn get(
     _claims: Claims,
     Extension(state): Extension<SharedState>,
@@ -147,24 +165,37 @@ pub async fn get(
     }
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct ListRequest {
+pub struct ListQuery {
     pub max_results: Option<i64>,
     pub page_token: Option<String>,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ListResponse {
     pub items: Vec<Account>,
     pub next_page_token: String,
 }
 
+#[utoipa::path(
+    get,
+    path = "/admin/accounts",
+    params(
+        ListQuery,
+    ),
+    responses(
+        (status = 200, description = "List matching account(s) successfully", body = GetResponse),
+        (status = 401, description = "Authorization failed", body = ErrorResponse),
+        (status = 422, description = "Validation failed", body = ErrorResponse),
+        (status = 500, description = "Error occured while selecting account(s) on database", body = ErrorResponse),
+    )
+)]
 pub async fn list(
     _claims: Claims,
     Extension(state): Extension<SharedState>,
-    query: Query<ListRequest>,
+    query: Query<ListQuery>,
 ) -> Result<Response, Error> {
     let limit = if let Some(limit) = &query.max_results {
         if let Ok(limit) = usize::try_from(*limit) {
