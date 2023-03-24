@@ -2,7 +2,7 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::Json;
-use tracing::debug;
+use tracing::error;
 use utoipa::ToSchema;
 
 #[derive(serde::Serialize, ToSchema)]
@@ -78,7 +78,7 @@ impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let (status, message) = match self {
             Error::InternalServerProblem(e) => {
-                debug!("stacktrace: {}", e.backtrace());
+                error!("stacktrace: {}", e.backtrace());
                 (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong")
             }
             Error::BadRequest => (StatusCode::BAD_REQUEST, "Bad request"),

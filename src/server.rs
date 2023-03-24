@@ -1,5 +1,5 @@
 pub mod entities;
-mod interactors;
+pub mod interactors;
 mod repositories;
 mod schemas;
 mod services;

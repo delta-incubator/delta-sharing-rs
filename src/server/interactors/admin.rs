@@ -10,15 +10,13 @@ use crate::server::services::sharing::Service as SharingService;
 use crate::server::services::sharing::VERSION as SHARE_CREDENTIALS_VERSION;
 use crate::utils::jwt::expires_in;
 use crate::utils::jwt::Role;
-use anyhow::anyhow;
+use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use tracing::error;
-use tracing::info;
-use tracing::warn;
+use tracing::debug;
 use utoipa::ToSchema;
 
 #[derive(serde::Deserialize, ToSchema)]
@@ -49,42 +47,31 @@ pub async fn login(
     Extension(state): Extension<SharedState>,
     Json(payload): Json<AdminLoginRequest>,
 ) -> Result<Response, Error> {
-    let name = if let Ok(name) = AccountName::new(payload.name) {
-        name
-    } else {
-        error!("failed to validate account name");
-        return Err(Error::ValidationFailed);
-    };
-    let entity = if let Some(entity) = AccountEntity::find_by_name(&name, &state.pg_pool).await? {
-        entity
-    } else {
-        warn!("failed to authorize account");
+    let name = AccountName::new(payload.name).map_err(|_| Error::ValidationFailed)?;
+    let entity = AccountEntity::find_by_name(&name, &state.pg_pool)
+        .await
+        .context("error occured while selecting account from database")?;
+    let Some(entity) = entity else {
         return Err(Error::Unauthorized);
     };
-    if let Err(_) = entity.verify(payload.password.as_bytes()) {
-        warn!("password did not match");
-        return Err(Error::Unauthorized);
-    }
-    let (expiry, expiration_time) =
-        if let Ok((expiry, expiration_time)) = expires_in(entity.ttl().to_i64()) {
-            (expiry, expiration_time)
-        } else {
-            error!("failed to calculate expiration time");
-            return Err(anyhow!("Expiration time calculation failed").into());
-        };
-    let token = if let Ok(token) = SharingService::token(
+    entity
+        .verify(payload.password.as_bytes())
+        .map_err(|_| Error::Unauthorized)?;
+    let (expiration_secs, expiration_time) =
+        expires_in(entity.ttl().to_i64()).context("expiration time calculation failed")?;
+    let token = SharingService::token(
         entity.name().to_string(),
         entity.email().to_string(),
         entity.namespace().to_string(),
         Role::Admin,
-        expiry,
-    ) {
-        token
-    } else {
-        error!("failed to create sharing bearer token");
-        return Err(anyhow!("Profile creation failed").into());
-    };
-    info!(r#"account "{}" logged in"#, entity.name().as_str());
+        expiration_secs,
+    )
+    .context("profile creation failed")?;
+    debug!(
+        r#"logged-in successfully id: "{}" name: "{}""#,
+        entity.id().as_uuid(),
+        entity.name().as_str()
+    );
     Ok((
         StatusCode::OK,
         Json(AdminLoginResponse {

@@ -1,9 +1,10 @@
+pub mod schemas;
 use crate::error::Error;
 use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::interactors::SharedState;
 use crate::server::schemas::Share;
-use crate::utils::jwt::Claims;
+use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::extract::Path;
@@ -11,8 +12,7 @@ use axum::extract::Query;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use tracing::error;
-use tracing::info;
+use tracing::debug;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
 
@@ -45,35 +45,31 @@ pub struct SharesGetResponse {
     )
 )]
 pub async fn get(
-    _claims: Claims,
     Extension(state): Extension<SharedState>,
     Path(SharesGetParams { name }): Path<SharesGetParams>,
 ) -> Result<Response, Error> {
-    let name = if let Ok(name) = ShareName::new(name) {
-        name
-    } else {
-        error!("failed to validate share name");
-        return Err(Error::ValidationFailed);
+    let name = ShareName::new(name).map_err(|_| Error::ValidationFailed)?;
+    let entity = ShareEntity::find_by_name(&name, &state.pg_pool)
+        .await
+        .context("error occured while selecting share")?;
+    let Some(entity) = entity else {
+	return Err(Error::NotFound);
     };
-    match ShareEntity::find_by_name(&name, &state.pg_pool).await? {
-        Some(entity) => {
-            info!(r#"found share name: "{}""#, entity.name().as_str());
-            Ok((
-                StatusCode::OK,
-                Json(SharesGetResponse {
-                    share: Share {
-                        id: entity.id().to_string(),
-                        name: entity.name().to_string(),
-                    },
-                }),
-            )
-                .into_response())
-        }
-        None => {
-            error!(r#"failed to find share name: "{}""#, name.as_str());
-            return Err(Error::NotFound);
-        }
-    }
+    debug!(
+        r#"found share id: "{}" name: "{}""#,
+        entity.id().as_uuid(),
+        entity.name().as_str()
+    );
+    Ok((
+        StatusCode::OK,
+        Json(SharesGetResponse {
+            share: Share {
+                id: entity.id().to_string(),
+                name: entity.name().to_string(),
+            },
+        }),
+    )
+        .into_response())
 }
 
 #[derive(serde::Deserialize, IntoParams)]
@@ -104,35 +100,28 @@ pub struct SharesListResponse {
     )
 )]
 pub async fn list(
-    _claims: Claims,
     Extension(state): Extension<SharedState>,
     query: Query<SharesListQuery>,
 ) -> Result<Response, Error> {
     let limit = if let Some(limit) = &query.max_results {
-        if let Ok(limit) = usize::try_from(*limit) {
-            limit
-        } else {
-            error!("failed to validate max results query");
-            return Err(Error::ValidationFailed);
-        }
+        let limit = usize::try_from(*limit).map_err(|_| Error::ValidationFailed)?;
+        limit
     } else {
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &query.page_token {
-        if let Ok(name) = ShareName::new(name) {
-            Some(name)
-        } else {
-            error!("failed to validate share name");
-            return Err(Error::ValidationFailed);
-        }
+        let after = ShareName::new(name).map_err(|_| Error::ValidationFailed)?;
+        Some(after)
     } else {
         None
     };
-    let entities = ShareEntity::list(&((limit + 1) as i64), &after, &state.pg_pool).await?;
+    let entities = ShareEntity::list(&((limit + 1) as i64), &after, &state.pg_pool)
+        .await
+        .context("error occured while selecting share(s)")?;
     if entities.len() == limit + 1 {
         let next = &entities[limit];
         let entities = &entities[..limit];
-        info!(r"found {} share(s)", entities.len());
+        debug!(r"found {} share(s)", entities.len());
         return Ok((
             StatusCode::OK,
             Json(SharesListResponse {
@@ -148,7 +137,7 @@ pub async fn list(
         )
             .into_response());
     }
-    info!(r"found {} share(s)", entities.len());
+    debug!(r"found {} share(s)", entities.len());
     Ok((
         StatusCode::OK,
         Json(SharesListResponse {

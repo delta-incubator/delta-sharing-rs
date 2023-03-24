@@ -2,14 +2,14 @@ pub mod admin;
 pub mod api;
 pub mod shares;
 use crate::config;
-use crate::server::schemas;
+use crate::server::schemas::ApiDoc;
+use crate::utils::jwt;
 use anyhow::Context;
 use anyhow::Result;
 use axum::extract::Extension;
-use axum::routing::delete;
+use axum::middleware;
 use axum::routing::get;
 use axum::routing::post;
-use axum::routing::put;
 use axum::Router;
 use redis::Client;
 use rusoto_credential::ProfileProvider;
@@ -27,7 +27,7 @@ pub struct State {
     pub aws_profile_provider: ProfileProvider,
 }
 
-type SharedState = Arc<State>;
+pub type SharedState = Arc<State>;
 
 async fn route(
     pg_pool: PgPool,
@@ -35,54 +35,35 @@ async fn route(
     gcp_service_account: ServiceAccount,
     aws_profile_provider: ProfileProvider,
 ) -> Result<Router> {
-    #[derive(OpenApi)]
-    #[openapi(
-        paths(
-            admin::login,
-            admin::accounts::post,
-            admin::accounts::get,
-            admin::accounts::list,
-            admin::shares::post,
-            shares::get,
-            shares::list,
-        ),
-        components(
-	    schemas(schemas::Profile, schemas::Account, schemas::Share),
-            schemas(admin::AdminLoginRequest, admin::AdminLoginResponse, crate::error::ErrorResponse),
-            schemas(admin::accounts::AdminAccountsPostRequest, admin::accounts::AdminAccountsPostResponse, crate::error::ErrorResponse),
-            schemas(admin::accounts::AdminAccountsGetResponse, crate::error::ErrorResponse),
-            schemas(admin::accounts::AdminAccountsListResponse, crate::error::ErrorResponse),
-            schemas(admin::shares::AdminSharesPostRequest, admin::shares::AdminSharesPostResponse, crate::error::ErrorResponse),
-            schemas(shares::SharesGetResponse, crate::error::ErrorResponse),
-            schemas(shares::SharesListResponse, crate::error::ErrorResponse),
-        ),
-        tags(
-            (name = "Kotosiro Sharing", description = "Kotosiro Deltalake Sharing API")
-        )
-    )]
-    struct ApiDoc;
     let state = Arc::new(State {
         pg_pool,
         redis_client,
         gcp_service_account,
         aws_profile_provider,
     });
-    let app = Router::new()
-        .merge(
-            SwaggerUi::new(config::fetch::<String>("swagger_ui_path")).url(
-                config::fetch::<String>("open_api_doc_path"),
-                ApiDoc::openapi(),
-            ),
-        )
-        .route("/admin/login", post(self::admin::login))
+
+    let swagger = SwaggerUi::new(config::fetch::<String>("swagger_ui_path")).url(
+        config::fetch::<String>("open_api_doc_path"),
+        ApiDoc::openapi(),
+    );
+
+    let admin = Router::new()
         .route("/admin/accounts", post(self::admin::accounts::post))
         .route("/admin/accounts", get(self::admin::accounts::list))
         .route("/admin/accounts/:name", get(self::admin::accounts::get))
         .route("/admin/shares", post(self::admin::shares::post))
+        .route_layer(middleware::from_fn(jwt::as_admin))
+        .route("/admin/login", post(self::admin::login))
+        .layer(Extension(state.clone()));
+
+    let guest = Router::new()
         .route("/shares", get(self::shares::list))
         .route("/shares/:name", get(self::shares::get))
-        //        .route("/api/user/profile", get(self::api::user::profile))
-        .layer(Extension(state));
+        .route_layer(middleware::from_fn(jwt::as_guest))
+        .layer(Extension(state.clone()));
+
+    let app = Router::new().merge(swagger).merge(admin).merge(guest);
+
     Ok(app)
 }
 
