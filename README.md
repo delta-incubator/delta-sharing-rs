@@ -16,7 +16,7 @@ TODO
 | :heavy_check_mark: |                    | GET    | *{prefix}/admin/tables*                                            |
 | :heavy_check_mark: |                    | POST   | *{prefix}/admin/tables*                                            |
 | :heavy_check_mark: |                    | GET    | *{prefix}/admin/tables/{table}*                                    |
-|                    |                    | POST   | *{prefix}/admin/shares/{share}/schemas/{schema}/tables*            |
+| :heavy_check_mark: |                    | POST   | *{prefix}/admin/shares/{share}/schemas/{schema}/tables*            |
 |                    |                    | POST   | *{prefix}/admin/shares/{share}/all-tables*                         |
 | :heavy_check_mark: | :heavy_check_mark: | GET    | *{prefix}/shares*                                                  |
 | :heavy_check_mark: | :heavy_check_mark: | GET    | *{prefix}/shares/{share}*                                          |

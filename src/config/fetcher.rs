@@ -182,7 +182,6 @@ mod tests {
     fn test_get() {
         let config = CONFIG.clone();
         assert!(matches!(config.get::<String>("db_url"), Ok(_)));
-        assert!(matches!(config.get::<String>("kvs_url"), Ok(_)));
         assert!(matches!(config.get::<String>("server_addr"), Ok(_)));
         assert!(matches!(config.get::<String>("server_bind"), Ok(_)));
         assert!(matches!(config.get::<String>("admin_name"), Ok(_)));

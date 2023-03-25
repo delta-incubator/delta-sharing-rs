@@ -3,9 +3,13 @@ use crate::impl_uuid_property;
 use crate::server::entities::account::Id as AccountId;
 use crate::server::entities::share::Id as ShareId;
 use crate::server::entities::table::Id as TableId;
+use crate::server::repositories::schema::PgRepository;
+use crate::server::repositories::schema::Repository;
 use anyhow::Result;
 use getset::Getters;
 use getset::Setters;
+use sqlx::postgres::PgQueryResult;
+use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -31,9 +35,9 @@ pub struct Entity {
     #[getset(get = "pub", set = "pub")]
     name: Name,
     #[getset(get = "pub", set = "pub")]
-    table_id: Option<TableId>,
+    table_id: TableId,
     #[getset(get = "pub", set = "pub")]
-    share_id: Option<ShareId>,
+    share_id: ShareId,
     #[getset(get = "pub")]
     created_by: AccountId,
 }
@@ -42,23 +46,22 @@ impl Entity {
     pub fn new(
         id: impl Into<Option<String>>,
         name: String,
-        table_id: impl Into<Option<String>>,
-        share_id: impl Into<Option<String>>,
+        table_id: String,
+        share_id: String,
         created_by: String,
     ) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
             name: Name::new(name)?,
-            table_id: table_id
-                .into()
-                .map(|id| TableId::try_from(id))
-                .map_or(Ok(None), |id| id.map(Some))?,
-            share_id: share_id
-                .into()
-                .map(|id| ShareId::try_from(id))
-                .map_or(Ok(None), |id| id.map(Some))?,
+            table_id: TableId::try_from(table_id)?,
+            share_id: ShareId::try_from(share_id)?,
             created_by: AccountId::try_from(created_by)?,
         })
+    }
+
+    pub async fn register(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
+        let repo = PgRepository;
+        repo.upsert(&self, pg_pool).await
     }
 }
 

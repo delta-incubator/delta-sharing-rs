@@ -51,6 +51,10 @@ async fn route(
         .route("/admin/tables", post(self::admin::tables::post))
         .route("/admin/tables", get(self::admin::tables::list))
         .route("/admin/tables/:name", get(self::admin::tables::get))
+        .route(
+            "/admin/shares/:share/schemas/:schema/tables",
+            post(admin::shares::schemas::tables::post),
+        )
         .route_layer(middleware::from_fn(jwt::as_admin))
         .route("/admin/login", post(self::admin::login))
         .layer(Extension(state.clone()));
