@@ -1,7 +1,6 @@
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
-use async_trait::async_trait;
 use rusoto_core::Region;
 use rusoto_credential::ProfileProvider as AWS;
 use rusoto_credential::ProvideAwsCredentials;
@@ -18,12 +17,12 @@ use tame_gcs::ObjectName;
 use url::Url;
 
 #[derive(Debug)]
-pub enum Provider {
+pub enum Platform {
     AWS { bucket: String, path: String },
     GCP { bucket: String, path: String },
 }
 
-impl FromStr for Provider {
+impl FromStr for Platform {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> std::result::Result<Self, Self::Err> {
@@ -46,55 +45,43 @@ impl FromStr for Provider {
     }
 }
 
-#[async_trait]
-pub trait Service {
-    async fn sign(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url>;
+pub async fn aws(aws: &AWS, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
+    let credentials = aws
+        .credentials()
+        .await
+        .context("failed to acquire AWS credentials")?;
+    let region = Region::default();
+    let options = PreSignedRequestOption {
+        expires_in: Duration::from_secs(*duration),
+    };
+    let request = GetObjectRequest {
+        bucket: bucket.to_string(),
+        key: path.to_string(),
+        ..Default::default()
+    };
+    let url = request.get_presigned_url(&region, &credentials, &options);
+    let url = Url::parse(&url).context("failed to parse AWS signed URL")?;
+    Ok(url)
 }
 
-#[async_trait]
-impl Service for AWS {
-    async fn sign(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
-        let credentials = self
-            .credentials()
-            .await
-            .context("failed to acquire AWS credentials")?;
-        let region = Region::default();
-        let options = PreSignedRequestOption {
-            expires_in: Duration::from_secs(*duration),
-        };
-        let request = GetObjectRequest {
-            bucket: bucket.to_string(),
-            key: path.to_string(),
-            ..Default::default()
-        };
-        let url = request.get_presigned_url(&region, &credentials, &options);
-        let url = Url::parse(&url).context("failed to parse AWS signed URL")?;
-        Ok(url)
-    }
-}
-
-#[async_trait]
-impl Service for GCP {
-    async fn sign(&self, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
-        let bucket = BucketName::try_from(bucket).context("failed to parse bucket name")?;
-        let object = ObjectName::try_from(path).context("failed to parse object name")?;
-        let options = SignedUrlOptional {
-            duration: Duration::from_secs(*duration),
-            ..Default::default()
-        };
-        let signer = UrlSigner::with_ring();
-        let url = signer
-            .generate(self, &(&bucket, &object), options)
-            .context("failed to generate signed url")?;
-        Ok(url)
-    }
+pub async fn gcp(gcp: &GCP, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
+    let bucket = BucketName::try_from(bucket).context("failed to parse bucket name")?;
+    let object = ObjectName::try_from(path).context("failed to parse object name")?;
+    let options = SignedUrlOptional {
+        duration: Duration::from_secs(*duration),
+        ..Default::default()
+    };
+    let signer = UrlSigner::with_ring();
+    let url = signer
+        .generate(gcp, &(&bucket, &object), options)
+        .context("failed to generate signed url")?;
+    Ok(url)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bootstrap::aws;
-    use crate::bootstrap::gcp;
+    use crate::bootstrap;
     use crate::config;
     use std::str::FromStr;
 
@@ -103,8 +90,8 @@ mod tests {
         let bucket = testutils::rand::string(10);
         let path = testutils::rand::string(10);
         let url = format!("s3://{}/{}", bucket, path);
-        let provider = Provider::from_str(&url).expect("should parse s3 url properly");
-        if let Provider::AWS {
+        let provider = Platform::from_str(&url).expect("should parse s3 url properly");
+        if let Platform::AWS {
             bucket: parsed_bucket,
             path: parsed_path,
         } = provider
@@ -123,8 +110,8 @@ mod tests {
         let bucket = testutils::rand::string(10);
         let path = testutils::rand::string(10);
         let url = format!("gs://{}/{}", bucket, path);
-        let provider = Provider::from_str(&url).expect("should parse s3 url properly");
-        if let Provider::GCP {
+        let provider = Platform::from_str(&url).expect("should parse s3 url properly");
+        if let Platform::GCP {
             bucket: parsed_bucket,
             path: parsed_path,
         } = provider
@@ -140,7 +127,7 @@ mod tests {
 
     //#[tokio::test]
     async fn test_aws_sign_local() {
-        let pp = if let Ok(pp) = aws::new(
+        let pp = if let Ok(pp) = bootstrap::aws::new(
             &config::fetch::<String>("aws_credentials"),
             &config::fetch::<String>("aws_profile"),
         ) {
@@ -148,33 +135,34 @@ mod tests {
         } else {
             panic!("failed to create AWS profile provider");
         };
-        let (bucket, path) = if let Ok(Provider::AWS { bucket, path }) =
-            Provider::from_str("s3://kotosiro-sharing-test/sample.txt")
+        let (bucket, path) = if let Ok(Platform::AWS { bucket, path }) =
+            Platform::from_str("s3://kotosiro-sharing-test/sample.txt")
         {
             (bucket, path)
         } else {
             panic!("failed to parse S3 url");
         };
-        if let Ok(url) = Service::sign(&pp, &bucket, &path, &300).await {
+        if let Ok(url) = aws(&pp, &bucket, &path, &300).await {
             println!("{:?}", url);
         }
     }
 
     //#[tokio::test]
     async fn test_gcp_sign_local() {
-        let sa = if let Ok(sa) = gcp::new(&config::fetch::<String>("gcp_sa_private_key")) {
+        let sa = if let Ok(sa) = bootstrap::gcp::new(&config::fetch::<String>("gcp_sa_private_key"))
+        {
             sa
         } else {
             panic!("failed to create GCP service account");
         };
-        let (bucket, path) = if let Ok(Provider::GCP { bucket, path }) =
-            Provider::from_str("gs://kotosiro-sharing-test/sample.txt")
+        let (bucket, path) = if let Ok(Platform::GCP { bucket, path }) =
+            Platform::from_str("gs://kotosiro-sharing-test/sample.txt")
         {
             (bucket, path)
         } else {
             panic!("failed to parse GS url");
         };
-        if let Ok(url) = Service::sign(&sa, &bucket, &path, &300).await {
+        if let Ok(url) = gcp(&sa, &bucket, &path, &300).await {
             println!("{:?}", url);
         }
     }

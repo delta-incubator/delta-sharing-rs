@@ -8,8 +8,7 @@ use crate::server::error::Error;
 use crate::server::routers::SharedState;
 use crate::server::schemas::claims::Role;
 use crate::server::schemas::profile::Profile;
-use crate::server::services::sharing::Service as SharingService;
-use crate::server::services::sharing::VERSION as SHARE_CREDENTIALS_VERSION;
+use crate::server::utils::sharing;
 use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -57,9 +56,9 @@ pub async fn login(
     entity
         .verify(payload.password.as_bytes())
         .map_err(|_| Error::Unauthorized)?;
-    let (expiration_secs, expiration_time) = SharingService::expires_in(entity.ttl().to_i64())
+    let (expiration_secs, expiration_time) = sharing::new_expiration(entity.ttl().to_i64())
         .context("expiration time calculation failed")?;
-    let token = SharingService::token(
+    let token = sharing::new_token(
         entity.name().to_string(),
         entity.email().to_string(),
         entity.namespace().to_string(),
@@ -76,7 +75,7 @@ pub async fn login(
         StatusCode::OK,
         Json(AdminLoginResponse {
             profile: Profile {
-                share_credentials_version: SHARE_CREDENTIALS_VERSION,
+                share_credentials_version: sharing::VERSION,
                 endpoint: config::fetch::<String>("server_bind"),
                 bearer_token: token,
                 expiration_time: expiration_time.to_string(),

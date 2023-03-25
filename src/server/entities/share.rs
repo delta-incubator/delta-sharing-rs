@@ -1,6 +1,7 @@
 use crate::impl_string_property;
 use crate::impl_uuid_property;
 use crate::server::entities::account::Id as AccountId;
+use crate::server::entities::schema::Name as SchemaName;
 use crate::server::repositories::share::PgRepository;
 use crate::server::repositories::share::Repository;
 use anyhow::Result;
