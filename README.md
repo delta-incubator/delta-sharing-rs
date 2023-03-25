@@ -8,6 +8,11 @@ TODO
 
 | Check              | Method | URL                                                                | Official           |
 | ------------------ | ------ | ------------------------------------------------------------------ | ------------------ |
+| :heavy_check_mark: | POST   | *{prefix}/admin/login*                                             |                    |
+| :heavy_check_mark: | GET    | *{prefix}/admin/accounts*                                          |                    |
+| :heavy_check_mark: | POST   | *{prefix}/admin/accounts*                                          |                    |
+| :heavy_check_mark: | GET    | *{prefix}/admin/accounts/{account}*                                |                    |
+| :heavy_check_mark: | POST   | *{prefix}/admin/shares*                                            |                    |
 | :heavy_check_mark: | GET    | *{prefix}/shares*                                                  | :heavy_check_mark: |
 | :heavy_check_mark: | GET    | *{prefix}/shares/{share}*                                          | :heavy_check_mark: |
 |                    | GET    | *{prefix}/shares/{share}/schemas*                                  | :heavy_check_mark: |
