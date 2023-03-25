@@ -3,8 +3,8 @@ pub mod claims;
 pub mod error;
 pub mod profile;
 pub mod share;
-use crate::server::interactors::admin;
-use crate::server::interactors::shares;
+use crate::server::routers::admin;
+use crate::server::routers::shares;
 use utoipa::OpenApi;
 
 #[derive(OpenApi)]

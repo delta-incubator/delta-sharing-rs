@@ -2,7 +2,7 @@ pub mod schemas;
 use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::error::Error;
-use crate::server::interactors::SharedState;
+use crate::server::routers::SharedState;
 use crate::server::schemas::share::Share;
 use anyhow::Context;
 use axum::extract::Extension;

@@ -1,7 +1,7 @@
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::error::Error;
-use crate::server::interactors::SharedState;
+use crate::server::routers::SharedState;
 use crate::server::schemas::account::Account;
 use crate::server::utils::postgres::has_conflict;
 use crate::server::utils::postgres::pg_error;

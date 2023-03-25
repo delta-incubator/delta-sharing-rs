@@ -2,7 +2,7 @@ pub mod schemas;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::error::Error;
-use crate::server::interactors::SharedState;
+use crate::server::routers::SharedState;
 use crate::server::schemas::share::Share;
 use crate::server::utils::postgres::has_conflict;
 use crate::server::utils::postgres::pg_error;

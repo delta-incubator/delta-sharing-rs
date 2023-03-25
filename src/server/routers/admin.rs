@@ -4,7 +4,7 @@ use crate::config;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::error::Error;
-use crate::server::interactors::SharedState;
+use crate::server::routers::SharedState;
 use crate::server::schemas::claims::Role;
 use crate::server::schemas::profile::Profile;
 use crate::server::services::sharing::Service as SharingService;

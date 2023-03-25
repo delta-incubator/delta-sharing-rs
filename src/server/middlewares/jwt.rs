@@ -2,7 +2,7 @@ use crate::config::JWT_SECRET;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::error::Error;
-use crate::server::interactors::SharedState;
+use crate::server::routers::SharedState;
 use crate::server::schemas::claims::Claims;
 use crate::server::schemas::claims::Role;
 use anyhow::anyhow;

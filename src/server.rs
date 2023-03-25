@@ -1,8 +1,8 @@
 pub mod entities;
 pub mod error;
-pub mod interactors;
 pub mod middlewares;
 mod repositories;
+pub mod routers;
 mod schemas;
 mod services;
 pub mod utils;
@@ -36,7 +36,7 @@ impl Server {
     }
 
     pub async fn start(self: Self) -> Result<()> {
-        interactors::bind(
+        routers::bind(
             self.pg_pool,
             self.gcp_service_account,
             self.aws_profile_provider,
