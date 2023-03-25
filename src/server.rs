@@ -1,11 +1,11 @@
-pub mod entities;
-pub mod error;
-pub mod middlewares;
+mod entities;
+mod error;
+mod middlewares;
 mod repositories;
-pub mod routers;
+mod routers;
 mod schemas;
 mod services;
-pub mod utils;
+pub(crate) mod utils;
 use crate::bootstrap;
 use anyhow::Context;
 use anyhow::Result;

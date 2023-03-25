@@ -1,10 +1,10 @@
 mod fetcher;
-use crate::server::middlewares::jwt::Keys;
+use crate::server::utils::bootstrap::JwtKeys;
 use once_cell::sync::Lazy;
 
-pub static JWT_SECRET: Lazy<Keys> = Lazy::new(|| {
+pub(crate) static JWT_SECRET: Lazy<JwtKeys> = Lazy::new(|| {
     let secret = fetch::<String>("jwt_secret");
-    Keys::new(secret.as_bytes())
+    JwtKeys::new(secret.as_bytes())
 });
 
 pub fn fetch<T>(flag: &str) -> T

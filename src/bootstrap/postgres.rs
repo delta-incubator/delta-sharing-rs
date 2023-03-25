@@ -1,49 +1,9 @@
-use crate::config;
-use crate::server::entities::account::Entity as Account;
-use crate::server::utils::postgres::has_conflict;
-use crate::server::utils::postgres::pg_error;
-use anyhow::anyhow;
+use crate::server::utils::bootstrap;
 use anyhow::Context;
 use anyhow::Result;
 use sqlx::PgPool;
-use tracing::error;
 use tracing::info;
 use tracing::trace;
-use tracing::warn;
-
-async fn create_admin(pool: &PgPool) -> Result<Account> {
-    let admin = if let Ok(admin) = Account::new(
-        None,
-        config::fetch::<String>("admin_name"),
-        config::fetch::<String>("admin_email"),
-        config::fetch::<String>("admin_password"),
-        config::fetch::<String>("admin_namespace"),
-        config::fetch::<i64>("admin_ttl"),
-    ) {
-        admin
-    } else {
-        error!("failed to validate admin account");
-        return Err(anyhow!("failed to validate admin account"));
-    };
-    match pg_error(admin.register(&pool).await)? {
-        Ok(_) => {
-            trace!(
-                r#"created admin account id: "{}" name: "{}""#,
-                admin.id().as_uuid(),
-                admin.name().as_str()
-            );
-            Ok(admin)
-        }
-        Err(e) if has_conflict(&e) => {
-            warn!("confliction occured while creating admin account: {}", e);
-            Ok(admin)
-        }
-        Err(e) => {
-            error!("unknown error occured while creating admin account: {}", e);
-            Err(anyhow!("failed to create admin account"))
-        }
-    }
-}
 
 pub async fn connect(url: &str) -> Result<PgPool> {
     info!("connecting to database");
@@ -55,7 +15,7 @@ pub async fn connect(url: &str) -> Result<PgPool> {
         .await
         .context("failed to migrate postgres")?;
     trace!("schema created");
-    create_admin(&pool)
+    bootstrap::postgres(&pool)
         .await
         .context("failed to create admin account")?;
     trace!("admin account created");

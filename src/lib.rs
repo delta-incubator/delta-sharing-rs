@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-pub mod bootstrap;
+mod bootstrap;
 pub mod config;
 pub mod logging;
 mod macros;
