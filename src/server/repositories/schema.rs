@@ -1,3 +1,4 @@
+#![allow(unused)]
 use crate::server::entities::schema::Entity;
 use crate::server::entities::schema::Id;
 use crate::server::entities::share::Id as ShareId;

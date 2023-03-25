@@ -1,5 +1,6 @@
 use crate::server::entities::table::Entity;
 use crate::server::entities::table::Id;
+use crate::server::entities::table::Name;
 use crate::server::utils::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
@@ -7,6 +8,8 @@ use async_trait::async_trait;
 use chrono::DateTime;
 use chrono::Utc;
 use sqlx::postgres::PgQueryResult;
+use sqlx::query_builder::QueryBuilder;
+use sqlx::Execute;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, serde::Serialize, sqlx::FromRow)]
@@ -36,9 +39,15 @@ pub trait Repository: Send + Sync + 'static {
     async fn select(
         &self,
         limit: Option<&i64>,
-        offset: Option<&i64>,
+        after: Option<&Name>,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<Vec<Row>>;
+
+    async fn select_by_name(
+        &self,
+        name: &Name,
+        executor: impl PgAcquire<'_> + 'async_trait,
+    ) -> Result<Option<Row>>;
 }
 
 pub struct PgRepository;
@@ -104,16 +113,56 @@ impl Repository for PgRepository {
     async fn select(
         &self,
         limit: Option<&i64>,
-        offset: Option<&i64>,
+        after: Option<&Name>,
         executor: impl PgAcquire<'_> + 'async_trait,
     ) -> Result<Vec<Row>> {
-        let limit = limit.unwrap_or(&10);
-        let offset = offset.unwrap_or(&0);
         let mut conn = executor
             .acquire()
             .await
             .context("failed to acquire postgres connection")?;
-        let rows: Vec<Row> = sqlx::query_as::<_, Row>(
+        let mut builder = QueryBuilder::new(
+            r#"SELECT
+                   id,
+                   name,
+                   location,
+                   created_by,
+                   created_at,
+                   updated_at
+               FROM "table""#,
+        );
+        if let Some(name) = after {
+            builder.push(" WHERE name >= ");
+            builder.push_bind(name);
+        }
+        builder.push(" ORDER BY name ");
+        if let Some(limit) = limit {
+            builder.push(" LIMIT ");
+            builder.push_bind(limit);
+        }
+        let mut query = sqlx::query_as::<_, Row>(builder.build().sql().into());
+        if let Some(name) = after {
+            query = query.bind(name);
+        }
+        if let Some(limit) = limit {
+            query = query.bind(limit);
+        }
+        let rows: Vec<Row> = query
+            .fetch_all(&mut *conn)
+            .await
+            .context("failed to list tables from [table]")?;
+        Ok(rows)
+    }
+
+    async fn select_by_name(
+        &self,
+        name: &Name,
+        executor: impl PgAcquire<'_> + 'async_trait,
+    ) -> Result<Option<Row>> {
+        let mut conn = executor
+            .acquire()
+            .await
+            .context("failed to acquire postgres connection")?;
+        let row: Option<Row> = sqlx::query_as::<_, Row>(
             r#"SELECT
                    id,
                    name,
@@ -122,15 +171,16 @@ impl Repository for PgRepository {
                    created_at,
                    updated_at
                FROM "table"
-               ORDER BY created_at DESC
-               LIMIT $1 OFFSET $2"#,
+               WHERE name = $1"#,
         )
-        .bind(limit)
-        .bind(offset)
-        .fetch_all(&mut *conn)
+        .bind(name)
+        .fetch_optional(&mut *conn)
         .await
-        .context(format!("failed to list {} table(s) from [table]", limit))?;
-        Ok(rows)
+        .context(format!(
+            r#"failed to select "{}" from [table]"#,
+            name.as_str()
+        ))?;
+        Ok(row)
     }
 }
 
@@ -200,7 +250,7 @@ mod tests {
             .select(None, None, &mut tx)
             .await
             .expect("inserted table should be listed");
-        assert_eq!(min(records, 10) as usize, fetched.len());
+        assert_eq!(records as usize, fetched.len());
         tx.rollback()
             .await
             .expect("rollback should be done properly");
@@ -230,6 +280,38 @@ mod tests {
             .await
             .expect("inserted table should be listed");
         assert_eq!(min(records, limit) as usize, fetched.len());
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_upsert_and_select_by_name(pool: PgPool) -> Result<()> {
+        let repo = PgRepository;
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let account = upsert_account(&mut tx)
+            .await
+            .expect("new account should be created");
+        let table = upsert_table(account.id(), &mut tx)
+            .await
+            .expect("new table should be created");
+        let fetched = repo
+            .select_by_name(&table.name(), &mut tx)
+            .await
+            .expect("inserted table should be found");
+        if let Some(fetched) = fetched {
+            assert_eq!(&fetched.id, table.id().as_uuid());
+            assert_eq!(&fetched.name, table.name().as_str());
+            assert_eq!(&fetched.location, table.location().as_str());
+            assert_eq!(&fetched.created_by, table.created_by().as_uuid());
+        } else {
+            panic!("inserted table should be found");
+        }
         tx.rollback()
             .await
             .expect("rollback should be done properly");

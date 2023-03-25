@@ -93,8 +93,9 @@ impl Service for GCP {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::bootstrap::aws;
+    use crate::bootstrap::gcp;
     use crate::config;
-    use crate::utils::aws;
     use std::str::FromStr;
 
     #[test]

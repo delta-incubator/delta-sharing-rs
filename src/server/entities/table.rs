@@ -1,9 +1,13 @@
 use crate::impl_string_property;
 use crate::impl_uuid_property;
 use crate::server::entities::account::Id as AccountId;
+use crate::server::repositories::table::PgRepository;
+use crate::server::repositories::table::Repository;
 use anyhow::Result;
 use getset::Getters;
 use getset::Setters;
+use sqlx::postgres::PgQueryResult;
+use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -55,6 +59,44 @@ impl Entity {
             location: Location::new(location)?,
             created_by: AccountId::try_from(created_by)?,
         })
+    }
+
+    pub async fn list(
+        limit: impl Into<Option<&i64>> + Send,
+        after: impl Into<Option<&Name>> + Send,
+        pg_pool: &PgPool,
+    ) -> Result<Vec<Self>> {
+        let repo = PgRepository;
+        let rows = repo.select(limit.into(), after.into(), pg_pool).await?;
+        rows.into_iter()
+            .map(|row| {
+                Self::new(
+                    row.id.to_string(),
+                    row.name,
+                    row.location,
+                    row.created_by.to_string(),
+                )
+            })
+            .collect()
+    }
+
+    pub async fn find_by_name(name: &Name, pg_pool: &PgPool) -> Result<Option<Self>> {
+        let repo = PgRepository;
+        match repo.select_by_name(&name, pg_pool).await? {
+            Some(row) => Ok(Self {
+                id: Id::new(row.id),
+                name: Name::new(row.name)?,
+                location: Location::new(row.location)?,
+                created_by: AccountId::new(row.created_by),
+            }
+            .into()),
+            _ => Ok(None),
+        }
+    }
+
+    pub async fn register(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
+        let repo = PgRepository;
+        repo.upsert(&self, pg_pool).await
     }
 }
 

@@ -1,5 +1,5 @@
-mod aws;
-mod gcp;
+pub(crate) mod aws;
+pub(crate) mod gcp;
 mod postgres;
 use crate::config;
 use anyhow::Result;

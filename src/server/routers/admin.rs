@@ -1,5 +1,6 @@
 pub mod accounts;
 pub mod shares;
+pub mod tables;
 use crate::config;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;

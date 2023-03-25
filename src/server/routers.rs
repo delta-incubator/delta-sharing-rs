@@ -1,5 +1,6 @@
 pub mod admin;
 pub mod shares;
+pub mod tables;
 use crate::config;
 use crate::server::middlewares::jwt;
 use crate::server::schemas::ApiDoc;
@@ -47,6 +48,9 @@ async fn route(
         .route("/admin/accounts", get(self::admin::accounts::list))
         .route("/admin/accounts/:name", get(self::admin::accounts::get))
         .route("/admin/shares", post(self::admin::shares::post))
+        .route("/admin/tables", post(self::admin::tables::post))
+        .route("/admin/tables", get(self::admin::tables::list))
+        .route("/admin/tables/:name", get(self::admin::tables::get))
         .route_layer(middleware::from_fn(jwt::as_admin))
         .route("/admin/login", post(self::admin::login))
         .layer(Extension(state.clone()));

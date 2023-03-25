@@ -243,7 +243,7 @@ mod tests {
             .select(None, None, &mut tx)
             .await
             .expect("inserted share should be listed");
-        assert_eq!(min(records, 10) as usize, fetched.len());
+        assert_eq!(records as usize, fetched.len());
         tx.rollback()
             .await
             .expect("rollback should be done properly");
@@ -302,7 +302,7 @@ mod tests {
             assert_eq!(&fetched.name, share.name().as_str());
             assert_eq!(&fetched.created_by, share.created_by().as_uuid());
         } else {
-            panic!("inserted account should be found");
+            panic!("inserted share should be found");
         }
         tx.rollback()
             .await
