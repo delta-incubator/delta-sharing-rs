@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS "schema" (
     created_by UUID NOT NULL REFERENCES account(id),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL default CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL default CURRENT_TIMESTAMP,
-    UNIQUE (share_id, name) INCLUDE (id)
+    UNIQUE (name, share_id, table_id) INCLUDE (id)
 );
