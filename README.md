@@ -10,10 +10,10 @@ TODO
 | ------------------ | ------ | ---------------------------------------------------------------- | -------- |
 | :heavy_check_mark: | GET    | {prefix}/shares                                                  | OFFICIAL |
 | :heavy_check_mark: | GET    | {prefix}/shares/{share}                                          | OFFICIAL |
-| :white_check_mark: | GET    | {prefix}/shares/{share}/schemas                                  | OFFICIAL |
-| :white_check_mark: | GET    | {prefix}/shares/{share}/schemas/{schema}/tables                  | OFFICIAL |
-| :white_check_mark: | GET    | {prefix}/shares/{share}/all-tables                               | OFFICIAL |
-| :white_check_mark: | GET    | {prefix}/shares/{share}/schemas/{schema}/tables/{table}/version  | OFFICIAL |
-| :white_check_mark: | GET    | {prefix}/shares/{share}/schemas/{schema}/tables/{table}/metadata | OFFICIAL |
-| :white_check_mark: | POST   | {prefix}/shares/{share}/schemas/{schema}/tables/{table}/query    | OFFICIAL |
-| :white_check_mark: | GET    | {prefix}/shares/{share}/schemas/{schema}/tables/{table}/changes  | OFFICIAL |
+|                    | GET    | {prefix}/shares/{share}/schemas                                  | OFFICIAL |
+|                    | GET    | {prefix}/shares/{share}/schemas/{schema}/tables                  | OFFICIAL |
+|                    | GET    | {prefix}/shares/{share}/all-tables                               | OFFICIAL |
+|                    | GET    | {prefix}/shares/{share}/schemas/{schema}/tables/{table}/version  | OFFICIAL |
+|                    | GET    | {prefix}/shares/{share}/schemas/{schema}/tables/{table}/metadata | OFFICIAL |
+|                    | POST   | {prefix}/shares/{share}/schemas/{schema}/tables/{table}/query    | OFFICIAL |
+|                    | GET    | {prefix}/shares/{share}/schemas/{schema}/tables/{table}/changes  | OFFICIAL |
