@@ -135,16 +135,15 @@ mod tests {
         } else {
             panic!("failed to create AWS profile provider");
         };
-        let (bucket, path) = if let Ok(Platform::AWS { bucket, path }) =
+        if let Ok(Platform::AWS { bucket, path }) =
             Platform::from_str("s3://kotosiro-sharing-test/sample.txt")
         {
-            (bucket, path)
+            if let Ok(url) = aws(&pp, &bucket, &path, &300).await {
+                println!("{:?}", url);
+            }
         } else {
             panic!("failed to parse S3 url");
         };
-        if let Ok(url) = aws(&pp, &bucket, &path, &300).await {
-            println!("{:?}", url);
-        }
     }
 
     //#[tokio::test]
@@ -155,15 +154,14 @@ mod tests {
         } else {
             panic!("failed to create GCP service account");
         };
-        let (bucket, path) = if let Ok(Platform::GCP { bucket, path }) =
+        if let Ok(Platform::GCP { bucket, path }) =
             Platform::from_str("gs://kotosiro-sharing-test/sample.txt")
         {
-            (bucket, path)
+            if let Ok(url) = gcp(&sa, &bucket, &path, &300).await {
+                println!("{:?}", url);
+            }
         } else {
             panic!("failed to parse GS url");
         };
-        if let Ok(url) = gcp(&sa, &bucket, &path, &300).await {
-            println!("{:?}", url);
-        }
     }
 }

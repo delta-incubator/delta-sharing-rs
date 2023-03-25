@@ -48,7 +48,7 @@ pub async fn as_admin<T>(
         .get::<SharedState>()
         .ok_or(anyhow!("failed to acquire shared state"))?;
     let name = AccountName::new(jwt.claims.name.clone()).map_err(|_| Error::ValidationFailed)?;
-    let account = AccountEntity::find_by_name(&name, &state.pg_pool)
+    let account = AccountEntity::load(&name, &state.pg_pool)
         .await
         .map_err(|_| anyhow!("error occured while selecting account from database"))?;
     let Some(account) = account else {

@@ -47,7 +47,7 @@ pub async fn login(
     Json(payload): Json<AdminLoginRequest>,
 ) -> Result<Response, Error> {
     let name = AccountName::new(payload.name).map_err(|_| Error::ValidationFailed)?;
-    let entity = AccountEntity::find_by_name(&name, &state.pg_pool)
+    let entity = AccountEntity::load(&name, &state.pg_pool)
         .await
         .context("error occured while selecting account from database")?;
     let Some(entity) = entity else {

@@ -116,28 +116,7 @@ impl Entity {
         })
     }
 
-    pub async fn list(
-        limit: impl Into<Option<&i64>> + Send,
-        after: impl Into<Option<&Name>> + Send,
-        pg_pool: &PgPool,
-    ) -> Result<Vec<Self>> {
-        let repo = PgRepository;
-        let rows = repo.select(limit.into(), after.into(), pg_pool).await?;
-        rows.into_iter()
-            .map(|row| {
-                Self::new(
-                    row.id.to_string(),
-                    row.name,
-                    row.email,
-                    row.password,
-                    row.namespace,
-                    row.ttl,
-                )
-            })
-            .collect()
-    }
-
-    pub async fn find_by_name(name: &Name, pg_pool: &PgPool) -> Result<Option<Self>> {
+    pub async fn load(name: &Name, pg_pool: &PgPool) -> Result<Option<Self>> {
         let repo = PgRepository;
         match repo.select_by_name(&name, pg_pool).await? {
             Some(row) => Ok(Self {

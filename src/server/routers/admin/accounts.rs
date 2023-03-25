@@ -2,7 +2,9 @@ use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::error::Error;
 use crate::server::routers::SharedState;
-use crate::server::schemas::account::Account;
+use crate::server::services::account::Account;
+use crate::server::services::account::PgService as AccountPgService;
+use crate::server::services::account::Service as AccountService;
 use crate::server::utils::postgres::has_conflict;
 use crate::server::utils::postgres::pg_error;
 use anyhow::anyhow;
@@ -117,30 +119,17 @@ pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(AdminAccountsGetParams { name }): Path<AdminAccountsGetParams>,
 ) -> Result<Response, Error> {
+    let service = AccountPgService;
     let name = AccountName::new(name).map_err(|_| Error::ValidationFailed)?;
-    let entity = AccountEntity::find_by_name(&name, &state.pg_pool)
+    let account = service
+        .query_by_name(&name, &state.pg_pool)
         .await
-        .context("error occured while selecting account")?;
-    let Some(entity) = entity else {
+        .context("error occured while querying account")?;
+    let Some(account) = account else {
 	return Err(Error::NotFound);
     };
-    debug!(
-        r#"found account id: "{}" name: "{}""#,
-        entity.id().as_uuid(),
-        entity.name().as_str()
-    );
-    Ok((
-        StatusCode::OK,
-        Json(AdminAccountsGetResponse {
-            account: Account {
-                name: entity.name().to_string(),
-                email: entity.email().to_string(),
-                namespace: entity.namespace().to_string(),
-                ttl: entity.ttl().to_i64(),
-            },
-        }),
-    )
-        .into_response())
+    debug!(r#"found account name: "{}""#, &account.name);
+    Ok((StatusCode::OK, Json(AdminAccountsGetResponse { account })).into_response())
 }
 
 #[derive(serde::Deserialize, IntoParams)]
@@ -174,6 +163,7 @@ pub async fn list(
     Extension(state): Extension<SharedState>,
     query: Query<AdminAccountsListQuery>,
 ) -> Result<Response, Error> {
+    let service = AccountPgService;
     let limit = if let Some(limit) = &query.max_results {
         let limit = usize::try_from(*limit).map_err(|_| Error::ValidationFailed)?;
         limit
@@ -186,43 +176,28 @@ pub async fn list(
     } else {
         None
     };
-    let entities = AccountEntity::list(&((limit + 1) as i64), &after, &state.pg_pool)
+    let accounts = service
+        .query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool)
         .await
-        .context("error occured while selecting account(s)")?;
-    if entities.len() == limit + 1 {
-        let next = &entities[limit];
-        let entities = &entities[..limit];
-        debug!(r"found {} account(s)", entities.len());
+        .context("error occured while querying account(s)")?;
+    if accounts.len() == limit + 1 {
+        let next = &accounts[limit];
+        let accounts = &accounts[..limit];
+        debug!(r"found {} account(s)", accounts.len());
         return Ok((
             StatusCode::OK,
             Json(AdminAccountsListResponse {
-                items: entities
-                    .iter()
-                    .map(|entity| Account {
-                        name: entity.name().to_string(),
-                        email: entity.email().to_string(),
-                        namespace: entity.namespace().to_string(),
-                        ttl: entity.ttl().to_i64(),
-                    })
-                    .collect(),
-                next_page_token: next.name().to_string(),
+                items: accounts.to_vec(),
+                next_page_token: next.name.clone(),
             }),
         )
             .into_response());
     }
-    debug!(r"found {} account(s)", entities.len());
+    debug!(r"found {} account(s)", accounts.len());
     Ok((
         StatusCode::OK,
         Json(AdminAccountsListResponse {
-            items: entities
-                .iter()
-                .map(|entity| Account {
-                    name: entity.name().to_string(),
-                    email: entity.email().to_string(),
-                    namespace: entity.namespace().to_string(),
-                    ttl: entity.ttl().to_i64(),
-                })
-                .collect(),
+            items: accounts,
             next_page_token: None.unwrap_or_default(),
         }),
     )

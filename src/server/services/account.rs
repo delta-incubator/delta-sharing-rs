@@ -1,0 +1,217 @@
+use crate::server::entities::account::Name as AccountName;
+use crate::server::utils::postgres::PgAcquire;
+use anyhow::Context;
+use anyhow::Result;
+use async_trait::async_trait;
+use sqlx::query_builder::QueryBuilder;
+use sqlx::Execute;
+use utoipa::ToSchema;
+
+#[derive(Debug, Clone, serde::Serialize, sqlx::FromRow, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Account {
+    pub name: String,
+    pub email: String,
+    pub namespace: String,
+    pub ttl: i64,
+}
+
+#[async_trait]
+pub trait Service: Send + Sync + 'static {
+    async fn query(
+        &self,
+        limit: Option<&i64>,
+        after: Option<&AccountName>,
+        executor: impl PgAcquire<'_> + 'async_trait,
+    ) -> Result<Vec<Account>>;
+
+    async fn query_by_name(
+        &self,
+        name: &AccountName,
+        executor: impl PgAcquire<'_> + 'async_trait,
+    ) -> Result<Option<Account>>;
+}
+
+pub struct PgService;
+
+#[async_trait]
+impl Service for PgService {
+    async fn query(
+        &self,
+        limit: Option<&i64>,
+        after: Option<&AccountName>,
+        executor: impl PgAcquire<'_> + 'async_trait,
+    ) -> Result<Vec<Account>> {
+        let mut conn = executor
+            .acquire()
+            .await
+            .context("failed to acquire postgres connection")?;
+        let mut builder = QueryBuilder::new(
+            "SELECT
+                 name,
+                 email,
+                 namespace,
+                 ttl
+             FROM account",
+        );
+        if let Some(name) = after {
+            builder.push(" WHERE name >= ");
+            builder.push_bind(name);
+        }
+        builder.push(" ORDER BY name ");
+        if let Some(limit) = limit {
+            builder.push(" LIMIT ");
+            builder.push_bind(limit);
+        }
+        let mut query = sqlx::query_as::<_, Account>(builder.build().sql().into());
+        if let Some(name) = after {
+            query = query.bind(name);
+        }
+        if let Some(limit) = limit {
+            query = query.bind(limit);
+        }
+        let rows: Vec<Account> = query
+            .fetch_all(&mut *conn)
+            .await
+            .context("failed to list accounts from [account]")?;
+        Ok(rows)
+    }
+
+    async fn query_by_name(
+        &self,
+        name: &AccountName,
+        executor: impl PgAcquire<'_> + 'async_trait,
+    ) -> Result<Option<Account>> {
+        let mut conn = executor
+            .acquire()
+            .await
+            .context("failed to acquire postgres connection")?;
+        let row: Option<Account> = sqlx::query_as::<_, Account>(
+            "SELECT
+                 name,
+                 email,
+                 namespace,
+                 ttl
+             FROM account
+             WHERE name = $1",
+        )
+        .bind(name)
+        .fetch_optional(&mut *conn)
+        .await
+        .context(format!(
+            r#"failed to select "{}" from [account]"#,
+            name.as_str()
+        ))?;
+        Ok(row)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::server::entities::account::Entity as AccountEntity;
+    use crate::server::repositories::account::PgRepository as AccountPgRepository;
+    use crate::server::repositories::account::Repository as AccountRepository;
+    use anyhow::Context;
+    use anyhow::Result;
+    use sqlx::PgConnection;
+    use sqlx::PgPool;
+    use std::cmp::min;
+
+    async fn create(tx: &mut PgConnection) -> Result<AccountEntity> {
+        let repo = AccountPgRepository;
+        let account = AccountEntity::new(
+            testutils::rand::uuid(),
+            testutils::rand::string(10),
+            testutils::rand::email(),
+            testutils::rand::string(10),
+            testutils::rand::string(10),
+            testutils::rand::i64(1, 100000),
+        )
+        .context("failed to validate account")?;
+        repo.upsert(&account, tx)
+            .await
+            .context("failed to create account")?;
+        Ok(account)
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_query_with_default_limit(pool: PgPool) -> Result<()> {
+        let serv = PgService;
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let records = testutils::rand::i64(0, 20);
+        for _ in 0..records {
+            create(&mut tx)
+                .await
+                .expect("new account should be created");
+        }
+        let fetched = serv
+            .query(None, None, &mut tx)
+            .await
+            .expect("created account should be listed");
+        assert_eq!(records as usize, fetched.len());
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_query_with_specified_limit(pool: PgPool) -> Result<()> {
+        let serv = PgService;
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let records = testutils::rand::i64(0, 20);
+        for _ in 0..records {
+            create(&mut tx)
+                .await
+                .expect("new account should be created");
+        }
+        let limit = testutils::rand::i64(0, 20);
+        let fetched = serv
+            .query(Some(&limit), None, &mut tx)
+            .await
+            .expect("created account should be listed");
+        assert_eq!(min(records, limit) as usize, fetched.len());
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_query_by_name(pool: PgPool) -> Result<()> {
+        let serv = PgService;
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let account = create(&mut tx)
+            .await
+            .expect("new account should be created");
+        let fetched = serv
+            .query_by_name(&account.name(), &mut tx)
+            .await
+            .expect("created account should be found");
+        if let Some(fetched) = fetched {
+            assert_eq!(&fetched.name, account.name().as_str());
+            assert_eq!(&fetched.email, account.email().as_str());
+            assert_eq!(&fetched.namespace, account.namespace().as_str());
+            assert_eq!(&fetched.ttl, account.ttl().as_i64());
+        } else {
+            panic!("created account should be found");
+        }
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+}
