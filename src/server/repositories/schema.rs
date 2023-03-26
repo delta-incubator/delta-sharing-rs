@@ -7,7 +7,6 @@ use crate::server::entities::table::Id as TableId;
 use crate::server::utilities::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
-use async_trait::async_trait;
 use chrono::DateTime;
 use chrono::Utc;
 use sqlx::postgres::PgQueryResult;
@@ -24,30 +23,10 @@ pub struct Row {
     pub updated_at: DateTime<Utc>,
 }
 
-#[async_trait]
-pub trait Repository: Send + Sync + 'static {
-    async fn upsert(
-        &self,
-        schema: &Entity,
-        executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<PgQueryResult>;
+pub struct Repository;
 
-    async fn delete(
-        &self,
-        id: &Id,
-        executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<PgQueryResult>;
-}
-
-pub struct PgRepository;
-
-#[async_trait]
-impl Repository for PgRepository {
-    async fn upsert(
-        &self,
-        schema: &Entity,
-        executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<PgQueryResult> {
+impl Repository {
+    pub async fn upsert(schema: &Entity, executor: impl PgAcquire<'_>) -> Result<PgQueryResult> {
         let mut conn = executor
             .acquire()
             .await
@@ -79,28 +58,6 @@ impl Repository for PgRepository {
             schema.id().as_uuid()
         ))
     }
-
-    async fn delete(
-        &self,
-        id: &Id,
-        executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<PgQueryResult> {
-        let mut conn = executor
-            .acquire()
-            .await
-            .context("failed to acquire postgres connection")?;
-        sqlx::query(
-            r#"DELETE FROM "schema"
-               WHERE id = $1"#,
-        )
-        .bind(id)
-        .execute(&mut *conn)
-        .await
-        .context(format!(
-            r#"failed to delete "{}" from [schema]"#,
-            id.as_uuid()
-        ))
-    }
 }
 
 #[cfg(test)]
@@ -119,7 +76,7 @@ mod tests {
     use sqlx::PgPool;
     use std::cmp::min;
 
-    async fn upsert_account(tx: &mut PgConnection) -> Result<Account> {
+    async fn create_account(tx: &mut PgConnection) -> Result<Account> {
         let account = Account::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
@@ -128,47 +85,46 @@ mod tests {
             testutils::rand::string(10),
             testutils::rand::i64(1, 100000),
         )
-        .context("failed to upsert account")?;
+        .context("failed to validate account")?;
         AccountRepository::upsert(&account, tx)
             .await
-            .context("failed to insert account")?;
+            .context("failed to create account")?;
         Ok(account)
     }
 
-    async fn upsert_table(account_id: &AccountId, tx: &mut PgConnection) -> Result<Table> {
+    async fn create_table(account_id: &AccountId, tx: &mut PgConnection) -> Result<Table> {
         let table = Table::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
             testutils::rand::string(10),
             account_id.to_uuid().to_string(),
         )
-        .context("failed to upsert table")?;
+        .context("failed to validate table")?;
         TableRepository::upsert(&table, tx)
             .await
-            .context("failed to insert table")?;
+            .context("failed to create table")?;
         Ok(table)
     }
 
-    async fn upsert_share(account_id: &AccountId, tx: &mut PgConnection) -> Result<Share> {
+    async fn create_share(account_id: &AccountId, tx: &mut PgConnection) -> Result<Share> {
         let share = Share::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
             account_id.to_uuid().to_string(),
         )
-        .context("failed to upsert share")?;
+        .context("failed to validate share")?;
         ShareRepository::upsert(&share, tx)
             .await
-            .context("failed to insert share")?;
+            .context("failed to create share")?;
         Ok(share)
     }
 
-    async fn upsert_schema(
+    async fn create_schema(
         account_id: &AccountId,
         table_id: &TableId,
         share_id: &ShareId,
         tx: &mut PgConnection,
     ) -> Result<Entity> {
-        let repo = PgRepository;
         let schema = Entity::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
@@ -176,33 +132,32 @@ mod tests {
             share_id.to_uuid().to_string(),
             account_id.to_uuid().to_string(),
         )
-        .context("failed to upsert schema")?;
-        repo.upsert(&schema, tx)
+        .context("failed to validate schema")?;
+        Repository::upsert(&schema, tx)
             .await
-            .context("failed to insert schema")?;
+            .context("failed to create schema")?;
         Ok(schema)
     }
 
     #[sqlx::test]
     #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
     async fn test_create(pool: PgPool) -> Result<()> {
-        let repo = PgRepository;
         let mut tx = pool
             .begin()
             .await
             .expect("transaction should be started properly");
-        let account = upsert_account(&mut tx)
+        let account = create_account(&mut tx)
             .await
             .expect("new account should be created");
-        let table = upsert_table(account.id(), &mut tx)
+        let table = create_table(account.id(), &mut tx)
             .await
             .expect("new table should be created");
-        let share = upsert_share(account.id(), &mut tx)
+        let share = create_share(account.id(), &mut tx)
             .await
             .expect("new share should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            upsert_schema(account.id(), table.id(), share.id(), &mut tx)
+            create_schema(account.id(), table.id(), share.id(), &mut tx)
                 .await
                 .expect("new schema should be created");
         }

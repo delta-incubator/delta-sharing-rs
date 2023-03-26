@@ -6,7 +6,7 @@ use crate::server::entities::table::Entity as TableEntity;
 use crate::server::entities::table::Name as TableName;
 use crate::server::error::Error;
 use crate::server::routers::SharedState;
-use crate::server::schemas::schema::Schema;
+use crate::server::services::schema::Schema;
 use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
 use anyhow::Context;
@@ -86,7 +86,7 @@ pub async fn post(
         account.id().to_string(),
     )
     .map_err(|_| Error::ValidationFailed)?;
-    match PostgresUtility::error(entity.register(&state.pg_pool).await)? {
+    match PostgresUtility::error(entity.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
                 r#"updated schema id: "{}" name: "{}""#,
@@ -96,10 +96,7 @@ pub async fn post(
             Ok((
                 StatusCode::CREATED,
                 Json(AdminSharesSchemasTablesPostResponse {
-                    schema: Schema {
-                        id: entity.id().to_string(),
-                        name: entity.name().to_string(),
-                    },
+                    schema: Schema::from(entity),
                 }),
             )
                 .into_response())

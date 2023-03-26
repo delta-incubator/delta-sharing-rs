@@ -3,7 +3,6 @@ use crate::impl_uuid_property;
 use crate::server::entities::account::Id as AccountId;
 use crate::server::entities::share::Id as ShareId;
 use crate::server::entities::table::Id as TableId;
-use crate::server::repositories::schema::PgRepository;
 use crate::server::repositories::schema::Repository;
 use anyhow::Result;
 use getset::Getters;
@@ -59,9 +58,8 @@ impl Entity {
         })
     }
 
-    pub async fn register(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
-        let repo = PgRepository;
-        repo.upsert(&self, pg_pool).await
+    pub async fn save(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
+        Repository::upsert(&self, pg_pool).await
     }
 }
 
