@@ -1,12 +1,14 @@
-pub mod account;
+//pub mod account;
 pub mod claims;
 pub mod error;
 pub mod profile;
 pub mod schema;
-pub mod share;
+//pub mod share;
 pub mod table;
 use crate::server::routers::admin;
 use crate::server::routers::shares;
+use crate::server::services::account;
+use crate::server::services::share;
 use utoipa::OpenApi;
 
 #[derive(OpenApi)]

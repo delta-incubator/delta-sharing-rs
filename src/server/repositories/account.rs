@@ -95,7 +95,6 @@ mod tests {
     use anyhow::Result;
     use sqlx::PgConnection;
     use sqlx::PgPool;
-    use std::cmp::min;
 
     async fn create(tx: &mut PgConnection) -> Result<Entity> {
         let account = Entity::new(

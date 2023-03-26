@@ -111,7 +111,6 @@ mod tests {
     use crate::server::entities::share::Entity as Share;
     use crate::server::entities::table::Entity as Table;
     use crate::server::repositories::account::Repository as AccountRepository;
-    use crate::server::repositories::share::PgRepository as PgShareRepository;
     use crate::server::repositories::share::Repository as ShareRepository;
     use crate::server::repositories::table::PgRepository as PgTableRepository;
     use crate::server::repositories::table::Repository as TableRepository;
@@ -153,14 +152,13 @@ mod tests {
     }
 
     async fn upsert_share(account_id: &AccountId, tx: &mut PgConnection) -> Result<Share> {
-        let repo = PgShareRepository;
         let share = Share::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
             account_id.to_uuid().to_string(),
         )
         .context("failed to upsert share")?;
-        repo.upsert(&share, tx)
+        ShareRepository::upsert(&share, tx)
             .await
             .context("failed to insert share")?;
         Ok(share)

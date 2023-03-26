@@ -3,7 +3,7 @@ use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::error::Error;
 use crate::server::routers::SharedState;
-use crate::server::schemas::share::Share;
+use crate::server::services::share::Share;
 use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
 use axum::extract::Extension;
@@ -46,7 +46,7 @@ pub async fn post(
 ) -> Result<Response, Error> {
     let entity = ShareEntity::new(payload.id, payload.name, account.id().to_string())
         .map_err(|_| Error::ValidationFailed)?;
-    match PostgresUtility::error(entity.register(&state.pg_pool).await)? {
+    match PostgresUtility::error(entity.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
                 r#"updated share id: "{}" name: "{}""#,
@@ -57,7 +57,7 @@ pub async fn post(
                 StatusCode::CREATED,
                 Json(AdminSharesPostResponse {
                     share: Share {
-                        id: entity.id().to_string(),
+                        id: entity.id().to_uuid(),
                         name: entity.name().to_string(),
                     },
                 }),

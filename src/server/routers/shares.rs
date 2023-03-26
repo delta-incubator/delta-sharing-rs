@@ -1,9 +1,9 @@
 pub mod schemas;
-use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::error::Error;
 use crate::server::routers::SharedState;
-use crate::server::schemas::share::Share;
+use crate::server::services::share::Service as ShareService;
+use crate::server::services::share::Share;
 use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -49,27 +49,14 @@ pub async fn get(
     Path(SharesGetParams { name }): Path<SharesGetParams>,
 ) -> Result<Response, Error> {
     let name = ShareName::new(name).map_err(|_| Error::ValidationFailed)?;
-    let entity = ShareEntity::find_by_name(&name, &state.pg_pool)
+    let share = ShareService::query_by_name(&name, &state.pg_pool)
         .await
         .context("error occured while selecting share")?;
-    let Some(entity) = entity else {
+    let Some(share) = share else {
 	return Err(Error::NotFound);
     };
-    debug!(
-        r#"found share id: "{}" name: "{}""#,
-        entity.id().as_uuid(),
-        entity.name().as_str()
-    );
-    Ok((
-        StatusCode::OK,
-        Json(SharesGetResponse {
-            share: Share {
-                id: entity.id().to_string(),
-                name: entity.name().to_string(),
-            },
-        }),
-    )
-        .into_response())
+    debug!(r#"found share id: "{}" name: "{}""#, &share.id, &share.name);
+    Ok((StatusCode::OK, Json(SharesGetResponse { share: share })).into_response())
 }
 
 #[derive(serde::Deserialize, IntoParams)]
@@ -115,39 +102,27 @@ pub async fn list(
     } else {
         None
     };
-    let entities = ShareEntity::list(&((limit + 1) as i64), &after, &state.pg_pool)
+    let shares = ShareService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool)
         .await
         .context("error occured while selecting share(s)")?;
-    if entities.len() == limit + 1 {
-        let next = &entities[limit];
-        let entities = &entities[..limit];
-        debug!(r"found {} share(s)", entities.len());
+    if shares.len() == limit + 1 {
+        let next = &shares[limit];
+        let shares = &shares[..limit];
+        debug!(r"found {} share(s)", shares.len());
         return Ok((
             StatusCode::OK,
             Json(SharesListResponse {
-                items: entities
-                    .iter()
-                    .map(|entity| Share {
-                        id: entity.id().to_string(),
-                        name: entity.name().to_string(),
-                    })
-                    .collect(),
-                next_page_token: next.name().to_string(),
+                items: shares.to_vec(),
+                next_page_token: next.name.clone(),
             }),
         )
             .into_response());
     }
-    debug!(r"found {} share(s)", entities.len());
+    debug!(r"found {} share(s)", shares.len());
     Ok((
         StatusCode::OK,
         Json(SharesListResponse {
-            items: entities
-                .iter()
-                .map(|entity| Share {
-                    id: entity.id().to_string(),
-                    name: entity.name().to_string(),
-                })
-                .collect(),
+            items: shares,
             next_page_token: None.unwrap_or_default(),
         }),
     )

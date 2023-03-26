@@ -65,7 +65,7 @@ pub async fn post(
     Json(payload): Json<AdminSharesSchemasTablesPostRequest>,
 ) -> Result<Response, Error> {
     let share = ShareName::new(share).map_err(|_| Error::ValidationFailed)?;
-    let share = ShareEntity::find_by_name(&share, &state.pg_pool)
+    let share = ShareEntity::load(&share, &state.pg_pool)
         .await
         .context("error occured while selecting share")?;
     let Some(share) = share else {
