@@ -1,3 +1,4 @@
+use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::utilities::postgres::PgAcquire;
 use anyhow::Context;
@@ -12,6 +13,15 @@ use uuid::Uuid;
 pub struct Share {
     pub id: Uuid,
     pub name: String,
+}
+
+impl Share {
+    pub fn from(entity: ShareEntity) -> Self {
+        Self {
+            id: entity.id().to_uuid(),
+            name: entity.name().to_string(),
+        }
+    }
 }
 
 pub struct Service;

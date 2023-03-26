@@ -1,3 +1,4 @@
+use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::utilities::postgres::PgAcquire;
 use anyhow::Context;
@@ -13,6 +14,17 @@ pub struct Account {
     pub email: String,
     pub namespace: String,
     pub ttl: i64,
+}
+
+impl Account {
+    pub fn from(entity: AccountEntity) -> Self {
+        Self {
+            name: entity.name().to_string(),
+            email: entity.email().to_string(),
+            namespace: entity.namespace().to_string(),
+            ttl: entity.ttl().to_i64(),
+        }
+    }
 }
 
 pub struct Service;

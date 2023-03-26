@@ -72,12 +72,7 @@ pub async fn post(
             Ok((
                 StatusCode::CREATED,
                 Json(AdminAccountsPostResponse {
-                    account: Account {
-                        name: entity.name().to_string(),
-                        email: entity.email().to_string(),
-                        namespace: entity.namespace().to_string(),
-                        ttl: entity.ttl().to_i64(),
-                    },
+                    account: Account::from(entity),
                 }),
             )
                 .into_response())

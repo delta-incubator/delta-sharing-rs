@@ -56,10 +56,7 @@ pub async fn post(
             Ok((
                 StatusCode::CREATED,
                 Json(AdminSharesPostResponse {
-                    share: Share {
-                        id: entity.id().to_uuid(),
-                        name: entity.name().to_string(),
-                    },
+                    share: Share::from(entity),
                 }),
             )
                 .into_response())
