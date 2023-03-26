@@ -1,5 +1,5 @@
 use crate::server::entities::account::Name as AccountName;
-use crate::server::utils::postgres::PgAcquire;
+use crate::server::utilities::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;

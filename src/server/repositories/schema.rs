@@ -4,7 +4,7 @@ use crate::server::entities::schema::Id;
 use crate::server::entities::schema::Name;
 use crate::server::entities::share::Id as ShareId;
 use crate::server::entities::table::Id as TableId;
-use crate::server::utils::postgres::PgAcquire;
+use crate::server::utilities::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
 use async_trait::async_trait;

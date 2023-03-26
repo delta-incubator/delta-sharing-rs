@@ -7,8 +7,7 @@ use crate::server::entities::table::Name as TableName;
 use crate::server::error::Error;
 use crate::server::routers::SharedState;
 use crate::server::schemas::schema::Schema;
-use crate::server::utils::postgres::has_conflict;
-use crate::server::utils::postgres::pg_error;
+use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
 use anyhow::Context;
 use axum::extract::Extension;
@@ -87,7 +86,7 @@ pub async fn post(
         account.id().to_string(),
     )
     .map_err(|_| Error::ValidationFailed)?;
-    match pg_error(entity.register(&state.pg_pool).await)? {
+    match PostgresUtility::error(entity.register(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
                 r#"updated schema id: "{}" name: "{}""#,
@@ -105,7 +104,7 @@ pub async fn post(
             )
                 .into_response())
         }
-        Err(e) if has_conflict(&e) => Err(Error::Conflict),
+        Err(e) if PostgresUtility::is_conflict(&e) => Err(Error::Conflict),
         _ => Err(anyhow!("error occured while updating schema").into()),
     }
 }

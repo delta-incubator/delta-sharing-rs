@@ -5,7 +5,7 @@ mod repositories;
 mod routers;
 mod schemas;
 mod services;
-pub(crate) mod utils;
+pub(crate) mod utilities;
 use crate::bootstrap;
 use anyhow::Context;
 use anyhow::Result;

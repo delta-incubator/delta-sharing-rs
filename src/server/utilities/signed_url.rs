@@ -45,37 +45,41 @@ impl FromStr for Platform {
     }
 }
 
-pub async fn aws(aws: &AWS, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
-    let credentials = aws
-        .credentials()
-        .await
-        .context("failed to acquire AWS credentials")?;
-    let region = Region::default();
-    let options = PreSignedRequestOption {
-        expires_in: Duration::from_secs(*duration),
-    };
-    let request = GetObjectRequest {
-        bucket: bucket.to_string(),
-        key: path.to_string(),
-        ..Default::default()
-    };
-    let url = request.get_presigned_url(&region, &credentials, &options);
-    let url = Url::parse(&url).context("failed to parse AWS signed URL")?;
-    Ok(url)
-}
+pub struct Utility;
 
-pub async fn gcp(gcp: &GCP, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
-    let bucket = BucketName::try_from(bucket).context("failed to parse bucket name")?;
-    let object = ObjectName::try_from(path).context("failed to parse object name")?;
-    let options = SignedUrlOptional {
-        duration: Duration::from_secs(*duration),
-        ..Default::default()
-    };
-    let signer = UrlSigner::with_ring();
-    let url = signer
-        .generate(gcp, &(&bucket, &object), options)
-        .context("failed to generate signed url")?;
-    Ok(url)
+impl Utility {
+    pub async fn sign_aws(aws: &AWS, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
+        let credentials = aws
+            .credentials()
+            .await
+            .context("failed to acquire AWS credentials")?;
+        let region = Region::default();
+        let options = PreSignedRequestOption {
+            expires_in: Duration::from_secs(*duration),
+        };
+        let request = GetObjectRequest {
+            bucket: bucket.to_string(),
+            key: path.to_string(),
+            ..Default::default()
+        };
+        let url = request.get_presigned_url(&region, &credentials, &options);
+        let url = Url::parse(&url).context("failed to parse AWS signed URL")?;
+        Ok(url)
+    }
+
+    pub async fn sign_gcp(gcp: &GCP, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
+        let bucket = BucketName::try_from(bucket).context("failed to parse bucket name")?;
+        let object = ObjectName::try_from(path).context("failed to parse object name")?;
+        let options = SignedUrlOptional {
+            duration: Duration::from_secs(*duration),
+            ..Default::default()
+        };
+        let signer = UrlSigner::with_ring();
+        let url = signer
+            .generate(gcp, &(&bucket, &object), options)
+            .context("failed to generate signed url")?;
+        Ok(url)
+    }
 }
 
 #[cfg(test)]
@@ -138,7 +142,7 @@ mod tests {
         if let Ok(Platform::AWS { bucket, path }) =
             Platform::from_str("s3://kotosiro-sharing-test/sample.txt")
         {
-            if let Ok(url) = aws(&pp, &bucket, &path, &300).await {
+            if let Ok(url) = Utility::sign_aws(&pp, &bucket, &path, &300).await {
                 println!("{:?}", url);
             }
         } else {
@@ -157,7 +161,7 @@ mod tests {
         if let Ok(Platform::GCP { bucket, path }) =
             Platform::from_str("gs://kotosiro-sharing-test/sample.txt")
         {
-            if let Ok(url) = gcp(&sa, &bucket, &path, &300).await {
+            if let Ok(url) = Utility::sign_gcp(&sa, &bucket, &path, &300).await {
                 println!("{:?}", url);
             }
         } else {

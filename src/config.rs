@@ -1,5 +1,5 @@
 mod fetcher;
-use crate::server::utils::bootstrap::JwtKeys;
+use crate::server::utilities::bootstrap::JwtKeys;
 use once_cell::sync::Lazy;
 
 pub(crate) static JWT_SECRET: Lazy<JwtKeys> = Lazy::new(|| {

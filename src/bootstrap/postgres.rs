@@ -1,4 +1,4 @@
-use crate::server::utils::bootstrap;
+use crate::server::utilities::bootstrap::Utility as BootstrapUtility;
 use anyhow::Context;
 use anyhow::Result;
 use sqlx::PgPool;
@@ -15,7 +15,7 @@ pub async fn connect(url: &str) -> Result<PgPool> {
         .await
         .context("failed to migrate postgres")?;
     trace!("schema created");
-    bootstrap::postgres(&pool)
+    BootstrapUtility::init_postgres(&pool)
         .await
         .context("failed to create admin account")?;
     trace!("admin account created");

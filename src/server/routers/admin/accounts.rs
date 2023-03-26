@@ -5,8 +5,7 @@ use crate::server::routers::SharedState;
 use crate::server::services::account::Account;
 use crate::server::services::account::PgService as AccountPgService;
 use crate::server::services::account::Service as AccountService;
-use crate::server::utils::postgres::has_conflict;
-use crate::server::utils::postgres::pg_error;
+use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
 use anyhow::Context;
 use axum::extract::Extension;
@@ -64,7 +63,7 @@ pub async fn post(
         payload.ttl,
     )
     .map_err(|_| Error::ValidationFailed)?;
-    match pg_error(entity.register(&state.pg_pool).await)? {
+    match PostgresUtility::error(entity.register(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
                 r#"updated account id: "{}" name: "{}""#,
@@ -84,7 +83,7 @@ pub async fn post(
             )
                 .into_response())
         }
-        Err(e) if has_conflict(&e) => Err(Error::Conflict),
+        Err(e) if PostgresUtility::is_conflict(&e) => Err(Error::Conflict),
         _ => Err(anyhow!("error occured while updating account").into()),
     }
 }
