@@ -3,7 +3,6 @@ use crate::server::entities::account::Name as AccountName;
 use crate::server::error::Error;
 use crate::server::routers::SharedState;
 use crate::server::services::account::Account;
-use crate::server::services::account::PgService as AccountPgService;
 use crate::server::services::account::Service as AccountService;
 use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
@@ -118,10 +117,8 @@ pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(AdminAccountsGetParams { name }): Path<AdminAccountsGetParams>,
 ) -> Result<Response, Error> {
-    let service = AccountPgService;
     let name = AccountName::new(name).map_err(|_| Error::ValidationFailed)?;
-    let account = service
-        .query_by_name(&name, &state.pg_pool)
+    let account = AccountService::query_by_name(&name, &state.pg_pool)
         .await
         .context("error occured while querying account")?;
     let Some(account) = account else {
@@ -162,7 +159,6 @@ pub async fn list(
     Extension(state): Extension<SharedState>,
     query: Query<AdminAccountsListQuery>,
 ) -> Result<Response, Error> {
-    let service = AccountPgService;
     let limit = if let Some(limit) = &query.max_results {
         let limit = usize::try_from(*limit).map_err(|_| Error::ValidationFailed)?;
         limit
@@ -175,10 +171,10 @@ pub async fn list(
     } else {
         None
     };
-    let accounts = service
-        .query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool)
-        .await
-        .context("error occured while querying account(s)")?;
+    let accounts =
+        AccountService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool)
+            .await
+            .context("error occured while querying account(s)")?;
     if accounts.len() == limit + 1 {
         let next = &accounts[limit];
         let accounts = &accounts[..limit];

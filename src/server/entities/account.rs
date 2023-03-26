@@ -1,7 +1,8 @@
 use crate::impl_i64_property;
 use crate::impl_string_property;
 use crate::impl_uuid_property;
-use crate::server::repositories::account::PgRepository;
+//use crate::server::repositories::account::PgRepository;
+//use crate::server::repositories::account::Repository;
 use crate::server::repositories::account::Repository;
 use anyhow::anyhow;
 use anyhow::Result;
@@ -117,8 +118,7 @@ impl Entity {
     }
 
     pub async fn load(name: &Name, pg_pool: &PgPool) -> Result<Option<Self>> {
-        let repo = PgRepository;
-        match repo.select_by_name(&name, pg_pool).await? {
+        match Repository::select_by_name(&name, pg_pool).await? {
             Some(row) => Ok(Self {
                 id: Id::new(row.id),
                 name: Name::new(row.name)?,
@@ -133,8 +133,7 @@ impl Entity {
     }
 
     pub async fn register(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
-        let repo = PgRepository;
-        repo.upsert(&self, pg_pool).await
+        Repository::upsert(&self, pg_pool).await
     }
 
     pub fn verify(&self, password: &[u8]) -> Result<()> {

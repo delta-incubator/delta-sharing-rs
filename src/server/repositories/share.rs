@@ -183,7 +183,6 @@ mod tests {
     use super::*;
     use crate::server::entities::account::Entity as Account;
     use crate::server::entities::account::Id as AccountId;
-    use crate::server::repositories::account::PgRepository as PgAccountRepository;
     use crate::server::repositories::account::Repository as AccountRepository;
     use anyhow::Context;
     use anyhow::Result;
@@ -192,7 +191,6 @@ mod tests {
     use std::cmp::min;
 
     async fn upsert_account(tx: &mut PgConnection) -> Result<Account> {
-        let repo = PgAccountRepository;
         let account = Account::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
@@ -202,7 +200,7 @@ mod tests {
             testutils::rand::i64(1, 100000),
         )
         .context("failed to upsert account")?;
-        repo.upsert(&account, tx)
+        AccountRepository::upsert(&account, tx)
             .await
             .context("failed to insert account")?;
         Ok(account)

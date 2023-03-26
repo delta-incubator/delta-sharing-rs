@@ -2,7 +2,6 @@ use crate::server::entities::account::Name as AccountName;
 use crate::server::utilities::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
-use async_trait::async_trait;
 use sqlx::query_builder::QueryBuilder;
 use sqlx::Execute;
 use utoipa::ToSchema;
@@ -16,31 +15,13 @@ pub struct Account {
     pub ttl: i64,
 }
 
-#[async_trait]
-pub trait Service: Send + Sync + 'static {
-    async fn query(
-        &self,
+pub struct Service;
+
+impl Service {
+    pub async fn query(
         limit: Option<&i64>,
         after: Option<&AccountName>,
-        executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Vec<Account>>;
-
-    async fn query_by_name(
-        &self,
-        name: &AccountName,
-        executor: impl PgAcquire<'_> + 'async_trait,
-    ) -> Result<Option<Account>>;
-}
-
-pub struct PgService;
-
-#[async_trait]
-impl Service for PgService {
-    async fn query(
-        &self,
-        limit: Option<&i64>,
-        after: Option<&AccountName>,
-        executor: impl PgAcquire<'_> + 'async_trait,
+        executor: impl PgAcquire<'_>,
     ) -> Result<Vec<Account>> {
         let mut conn = executor
             .acquire()
@@ -77,10 +58,9 @@ impl Service for PgService {
         Ok(rows)
     }
 
-    async fn query_by_name(
-        &self,
+    pub async fn query_by_name(
         name: &AccountName,
-        executor: impl PgAcquire<'_> + 'async_trait,
+        executor: impl PgAcquire<'_>,
     ) -> Result<Option<Account>> {
         let mut conn = executor
             .acquire()
@@ -110,7 +90,6 @@ impl Service for PgService {
 mod tests {
     use super::*;
     use crate::server::entities::account::Entity as AccountEntity;
-    use crate::server::repositories::account::PgRepository as AccountPgRepository;
     use crate::server::repositories::account::Repository as AccountRepository;
     use anyhow::Context;
     use anyhow::Result;
@@ -119,7 +98,6 @@ mod tests {
     use std::cmp::min;
 
     async fn create(tx: &mut PgConnection) -> Result<AccountEntity> {
-        let repo = AccountPgRepository;
         let account = AccountEntity::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
@@ -129,7 +107,7 @@ mod tests {
             testutils::rand::i64(1, 100000),
         )
         .context("failed to validate account")?;
-        repo.upsert(&account, tx)
+        AccountRepository::upsert(&account, tx)
             .await
             .context("failed to create account")?;
         Ok(account)
@@ -138,7 +116,6 @@ mod tests {
     #[sqlx::test]
     #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
     async fn test_create_and_query_with_default_limit(pool: PgPool) -> Result<()> {
-        let serv = PgService;
         let mut tx = pool
             .begin()
             .await
@@ -149,8 +126,7 @@ mod tests {
                 .await
                 .expect("new account should be created");
         }
-        let fetched = serv
-            .query(None, None, &mut tx)
+        let fetched = Service::query(None, None, &mut tx)
             .await
             .expect("created account should be listed");
         assert_eq!(records as usize, fetched.len());
@@ -163,7 +139,6 @@ mod tests {
     #[sqlx::test]
     #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
     async fn test_create_and_query_with_specified_limit(pool: PgPool) -> Result<()> {
-        let serv = PgService;
         let mut tx = pool
             .begin()
             .await
@@ -175,8 +150,7 @@ mod tests {
                 .expect("new account should be created");
         }
         let limit = testutils::rand::i64(0, 20);
-        let fetched = serv
-            .query(Some(&limit), None, &mut tx)
+        let fetched = Service::query(Some(&limit), None, &mut tx)
             .await
             .expect("created account should be listed");
         assert_eq!(min(records, limit) as usize, fetched.len());
@@ -189,7 +163,6 @@ mod tests {
     #[sqlx::test]
     #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
     async fn test_create_and_query_by_name(pool: PgPool) -> Result<()> {
-        let serv = PgService;
         let mut tx = pool
             .begin()
             .await
@@ -197,8 +170,7 @@ mod tests {
         let account = create(&mut tx)
             .await
             .expect("new account should be created");
-        let fetched = serv
-            .query_by_name(&account.name(), &mut tx)
+        let fetched = Service::query_by_name(&account.name(), &mut tx)
             .await
             .expect("created account should be found");
         if let Some(fetched) = fetched {
