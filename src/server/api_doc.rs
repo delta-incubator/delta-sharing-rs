@@ -1,13 +1,8 @@
-//pub mod account;
-pub mod claims;
-pub mod error;
-pub mod profile;
-//pub mod schema;
-//pub mod share;
-//pub mod table;
 use crate::server::routers::admin;
 use crate::server::routers::shares;
 use crate::server::services::account;
+use crate::server::services::error;
+use crate::server::services::profile;
 use crate::server::services::schema;
 use crate::server::services::share;
 use crate::server::services::table;
@@ -29,15 +24,7 @@ use utoipa::OpenApi;
         shares::list,
     ),
     components(
-	schemas(
-	    claims::Claims,
-	    profile::Profile,
-	    account::Account,
-	    share::Share,
-	    table::Table,
-	    schema::Schema,
-	    error::Error
-	),
+	schemas(profile::Profile, account::Account, share::Share, table::Table, schema::Schema, error::ErrorResponse,),
         schemas(admin::AdminLoginRequest, admin::AdminLoginResponse),
         schemas(admin::accounts::AdminAccountsPostRequest, admin::accounts::AdminAccountsPostResponse),
         schemas(admin::accounts::AdminAccountsGetResponse),

@@ -1,9 +1,9 @@
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
-use crate::server::error::Error;
 use crate::server::routers::SharedState;
 use crate::server::services::account::Account;
 use crate::server::services::account::Service as AccountService;
+use crate::server::services::error::Error;
 use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
 use anyhow::Context;
@@ -43,10 +43,10 @@ pub struct AdminAccountsPostResponse {
     request_body = AdminAccountsPostRequest,
     responses(
         (status = 201, description = "Registered account successfully", body = AdminAccountsPostResponse),
-        (status = 401, description = "Authorization failed", body = Error),
-        (status = 409, description = "Confliction occured", body = Error),
-        (status = 422, description = "Validation failed", body = Error),
-        (status = 500, description = "Error occured while creating account on database", body = Error),
+        (status = 401, description = "Authorization failed", body = ErrorResponse),
+        (status = 409, description = "Confliction occured", body = ErrorResponse),
+        (status = 422, description = "Validation failed", body = ErrorResponse),
+        (status = 500, description = "Error occured while creating account on database", body = ErrorResponse),
     )
 )]
 pub async fn post(
@@ -102,10 +102,10 @@ pub struct AdminAccountsGetResponse {
     ),
     responses(
         (status = 200, description = "Show matching account successfully", body = AdminAccountsGetResponse),
-        (status = 401, description = "Authorization failed", body = Error),
-        (status = 404, description = "Account not found", body = Error),
-        (status = 422, description = "Validation failed", body = Error),
-        (status = 500, description = "Error occured while selecting account on database", body = Error),
+        (status = 401, description = "Authorization failed", body = ErrorResponse),
+        (status = 404, description = "Account not found", body = ErrorResponse),
+        (status = 422, description = "Validation failed", body = ErrorResponse),
+        (status = 500, description = "Error occured while selecting account on database", body = ErrorResponse),
     )
 )]
 pub async fn get(
@@ -145,9 +145,9 @@ pub struct AdminAccountsListResponse {
     ),
     responses(
         (status = 200, description = "List matching account(s) successfully", body = AdminAccountsListResponse),
-        (status = 401, description = "Authorization failed", body = Error),
-        (status = 422, description = "Validation failed", body = Error),
-        (status = 500, description = "Error occured while selecting account(s) on database", body = Error),
+        (status = 401, description = "Authorization failed", body = ErrorResponse),
+        (status = 422, description = "Validation failed", body = ErrorResponse),
+        (status = 500, description = "Error occured while selecting account(s) on database", body = ErrorResponse),
     )
 )]
 pub async fn list(

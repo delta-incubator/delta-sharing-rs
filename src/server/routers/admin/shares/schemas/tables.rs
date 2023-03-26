@@ -4,8 +4,8 @@ use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::entities::table::Entity as TableEntity;
 use crate::server::entities::table::Name as TableName;
-use crate::server::error::Error;
 use crate::server::routers::SharedState;
+use crate::server::services::error::Error;
 use crate::server::services::schema::Schema;
 use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
@@ -49,11 +49,11 @@ pub struct AdminSharesSchemasTablesPostResponse {
     request_body = AdminSharesSchemasTablesPostRequest,
     responses(
         (status = 201, description = "Registered schema successfully", body = AdminSharesSchemasTablesPostResponse),
-        (status = 400, description = "Requested table was not found", body = Error),
-        (status = 401, description = "Authorization failed", body = Error),
-        (status = 409, description = "Confliction occured", body = Error),
-        (status = 422, description = "Validation failed", body = Error),
-        (status = 500, description = "Error occured while creating schema on database", body = Error),
+        (status = 400, description = "Requested table was not found", body = ErrorResponse),
+        (status = 401, description = "Authorization failed", body = ErrorResponse),
+        (status = 409, description = "Confliction occured", body = ErrorResponse),
+        (status = 422, description = "Validation failed", body = ErrorResponse),
+        (status = 500, description = "Error occured while creating schema on database", body = ErrorResponse),
     )
 )]
 pub async fn post(

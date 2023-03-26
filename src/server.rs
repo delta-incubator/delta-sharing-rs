@@ -1,9 +1,8 @@
+mod api_doc;
 mod entities;
-mod error;
 mod middlewares;
 mod repositories;
 mod routers;
-mod schemas;
 mod services;
 pub(crate) mod utilities;
 use crate::bootstrap;

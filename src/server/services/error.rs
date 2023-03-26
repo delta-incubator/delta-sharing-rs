@@ -1,9 +1,16 @@
-use crate::server::schemas::error::Error as ErrorResponse;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::Json;
 use tracing::error;
+use utoipa::ToSchema;
+
+#[derive(serde::Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ErrorResponse {
+    pub error_code: String,
+    pub message: String,
+}
 
 pub enum Error {
     InternalServerProblem(anyhow::Error),

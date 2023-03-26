@@ -1,10 +1,8 @@
 use crate::config::JWT_SECRET;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
-use crate::server::error::Error;
 use crate::server::routers::SharedState;
-use crate::server::schemas::claims::Claims;
-use crate::server::schemas::claims::Role;
+use crate::server::services::error::Error;
 use anyhow::anyhow;
 use axum::headers::authorization::Bearer;
 use axum::headers::Authorization;
@@ -16,6 +14,26 @@ use jsonwebtoken::decode;
 use jsonwebtoken::DecodingKey;
 use jsonwebtoken::EncodingKey;
 use jsonwebtoken::Validation;
+
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Claims {
+    pub name: String,
+    pub email: String,
+    pub namespace: String,
+    pub role: Role,
+    pub exp: i64,
+}
+
+#[derive(PartialEq, Eq, serde::Serialize, serde::Deserialize, strum_macros::EnumString)]
+pub enum Role {
+    #[strum(ascii_case_insensitive)]
+    #[serde(rename = "admin")]
+    Admin,
+    #[strum(ascii_case_insensitive)]
+    #[serde(rename = "guest")]
+    Guest,
+}
 
 pub struct Keys {
     pub encoding: EncodingKey,

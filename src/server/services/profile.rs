@@ -1,6 +1,7 @@
+use crate::config;
 use crate::config::JWT_SECRET;
-use crate::server::schemas::claims::Claims;
-use crate::server::schemas::claims::Role;
+use crate::server::middlewares::jwt::Claims;
+use crate::server::middlewares::jwt::Role;
 use anyhow::Context;
 use anyhow::Result;
 use chrono::DateTime;
@@ -11,13 +12,23 @@ use jsonwebtoken::Header;
 use std::time::Duration;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
+use utoipa::ToSchema;
 
 pub const VERSION: i64 = 1;
 
-pub struct Utility;
+#[derive(serde::Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Profile {
+    pub share_credentials_version: i64,
+    pub endpoint: String,
+    pub bearer_token: String,
+    pub expiration_time: String,
+}
 
-impl Utility {
-    pub fn new_token(
+pub struct Service;
+
+impl Service {
+    fn new_token(
         name: String,
         email: String,
         namespace: String,
@@ -36,7 +47,7 @@ impl Utility {
         Ok(token)
     }
 
-    pub fn new_expiration(ttl: i64) -> Result<(i64, DateTime<Utc>)> {
+    fn new_expiration(ttl: i64) -> Result<(i64, DateTime<Utc>)> {
         let ttl = u64::try_from(ttl).context("failed to convert i64 ttl to u64")?;
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -50,6 +61,25 @@ impl Utility {
         let expiration_time = DateTime::<Utc>::from_utc(expiration_time, Utc);
         Ok((expiration_secs, expiration_time))
     }
+
+    pub fn issue(
+        name: String,
+        email: String,
+        namespace: String,
+        role: Role,
+        ttl: i64,
+    ) -> Result<Profile> {
+        let (expiration_secs, expiration_time) =
+            Self::new_expiration(ttl).context("expiration time calculation failed")?;
+        let token = Self::new_token(name, email, namespace, role, expiration_secs)
+            .context("profile creation failed")?;
+        Ok(Profile {
+            share_credentials_version: VERSION,
+            endpoint: config::fetch::<String>("server_bind"),
+            bearer_token: token,
+            expiration_time: expiration_time.to_string(),
+        })
+    }
 }
 
 #[cfg(test)]
@@ -58,6 +88,6 @@ mod tests {
 
     #[tokio::test]
     async fn test() {
-        println!("TEST SHARING!!!");
+        println!("TEST PROFILE!!!");
     }
 }

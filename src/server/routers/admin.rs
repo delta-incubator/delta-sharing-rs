@@ -1,15 +1,13 @@
 pub mod accounts;
 pub mod shares;
 pub mod tables;
-use crate::config;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
-use crate::server::error::Error;
+use crate::server::middlewares::jwt::Role;
 use crate::server::routers::SharedState;
-use crate::server::schemas::claims::Role;
-use crate::server::schemas::profile::Profile;
-use crate::server::utilities::sharing::Utility as SharingUtility;
-use crate::server::utilities::sharing::VERSION as SHARING_VERSION;
+use crate::server::services::error::Error;
+use crate::server::services::profile::Profile;
+use crate::server::services::profile::Service as ProfileService;
 use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -38,9 +36,9 @@ pub struct AdminLoginResponse {
     request_body = AdminLoginRequest,
     responses(
         (status = 200, description = "Logged-in successfully", body = AdminLoginResponse),
-        (status = 401, description = "Authorization failed", body = Error),
-        (status = 422, description = "Validation failed", body = Error),
-        (status = 500, description = "Expiration time calculation and/or profile creation failed", body = Error),
+        (status = 401, description = "Authorization failed", body = ErrorResponse),
+        (status = 422, description = "Validation failed", body = ErrorResponse),
+        (status = 500, description = "Expiration time calculation and/or profile creation failed", body = ErrorResponse),
     )
 )]
 pub async fn login(
@@ -57,16 +55,14 @@ pub async fn login(
     entity
         .verify(payload.password.as_bytes())
         .map_err(|_| Error::Unauthorized)?;
-    let (expiration_secs, expiration_time) = SharingUtility::new_expiration(entity.ttl().to_i64())
-        .context("expiration time calculation failed")?;
-    let token = SharingUtility::new_token(
+    let profile = ProfileService::issue(
         entity.name().to_string(),
         entity.email().to_string(),
         entity.namespace().to_string(),
         Role::Admin,
-        expiration_secs,
+        entity.ttl().to_i64(),
     )
-    .context("profile creation failed")?;
+    .context("failed to create profile")?;
     debug!(
         r#"logged-in successfully id: "{}" name: "{}""#,
         entity.id().as_uuid(),
@@ -74,14 +70,7 @@ pub async fn login(
     );
     Ok((
         StatusCode::OK,
-        Json(AdminLoginResponse {
-            profile: Profile {
-                share_credentials_version: SHARING_VERSION,
-                endpoint: config::fetch::<String>("server_bind"),
-                bearer_token: token,
-                expiration_time: expiration_time.to_string(),
-            },
-        }),
+        Json(AdminLoginResponse { profile: profile }),
     )
         .into_response())
 }
