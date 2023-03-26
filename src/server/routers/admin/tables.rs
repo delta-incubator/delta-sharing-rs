@@ -3,7 +3,8 @@ use crate::server::entities::table::Entity as TableEntity;
 use crate::server::entities::table::Name as TableName;
 use crate::server::error::Error;
 use crate::server::routers::SharedState;
-use crate::server::schemas::table::Table;
+use crate::server::services::table::Service as TableService;
+use crate::server::services::table::Table;
 use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
 use anyhow::Context;
@@ -58,7 +59,7 @@ pub async fn post(
         account.id().to_string(),
     )
     .map_err(|_| Error::ValidationFailed)?;
-    match PostgresUtility::error(entity.register(&state.pg_pool).await)? {
+    match PostgresUtility::error(entity.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
                 r#"updated table id: "{}" name: "{}""#,
@@ -68,11 +69,7 @@ pub async fn post(
             Ok((
                 StatusCode::CREATED,
                 Json(AdminTablesPostResponse {
-                    table: Table {
-                        id: entity.id().to_string(),
-                        name: entity.name().to_string(),
-                        location: entity.location().to_string(),
-                    },
+                    table: Table::from(entity),
                 }),
             )
                 .into_response())
@@ -113,26 +110,16 @@ pub async fn get(
     Path(AdminTablesGetParams { name }): Path<AdminTablesGetParams>,
 ) -> Result<Response, Error> {
     let name = TableName::new(name).map_err(|_| Error::ValidationFailed)?;
-    let entity = TableEntity::find_by_name(&name, &state.pg_pool)
+    let table = TableService::query_by_name(&name, &state.pg_pool)
         .await
         .context("error occured while selecting table")?;
-    let Some(entity) = entity else {
+    let Some(table) = table else {
 	return Err(Error::NotFound);
     };
-    debug!(
-        r#"found table id: "{}" name: "{}""#,
-        entity.id().as_uuid(),
-        entity.name().as_str()
-    );
+    debug!(r#"found table id: "{}" name: "{}""#, &table.id, &table.name);
     Ok((
         StatusCode::OK,
-        Json(AdminTablesGetResponse {
-            table: Table {
-                id: entity.id().to_string(),
-                name: entity.name().to_string(),
-                location: entity.location().to_string(),
-            },
-        }),
+        Json(AdminTablesGetResponse { table: table }),
     )
         .into_response())
 }
@@ -158,7 +145,7 @@ pub struct AdminTablesListResponse {
         AdminTablesListQuery,
     ),
     responses(
-        (status = 200, description = "List matching table(s) successfully", body = AdminTablesListResponse),
+        (status = 200, description = "List matching table(s) successfbyully", body = AdminTablesListResponse),
         (status = 401, description = "Authorization failed", body = Error),
         (status = 422, description = "Validation failed", body = Error),
         (status = 500, description = "Error occured while selecting tables(s) on database", body = Error),
@@ -180,41 +167,27 @@ pub async fn list(
     } else {
         None
     };
-    let entities = TableEntity::list(&((limit + 1) as i64), &after, &state.pg_pool)
+    let tables = TableService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool)
         .await
         .context("error occured while selecting table(s)")?;
-    if entities.len() == limit + 1 {
-        let next = &entities[limit];
-        let entities = &entities[..limit];
-        debug!(r"found {} table(s)", entities.len());
+    if tables.len() == limit + 1 {
+        let next = &tables[limit];
+        let tables = &tables[..limit];
+        debug!(r"found {} table(s)", tables.len());
         return Ok((
             StatusCode::OK,
             Json(AdminTablesListResponse {
-                items: entities
-                    .iter()
-                    .map(|entity| Table {
-                        id: entity.id().to_string(),
-                        name: entity.name().to_string(),
-                        location: entity.location().to_string(),
-                    })
-                    .collect(),
-                next_page_token: next.name().to_string(),
+                items: tables.to_vec(),
+                next_page_token: next.name.clone(),
             }),
         )
             .into_response());
     }
-    debug!(r"found {} table(s)", entities.len());
+    debug!(r"found {} table(s)", tables.len());
     Ok((
         StatusCode::OK,
         Json(AdminTablesListResponse {
-            items: entities
-                .iter()
-                .map(|entity| Table {
-                    id: entity.id().to_string(),
-                    name: entity.name().to_string(),
-                    location: entity.location().to_string(),
-                })
-                .collect(),
+            items: tables,
             next_page_token: None.unwrap_or_default(),
         }),
     )

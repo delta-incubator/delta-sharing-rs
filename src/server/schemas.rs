@@ -4,11 +4,12 @@ pub mod error;
 pub mod profile;
 pub mod schema;
 //pub mod share;
-pub mod table;
+//pub mod table;
 use crate::server::routers::admin;
 use crate::server::routers::shares;
 use crate::server::services::account;
 use crate::server::services::share;
+use crate::server::services::table;
 use utoipa::OpenApi;
 
 #[derive(OpenApi)]

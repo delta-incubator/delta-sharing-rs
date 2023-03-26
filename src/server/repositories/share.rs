@@ -109,7 +109,7 @@ mod tests {
         .context("failed to validate share")?;
         Repository::upsert(&share, tx)
             .await
-            .context("failed to crate share")?;
+            .context("failed to create share")?;
         Ok(share)
     }
 

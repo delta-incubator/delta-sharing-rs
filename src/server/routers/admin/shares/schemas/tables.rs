@@ -72,7 +72,7 @@ pub async fn post(
 	return Err(Error::NotFound);
     };
     let table = TableName::new(payload.name).map_err(|_| Error::ValidationFailed)?;
-    let table = TableEntity::find_by_name(&table, &state.pg_pool)
+    let table = TableEntity::load(&table, &state.pg_pool)
         .await
         .context("error occured while selecting table")?;
     let Some(table) = table else {

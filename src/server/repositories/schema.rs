@@ -112,7 +112,6 @@ mod tests {
     use crate::server::entities::table::Entity as Table;
     use crate::server::repositories::account::Repository as AccountRepository;
     use crate::server::repositories::share::Repository as ShareRepository;
-    use crate::server::repositories::table::PgRepository as PgTableRepository;
     use crate::server::repositories::table::Repository as TableRepository;
     use anyhow::Context;
     use anyhow::Result;
@@ -137,7 +136,6 @@ mod tests {
     }
 
     async fn upsert_table(account_id: &AccountId, tx: &mut PgConnection) -> Result<Table> {
-        let repo = PgTableRepository;
         let table = Table::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
@@ -145,7 +143,7 @@ mod tests {
             account_id.to_uuid().to_string(),
         )
         .context("failed to upsert table")?;
-        repo.upsert(&table, tx)
+        TableRepository::upsert(&table, tx)
             .await
             .context("failed to insert table")?;
         Ok(table)
