@@ -1,8 +1,6 @@
 use crate::impl_i64_property;
 use crate::impl_string_property;
 use crate::impl_uuid_property;
-//use crate::server::repositories::account::PgRepository;
-//use crate::server::repositories::account::Repository;
 use crate::server::repositories::account::Repository;
 use anyhow::anyhow;
 use anyhow::Result;
@@ -132,7 +130,7 @@ impl Entity {
         }
     }
 
-    pub async fn register(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
+    pub async fn save(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
         Repository::upsert(&self, pg_pool).await
     }
 

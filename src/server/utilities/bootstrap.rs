@@ -26,7 +26,7 @@ impl Utility {
             error!("failed to validate admin account");
             return Err(anyhow!("failed to validate admin account"));
         };
-        match PostgresUtility::error(admin.register(&pool).await)? {
+        match PostgresUtility::error(admin.save(&pool).await)? {
             Ok(_) => {
                 trace!(
                     r#"updated admin account id: "{}" name: "{}""#,

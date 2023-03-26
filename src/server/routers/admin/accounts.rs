@@ -62,7 +62,7 @@ pub async fn post(
         payload.ttl,
     )
     .map_err(|_| Error::ValidationFailed)?;
-    match PostgresUtility::error(entity.register(&state.pg_pool).await)? {
+    match PostgresUtility::error(entity.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
                 r#"updated account id: "{}" name: "{}""#,
