@@ -49,11 +49,11 @@ pub struct AdminSharesSchemasTablesPostResponse {
     request_body = AdminSharesSchemasTablesPostRequest,
     responses(
         (status = 201, description = "Registered schema successfully", body = AdminSharesSchemasTablesPostResponse),
-        (status = 400, description = "Requested table was not found", body = ErrorResponse),
-        (status = 401, description = "Authorization failed", body = ErrorResponse),
-        (status = 409, description = "Confliction occured", body = ErrorResponse),
-        (status = 422, description = "Validation failed", body = ErrorResponse),
-        (status = 500, description = "Error occured while creating schema on database", body = ErrorResponse),
+        (status = 400, description = "Requested table was not found", body = ErrorMessage),
+        (status = 401, description = "Authorization failed", body = ErrorMessage),
+        (status = 409, description = "Confliction occured", body = ErrorMessage),
+        (status = 422, description = "Validation failed", body = ErrorMessage),
+        (status = 500, description = "Error occured while creating schema on database", body = ErrorMessage),
     )
 )]
 pub async fn post(

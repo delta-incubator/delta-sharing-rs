@@ -36,9 +36,9 @@ pub struct AdminLoginResponse {
     request_body = AdminLoginRequest,
     responses(
         (status = 200, description = "Logged-in successfully", body = AdminLoginResponse),
-        (status = 401, description = "Authorization failed", body = ErrorResponse),
-        (status = 422, description = "Validation failed", body = ErrorResponse),
-        (status = 500, description = "Expiration time calculation and/or profile creation failed", body = ErrorResponse),
+        (status = 401, description = "Authorization failed", body = ErrorMessage),
+        (status = 422, description = "Validation failed", body = ErrorMessage),
+        (status = 500, description = "Expiration time calculation and/or profile creation failed", body = ErrorMessage),
     )
 )]
 pub async fn login(

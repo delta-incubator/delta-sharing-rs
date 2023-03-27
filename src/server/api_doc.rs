@@ -24,7 +24,7 @@ use utoipa::OpenApi;
         shares::list,
     ),
     components(
-	schemas(profile::Profile, account::Account, share::Share, table::Table, schema::Schema, error::ErrorResponse,),
+	schemas(profile::Profile, account::Account, share::Share, table::Table, schema::Schema, error::ErrorMessage,),
         schemas(admin::AdminLoginRequest, admin::AdminLoginResponse),
         schemas(admin::accounts::AdminAccountsPostRequest, admin::accounts::AdminAccountsPostResponse),
         schemas(admin::accounts::AdminAccountsGetResponse),

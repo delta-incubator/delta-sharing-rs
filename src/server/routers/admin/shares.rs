@@ -33,10 +33,10 @@ pub struct AdminSharesPostResponse {
     request_body = AdminSharesPostRequest,
     responses(
         (status = 201, description = "Registered share successfully", body = AdminSharesPostResponse),
-        (status = 401, description = "Authorization failed", body = ErrorResponse),
-        (status = 409, description = "Confliction occured", body = ErrorResponse),
-        (status = 422, description = "Validation failed", body = ErrorResponse),
-        (status = 500, description = "Error occured while creating share on database", body = ErrorResponse),
+        (status = 401, description = "Authorization failed", body = ErrorMessage),
+        (status = 409, description = "Confliction occured", body = ErrorMessage),
+        (status = 422, description = "Validation failed", body = ErrorMessage),
+        (status = 500, description = "Error occured while creating share on database", body = ErrorMessage),
     )
 )]
 pub async fn post(

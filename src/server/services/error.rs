@@ -7,7 +7,7 @@ use utoipa::ToSchema;
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct ErrorResponse {
+pub struct ErrorMessage {
     pub error_code: String,
     pub message: String,
 }
@@ -94,7 +94,7 @@ impl IntoResponse for Error {
         };
         (
             status,
-            Json(ErrorResponse {
+            Json(ErrorMessage {
                 error_code: status.as_str().into(),
                 message: message.into(),
             }),

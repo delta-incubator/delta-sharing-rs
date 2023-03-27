@@ -41,10 +41,10 @@ pub struct AdminTablesPostResponse {
     request_body = AdminTablesPostRequest,
     responses(
         (status = 201, description = "Registered table successfully", body = AdminTablesPostResponse),
-        (status = 401, description = "Authorization failed", body = ErrorResponse),
-        (status = 409, description = "Confliction occured", body = ErrorResponse),
-        (status = 422, description = "Validation failed", body = ErrorResponse),
-        (status = 500, description = "Error occured while creating table on database", body = ErrorResponse),
+        (status = 401, description = "Authorization failed", body = ErrorMessage),
+        (status = 409, description = "Confliction occured", body = ErrorMessage),
+        (status = 422, description = "Validation failed", body = ErrorMessage),
+        (status = 500, description = "Error occured while creating table on database", body = ErrorMessage),
     )
 )]
 pub async fn post(
@@ -99,10 +99,10 @@ pub struct AdminTablesGetResponse {
     ),
     responses(
         (status = 200, description = "Show matching table successfully", body = AdminTablesGetResponse),
-        (status = 401, description = "Authorization failed", body = ErrorResponse),
-        (status = 404, description = "Table not found", body = ErrorResponse),
-        (status = 422, description = "Validation failed", body = ErrorResponse),
-        (status = 500, description = "Error occured while selecting table on database", body = ErrorResponse),
+        (status = 401, description = "Authorization failed", body = ErrorMessage),
+        (status = 404, description = "Table not found", body = ErrorMessage),
+        (status = 422, description = "Validation failed", body = ErrorMessage),
+        (status = 500, description = "Error occured while selecting table on database", body = ErrorMessage),
     )
 )]
 pub async fn get(
@@ -146,9 +146,9 @@ pub struct AdminTablesListResponse {
     ),
     responses(
         (status = 200, description = "List matching table(s) successfbyully", body = AdminTablesListResponse),
-        (status = 401, description = "Authorization failed", body = ErrorResponse),
-        (status = 422, description = "Validation failed", body = ErrorResponse),
-        (status = 500, description = "Error occured while selecting tables(s) on database", body = ErrorResponse),
+        (status = 401, description = "Authorization failed", body = ErrorMessage),
+        (status = 422, description = "Validation failed", body = ErrorMessage),
+        (status = 500, description = "Error occured while selecting tables(s) on database", body = ErrorMessage),
     )
 )]
 pub async fn list(
