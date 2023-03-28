@@ -21,7 +21,7 @@ TODO
 | :heavy_check_mark: | :heavy_check_mark: | GET    | *{prefix}/shares*                                                  |
 | :heavy_check_mark: | :heavy_check_mark: | GET    | *{prefix}/shares/{share}*                                          |
 | :heavy_check_mark: | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/schemas*                                  |
-|                    | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/schemas/{schema}/tables*                  |
+| :heavy_check_mark: | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/schemas/{schema}/tables*                  |
 |                    | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/all-tables*                               |
 |                    | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/schemas/{schema}/tables/{table}/version*  |
 |                    | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/schemas/{schema}/tables/{table}/metadata* |
@@ -30,11 +30,9 @@ TODO
 
  2. **Infrastracture**
  
- - [ ] Documentation
-  - [ ] README
-  - [ ] Wiki
- - [ ] DevOps
-  - [ ] Dockerfile
-  - [ ] Kubernetes
+ - [ ] README
+ - [ ] Wiki
+ - [ ] Dockerfile
+ - [ ] Kubernetes
  - [ ] React/Frontend
  - [ ] CORS

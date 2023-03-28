@@ -4,10 +4,13 @@ pub mod tables;
 use crate::config;
 use crate::server::api_doc::ApiDoc;
 use crate::server::middlewares::jwt;
+use crate::server::services::error::Error;
 use anyhow::Context;
 use anyhow::Result;
 use axum::extract::Extension;
+use axum::http::Uri;
 use axum::middleware;
+use axum::response::Response;
 use axum::routing::get;
 use axum::routing::post;
 use axum::Router;
@@ -26,6 +29,10 @@ pub struct State {
 }
 
 pub type SharedState = Arc<State>;
+
+async fn bad_request(_: Uri) -> std::result::Result<Response, Error> {
+    Err(Error::BadRequest)
+}
 
 async fn route(
     pg_pool: PgPool,
@@ -60,10 +67,18 @@ async fn route(
         .route("/shares", get(self::shares::list))
         .route("/shares/:share", get(self::shares::get))
         .route("/shares/:share/schemas", get(self::shares::schemas::list))
+        .route(
+            "/shares/:share/schemas/:schema/tables",
+            get(self::shares::schemas::tables::list),
+        )
         .route_layer(middleware::from_fn(jwt::as_guest))
         .layer(Extension(state.clone()));
 
-    let app = Router::new().merge(swagger).merge(admin).merge(guest);
+    let app = Router::new()
+        .merge(swagger)
+        .merge(admin)
+        .merge(guest)
+        .fallback(bad_request);
 
     Ok(app)
 }

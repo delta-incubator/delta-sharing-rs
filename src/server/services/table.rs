@@ -119,9 +119,9 @@ impl Service {
         let mut builder = QueryBuilder::new(
             r#"WITH these_tables AS (
                    SELECT
-                       "table".id::text,
-                       share.id::text AS share_id,
-                       "table".name,
+                       "table".id AS id,
+                       share.id AS share_id,
+                       "table".name AS name,
                        "schema".name AS schema,
                        share.name AS share
                    FROM "table"
@@ -136,8 +136,8 @@ impl Service {
             "
                )
                SELECT
-                   id,
-                   share_id,
+                   id::text,
+                   share_id::text,
                    name,
                    schema,
                    share
@@ -153,6 +153,8 @@ impl Service {
             builder.push_bind(limit);
         }
         let mut query = sqlx::query_as::<_, TableDetail>(builder.build().sql().into());
+        query = query.bind(share_name);
+        query = query.bind(schema_name);
         if let Some(name) = after {
             query = query.bind(name);
         }
@@ -172,9 +174,14 @@ mod tests {
     use super::*;
     use crate::server::entities::account::Entity as AccountEntity;
     use crate::server::entities::account::Id as AccountId;
+    use crate::server::entities::schema::Entity as SchemaEntity;
+    use crate::server::entities::schema::Name as SchemaName;
     use crate::server::entities::share::Entity as ShareEntity;
+    use crate::server::entities::share::Id as ShareId;
     use crate::server::entities::table::Entity as TableEntity;
+    use crate::server::entities::table::Id as TableId;
     use crate::server::repositories::account::Repository as AccountRepository;
+    use crate::server::repositories::schema::Repository as SchemaRepository;
     use crate::server::repositories::share::Repository as ShareRepository;
     use crate::server::repositories::table::Repository as TableRepository;
     use anyhow::Context;
@@ -224,6 +231,27 @@ mod tests {
             .await
             .context("failed to crate table")?;
         Ok(table)
+    }
+
+    async fn create_schema(
+        schema_name: &SchemaName,
+        table_id: &TableId,
+        share_id: &ShareId,
+        account_id: &AccountId,
+        tx: &mut PgConnection,
+    ) -> Result<SchemaEntity> {
+        let schema = SchemaEntity::new(
+            testutils::rand::uuid(),
+            schema_name.to_string(),
+            table_id.to_uuid().to_string(),
+            share_id.to_uuid().to_string(),
+            account_id.to_uuid().to_string(),
+        )
+        .context("failed to validate schema")?;
+        SchemaRepository::upsert(&schema, tx)
+            .await
+            .context("failed to crate schema")?;
+        Ok(schema)
     }
 
     #[sqlx::test]
@@ -301,6 +329,115 @@ mod tests {
         } else {
             panic!("created account should be found");
         }
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_query_by_share_and_schema_name_with_default_limit(
+        pool: PgPool,
+    ) -> Result<()> {
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let account = create_account(&mut tx)
+            .await
+            .expect("new account should be created");
+        let share = create_share(account.id(), &mut tx)
+            .await
+            .expect("new share should be created");
+        let schema_name = SchemaName::new(testutils::rand::string(10))
+            .expect("new schema name should be created");
+        let records = testutils::rand::i64(0, 20);
+        for _ in 0..records {
+            let table = create_table(account.id(), &mut tx)
+                .await
+                .expect("new table should be created");
+            create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+                .await
+                .expect("new schema should be created");
+        }
+        for _ in 0..testutils::rand::i64(0, 20) {
+            let schema_name = SchemaName::new(testutils::rand::string(10))
+                .expect("new schema name should be created");
+            for _ in 0..records {
+                let table = create_table(account.id(), &mut tx)
+                    .await
+                    .expect("new table should be created");
+                create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+                    .await
+                    .expect("new schema should be created");
+            }
+        }
+        let fetched = Service::query_by_share_and_schema_name(
+            share.name(),
+            &schema_name,
+            None,
+            None,
+            &mut tx,
+        )
+        .await
+        .expect("created table should be listed");
+        assert_eq!(records as usize, fetched.len());
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_query_by_share_and_schema_name_with_specified_limit(
+        pool: PgPool,
+    ) -> Result<()> {
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let account = create_account(&mut tx)
+            .await
+            .expect("new account should be created");
+        let share = create_share(account.id(), &mut tx)
+            .await
+            .expect("new share should be created");
+        let schema_name = SchemaName::new(testutils::rand::string(10))
+            .expect("new schema name should be created");
+        let records = testutils::rand::i64(0, 20);
+        for _ in 0..records {
+            let table = create_table(account.id(), &mut tx)
+                .await
+                .expect("new table should be created");
+            create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+                .await
+                .expect("new schema should be created");
+        }
+        for _ in 0..testutils::rand::i64(0, 20) {
+            let schema_name = SchemaName::new(testutils::rand::string(10))
+                .expect("new schema name should be created");
+            for _ in 0..records {
+                let table = create_table(account.id(), &mut tx)
+                    .await
+                    .expect("new table should be created");
+                create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+                    .await
+                    .expect("new schema should be created");
+            }
+        }
+        let limit = testutils::rand::i64(0, 20);
+        let fetched = Service::query_by_share_and_schema_name(
+            share.name(),
+            &schema_name,
+            Some(&limit),
+            None,
+            &mut tx,
+        )
+        .await
+        .expect("created schema should be listed");
+        assert_eq!(min(records, limit) as usize, fetched.len());
         tx.rollback()
             .await
             .expect("rollback should be done properly");

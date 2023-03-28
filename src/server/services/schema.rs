@@ -47,7 +47,7 @@ impl Service {
         let mut builder = QueryBuilder::new(
             r#"WITH these_schemas AS (
                    SELECT
-                       DISTINCT "schema".name, share.name AS share
+                       DISTINCT "schema".name AS name, share.name AS share
                    FROM "schema"
                    LEFT JOIN share ON share.id = "schema".share_id
                    WHERE share.name = "#,
@@ -92,6 +92,7 @@ mod tests {
     use crate::server::entities::account::Entity as AccountEntity;
     use crate::server::entities::account::Id as AccountId;
     use crate::server::entities::schema::Entity as SchemaEntity;
+    use crate::server::entities::schema::Name as SchemaName;
     use crate::server::entities::share::Entity as ShareEntity;
     use crate::server::entities::share::Id as ShareId;
     use crate::server::entities::table::Entity as TableEntity;
@@ -150,7 +151,7 @@ mod tests {
     }
 
     async fn create_schema(
-        name: &String,
+        schema_name: &SchemaName,
         table_id: &TableId,
         share_id: &ShareId,
         account_id: &AccountId,
@@ -158,7 +159,7 @@ mod tests {
     ) -> Result<SchemaEntity> {
         let schema = SchemaEntity::new(
             testutils::rand::uuid(),
-            name.clone(),
+            schema_name.to_string(),
             table_id.to_uuid().to_string(),
             share_id.to_uuid().to_string(),
             account_id.to_uuid().to_string(),
@@ -185,12 +186,13 @@ mod tests {
             .expect("new share should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            let name = testutils::rand::string(10);
+            let schema_name = SchemaName::new(testutils::rand::string(10))
+                .expect("new schema name should be created");
             for _ in 0..testutils::rand::i64(1, 20) {
                 let table = create_table(account.id(), &mut tx)
                     .await
                     .expect("new table should be created");
-                create_schema(&name, table.id(), share.id(), account.id(), &mut tx)
+                create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
                     .await
                     .expect("new schema should be created");
             }
@@ -220,12 +222,13 @@ mod tests {
             .expect("new share should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            let name = testutils::rand::string(10);
+            let schema_name = SchemaName::new(testutils::rand::string(10))
+                .expect("new schema name should be created");
             for _ in 0..testutils::rand::i64(1, 20) {
                 let table = create_table(account.id(), &mut tx)
                     .await
                     .expect("new table should be created");
-                create_schema(&name, table.id(), share.id(), account.id(), &mut tx)
+                create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
                     .await
                     .expect("new schema should be created");
             }

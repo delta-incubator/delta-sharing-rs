@@ -47,7 +47,7 @@ pub struct AdminSharesSchemasTablesPostResponse {
     ),
     request_body = AdminSharesSchemasTablesPostRequest,
     responses(
-        (status = 201, description = "The schema was successfully registered.", body = AdminSharesSchemasPostResponse),
+        (status = 201, description = "The schema was successfully registered.", body = AdminSharesSchemasTablesPostResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 409, description = "The schema was already registered.", body = ErrorMessage),
