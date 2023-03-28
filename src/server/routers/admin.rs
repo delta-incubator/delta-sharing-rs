@@ -8,7 +8,7 @@ use crate::server::routers::SharedState;
 use crate::server::services::error::Error;
 use crate::server::services::profile::Profile;
 use crate::server::services::profile::Service as ProfileService;
-use anyhow::Context;
+use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::http::StatusCode;
@@ -45,24 +45,27 @@ pub async fn login(
     Extension(state): Extension<SharedState>,
     Json(AdminLoginRequest { account, password }): Json<AdminLoginRequest>,
 ) -> Result<Response, Error> {
-    let account = AccountName::new(account).map_err(|_| Error::ValidationFailed)?;
-    let account = AccountEntity::load(&account, &state.pg_pool)
-        .await
-        .context("error occured while selecting account from database")?;
+    let Ok(account) = AccountName::new(account) else {
+        return Err(Error::ValidationFailed);
+    };
+    let Ok(account) = AccountEntity::load(&account, &state.pg_pool).await else {
+        return Err(anyhow!("error occured while selecting account from database").into());
+    };
     let Some(account) = account else {
         return Err(Error::Unauthorized);
     };
-    account
-        .verify(password.as_bytes())
-        .map_err(|_| Error::Unauthorized)?;
-    let profile = ProfileService::issue(
+    let Ok(_) = account.verify(password.as_bytes()) else {
+        return Err(Error::Unauthorized);
+    };
+    let Ok(profile) = ProfileService::issue(
         account.name().to_string(),
         account.email().to_string(),
         account.namespace().to_string(),
         Role::Admin,
         account.ttl().to_i64(),
-    )
-    .context("failed to create profile")?;
+    ) else {
+        return Err(anyhow!("failed to create profile").into());
+    };
     debug!(
         r#"logged-in successfully id: "{}" name: "{}""#,
         account.id().as_uuid(),

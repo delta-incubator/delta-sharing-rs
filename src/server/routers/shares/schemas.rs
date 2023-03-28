@@ -5,7 +5,7 @@ use crate::server::routers::SharedState;
 use crate::server::services::error::Error;
 use crate::server::services::schema::SchemaDetail;
 use crate::server::services::schema::Service as SchemaService;
-use anyhow::Context;
+use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::extract::Path;
@@ -62,33 +62,39 @@ pub async fn list(
         page_token,
     }): Query<SharesSchemasListQuery>,
 ) -> Result<Response, Error> {
-    let share = ShareName::new(share).map_err(|_| Error::ValidationFailed)?;
-    let share = ShareEntity::load(&share, &state.pg_pool)
-        .await
-        .context("error occured while selecting share")?;
+    let Ok(share) = ShareName::new(share) else {
+	return Err(Error::ValidationFailed);
+    };
+    let Ok(share) = ShareEntity::load(&share, &state.pg_pool).await else {
+        return Err(anyhow!("error occured while selecting share").into());
+    };
     let Some(share) = share else {
 	return Err(Error::NotFound);
     };
     let limit = if let Some(limit) = &max_results {
-        let limit = usize::try_from(*limit).map_err(|_| Error::ValidationFailed)?;
+        let Ok(limit) = usize::try_from(*limit) else {
+	    return Err(Error::ValidationFailed);
+	};
         limit
     } else {
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &page_token {
-        let after = SchemaName::new(name).map_err(|_| Error::ValidationFailed)?;
+        let Ok(after) = SchemaName::new(name) else {
+	    return Err(Error::ValidationFailed);
+	};
         Some(after)
     } else {
         None
     };
-    let schemas = SchemaService::query(
+    let Ok(schemas) = SchemaService::query_by_share_name(
         share.name(),
         Some(&((limit + 1) as i64)),
         after.as_ref(),
         &state.pg_pool,
-    )
-    .await
-    .context("error occured while selecting schema(s)")?;
+    ).await else {
+	return Err(anyhow!("error occured while selecting schema(s)").into());
+    };
     if schemas.len() == limit + 1 {
         let next = &schemas[limit];
         let schemas = &schemas[..limit];

@@ -6,19 +6,18 @@ use anyhow::Result;
 use sqlx::query_builder::QueryBuilder;
 use sqlx::Execute;
 use utoipa::ToSchema;
-use uuid::Uuid;
 
 #[derive(Debug, Clone, serde::Serialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Share {
-    pub id: Uuid,
+    pub id: String,
     pub name: String,
 }
 
 impl Share {
     pub fn from(entity: ShareEntity) -> Self {
         Self {
-            id: entity.id().to_uuid(),
+            id: entity.id().to_string(),
             name: entity.name().to_string(),
         }
     }
@@ -38,7 +37,7 @@ impl Service {
             .context("failed to acquire postgres connection")?;
         let mut builder = QueryBuilder::new(
             "SELECT
-                 id,
+                 id::text,
                  name
              FROM share",
         );
@@ -75,7 +74,7 @@ impl Service {
             .context("failed to acquire postgres connection")?;
         let row: Option<Share> = sqlx::query_as::<_, Share>(
             "SELECT
-                 id,
+                 id::text,
                  name
              FROM share
              WHERE name = $1",
@@ -204,7 +203,7 @@ mod tests {
             .await
             .expect("created share should be found");
         if let Some(fetched) = fetched {
-            assert_eq!(&fetched.id, share.id().as_uuid());
+            assert_eq!(&fetched.id, share.id().as_uuid().to_string().as_str());
             assert_eq!(&fetched.name, share.name().as_str());
         } else {
             panic!("created account should be found");

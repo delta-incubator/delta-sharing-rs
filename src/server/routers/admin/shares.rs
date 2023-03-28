@@ -32,7 +32,7 @@ pub struct AdminSharesPostResponse {
     path = "/admin/shares",
     request_body = AdminSharesPostRequest,
     responses(
-        (status = 201, description = "The share was successfully registered.", body = AdminAccountsPostResponse),
+        (status = 201, description = "The share was successfully registered.", body = AdminSharesPostResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 409, description = "The share was already registered.", body = ErrorMessage),
@@ -44,8 +44,9 @@ pub async fn post(
     Extension(state): Extension<SharedState>,
     Json(AdminSharesPostRequest { id, name }): Json<AdminSharesPostRequest>,
 ) -> Result<Response, Error> {
-    let share = ShareEntity::new(id, name, account.id().to_string())
-        .map_err(|_| Error::ValidationFailed)?;
+    let Ok(share) = ShareEntity::new(id, name, account.id().to_string()) else {
+        return Err(Error::ValidationFailed);
+    };
     match PostgresUtility::error(share.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(

@@ -9,7 +9,6 @@ use crate::server::services::error::Error;
 use crate::server::services::schema::Schema;
 use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
-use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::extract::Path;
@@ -48,7 +47,7 @@ pub struct AdminSharesSchemasTablesPostResponse {
     ),
     request_body = AdminSharesSchemasTablesPostRequest,
     responses(
-        (status = 201, description = "The schema was successfully registered.", body = AdminAccountsPostResponse),
+        (status = 201, description = "The schema was successfully registered.", body = AdminSharesSchemasPostResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 409, description = "The schema was already registered.", body = ErrorMessage),
@@ -65,28 +64,33 @@ pub async fn post(
         AdminSharesSchemasTablesPostRequest,
     >,
 ) -> Result<Response, Error> {
-    let share = ShareName::new(share).map_err(|_| Error::ValidationFailed)?;
-    let share = ShareEntity::load(&share, &state.pg_pool)
-        .await
-        .context("error occured while selecting share")?;
+    let Ok(share) = ShareName::new(share) else {
+	return Err(Error::ValidationFailed);
+    };
+    let Ok(share) = ShareEntity::load(&share, &state.pg_pool).await else {
+        return Err(anyhow!("error occured while selecting share").into());
+    };
     let Some(share) = share else {
 	return Err(Error::BadRequest);
     };
-    let table = TableName::new(table).map_err(|_| Error::ValidationFailed)?;
-    let table = TableEntity::load(&table, &state.pg_pool)
-        .await
-        .context("error occured while selecting table")?;
+    let Ok(table) = TableName::new(table) else {
+	return Err(Error::ValidationFailed);
+    };
+    let Ok(table) = TableEntity::load(&table, &state.pg_pool).await else {
+        return Err(anyhow!("error occured while selecting table").into());
+    };
     let Some(table) = table else {
 	return Err(Error::BadRequest);
     };
-    let schema = SchemaEntity::new(
+    let Ok(schema) = SchemaEntity::new(
         id,
         schema,
         table.id().to_string(),
         share.id().to_string(),
         account.id().to_string(),
-    )
-    .map_err(|_| Error::ValidationFailed)?;
+    ) else {
+	return Err(Error::ValidationFailed);
+    };
     match PostgresUtility::error(schema.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(

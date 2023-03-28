@@ -4,7 +4,7 @@ Kotosiro Sharing Server
 TODO
 ==============================
 
-[API Specification](https://github.com/delta-io/delta-sharing/blob/main/PROTOCOL.md)
+ 1. **[API Specification](https://github.com/delta-io/delta-sharing/blob/main/PROTOCOL.md)**
 
 | Check              | Official           | Method | URL                                                                |
 | ------------------ | ------------------ | ------ | ------------------------------------------------------------------ |
@@ -16,7 +16,6 @@ TODO
 | :heavy_check_mark: |                    | GET    | *{prefix}/admin/tables*                                            |
 | :heavy_check_mark: |                    | POST   | *{prefix}/admin/tables*                                            |
 | :heavy_check_mark: |                    | GET    | *{prefix}/admin/tables/{table}*                                    |
-|                    |                    | GET    | *{prefix}/admin/shares/all-tables*                                 |
 | :heavy_check_mark: |                    | POST   | *{prefix}/admin/shares/{share}/schemas/{schema}/tables*            |
 |                    |                    | POST   | *{prefix}/admin/shares/{share}/all-tables*                         |
 | :heavy_check_mark: | :heavy_check_mark: | GET    | *{prefix}/shares*                                                  |
@@ -28,3 +27,14 @@ TODO
 |                    | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/schemas/{schema}/tables/{table}/metadata* |
 |                    | :heavy_check_mark: | POST   | *{prefix}/shares/{share}/schemas/{schema}/tables/{table}/query*    |
 |                    | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/schemas/{schema}/tables/{table}/changes*  |
+
+ 2. **Infrastracture**
+ 
+ - [ ] Documentation
+  - [ ] README
+  - [ ] Wiki
+ - [ ] DevOps
+  - [ ] Dockerfile
+  - [ ] Kubernetes
+ - [ ] React/Frontend
+ - [ ] CORS

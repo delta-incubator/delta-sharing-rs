@@ -4,7 +4,7 @@ use crate::server::routers::SharedState;
 use crate::server::services::error::Error;
 use crate::server::services::share::Service as ShareService;
 use crate::server::services::share::Share;
-use anyhow::Context;
+use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::extract::Path;
@@ -49,10 +49,12 @@ pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(SharesGetParams { share }): Path<SharesGetParams>,
 ) -> Result<Response, Error> {
-    let share = ShareName::new(share).map_err(|_| Error::ValidationFailed)?;
-    let share = ShareService::query_by_name(&share, &state.pg_pool)
-        .await
-        .context("error occured while selecting share")?;
+    let Ok(share) = ShareName::new(share) else {
+	return Err(Error::ValidationFailed);
+    };
+    let Ok(share) = ShareService::query_by_name(&share, &state.pg_pool).await else {
+        return Err(anyhow!("error occured while selecting share").into());
+    };
     let Some(share) = share else {
 	return Err(Error::NotFound);
     };
@@ -96,20 +98,24 @@ pub async fn list(
     }): Query<SharesListQuery>,
 ) -> Result<Response, Error> {
     let limit = if let Some(limit) = &max_results {
-        let limit = usize::try_from(*limit).map_err(|_| Error::ValidationFailed)?;
+        let Ok(limit) = usize::try_from(*limit) else {
+	    return Err(Error::ValidationFailed);
+	};
         limit
     } else {
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &page_token {
-        let after = ShareName::new(name).map_err(|_| Error::ValidationFailed)?;
+        let Ok(after) = ShareName::new(name) else {
+	    return Err(Error::ValidationFailed);
+	};
         Some(after)
     } else {
         None
     };
-    let shares = ShareService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool)
-        .await
-        .context("error occured while selecting share(s)")?;
+    let Ok(shares) = ShareService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool).await else {
+        return Err(anyhow!("error occured while selecting share(s)").into());
+    };
     if shares.len() == limit + 1 {
         let next = &shares[limit];
         let shares = &shares[..limit];

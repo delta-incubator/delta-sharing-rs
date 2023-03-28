@@ -7,19 +7,18 @@ use anyhow::Result;
 use sqlx::query_builder::QueryBuilder;
 use sqlx::Execute;
 use utoipa::ToSchema;
-use uuid::Uuid;
 
 #[derive(Debug, Clone, serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Schema {
-    pub id: Uuid,
+    pub id: String,
     pub name: String,
 }
 
 impl Schema {
     pub fn from(entity: SchemaEntity) -> Self {
         Self {
-            id: entity.id().to_uuid(),
+            id: entity.id().to_string(),
             name: entity.name().to_string(),
         }
     }
@@ -35,7 +34,7 @@ pub struct SchemaDetail {
 pub struct Service;
 
 impl Service {
-    pub async fn query(
+    pub async fn query_by_share_name(
         share_name: &ShareName,
         limit: Option<&i64>,
         after: Option<&SchemaName>,
@@ -196,7 +195,7 @@ mod tests {
                     .expect("new schema should be created");
             }
         }
-        let fetched = Service::query(share.name(), None, None, &mut tx)
+        let fetched = Service::query_by_share_name(share.name(), None, None, &mut tx)
             .await
             .expect("created schema should be listed");
         assert_eq!(records as usize, fetched.len());
@@ -232,7 +231,7 @@ mod tests {
             }
         }
         let limit = testutils::rand::i64(0, 20);
-        let fetched = Service::query(share.name(), Some(&limit), None, &mut tx)
+        let fetched = Service::query_by_share_name(share.name(), Some(&limit), None, &mut tx)
             .await
             .expect("created schema should be listed");
         assert_eq!(min(records, limit) as usize, fetched.len());

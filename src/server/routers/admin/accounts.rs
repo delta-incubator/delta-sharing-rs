@@ -6,7 +6,6 @@ use crate::server::services::account::Service as AccountService;
 use crate::server::services::error::Error;
 use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
-use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::extract::Path;
@@ -60,8 +59,9 @@ pub async fn post(
         ttl,
     }): Json<AdminAccountsPostRequest>,
 ) -> Result<Response, Error> {
-    let account = AccountEntity::new(id, name, email, password, namespace, ttl)
-        .map_err(|_| Error::ValidationFailed)?;
+    let Ok(account) = AccountEntity::new(id, name, email, password, namespace, ttl) else {
+        return Err(Error::ValidationFailed);
+    };
     match PostgresUtility::error(account.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
@@ -101,7 +101,7 @@ pub struct AdminAccountsGetResponse {
         AdminAccountsGetParams,
     ),
     responses(
-        (status = 200, description = "The account's metadata was successfully returned.", body = SharesGetResponse),
+        (status = 200, description = "The account's metadata was successfully returned.", body = AdminAccountsGetResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -113,10 +113,12 @@ pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(AdminAccountsGetParams { account }): Path<AdminAccountsGetParams>,
 ) -> Result<Response, Error> {
-    let account = AccountName::new(account).map_err(|_| Error::ValidationFailed)?;
-    let account = AccountService::query_by_name(&account, &state.pg_pool)
-        .await
-        .context("error occured while querying account")?;
+    let Ok(account) = AccountName::new(account) else {
+	return Err(Error::ValidationFailed);
+    };
+    let Ok(account) = AccountService::query_by_name(&account, &state.pg_pool).await else {
+        return Err(anyhow!("error occured while querying account").into());
+    };
     let Some(account) = account else {
 	return Err(Error::NotFound);
     };
@@ -145,7 +147,7 @@ pub struct AdminAccountsListResponse {
         AdminAccountsListQuery,
     ),
     responses(
-        (status = 200, description = "The accounts were successfully returned.", body = SharesListResponse),
+        (status = 200, description = "The accounts were successfully returned.", body = AdminAccountsListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -160,21 +162,24 @@ pub async fn list(
     }): Query<AdminAccountsListQuery>,
 ) -> Result<Response, Error> {
     let limit = if let Some(limit) = &max_results {
-        let limit = usize::try_from(*limit).map_err(|_| Error::ValidationFailed)?;
+        let Ok(limit) = usize::try_from(*limit) else {
+	    return Err(Error::ValidationFailed);
+	};
         limit
     } else {
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &page_token {
-        let after = AccountName::new(name).map_err(|_| Error::ValidationFailed)?;
+        let Ok(after) = AccountName::new(name) else {
+	    return Err(Error::ValidationFailed);
+	};
         Some(after)
     } else {
         None
     };
-    let accounts =
-        AccountService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool)
-            .await
-            .context("error occured while querying account(s)")?;
+    let Ok(accounts) = AccountService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool).await else {
+        return Err(anyhow!("error occured while querying account(s)").into());
+    };
     if accounts.len() == limit + 1 {
         let next = &accounts[limit];
         let accounts = &accounts[..limit];

@@ -7,7 +7,6 @@ use crate::server::services::table::Service as TableService;
 use crate::server::services::table::Table;
 use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
-use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::extract::Path;
@@ -40,7 +39,7 @@ pub struct AdminTablesPostResponse {
     path = "/admin/tables",
     request_body = AdminTablesPostRequest,
     responses(
-        (status = 201, description = "The table was successfully registered.", body = AdminAccountsPostResponse),
+        (status = 201, description = "The table was successfully registered.", body = AdminTablesPostResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 409, description = "The table was already registered.", body = ErrorMessage),
@@ -52,8 +51,9 @@ pub async fn post(
     Extension(state): Extension<SharedState>,
     Json(AdminTablesPostRequest { id, name, location }): Json<AdminTablesPostRequest>,
 ) -> Result<Response, Error> {
-    let table = TableEntity::new(id, name, location, account.id().to_string())
-        .map_err(|_| Error::ValidationFailed)?;
+    let Ok(table) = TableEntity::new(id, name, location, account.id().to_string()) else {
+        return Err(Error::ValidationFailed);
+    };
     match PostgresUtility::error(table.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
@@ -93,7 +93,7 @@ pub struct AdminTablesGetResponse {
         AdminTablesGetParams,
     ),
     responses(
-        (status = 200, description = "The table's metadata was successfully returned.", body = SharesGetResponse),
+        (status = 200, description = "The table's metadata was successfully returned.", body = AdminTablesGetResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -105,10 +105,12 @@ pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(AdminTablesGetParams { table }): Path<AdminTablesGetParams>,
 ) -> Result<Response, Error> {
-    let table = TableName::new(table).map_err(|_| Error::ValidationFailed)?;
-    let table = TableService::query_by_name(&table, &state.pg_pool)
-        .await
-        .context("error occured while selecting table")?;
+    let Ok(table) = TableName::new(table) else {
+	return Err(Error::ValidationFailed);
+    };
+    let Ok(table) = TableService::query_by_name(&table, &state.pg_pool).await else {
+        return Err(anyhow!("error occured while selecting table").into());
+    };
     let Some(table) = table else {
 	return Err(Error::NotFound);
     };
@@ -141,7 +143,7 @@ pub struct AdminTablesListResponse {
         AdminTablesListQuery,
     ),
     responses(
-        (status = 200, description = "The tables were successfully returned.", body = SharesListResponse),
+        (status = 200, description = "The tables were successfully returned.", body = AdminTablesListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -156,20 +158,24 @@ pub async fn list(
     }): Query<AdminTablesListQuery>,
 ) -> Result<Response, Error> {
     let limit = if let Some(limit) = &max_results {
-        let limit = usize::try_from(*limit).map_err(|_| Error::ValidationFailed)?;
+        let Ok(limit) = usize::try_from(*limit) else {
+	    return Err(Error::ValidationFailed);
+	};
         limit
     } else {
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &page_token {
-        let after = TableName::new(name).map_err(|_| Error::ValidationFailed)?;
+        let Ok(after) = TableName::new(name) else {
+	    return Err(Error::ValidationFailed);
+	};
         Some(after)
     } else {
         None
     };
-    let tables = TableService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool)
-        .await
-        .context("error occured while selecting table(s)")?;
+    let Ok(tables) = TableService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool).await else {
+        return Err(anyhow!("error occured while selecting table(s)").into());
+    };
     if tables.len() == limit + 1 {
         let next = &tables[limit];
         let tables = &tables[..limit];

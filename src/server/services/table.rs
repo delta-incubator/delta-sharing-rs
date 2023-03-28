@@ -1,3 +1,5 @@
+use crate::server::entities::schema::Name as SchemaName;
+use crate::server::entities::share::Name as ShareName;
 use crate::server::entities::table::Entity as TableEntity;
 use crate::server::entities::table::Name as TableName;
 use crate::server::utilities::postgres::PgAcquire;
@@ -6,12 +8,11 @@ use anyhow::Result;
 use sqlx::query_builder::QueryBuilder;
 use sqlx::Execute;
 use utoipa::ToSchema;
-use uuid::Uuid;
 
 #[derive(Debug, Clone, serde::Serialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Table {
-    pub id: Uuid,
+    pub id: String,
     pub name: String,
     pub location: String,
 }
@@ -19,11 +20,21 @@ pub struct Table {
 impl Table {
     pub fn from(entity: TableEntity) -> Self {
         Self {
-            id: entity.id().to_uuid(),
+            id: entity.id().to_string(),
             name: entity.name().to_string(),
             location: entity.location().to_string(),
         }
     }
+}
+
+#[derive(Debug, Clone, serde::Serialize, sqlx::FromRow, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct TableDetail {
+    pub id: String,
+    pub share_id: String,
+    pub name: String,
+    pub schema: String,
+    pub share: String,
 }
 
 pub struct Service;
@@ -40,7 +51,7 @@ impl Service {
             .context("failed to acquire postgres connection")?;
         let mut builder = QueryBuilder::new(
             r#"SELECT
-                   id,
+                   id::text,
                    name,
                    location
                FROM "table""#,
@@ -78,7 +89,7 @@ impl Service {
             .context("failed to acquire postgres connection")?;
         let row: Option<Table> = sqlx::query_as::<_, Table>(
             r#"SELECT
-                   id,
+                   id::text,
                    name,
                    location
                FROM "table"
@@ -93,6 +104,67 @@ impl Service {
         ))?;
         Ok(row)
     }
+
+    pub async fn query_by_share_and_schema_name(
+        share_name: &ShareName,
+        schema_name: &SchemaName,
+        limit: Option<&i64>,
+        after: Option<&TableName>,
+        executor: impl PgAcquire<'_>,
+    ) -> Result<Vec<TableDetail>> {
+        let mut conn = executor
+            .acquire()
+            .await
+            .context("failed to acquire postgres connection")?;
+        let mut builder = QueryBuilder::new(
+            r#"WITH these_tables AS (
+                   SELECT
+                       "table".id::text,
+                       share.id::text AS share_id,
+                       "table".name,
+                       "schema".name AS schema,
+                       share.name AS share
+                   FROM "table"
+                   LEFT JOIN "schema" ON "schema".table_id = "table".id
+                   LEFT JOIN share ON share.id = "schema".share_id
+                   WHERE share.name = "#,
+        );
+        builder.push_bind(share_name);
+        builder.push(r#" AND "schema".name = "#);
+        builder.push_bind(schema_name);
+        builder.push(
+            "
+               )
+               SELECT
+                   id,
+                   share_id,
+                   name,
+                   schema,
+                   share
+               FROM these_tables",
+        );
+        if let Some(name) = after {
+            builder.push(" WHERE name >= ");
+            builder.push_bind(name);
+        }
+        builder.push(" ORDER BY name ");
+        if let Some(limit) = limit {
+            builder.push(" LIMIT ");
+            builder.push_bind(limit);
+        }
+        let mut query = sqlx::query_as::<_, TableDetail>(builder.build().sql().into());
+        if let Some(name) = after {
+            query = query.bind(name);
+        }
+        if let Some(limit) = limit {
+            query = query.bind(limit);
+        }
+        let rows: Vec<TableDetail> = query
+            .fetch_all(&mut *conn)
+            .await
+            .context("failed to list tables from [table]")?;
+        Ok(rows)
+    }
 }
 
 #[cfg(test)]
@@ -100,8 +172,10 @@ mod tests {
     use super::*;
     use crate::server::entities::account::Entity as AccountEntity;
     use crate::server::entities::account::Id as AccountId;
+    use crate::server::entities::share::Entity as ShareEntity;
     use crate::server::entities::table::Entity as TableEntity;
     use crate::server::repositories::account::Repository as AccountRepository;
+    use crate::server::repositories::share::Repository as ShareRepository;
     use crate::server::repositories::table::Repository as TableRepository;
     use anyhow::Context;
     use anyhow::Result;
@@ -123,6 +197,19 @@ mod tests {
             .await
             .context("failed to create account")?;
         Ok(account)
+    }
+
+    async fn create_share(account_id: &AccountId, tx: &mut PgConnection) -> Result<ShareEntity> {
+        let share = ShareEntity::new(
+            testutils::rand::uuid(),
+            testutils::rand::string(10),
+            account_id.to_uuid().to_string(),
+        )
+        .context("failed to validate share")?;
+        ShareRepository::upsert(&share, tx)
+            .await
+            .context("failed to crate share")?;
+        Ok(share)
     }
 
     async fn create_table(account_id: &AccountId, tx: &mut PgConnection) -> Result<TableEntity> {
@@ -209,7 +296,7 @@ mod tests {
             .await
             .expect("created table should be found");
         if let Some(fetched) = fetched {
-            assert_eq!(&fetched.id, table.id().as_uuid());
+            assert_eq!(&fetched.id, table.id().as_uuid().to_string().as_str());
             assert_eq!(&fetched.name, table.name().as_str());
         } else {
             panic!("created account should be found");
