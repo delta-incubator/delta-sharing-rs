@@ -9,7 +9,7 @@ use sqlx::Execute;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, serde::Serialize, sqlx::FromRow, ToSchema)]
+#[derive(Debug, Clone, serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Schema {
     pub id: Uuid,
@@ -51,12 +51,16 @@ impl Service {
                        DISTINCT "schema".name, share.name AS share
                    FROM "schema"
                    LEFT JOIN share ON share.id = "schema".share_id
-                   WHERE share.name = $1
+                   WHERE share.name = "#,
+        );
+        builder.push_bind(share_name);
+        builder.push(
+            "
                )
                SELECT
                    name,
                    share
-               FROM these_schemas"#,
+               FROM these_schemas",
         );
         if let Some(name) = after {
             builder.push(" WHERE name >= ");
@@ -147,6 +151,7 @@ mod tests {
     }
 
     async fn create_schema(
+        name: &String,
         table_id: &TableId,
         share_id: &ShareId,
         account_id: &AccountId,
@@ -154,7 +159,7 @@ mod tests {
     ) -> Result<SchemaEntity> {
         let schema = SchemaEntity::new(
             testutils::rand::uuid(),
-            testutils::rand::string(10),
+            name.clone(),
             table_id.to_uuid().to_string(),
             share_id.to_uuid().to_string(),
             account_id.to_uuid().to_string(),
@@ -181,23 +186,56 @@ mod tests {
             .expect("new share should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            create_share(account.id(), &mut tx)
-                .await
-                .expect("new share should be created");
-        }
-        let records = testutils::rand::i64(0, 20);
-        for _ in 0..records {
-            let table = create_table(account.id(), &mut tx)
-                .await
-                .expect("new table should be created");
-            create_schema(table.id(), share.id(), account.id(), &mut tx)
-                .await
-                .expect("new schema should be created");
+            let name = testutils::rand::string(10);
+            for _ in 0..testutils::rand::i64(1, 20) {
+                let table = create_table(account.id(), &mut tx)
+                    .await
+                    .expect("new table should be created");
+                create_schema(&name, table.id(), share.id(), account.id(), &mut tx)
+                    .await
+                    .expect("new schema should be created");
+            }
         }
         let fetched = Service::query(share.name(), None, None, &mut tx)
             .await
-            .expect("created share should be listed");
+            .expect("created schema should be listed");
         assert_eq!(records as usize, fetched.len());
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_query_with_specified_limit(pool: PgPool) -> Result<()> {
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let account = create_account(&mut tx)
+            .await
+            .expect("new account should be created");
+        let share = create_share(account.id(), &mut tx)
+            .await
+            .expect("new share should be created");
+        let records = testutils::rand::i64(0, 20);
+        for _ in 0..records {
+            let name = testutils::rand::string(10);
+            for _ in 0..testutils::rand::i64(1, 20) {
+                let table = create_table(account.id(), &mut tx)
+                    .await
+                    .expect("new table should be created");
+                create_schema(&name, table.id(), share.id(), account.id(), &mut tx)
+                    .await
+                    .expect("new schema should be created");
+            }
+        }
+        let limit = testutils::rand::i64(0, 20);
+        let fetched = Service::query(share.name(), Some(&limit), None, &mut tx)
+            .await
+            .expect("created schema should be listed");
+        assert_eq!(min(records, limit) as usize, fetched.len());
         tx.rollback()
             .await
             .expect("rollback should be done properly");

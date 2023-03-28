@@ -46,11 +46,11 @@ async fn route(
     let admin = Router::new()
         .route("/admin/accounts", post(self::admin::accounts::post))
         .route("/admin/accounts", get(self::admin::accounts::list))
-        .route("/admin/accounts/:name", get(self::admin::accounts::get))
+        .route("/admin/accounts/:account", get(self::admin::accounts::get))
         .route("/admin/shares", post(self::admin::shares::post))
         .route("/admin/tables", post(self::admin::tables::post))
         .route("/admin/tables", get(self::admin::tables::list))
-        .route("/admin/tables/:name", get(self::admin::tables::get))
+        .route("/admin/tables/:table", get(self::admin::tables::get))
         .route(
             "/admin/shares/:share/schemas/:schema/tables",
             post(admin::shares::schemas::tables::post),
@@ -61,7 +61,8 @@ async fn route(
 
     let guest = Router::new()
         .route("/shares", get(self::shares::list))
-        .route("/shares/:name", get(self::shares::get))
+        .route("/shares/:share", get(self::shares::get))
+        .route("/shares/:share/schemas", get(self::shares::schemas::list))
         .route_layer(middleware::from_fn(jwt::as_guest))
         .layer(Extension(state.clone()));
 

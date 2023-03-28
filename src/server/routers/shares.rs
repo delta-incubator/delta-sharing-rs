@@ -21,7 +21,7 @@ const DEFAULT_PAGE_RESULTS: usize = 10;
 #[derive(serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct SharesGetParams {
-    name: String,
+    share: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
@@ -32,7 +32,7 @@ pub struct SharesGetResponse {
 
 #[utoipa::path(
     get,
-    path = "/shares/{name}",
+    path = "/shares/{share}",
     params(
         SharesGetParams,
     ),
@@ -46,10 +46,10 @@ pub struct SharesGetResponse {
 )]
 pub async fn get(
     Extension(state): Extension<SharedState>,
-    Path(SharesGetParams { name }): Path<SharesGetParams>,
+    Path(SharesGetParams { share }): Path<SharesGetParams>,
 ) -> Result<Response, Error> {
-    let name = ShareName::new(name).map_err(|_| Error::ValidationFailed)?;
-    let share = ShareService::query_by_name(&name, &state.pg_pool)
+    let share = ShareName::new(share).map_err(|_| Error::ValidationFailed)?;
+    let share = ShareService::query_by_name(&share, &state.pg_pool)
         .await
         .context("error occured while selecting share")?;
     let Some(share) = share else {

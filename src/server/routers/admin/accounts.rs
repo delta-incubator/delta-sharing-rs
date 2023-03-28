@@ -85,7 +85,7 @@ pub async fn post(
 #[derive(serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminAccountsGetParams {
-    name: String,
+    account: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
@@ -96,7 +96,7 @@ pub struct AdminAccountsGetResponse {
 
 #[utoipa::path(
     get,
-    path = "/admin/accounts/{name}",
+    path = "/admin/accounts/{account}",
     params(
         AdminAccountsGetParams,
     ),
@@ -110,10 +110,10 @@ pub struct AdminAccountsGetResponse {
 )]
 pub async fn get(
     Extension(state): Extension<SharedState>,
-    Path(AdminAccountsGetParams { name }): Path<AdminAccountsGetParams>,
+    Path(AdminAccountsGetParams { account }): Path<AdminAccountsGetParams>,
 ) -> Result<Response, Error> {
-    let name = AccountName::new(name).map_err(|_| Error::ValidationFailed)?;
-    let account = AccountService::query_by_name(&name, &state.pg_pool)
+    let account = AccountName::new(account).map_err(|_| Error::ValidationFailed)?;
+    let account = AccountService::query_by_name(&account, &state.pg_pool)
         .await
         .context("error occured while querying account")?;
     let Some(account) = account else {

@@ -22,9 +22,18 @@ use utoipa::OpenApi;
         admin::shares::schemas::tables::post,
         shares::get,
         shares::list,
+        shares::schemas::list,
     ),
     components(
-	schemas(profile::Profile, account::Account, share::Share, table::Table, schema::Schema, error::ErrorMessage,),
+	schemas(
+	    profile::Profile,
+	    account::Account,
+	    share::Share,
+	    table::Table,
+	    schema::Schema,
+	    schema::SchemaDetail,
+	    error::ErrorMessage,
+	),
         schemas(admin::AdminLoginRequest, admin::AdminLoginResponse),
         schemas(admin::accounts::AdminAccountsPostRequest, admin::accounts::AdminAccountsPostResponse),
         schemas(admin::accounts::AdminAccountsGetResponse),
@@ -36,6 +45,7 @@ use utoipa::OpenApi;
         schemas(admin::shares::schemas::tables::AdminSharesSchemasTablesPostRequest, admin::shares::schemas::tables::AdminSharesSchemasTablesPostResponse),
         schemas(shares::SharesGetResponse),
         schemas(shares::SharesListResponse),
+        schemas(shares::schemas::SharesSchemasListResponse),
     ),
     tags(
         (name = "Kotosiro Sharing", description = "Kotosiro Deltalake Sharing API")

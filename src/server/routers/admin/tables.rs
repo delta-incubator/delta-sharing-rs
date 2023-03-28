@@ -82,7 +82,7 @@ pub async fn post(
 #[derive(serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminTablesGetParams {
-    name: String,
+    table: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
@@ -93,7 +93,7 @@ pub struct AdminTablesGetResponse {
 
 #[utoipa::path(
     get,
-    path = "/admin/tables/{name}",
+    path = "/admin/tables/{table}",
     params(
         AdminTablesGetParams,
     ),
@@ -107,10 +107,10 @@ pub struct AdminTablesGetResponse {
 )]
 pub async fn get(
     Extension(state): Extension<SharedState>,
-    Path(AdminTablesGetParams { name }): Path<AdminTablesGetParams>,
+    Path(AdminTablesGetParams { table }): Path<AdminTablesGetParams>,
 ) -> Result<Response, Error> {
-    let name = TableName::new(name).map_err(|_| Error::ValidationFailed)?;
-    let table = TableService::query_by_name(&name, &state.pg_pool)
+    let table = TableName::new(table).map_err(|_| Error::ValidationFailed)?;
+    let table = TableService::query_by_name(&table, &state.pg_pool)
         .await
         .context("error occured while selecting table")?;
     let Some(table) = table else {
