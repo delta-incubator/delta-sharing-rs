@@ -20,7 +20,7 @@ TODO
 |                    |                    | POST   | *{prefix}/admin/shares/{share}/all-tables*                         |
 | :heavy_check_mark: | :heavy_check_mark: | GET    | *{prefix}/shares*                                                  |
 | :heavy_check_mark: | :heavy_check_mark: | GET    | *{prefix}/shares/{share}*                                          |
-|                    | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/schemas*                                  |
+| :heavy_check_mark: | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/schemas*                                  |
 |                    | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/schemas/{schema}/tables*                  |
 |                    | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/all-tables*                               |
 |                    | :heavy_check_mark: | GET    | *{prefix}/shares/{share}/schemas/{schema}/tables/{table}/version*  |
