@@ -32,31 +32,31 @@ pub struct AdminSharesPostResponse {
     path = "/admin/shares",
     request_body = AdminSharesPostRequest,
     responses(
-        (status = 201, description = "Registered share successfully", body = AdminSharesPostResponse),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 409, description = "Confliction occured", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Error occured while creating share on database", body = ErrorMessage),
+        (status = 201, description = "The share was successfully registered.", body = AdminAccountsPostResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 409, description = "The share was already registered.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn post(
     Extension(account): Extension<AccountEntity>,
     Extension(state): Extension<SharedState>,
-    Json(payload): Json<AdminSharesPostRequest>,
+    Json(AdminSharesPostRequest { id, name }): Json<AdminSharesPostRequest>,
 ) -> Result<Response, Error> {
-    let entity = ShareEntity::new(payload.id, payload.name, account.id().to_string())
+    let share = ShareEntity::new(id, name, account.id().to_string())
         .map_err(|_| Error::ValidationFailed)?;
-    match PostgresUtility::error(entity.save(&state.pg_pool).await)? {
+    match PostgresUtility::error(share.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
                 r#"updated share id: "{}" name: "{}""#,
-                entity.id().as_uuid(),
-                entity.name().as_str()
+                share.id().as_uuid(),
+                share.name().as_str()
             );
             Ok((
                 StatusCode::CREATED,
                 Json(AdminSharesPostResponse {
-                    share: Share::from(entity),
+                    share: Share::from(share),
                 }),
             )
                 .into_response())

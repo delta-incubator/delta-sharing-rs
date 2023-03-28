@@ -73,7 +73,7 @@ pub async fn as_admin<T>(
 	return Err(Error::Unauthorized);
     };
     if jwt.claims.role != Role::Admin {
-        return Err(Error::Unauthorized);
+        return Err(Error::Forbidden);
     }
     request.extensions_mut().insert(account);
     Ok(next.run(request).await)

@@ -38,10 +38,7 @@ async fn route(
         aws_profile_provider,
     });
 
-    let swagger = SwaggerUi::new(config::fetch::<String>("swagger_ui_path")).url(
-        config::fetch::<String>("open_api_doc_path"),
-        ApiDoc::openapi(),
-    );
+    let swagger = SwaggerUi::new("/swagger-ui").url("/api-doc/openapi.json", ApiDoc::openapi());
 
     let admin = Router::new()
         .route("/admin/accounts", post(self::admin::accounts::post))

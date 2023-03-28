@@ -40,36 +40,31 @@ pub struct AdminTablesPostResponse {
     path = "/admin/tables",
     request_body = AdminTablesPostRequest,
     responses(
-        (status = 201, description = "Registered table successfully", body = AdminTablesPostResponse),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 409, description = "Confliction occured", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Error occured while creating table on database", body = ErrorMessage),
+        (status = 201, description = "The table was successfully registered.", body = AdminAccountsPostResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 409, description = "The table was already registered.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn post(
     Extension(account): Extension<AccountEntity>,
     Extension(state): Extension<SharedState>,
-    Json(payload): Json<AdminTablesPostRequest>,
+    Json(AdminTablesPostRequest { id, name, location }): Json<AdminTablesPostRequest>,
 ) -> Result<Response, Error> {
-    let entity = TableEntity::new(
-        payload.id,
-        payload.name,
-        payload.location,
-        account.id().to_string(),
-    )
-    .map_err(|_| Error::ValidationFailed)?;
-    match PostgresUtility::error(entity.save(&state.pg_pool).await)? {
+    let table = TableEntity::new(id, name, location, account.id().to_string())
+        .map_err(|_| Error::ValidationFailed)?;
+    match PostgresUtility::error(table.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
                 r#"updated table id: "{}" name: "{}""#,
-                entity.id().as_uuid(),
-                entity.name().as_str()
+                table.id().as_uuid(),
+                table.name().as_str()
             );
             Ok((
                 StatusCode::CREATED,
                 Json(AdminTablesPostResponse {
-                    table: Table::from(entity),
+                    table: Table::from(table),
                 }),
             )
                 .into_response())
@@ -98,11 +93,12 @@ pub struct AdminTablesGetResponse {
         AdminTablesGetParams,
     ),
     responses(
-        (status = 200, description = "Show matching table successfully", body = AdminTablesGetResponse),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 404, description = "Table not found", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Error occured while selecting table on database", body = ErrorMessage),
+        (status = 200, description = "The table's metadata was successfully returned.", body = SharesGetResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
+        (status = 404, description = "The requested resource does not exist.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn get(
@@ -145,23 +141,27 @@ pub struct AdminTablesListResponse {
         AdminTablesListQuery,
     ),
     responses(
-        (status = 200, description = "List matching table(s) successfbyully", body = AdminTablesListResponse),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Error occured while selecting tables(s) on database", body = ErrorMessage),
+        (status = 200, description = "The tables were successfully returned.", body = SharesListResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn list(
     Extension(state): Extension<SharedState>,
-    query: Query<AdminTablesListQuery>,
+    Query(AdminTablesListQuery {
+        max_results,
+        page_token,
+    }): Query<AdminTablesListQuery>,
 ) -> Result<Response, Error> {
-    let limit = if let Some(limit) = &query.max_results {
+    let limit = if let Some(limit) = &max_results {
         let limit = usize::try_from(*limit).map_err(|_| Error::ValidationFailed)?;
         limit
     } else {
         DEFAULT_PAGE_RESULTS
     };
-    let after = if let Some(name) = &query.page_token {
+    let after = if let Some(name) = &page_token {
         let after = TableName::new(name).map_err(|_| Error::ValidationFailed)?;
         Some(after)
     } else {

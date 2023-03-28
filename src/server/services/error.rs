@@ -16,6 +16,7 @@ pub enum Error {
     InternalServerProblem(anyhow::Error),
     BadRequest,
     Unauthorized,
+    Forbidden,
     NotFound,
     ValidationFailed,
     Conflict,
@@ -35,6 +36,9 @@ impl std::fmt::Debug for Error {
             }
             Error::Unauthorized => {
                 f.field(&"Unauthorized");
+            }
+            Error::Forbidden => {
+                f.field(&"Forbidden");
             }
             Error::NotFound => {
                 f.field(&"Not found");
@@ -79,17 +83,17 @@ impl IntoResponse for Error {
         let (status, message) = match self {
             Error::InternalServerProblem(e) => {
                 error!("stacktrace: {}", e.backtrace());
-                (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong")
+                (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
             }
             Error::BadRequest => (StatusCode::BAD_REQUEST, "Bad request"),
             Error::Unauthorized => (StatusCode::UNAUTHORIZED, "Unauthorized"),
+            Error::Forbidden => (StatusCode::FORBIDDEN, "Forbidden"),
             Error::NotFound => (StatusCode::NOT_FOUND, "Not found"),
-            Error::ValidationFailed => (StatusCode::UNPROCESSABLE_ENTITY, "Validation errors"),
-            Error::Conflict => (StatusCode::CONFLICT, "Confliction occured"),
-            Error::EnvironmentVariableMissing => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Missing environment variable",
-            ),
+            Error::ValidationFailed => (StatusCode::BAD_REQUEST, "Bad request"),
+            Error::Conflict => (StatusCode::CONFLICT, "Conflict"),
+            Error::EnvironmentVariableMissing => {
+                (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
+            }
             Error::NotImplemented => (StatusCode::NOT_IMPLEMENTED, "Not implemented"),
         };
         (

@@ -42,37 +42,37 @@ pub struct AdminAccountsPostResponse {
     path = "/admin/accounts",
     request_body = AdminAccountsPostRequest,
     responses(
-        (status = 201, description = "Registered account successfully", body = AdminAccountsPostResponse),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 409, description = "Confliction occured", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Error occured while creating account on database", body = ErrorMessage),
+        (status = 201, description = "The account was successfully registered.", body = AdminAccountsPostResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 409, description = "The account was already registered.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn post(
     Extension(state): Extension<SharedState>,
-    Json(payload): Json<AdminAccountsPostRequest>,
+    Json(AdminAccountsPostRequest {
+        id,
+        name,
+        email,
+        password,
+        namespace,
+        ttl,
+    }): Json<AdminAccountsPostRequest>,
 ) -> Result<Response, Error> {
-    let entity = AccountEntity::new(
-        payload.id,
-        payload.name,
-        payload.email,
-        payload.password,
-        payload.namespace,
-        payload.ttl,
-    )
-    .map_err(|_| Error::ValidationFailed)?;
-    match PostgresUtility::error(entity.save(&state.pg_pool).await)? {
+    let account = AccountEntity::new(id, name, email, password, namespace, ttl)
+        .map_err(|_| Error::ValidationFailed)?;
+    match PostgresUtility::error(account.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
                 r#"updated account id: "{}" name: "{}""#,
-                entity.id().as_uuid(),
-                entity.name().as_str()
+                account.id().as_uuid(),
+                account.name().as_str()
             );
             Ok((
                 StatusCode::CREATED,
                 Json(AdminAccountsPostResponse {
-                    account: Account::from(entity),
+                    account: Account::from(account),
                 }),
             )
                 .into_response())
@@ -101,11 +101,12 @@ pub struct AdminAccountsGetResponse {
         AdminAccountsGetParams,
     ),
     responses(
-        (status = 200, description = "Show matching account successfully", body = AdminAccountsGetResponse),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 404, description = "Account not found", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Error occured while selecting account on database", body = ErrorMessage),
+        (status = 200, description = "The account's metadata was successfully returned.", body = SharesGetResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
+        (status = 404, description = "The requested resource does not exist.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn get(
@@ -144,23 +145,27 @@ pub struct AdminAccountsListResponse {
         AdminAccountsListQuery,
     ),
     responses(
-        (status = 200, description = "List matching account(s) successfully", body = AdminAccountsListResponse),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Error occured while selecting account(s) on database", body = ErrorMessage),
+        (status = 200, description = "The accounts were successfully returned.", body = SharesListResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn list(
     Extension(state): Extension<SharedState>,
-    query: Query<AdminAccountsListQuery>,
+    Query(AdminAccountsListQuery {
+        max_results,
+        page_token,
+    }): Query<AdminAccountsListQuery>,
 ) -> Result<Response, Error> {
-    let limit = if let Some(limit) = &query.max_results {
+    let limit = if let Some(limit) = &max_results {
         let limit = usize::try_from(*limit).map_err(|_| Error::ValidationFailed)?;
         limit
     } else {
         DEFAULT_PAGE_RESULTS
     };
-    let after = if let Some(name) = &query.page_token {
+    let after = if let Some(name) = &page_token {
         let after = AccountName::new(name).map_err(|_| Error::ValidationFailed)?;
         Some(after)
     } else {

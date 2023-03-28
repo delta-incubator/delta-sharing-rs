@@ -10,7 +10,5 @@ jwt_secret = "your secret here"
 gcp_sa_private_key = "creds/gcp/sa-private-key.json"
 aws_credentials = "creds/aws/credentials"
 aws_profile = "kotosiro-sharing"
-swagger_ui_path = "/swagger"
-open_api_doc_path = "/api-doc/openapi.json"
 use_json_log = false
 log_filter = "warn,kotosiro_sharing=debug"

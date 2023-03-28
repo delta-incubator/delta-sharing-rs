@@ -1,4 +1,5 @@
 use crate::server::entities::schema::Name as SchemaName;
+use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::routers::SharedState;
 use crate::server::services::error::Error;
@@ -45,32 +46,43 @@ pub struct SharesSchemasListResponse {
         SharesSchemasListQuery,
     ),
     responses(
-        (status = 200, description = "List matching share(s) successfully", body = SharesSchemasListResponse),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Error occured while selecting share(s) on database", body = ErrorMessage),
+        (status = 200, description = "The schemas were successfully returned.", body = SharesSchemasListResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
+        (status = 404, description = "The requested resource does not exist.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn list(
     Extension(state): Extension<SharedState>,
     Path(SharesSchemasListParams { share }): Path<SharesSchemasListParams>,
-    query: Query<SharesSchemasListQuery>,
+    Query(SharesSchemasListQuery {
+        max_results,
+        page_token,
+    }): Query<SharesSchemasListQuery>,
 ) -> Result<Response, Error> {
     let share = ShareName::new(share).map_err(|_| Error::ValidationFailed)?;
-    let limit = if let Some(limit) = &query.max_results {
+    let share = ShareEntity::load(&share, &state.pg_pool)
+        .await
+        .context("error occured while selecting share")?;
+    let Some(share) = share else {
+	return Err(Error::NotFound);
+    };
+    let limit = if let Some(limit) = &max_results {
         let limit = usize::try_from(*limit).map_err(|_| Error::ValidationFailed)?;
         limit
     } else {
         DEFAULT_PAGE_RESULTS
     };
-    let after = if let Some(name) = &query.page_token {
+    let after = if let Some(name) = &page_token {
         let after = SchemaName::new(name).map_err(|_| Error::ValidationFailed)?;
         Some(after)
     } else {
         None
     };
     let schemas = SchemaService::query(
-        &share,
+        share.name(),
         Some(&((limit + 1) as i64)),
         after.as_ref(),
         &state.pg_pool,

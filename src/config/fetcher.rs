@@ -193,8 +193,6 @@ mod tests {
         assert!(matches!(config.get::<String>("gcp_sa_private_key"), Ok(_)));
         assert!(matches!(config.get::<String>("aws_credentials"), Ok(_)));
         assert!(matches!(config.get::<String>("aws_profile"), Ok(_)));
-        assert!(matches!(config.get::<String>("swagger_ui_path"), Ok(_)));
-        assert!(matches!(config.get::<String>("open_api_doc_path"), Ok(_)));
         assert!(matches!(config.get::<String>("use_json_log"), Ok(_)));
         assert!(matches!(config.get::<String>("log_filter"), Ok(_)));
     }

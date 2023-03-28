@@ -20,7 +20,7 @@ use utoipa::ToSchema;
 #[derive(serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminLoginRequest {
-    pub name: String,
+    pub account: String,
     pub password: String,
 }
 
@@ -35,38 +35,38 @@ pub struct AdminLoginResponse {
     path = "/admin/login",
     request_body = AdminLoginRequest,
     responses(
-        (status = 200, description = "Logged-in successfully", body = AdminLoginResponse),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Expiration time calculation and/or profile creation failed", body = ErrorMessage),
+        (status = 200, description = "The profile were successfbyully returned.", body = AdminLoginResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn login(
     Extension(state): Extension<SharedState>,
-    Json(payload): Json<AdminLoginRequest>,
+    Json(AdminLoginRequest { account, password }): Json<AdminLoginRequest>,
 ) -> Result<Response, Error> {
-    let name = AccountName::new(payload.name).map_err(|_| Error::ValidationFailed)?;
-    let entity = AccountEntity::load(&name, &state.pg_pool)
+    let account = AccountName::new(account).map_err(|_| Error::ValidationFailed)?;
+    let account = AccountEntity::load(&account, &state.pg_pool)
         .await
         .context("error occured while selecting account from database")?;
-    let Some(entity) = entity else {
+    let Some(account) = account else {
         return Err(Error::Unauthorized);
     };
-    entity
-        .verify(payload.password.as_bytes())
+    account
+        .verify(password.as_bytes())
         .map_err(|_| Error::Unauthorized)?;
     let profile = ProfileService::issue(
-        entity.name().to_string(),
-        entity.email().to_string(),
-        entity.namespace().to_string(),
+        account.name().to_string(),
+        account.email().to_string(),
+        account.namespace().to_string(),
         Role::Admin,
-        entity.ttl().to_i64(),
+        account.ttl().to_i64(),
     )
     .context("failed to create profile")?;
     debug!(
         r#"logged-in successfully id: "{}" name: "{}""#,
-        entity.id().as_uuid(),
-        entity.name().as_str()
+        account.id().as_uuid(),
+        account.name().as_str()
     );
     Ok((
         StatusCode::OK,

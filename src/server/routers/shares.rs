@@ -37,11 +37,12 @@ pub struct SharesGetResponse {
         SharesGetParams,
     ),
     responses(
-        (status = 200, description = "Show matching share successfully", body = SharesGetResponse),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 404, description = "Share not found", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Error occured while selecting share on database", body = ErrorMessage),
+        (status = 200, description = "The share's metadata was successfully returned.", body = SharesGetResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
+        (status = 404, description = "The requested resource does not exist.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn get(
@@ -80,23 +81,27 @@ pub struct SharesListResponse {
         SharesListQuery,
     ),
     responses(
-        (status = 200, description = "List matching share(s) successfully", body = SharesListResponse),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Error occured while selecting share(s) on database", body = ErrorMessage),
+        (status = 200, description = "The shares were successfully returned.", body = SharesListResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn list(
     Extension(state): Extension<SharedState>,
-    query: Query<SharesListQuery>,
+    Query(SharesListQuery {
+        max_results,
+        page_token,
+    }): Query<SharesListQuery>,
 ) -> Result<Response, Error> {
-    let limit = if let Some(limit) = &query.max_results {
+    let limit = if let Some(limit) = &max_results {
         let limit = usize::try_from(*limit).map_err(|_| Error::ValidationFailed)?;
         limit
     } else {
         DEFAULT_PAGE_RESULTS
     };
-    let after = if let Some(name) = &query.page_token {
+    let after = if let Some(name) = &page_token {
         let after = ShareName::new(name).map_err(|_| Error::ValidationFailed)?;
         Some(after)
     } else {

@@ -33,8 +33,6 @@ async fn main() -> Result<()> {
         gcp_sa_private_key = config::fetch::<String>("gcp_sa_private_key"),
         aws_credentials = config::fetch::<String>("aws_credentials"),
         aws_profile = config::fetch::<String>("aws_profile"),
-        swagger_ui_path = config::fetch::<String>("swagger_ui_path"),
-        open_api_doc_path = config::fetch::<String>("open_api_doc_path"),
         use_json_log = config::fetch::<bool>("use_json_log"),
         log_filter = config::fetch::<String>("log_filter"),
     );

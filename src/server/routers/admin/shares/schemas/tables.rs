@@ -31,7 +31,7 @@ pub struct AdminSharesSchemasTablesPostParams {
 #[serde(rename_all = "camelCase")]
 pub struct AdminSharesSchemasTablesPostRequest {
     pub id: Option<String>,
-    pub name: String,
+    pub table: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
@@ -48,12 +48,11 @@ pub struct AdminSharesSchemasTablesPostResponse {
     ),
     request_body = AdminSharesSchemasTablesPostRequest,
     responses(
-        (status = 201, description = "Registered schema successfully", body = AdminSharesSchemasTablesPostResponse),
-        (status = 400, description = "Requested table was not found", body = ErrorMessage),
-        (status = 401, description = "Authorization failed", body = ErrorMessage),
-        (status = 409, description = "Confliction occured", body = ErrorMessage),
-        (status = 422, description = "Validation failed", body = ErrorMessage),
-        (status = 500, description = "Error occured while creating schema on database", body = ErrorMessage),
+        (status = 201, description = "The schema was successfully registered.", body = AdminAccountsPostResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 409, description = "The schema was already registered.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
 pub async fn post(
@@ -62,41 +61,43 @@ pub async fn post(
     Path(AdminSharesSchemasTablesPostParams { share, schema }): Path<
         AdminSharesSchemasTablesPostParams,
     >,
-    Json(payload): Json<AdminSharesSchemasTablesPostRequest>,
+    Json(AdminSharesSchemasTablesPostRequest { id, table }): Json<
+        AdminSharesSchemasTablesPostRequest,
+    >,
 ) -> Result<Response, Error> {
     let share = ShareName::new(share).map_err(|_| Error::ValidationFailed)?;
     let share = ShareEntity::load(&share, &state.pg_pool)
         .await
         .context("error occured while selecting share")?;
     let Some(share) = share else {
-	return Err(Error::NotFound);
+	return Err(Error::BadRequest);
     };
-    let table = TableName::new(payload.name).map_err(|_| Error::ValidationFailed)?;
+    let table = TableName::new(table).map_err(|_| Error::ValidationFailed)?;
     let table = TableEntity::load(&table, &state.pg_pool)
         .await
         .context("error occured while selecting table")?;
     let Some(table) = table else {
 	return Err(Error::BadRequest);
     };
-    let entity = SchemaEntity::new(
-        payload.id,
+    let schema = SchemaEntity::new(
+        id,
         schema,
         table.id().to_string(),
         share.id().to_string(),
         account.id().to_string(),
     )
     .map_err(|_| Error::ValidationFailed)?;
-    match PostgresUtility::error(entity.save(&state.pg_pool).await)? {
+    match PostgresUtility::error(schema.save(&state.pg_pool).await)? {
         Ok(_) => {
             debug!(
                 r#"updated schema id: "{}" name: "{}""#,
-                entity.id().as_uuid(),
-                entity.name().as_str()
+                schema.id().as_uuid(),
+                schema.name().as_str()
             );
             Ok((
                 StatusCode::CREATED,
                 Json(AdminSharesSchemasTablesPostResponse {
-                    schema: Schema::from(entity),
+                    schema: Schema::from(schema),
                 }),
             )
                 .into_response())
