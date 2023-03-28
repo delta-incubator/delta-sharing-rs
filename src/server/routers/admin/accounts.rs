@@ -13,13 +13,12 @@ use axum::extract::Query;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use tracing::debug;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
 
-#[derive(serde::Deserialize, ToSchema)]
+#[derive(Debug, serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminAccountsPostRequest {
     pub id: Option<String>,
@@ -48,27 +47,25 @@ pub struct AdminAccountsPostResponse {
         (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
+#[tracing::instrument(skip(state))]
 pub async fn post(
     Extension(state): Extension<SharedState>,
-    Json(AdminAccountsPostRequest {
-        id,
-        name,
-        email,
-        password,
-        namespace,
-        ttl,
-    }): Json<AdminAccountsPostRequest>,
+    Json(payload): Json<AdminAccountsPostRequest>,
 ) -> Result<Response, Error> {
-    let Ok(account) = AccountEntity::new(id, name, email, password, namespace, ttl) else {
+    let Ok(account) = AccountEntity::new(
+	payload.id,
+	payload.name,
+	payload.email,
+	payload.password,
+	payload.namespace,
+	payload.ttl
+    ) else {
+        tracing::error!("request is malformed");
         return Err(Error::ValidationFailed);
     };
     match PostgresUtility::error(account.save(&state.pg_pool).await)? {
         Ok(_) => {
-            debug!(
-                r#"updated account id: "{}" name: "{}""#,
-                account.id().as_uuid(),
-                account.name().as_str()
-            );
+            tracing::info!("account was successfully registered");
             Ok((
                 StatusCode::CREATED,
                 Json(AdminAccountsPostResponse {
@@ -77,12 +74,18 @@ pub async fn post(
             )
                 .into_response())
         }
-        Err(e) if PostgresUtility::is_conflict(&e) => Err(Error::Conflict),
-        _ => Err(anyhow!("error occured while updating account").into()),
+        Err(e) if PostgresUtility::is_conflict(&e) => {
+            tracing::error!("account was already registered");
+            return Err(Error::Conflict);
+        }
+        _ => {
+            tracing::error!("request is not handled correctly due to a server error");
+            return Err(anyhow!("error occured while updating account").into());
+        }
     }
 }
 
-#[derive(serde::Deserialize, IntoParams)]
+#[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminAccountsGetParams {
     account: String,
@@ -109,24 +112,28 @@ pub struct AdminAccountsGetResponse {
         (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
+#[tracing::instrument(skip(state))]
 pub async fn get(
     Extension(state): Extension<SharedState>,
-    Path(AdminAccountsGetParams { account }): Path<AdminAccountsGetParams>,
+    Path(params): Path<AdminAccountsGetParams>,
 ) -> Result<Response, Error> {
-    let Ok(account) = AccountName::new(account) else {
+    let Ok(account) = AccountName::new(params.account) else {
+        tracing::error!("request is malformed");
 	return Err(Error::ValidationFailed);
     };
     let Ok(account) = AccountService::query_by_name(&account, &state.pg_pool).await else {
+        tracing::error!("request is not handled correctly due to a server error");
         return Err(anyhow!("error occured while querying account").into());
     };
     let Some(account) = account else {
+        tracing::error!("requested resource does not exist");
 	return Err(Error::NotFound);
     };
-    debug!(r#"found account name: "{}""#, &account.name);
+    tracing::info!("account's metadata was successfully returned");
     Ok((StatusCode::OK, Json(AdminAccountsGetResponse { account })).into_response())
 }
 
-#[derive(serde::Deserialize, IntoParams)]
+#[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminAccountsListQuery {
     pub max_results: Option<i64>,
@@ -154,23 +161,23 @@ pub struct AdminAccountsListResponse {
         (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
+#[tracing::instrument(skip(state))]
 pub async fn list(
     Extension(state): Extension<SharedState>,
-    Query(AdminAccountsListQuery {
-        max_results,
-        page_token,
-    }): Query<AdminAccountsListQuery>,
+    Query(query): Query<AdminAccountsListQuery>,
 ) -> Result<Response, Error> {
-    let limit = if let Some(limit) = &max_results {
+    let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
+            tracing::error!("request is malformed");
 	    return Err(Error::ValidationFailed);
 	};
         limit
     } else {
         DEFAULT_PAGE_RESULTS
     };
-    let after = if let Some(name) = &page_token {
+    let after = if let Some(name) = &query.page_token {
         let Ok(after) = AccountName::new(name) else {
+            tracing::error!("request is malformed");
 	    return Err(Error::ValidationFailed);
 	};
         Some(after)
@@ -178,12 +185,13 @@ pub async fn list(
         None
     };
     let Ok(accounts) = AccountService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool).await else {
+        tracing::error!("request is not handled correctly due to a server error");
         return Err(anyhow!("error occured while querying account(s)").into());
     };
     if accounts.len() == limit + 1 {
         let next = &accounts[limit];
         let accounts = &accounts[..limit];
-        debug!(r"found {} account(s)", accounts.len());
+        tracing::info!("accounts were successfully returned");
         return Ok((
             StatusCode::OK,
             Json(AdminAccountsListResponse {
@@ -193,7 +201,7 @@ pub async fn list(
         )
             .into_response());
     }
-    debug!(r"found {} account(s)", accounts.len());
+    tracing::info!("accounts were successfully returned");
     Ok((
         StatusCode::OK,
         Json(AdminAccountsListResponse {

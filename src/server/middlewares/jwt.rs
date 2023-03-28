@@ -15,7 +15,7 @@ use jsonwebtoken::DecodingKey;
 use jsonwebtoken::EncodingKey;
 use jsonwebtoken::Validation;
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Claims {
     pub name: String,
@@ -25,7 +25,7 @@ pub struct Claims {
     pub exp: i64,
 }
 
-#[derive(PartialEq, Eq, serde::Serialize, serde::Deserialize, strum_macros::EnumString)]
+#[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, strum_macros::EnumString)]
 pub enum Role {
     #[strum(ascii_case_insensitive)]
     #[serde(rename = "admin")]
@@ -33,6 +33,12 @@ pub enum Role {
     #[strum(ascii_case_insensitive)]
     #[serde(rename = "guest")]
     Guest,
+}
+
+impl std::fmt::Display for Role {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 pub struct Keys {
@@ -49,48 +55,61 @@ impl Keys {
     }
 }
 
+#[tracing::instrument(skip(next))]
 pub async fn as_admin<T>(
     mut request: Request<T>,
     next: Next<T>,
-) -> std::result::Result<Response, Error> {
-    let token = request
-        .headers()
-        .typed_get::<Authorization<Bearer>>()
-        .ok_or(Error::BadRequest)?
-        .token()
-        .to_owned();
-    let jwt = decode::<Claims>(&token, &JWT_SECRET.decoding, &Validation::default())
-        .map_err(|_| Error::Unauthorized)?;
-    let state = request
-        .extensions()
-        .get::<SharedState>()
-        .ok_or(anyhow!("failed to acquire shared state"))?;
-    let name = AccountName::new(jwt.claims.name.clone()).map_err(|_| Error::ValidationFailed)?;
-    let account = AccountEntity::load(&name, &state.pg_pool)
-        .await
-        .map_err(|_| anyhow!("error occured while selecting account from database"))?;
+) -> std::result::Result<Response, Error>
+where
+    T: std::fmt::Debug,
+{
+    let Some(auth) = request.headers().typed_get::<Authorization<Bearer>>() else {
+        tracing::error!("bearer token is missing");
+	return Err(Error::BadRequest);
+    };
+    let token = auth.token().to_owned();
+    let Ok(jwt) = decode::<Claims>(&token, &JWT_SECRET.decoding, &Validation::default()) else {
+        tracing::error!("bearer token is incorrect");
+        return Err(Error::Unauthorized);
+    };
+    let Some(state) = request.extensions().get::<SharedState>() else {
+        tracing::error!("request is not handled correctly due to a server error");
+        return Err(anyhow!("failed to acquire shared state").into());
+    };
+    let Ok(name) = AccountName::new(jwt.claims.name.clone()) else {
+        tracing::error!("request is malformed");
+	return Err(Error::ValidationFailed);
+    };
+    let Ok(account) = AccountEntity::load(&name, &state.pg_pool).await else {
+        tracing::error!("request is not handled correctly due to a server error");
+        return Err(anyhow!("error occured while selecting account from database").into());
+    };
     let Some(account) = account else {
+        tracing::error!("bearer token is incorrect");
 	return Err(Error::Unauthorized);
     };
     if jwt.claims.role != Role::Admin {
+        tracing::error!("request is forbidden from being fulfilled");
         return Err(Error::Forbidden);
     }
     request.extensions_mut().insert(account);
     Ok(next.run(request).await)
 }
 
-pub async fn as_guest<T>(
-    request: Request<T>,
-    next: Next<T>,
-) -> std::result::Result<Response, Error> {
-    let token = request
-        .headers()
-        .typed_get::<Authorization<Bearer>>()
-        .ok_or(Error::BadRequest)?
-        .token()
-        .to_owned();
-    decode::<Claims>(&token, &JWT_SECRET.decoding, &Validation::default())
-        .map_err(|_| Error::Unauthorized)?;
+#[tracing::instrument(skip(next))]
+pub async fn as_guest<T>(request: Request<T>, next: Next<T>) -> std::result::Result<Response, Error>
+where
+    T: std::fmt::Debug,
+{
+    let Some(auth) = request.headers().typed_get::<Authorization<Bearer>>() else {
+        tracing::error!("bearer token is missing");
+	return Err(Error::BadRequest);
+    };
+    let token = auth.token().to_owned();
+    let Ok(_) = decode::<Claims>(&token, &JWT_SECRET.decoding, &Validation::default()) else {
+        tracing::error!("bearer token is incorrect");
+        return Err(Error::Unauthorized)?;
+    };
     Ok(next.run(request).await)
 }
 

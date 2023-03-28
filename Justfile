@@ -32,7 +32,7 @@ docker:
 
 # Run server locally
 server:
-    @cargo run -- server
+    @RUST_BACKTRACE=1 cargo run -- server
 
 # Build Kotosiro into a docker image for local use
 package:

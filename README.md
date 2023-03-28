@@ -36,3 +36,4 @@ TODO
  - [ ] Kubernetes
  - [ ] React/Frontend
  - [ ] CORS
+ - [ ] Token + Email + Date DB
