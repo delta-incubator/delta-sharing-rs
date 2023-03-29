@@ -9,6 +9,7 @@ TODO
 | Check              | Official           | Method | URL                                                                |
 | ------------------ | ------------------ | ------ | ------------------------------------------------------------------ |
 | :heavy_check_mark: |                    | POST   | *{prefix}/admin/login*                                             |
+|                    |                    | POST   | *{prefix}/admin/token*                                             |
 | :heavy_check_mark: |                    | GET    | *{prefix}/admin/accounts*                                          |
 | :heavy_check_mark: |                    | POST   | *{prefix}/admin/accounts*                                          |
 | :heavy_check_mark: |                    | GET    | *{prefix}/admin/accounts/{account}*                                |

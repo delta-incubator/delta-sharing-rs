@@ -35,6 +35,15 @@ pub enum Role {
     Guest,
 }
 
+impl AsRef<str> for Role {
+    fn as_ref(&self) -> &str {
+        match self {
+            Role::Admin => "admin",
+            Role::Guest => "guest",
+        }
+    }
+}
+
 impl std::fmt::Display for Role {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:?}", self)
