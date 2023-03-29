@@ -105,6 +105,65 @@ impl Service {
         Ok(row)
     }
 
+    pub async fn query_by_share_name(
+        share_name: &ShareName,
+        limit: Option<&i64>,
+        after: Option<&TableName>,
+        executor: impl PgAcquire<'_>,
+    ) -> Result<Vec<TableDetail>> {
+        let mut conn = executor
+            .acquire()
+            .await
+            .context("failed to acquire postgres connection")?;
+        let mut builder = QueryBuilder::new(
+            r#"WITH these_tables AS (
+                   SELECT
+                       "table".id AS id,
+                       share.id AS share_id,
+                       "table".name AS name,
+                       "schema".name AS schema,
+                       share.name AS share
+                   FROM "table"
+                   LEFT JOIN "schema" ON "schema".table_id = "table".id
+                   LEFT JOIN share ON share.id = "schema".share_id
+                   WHERE share.name = "#,
+        );
+        builder.push_bind(share_name);
+        builder.push(
+            "
+               )
+               SELECT
+                   id::text,
+                   share_id::text,
+                   name,
+                   schema,
+                   share
+               FROM these_tables",
+        );
+        if let Some(name) = after {
+            builder.push(" WHERE name >= ");
+            builder.push_bind(name);
+        }
+        builder.push(" ORDER BY name ");
+        if let Some(limit) = limit {
+            builder.push(" LIMIT ");
+            builder.push_bind(limit);
+        }
+        let mut query = sqlx::query_as::<_, TableDetail>(builder.build().sql().into());
+        query = query.bind(share_name);
+        if let Some(name) = after {
+            query = query.bind(name);
+        }
+        if let Some(limit) = limit {
+            query = query.bind(limit);
+        }
+        let rows: Vec<TableDetail> = query
+            .fetch_all(&mut *conn)
+            .await
+            .context("failed to list tables from [table]")?;
+        Ok(rows)
+    }
+
     pub async fn query_by_share_and_schema_name(
         share_name: &ShareName,
         schema_name: &SchemaName,
@@ -329,6 +388,81 @@ mod tests {
         } else {
             panic!("created account should be found");
         }
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_query_by_share_name_with_default_limit(pool: PgPool) -> Result<()> {
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let account = create_account(&mut tx)
+            .await
+            .expect("new account should be created");
+        let share = create_share(account.id(), &mut tx)
+            .await
+            .expect("new share should be created");
+        let num_schemas = testutils::rand::i64(0, 20);
+        let num_tables = testutils::rand::i64(0, 20);
+        for _ in 0..num_schemas {
+            let schema_name = SchemaName::new(testutils::rand::string(10))
+                .expect("new schema name should be created");
+            for _ in 0..num_tables {
+                let table = create_table(account.id(), &mut tx)
+                    .await
+                    .expect("new table should be created");
+                create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+                    .await
+                    .expect("new schema should be created");
+            }
+        }
+        let fetched = Service::query_by_share_name(share.name(), None, None, &mut tx)
+            .await
+            .expect("created table should be listed");
+        assert_eq!((num_schemas * num_tables) as usize, fetched.len());
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_query_by_share_name_with_specified_limit(pool: PgPool) -> Result<()> {
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let account = create_account(&mut tx)
+            .await
+            .expect("new account should be created");
+        let share = create_share(account.id(), &mut tx)
+            .await
+            .expect("new share should be created");
+        let num_schemas = testutils::rand::i64(0, 20);
+        let num_tables = testutils::rand::i64(0, 20);
+        for _ in 0..num_schemas {
+            let schema_name = SchemaName::new(testutils::rand::string(10))
+                .expect("new schema name should be created");
+            for _ in 0..num_tables {
+                let table = create_table(account.id(), &mut tx)
+                    .await
+                    .expect("new table should be created");
+                create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+                    .await
+                    .expect("new schema should be created");
+            }
+        }
+        let limit = testutils::rand::i64(0, 20);
+        let fetched = Service::query_by_share_name(share.name(), Some(&limit), None, &mut tx)
+            .await
+            .expect("created schema should be listed");
+        assert_eq!(min(num_schemas * num_tables, limit) as usize, fetched.len());
         tx.rollback()
             .await
             .expect("rollback should be done properly");

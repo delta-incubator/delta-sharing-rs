@@ -1,10 +1,10 @@
-pub mod all_tables;
-pub mod schemas;
+use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::entities::share::Name as ShareName;
+use crate::server::entities::table::Name as TableName;
 use crate::server::routers::SharedState;
 use crate::server::services::error::Error;
-use crate::server::services::share::Service as ShareService;
-use crate::server::services::share::Share;
+use crate::server::services::table::Service as TableService;
+use crate::server::services::table::TableDetail;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -20,24 +20,32 @@ const DEFAULT_PAGE_RESULTS: usize = 10;
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesGetParams {
+pub struct SharesAllTablesListParams {
     share: String,
+}
+
+#[derive(Debug, serde::Deserialize, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct SharesAllTablesListQuery {
+    pub max_results: Option<i64>,
+    pub page_token: Option<String>,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesGetResponse {
-    pub share: Share,
+pub struct SharesAllTablesListResponse {
+    pub items: Vec<TableDetail>,
+    pub next_page_token: String,
 }
 
 #[utoipa::path(
     get,
-    path = "/shares/{share}",
+    path = "/shares/{share}/all-tables",
     params(
-        SharesGetParams,
+        SharesAllTablesListQuery,
     ),
     responses(
-        (status = 200, description = "The share's metadata was successfully returned.", body = SharesGetResponse),
+        (status = 200, description = "The tables were successfully returned.", body = SharesAllTablesListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -46,15 +54,16 @@ pub struct SharesGetResponse {
     )
 )]
 #[tracing::instrument(skip(state))]
-pub async fn get(
+pub async fn list(
     Extension(state): Extension<SharedState>,
-    Path(params): Path<SharesGetParams>,
+    Path(params): Path<SharesAllTablesListParams>,
+    Query(query): Query<SharesAllTablesListQuery>,
 ) -> Result<Response, Error> {
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
 	return Err(Error::ValidationFailed);
     };
-    let Ok(share) = ShareService::query_by_name(&share, &state.pg_pool).await else {
+    let Ok(share) = ShareEntity::load(&share, &state.pg_pool).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting share");
         return Err(anyhow!("error occured while selecting share").into());
     };
@@ -62,43 +71,6 @@ pub async fn get(
         tracing::error!("requested share does not exist");
 	return Err(Error::NotFound);
     };
-    tracing::info!("share's metadata was successfully returned");
-    Ok((StatusCode::OK, Json(SharesGetResponse { share: share })).into_response())
-}
-
-#[derive(Debug, serde::Deserialize, IntoParams)]
-#[serde(rename_all = "camelCase")]
-pub struct SharesListQuery {
-    pub max_results: Option<i64>,
-    pub page_token: Option<String>,
-}
-
-#[derive(serde::Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct SharesListResponse {
-    pub items: Vec<Share>,
-    pub next_page_token: String,
-}
-
-#[utoipa::path(
-    get,
-    path = "/shares",
-    params(
-        SharesListQuery,
-    ),
-    responses(
-        (status = 200, description = "The shares were successfully returned.", body = SharesListResponse),
-        (status = 400, description = "The request is malformed.", body = ErrorMessage),
-        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
-        (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
-        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
-    )
-)]
-#[tracing::instrument(skip(state))]
-pub async fn list(
-    Extension(state): Extension<SharedState>,
-    Query(query): Query<SharesListQuery>,
-) -> Result<Response, Error> {
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
             tracing::error!("requested limit is malformed");
@@ -109,7 +81,7 @@ pub async fn list(
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &query.page_token {
-        let Ok(after) = ShareName::new(name) else {
+        let Ok(after) = TableName::new(name) else {
             tracing::error!("requested next page token is malformed");
 	    return Err(Error::ValidationFailed);
 	};
@@ -117,28 +89,33 @@ pub async fn list(
     } else {
         None
     };
-    let Ok(shares) = ShareService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting shares");
-        return Err(anyhow!("error occured while selecting share(s)").into());
+    let Ok(tables) = TableService::query_by_share_name(
+        share.name(),
+        Some(&((limit + 1) as i64)),
+        after.as_ref(),
+        &state.pg_pool,
+    ).await else {
+        tracing::error!("request is not handled correctly due to a server error while selecting tables");
+	return Err(anyhow!("error occured while selecting tables(s)").into());
     };
-    if shares.len() == limit + 1 {
-        let next = &shares[limit];
-        let shares = &shares[..limit];
-        tracing::info!("shares were successfully returned");
+    if tables.len() == limit + 1 {
+        let next = &tables[limit];
+        let tables = &tables[..limit];
+        tracing::info!("tables were successfully returned");
         return Ok((
             StatusCode::OK,
-            Json(SharesListResponse {
-                items: shares.to_vec(),
+            Json(SharesAllTablesListResponse {
+                items: tables.to_vec(),
                 next_page_token: next.name.clone(),
             }),
         )
             .into_response());
     }
-    tracing::info!("shares were successfully returned");
+    tracing::info!("tables were successfully returned");
     Ok((
         StatusCode::OK,
-        Json(SharesListResponse {
-            items: shares,
+        Json(SharesAllTablesListResponse {
+            items: tables,
             next_page_token: None.unwrap_or_default(),
         }),
     )

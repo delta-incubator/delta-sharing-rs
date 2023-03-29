@@ -65,6 +65,10 @@ async fn route(
     let guest = Router::new()
         .route("/shares", get(self::shares::list))
         .route("/shares/:share", get(self::shares::get))
+        .route(
+            "/shares/:share/all-tables",
+            get(self::shares::all_tables::list),
+        )
         .route("/shares/:share/schemas", get(self::shares::schemas::list))
         .route(
             "/shares/:share/schemas/:schema/tables",
