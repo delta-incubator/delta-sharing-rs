@@ -11,10 +11,9 @@ use axum::extract::Json;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use tracing::debug;
 use utoipa::ToSchema;
 
-#[derive(serde::Deserialize, ToSchema)]
+#[derive(Debug, serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminSharesPostRequest {
     pub id: Option<String>,
@@ -39,21 +38,19 @@ pub struct AdminSharesPostResponse {
         (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
+#[tracing::instrument(skip(state, account))]
 pub async fn post(
     Extension(account): Extension<AccountEntity>,
     Extension(state): Extension<SharedState>,
-    Json(AdminSharesPostRequest { id, name }): Json<AdminSharesPostRequest>,
+    Json(payload): Json<AdminSharesPostRequest>,
 ) -> Result<Response, Error> {
-    let Ok(share) = ShareEntity::new(id, name, account.id().to_string()) else {
+    let Ok(share) = ShareEntity::new(payload.id, payload.name, account.id().to_string()) else {
+        tracing::error!("request is malformed");
         return Err(Error::ValidationFailed);
     };
     match PostgresUtility::error(share.save(&state.pg_pool).await)? {
         Ok(_) => {
-            debug!(
-                r#"updated share id: "{}" name: "{}""#,
-                share.id().as_uuid(),
-                share.name().as_str()
-            );
+            tracing::info!("share was successfully registered");
             Ok((
                 StatusCode::CREATED,
                 Json(AdminSharesPostResponse {
@@ -62,7 +59,13 @@ pub async fn post(
             )
                 .into_response())
         }
-        Err(e) if PostgresUtility::is_conflict(&e) => Err(Error::Conflict),
-        _ => Err(anyhow!("error occured while updating share").into()),
+        Err(e) if PostgresUtility::is_conflict(&e) => {
+            tracing::error!("share was already registered");
+            Err(Error::Conflict)
+        }
+        _ => {
+            tracing::error!("request is not handled correctly due to a server error");
+            Err(anyhow!("error occured while updating share").into())
+        }
     }
 }
