@@ -52,7 +52,7 @@ pub async fn post(
     Json(payload): Json<AdminTablesPostRequest>,
 ) -> Result<Response, Error> {
     let Ok(table) = TableEntity::new(payload.id, payload.name, payload.location, account.id().to_string()) else {
-        tracing::error!("request is malformed");
+        tracing::error!("requested table data is malformed");
         return Err(Error::ValidationFailed);
     };
     match PostgresUtility::error(table.save(&state.pg_pool).await)? {
@@ -71,7 +71,9 @@ pub async fn post(
             Err(Error::Conflict)
         }
         _ => {
-            tracing::error!("request is not handled correctly due to a server error");
+            tracing::error!(
+                "request is not handled correctly due to a server error while updating table"
+            );
             Err(anyhow!("error occured while updating table").into())
         }
     }
@@ -110,15 +112,15 @@ pub async fn get(
     Path(params): Path<AdminTablesGetParams>,
 ) -> Result<Response, Error> {
     let Ok(table) = TableName::new(params.table) else {
-        tracing::error!("request is malformed");
+        tracing::error!("requested table data is malformed");
 	return Err(Error::ValidationFailed);
     };
     let Ok(table) = TableService::query_by_name(&table, &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error");
+        tracing::error!("request is not handled correctly due to a server error while selecting table");
         return Err(anyhow!("error occured while selecting table").into());
     };
     let Some(table) = table else {
-        tracing::error!("requested resource does not exist");
+        tracing::error!("requested table does not exist");
 	return Err(Error::NotFound);
     };
     tracing::info!("table's metadata was successfully returned");
@@ -164,7 +166,7 @@ pub async fn list(
 ) -> Result<Response, Error> {
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
-            tracing::error!("request is malformed");
+            tracing::error!("requested limit is malformed");
 	    return Err(Error::ValidationFailed);
 	};
         limit
@@ -173,7 +175,7 @@ pub async fn list(
     };
     let after = if let Some(name) = &query.page_token {
         let Ok(after) = TableName::new(name) else {
-            tracing::error!("request is malformed");
+            tracing::error!("requested next page token is malformed");
 	    return Err(Error::ValidationFailed);
 	};
         Some(after)
@@ -181,7 +183,7 @@ pub async fn list(
         None
     };
     let Ok(tables) = TableService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error");
+        tracing::error!("request is not handled correctly due to a server error while selecting tables");
         return Err(anyhow!("error occured while selecting table(s)").into());
     };
     if tables.len() == limit + 1 {

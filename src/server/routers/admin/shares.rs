@@ -45,7 +45,7 @@ pub async fn post(
     Json(payload): Json<AdminSharesPostRequest>,
 ) -> Result<Response, Error> {
     let Ok(share) = ShareEntity::new(payload.id, payload.name, account.id().to_string()) else {
-        tracing::error!("request is malformed");
+        tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
     match PostgresUtility::error(share.save(&state.pg_pool).await)? {
@@ -64,7 +64,9 @@ pub async fn post(
             Err(Error::Conflict)
         }
         _ => {
-            tracing::error!("request is not handled correctly due to a server error");
+            tracing::error!(
+                "request is not handled correctly due to a server error while updating share"
+            );
             Err(anyhow!("error occured while updating share").into())
         }
     }

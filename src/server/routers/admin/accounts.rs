@@ -60,7 +60,7 @@ pub async fn post(
 	payload.namespace,
 	payload.ttl
     ) else {
-        tracing::error!("request is malformed");
+        tracing::error!("requested account data is malformed");
         return Err(Error::ValidationFailed);
     };
     match PostgresUtility::error(account.save(&state.pg_pool).await)? {
@@ -79,7 +79,9 @@ pub async fn post(
             return Err(Error::Conflict);
         }
         _ => {
-            tracing::error!("request is not handled correctly due to a server error");
+            tracing::error!(
+                "request is not handled correctly due to a server error while updating account"
+            );
             return Err(anyhow!("error occured while updating account").into());
         }
     }
@@ -118,15 +120,15 @@ pub async fn get(
     Path(params): Path<AdminAccountsGetParams>,
 ) -> Result<Response, Error> {
     let Ok(account) = AccountName::new(params.account) else {
-        tracing::error!("request is malformed");
+        tracing::error!("requested account data is malformed");
 	return Err(Error::ValidationFailed);
     };
     let Ok(account) = AccountService::query_by_name(&account, &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error");
+        tracing::error!("request is not handled correctly due to a server error while selecting account");
         return Err(anyhow!("error occured while querying account").into());
     };
     let Some(account) = account else {
-        tracing::error!("requested resource does not exist");
+        tracing::error!("requested account does not exist");
 	return Err(Error::NotFound);
     };
     tracing::info!("account's metadata was successfully returned");
@@ -168,7 +170,7 @@ pub async fn list(
 ) -> Result<Response, Error> {
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
-            tracing::error!("request is malformed");
+            tracing::error!("requested limit is malformed");
 	    return Err(Error::ValidationFailed);
 	};
         limit
@@ -177,7 +179,7 @@ pub async fn list(
     };
     let after = if let Some(name) = &query.page_token {
         let Ok(after) = AccountName::new(name) else {
-            tracing::error!("request is malformed");
+            tracing::error!("requested next page token is malformed");
 	    return Err(Error::ValidationFailed);
 	};
         Some(after)
@@ -185,7 +187,7 @@ pub async fn list(
         None
     };
     let Ok(accounts) = AccountService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error");
+        tracing::error!("request is not handled correctly due to a server error while selecting accounts");
         return Err(anyhow!("error occured while querying account(s)").into());
     };
     if accounts.len() == limit + 1 {

@@ -48,11 +48,11 @@ pub async fn login(
     Json(payload): Json<AdminLoginRequest>,
 ) -> Result<Response, Error> {
     let Ok(account) = AccountName::new(payload.account) else {
-        tracing::error!("request is malformed");
+        tracing::error!("requested account data is malformed");
         return Err(Error::ValidationFailed);
     };
     let Ok(account) = AccountEntity::load(&account, &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error");
+        tracing::error!("request is not handled correctly due to a server error while selecting account");
         return Err(anyhow!("error occured while selecting account from database").into());
     };
     let Some(account) = account else {
@@ -70,7 +70,7 @@ pub async fn login(
         Role::Admin,
         account.ttl().to_i64(),
     ) else {
-        tracing::error!("request is not handled correctly due to a server error");
+        tracing::error!("request is not handled correctly due to a server error while creating profile");
         return Err(anyhow!("failed to create profile").into());
     };
     let Ok(token) = TokenEntity::new(
@@ -80,7 +80,7 @@ pub async fn login(
 	profile.bearer_token.clone(),
 	account.id().to_string(),
     ) else {
-        tracing::error!("request is not handled correctly due to a server error");
+        tracing::error!("request is not handled correctly due to a server error while creating token");
         return Err(anyhow!("failed to create token").into());
     };
     match PostgresUtility::error(token.save(&state.pg_pool).await)? {
@@ -91,7 +91,9 @@ pub async fn login(
             tracing::error!("token was already registered");
         }
         _ => {
-            tracing::error!("request is not handled correctly due to a server error");
+            tracing::error!(
+                "request is not handled correctly due to a server error while updating token"
+            );
             return Err(anyhow!("error occured while updating account").into());
         }
     }
