@@ -76,7 +76,7 @@ pub async fn login(
     let Ok(token) = TokenEntity::new(
 	None,
 	account.email().to_string(),
-        Role::Admin.to_string(),
+        Role::Admin,
 	profile.bearer_token.clone(),
 	account.id().to_string(),
     ) else {

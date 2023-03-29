@@ -1,6 +1,7 @@
 use crate::impl_string_property;
 use crate::impl_uuid_property;
 use crate::server::entities::account::Id as AccountId;
+use crate::server::middlewares::jwt::Role;
 use crate::server::repositories::token::Repository;
 use anyhow::Result;
 use getset::Getters;
@@ -24,14 +25,6 @@ pub struct Email {
 }
 
 impl_string_property!(Email);
-
-#[derive(Debug, Clone, PartialEq, Eq, Validate)]
-pub struct Role {
-    #[validate(length(min = 1))]
-    value: String,
-}
-
-impl_string_property!(Role);
 
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Value {
@@ -59,14 +52,14 @@ impl Entity {
     pub fn new(
         id: impl Into<Option<String>>,
         email: String,
-        role: String,
+        role: Role,
         value: String,
         created_by: String,
     ) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
             email: Email::new(email)?,
-            role: Role::new(role)?,
+            role: role,
             value: Value::new(value)?,
             created_by: AccountId::try_from(created_by)?,
         })
@@ -99,16 +92,6 @@ mod tests {
     #[test]
     fn test_invalid_email() {
         assert!(matches!(Email::new(testutils::rand::string(20)), Err(_)));
-    }
-
-    #[test]
-    fn test_valid_role() {
-        assert!(matches!(Role::new(testutils::rand::string(255)), Ok(_)));
-    }
-
-    #[test]
-    fn test_invalid_role() {
-        assert!(matches!(Role::new(""), Err(_)));
     }
 
     #[test]

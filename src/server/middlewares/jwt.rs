@@ -25,14 +25,25 @@ pub struct Claims {
     pub exp: i64,
 }
 
-#[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, strum_macros::EnumString)]
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    serde::Serialize,
+    serde::Deserialize,
+    sqlx::Type,
+    strum_macros::EnumString,
+)]
+#[serde(rename_all = "lowercase")]
+#[sqlx(rename_all = "lowercase")]
+#[sqlx(type_name = "VARCHAR")]
 pub enum Role {
     #[strum(ascii_case_insensitive)]
-    #[serde(rename = "admin")]
-    Admin,
+    Admin = 0,
     #[strum(ascii_case_insensitive)]
-    #[serde(rename = "guest")]
-    Guest,
+    Guest = 1,
 }
 
 impl AsRef<str> for Role {
