@@ -3,8 +3,6 @@ use anyhow::Result;
 use kotosiro_sharing::config;
 use kotosiro_sharing::logging;
 use kotosiro_sharing::server::Server;
-use tracing::debug;
-use tracing::info;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -19,9 +17,8 @@ async fn main() -> Result<()> {
                 .after_help("The server implements Delta Sharing REST protocol."),
         );
     logging::setup();
-    debug!(
+    tracing::debug!(
         db_url = config::fetch::<String>("db_url"),
-        kvs_url = config::fetch::<String>("kvs_url"),
         server_addr = config::fetch::<String>("server_addr"),
         server_bind = config::fetch::<String>("server_bind"),
         jwt_secret = config::fetch::<String>("jwt_secret"),
@@ -39,7 +36,7 @@ async fn main() -> Result<()> {
     let args = app.get_matches();
     match args.subcommand().expect("subcommand is required") {
         ("server", _args) => {
-            info!("kotosiro sharing server is starting");
+            tracing::info!("kotosiro sharing server is starting");
             let server = Server::new().await.context("failed to create server")?;
             server.start().await.context("failed to start server")
         }

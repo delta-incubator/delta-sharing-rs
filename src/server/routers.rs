@@ -18,7 +18,6 @@ use rusoto_credential::ProfileProvider;
 use sqlx::PgPool;
 use std::sync::Arc;
 use tame_gcs::signing::ServiceAccount;
-use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -96,7 +95,7 @@ pub async fn bind(
         r#"failed to parse "{}" to SocketAddr"#,
         server_bind
     ))?;
-    info!("kotosiro sharing server listening on {}", addr);
+    tracing::info!("kotosiro sharing server listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await

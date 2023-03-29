@@ -5,9 +5,6 @@ use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
 use anyhow::Result;
 use sqlx::PgPool;
-use tracing::error;
-use tracing::trace;
-use tracing::warn;
 
 pub struct Utility;
 
@@ -23,24 +20,20 @@ impl Utility {
         ) {
             admin
         } else {
-            error!("failed to validate admin account");
+            tracing::error!("admin account data is malformed");
             return Err(anyhow!("failed to validate admin account"));
         };
         match PostgresUtility::error(admin.save(&pool).await)? {
             Ok(_) => {
-                trace!(
-                    r#"updated admin account id: "{}" name: "{}""#,
-                    admin.id().as_uuid(),
-                    admin.name().as_str()
-                );
+                tracing::info!("admin account was successfully registered");
                 Ok(admin)
             }
             Err(e) if PostgresUtility::is_conflict(&e) => {
-                warn!("confliction occured while creating admin account: {}", e);
+                tracing::warn!("admin account was already registered");
                 Ok(admin)
             }
-            Err(e) => {
-                error!("unknown error occured while creating admin account: {}", e);
+            _ => {
+                tracing::error!("unknown error occured while creating admin account");
                 Err(anyhow!("error occured while updating account"))
             }
         }

@@ -2,11 +2,9 @@ use crate::server::utilities::bootstrap::Utility as BootstrapUtility;
 use anyhow::Context;
 use anyhow::Result;
 use sqlx::PgPool;
-use tracing::info;
-use tracing::trace;
 
 pub async fn connect(url: &str) -> Result<PgPool> {
-    info!("connecting to database");
+    tracing::info!("connecting to database");
     let pool = PgPool::connect(&url)
         .await
         .context("failed to acquire postgres connection")?;
@@ -14,12 +12,12 @@ pub async fn connect(url: &str) -> Result<PgPool> {
         .run(&pool)
         .await
         .context("failed to migrate postgres")?;
-    trace!("schema created");
+    tracing::trace!("migrated tables");
     BootstrapUtility::init_postgres(&pool)
         .await
         .context("failed to create admin account")?;
-    trace!("admin account created");
-    info!("connected to database");
+    tracing::trace!("bootstrapped database");
+    tracing::info!("connected to database");
     Ok(pool)
 }
 

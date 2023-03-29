@@ -2,8 +2,6 @@ use config::Config;
 use config::File;
 use glob::glob;
 use once_cell::sync::Lazy;
-use tracing::info;
-use tracing::warn;
 
 pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     let mut glob_path = "config/dev/*";
@@ -13,7 +11,7 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     };
     if mode.eq("production") {
         glob_path = "config/prod/*";
-        info!(r#"RUST_ENV = "{}""#, mode);
+        tracing::info!(r#"RUST_ENV = "{}""#, mode);
     }
     let mut builder = Config::builder();
     if let Ok(paths) = glob(glob_path) {
@@ -22,7 +20,7 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
                 Ok(path) => {
                     builder = builder.add_source(File::from(path));
                 }
-                Err(e) => warn!(?e),
+                Err(e) => tracing::warn!(?e),
             }
         }
     }

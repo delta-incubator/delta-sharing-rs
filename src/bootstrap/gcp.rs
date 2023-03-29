@@ -1,13 +1,12 @@
 use anyhow::Context;
 use anyhow::Result;
 use tame_gcs::signing::ServiceAccount;
-use tracing::info;
 
 pub fn new(path: &str) -> Result<ServiceAccount> {
-    info!("creating GCP service account");
+    tracing::info!("creating GCP service account");
     let sa = ServiceAccount::load_json_file(path)
         .context("failed to load GCP service account private key JSON")?;
-    info!("created GCP service account");
+    tracing::info!("created GCP service account");
     Ok(sa)
 }
 
