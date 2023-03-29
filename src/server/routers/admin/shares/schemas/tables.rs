@@ -53,7 +53,7 @@ pub struct AdminSharesSchemasTablesPostResponse {
         (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
-#[tracing::instrument(skip(state))]
+#[tracing::instrument(skip(state, account))]
 pub async fn post(
     Extension(account): Extension<AccountEntity>,
     Extension(state): Extension<SharedState>,

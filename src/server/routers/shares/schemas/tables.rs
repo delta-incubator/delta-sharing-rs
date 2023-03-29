@@ -14,20 +14,19 @@ use axum::extract::Query;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use tracing::debug;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
 
-#[derive(serde::Deserialize, IntoParams)]
+#[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct SharesSchemasTablesListParams {
     share: String,
     schema: String,
 }
 
-#[derive(serde::Deserialize, IntoParams)]
+#[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct SharesSchemasTablesListQuery {
     pub max_results: Option<i64>,
@@ -56,36 +55,40 @@ pub struct SharesSchemasTablesListResponse {
         (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
     )
 )]
+#[tracing::instrument(skip(state))]
 pub async fn list(
     Extension(state): Extension<SharedState>,
-    Path(SharesSchemasTablesListParams { share, schema }): Path<SharesSchemasTablesListParams>,
-    Query(SharesSchemasTablesListQuery {
-        max_results,
-        page_token,
-    }): Query<SharesSchemasTablesListQuery>,
+    Path(params): Path<SharesSchemasTablesListParams>,
+    Query(query): Query<SharesSchemasTablesListQuery>,
 ) -> Result<Response, Error> {
-    let Ok(share) = ShareName::new(share) else {
+    let Ok(share) = ShareName::new(params.share) else {
+        tracing::error!("requested share data is malformed");
 	return Err(Error::ValidationFailed);
     };
     let Ok(share) = ShareEntity::load(&share, &state.pg_pool).await else {
+        tracing::error!("request is not handled correctly due to a server error while selecting share");
         return Err(anyhow!("error occured while selecting share").into());
     };
     let Some(share) = share else {
+        tracing::error!("requested share does not exist");
 	return Err(Error::NotFound);
     };
-    let Ok(schema) = SchemaName::new(schema) else {
+    let Ok(schema) = SchemaName::new(params.schema) else {
+        tracing::error!("requested schema data is malformed");
 	return Err(Error::ValidationFailed);
     };
-    let limit = if let Some(limit) = &max_results {
+    let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
+            tracing::error!("requested limit is malformed");
 	    return Err(Error::ValidationFailed);
 	};
         limit
     } else {
         DEFAULT_PAGE_RESULTS
     };
-    let after = if let Some(name) = &page_token {
+    let after = if let Some(name) = &query.page_token {
         let Ok(after) = TableName::new(name) else {
+            tracing::error!("requested next page token is malformed");
 	    return Err(Error::ValidationFailed);
 	};
         Some(after)
@@ -99,12 +102,13 @@ pub async fn list(
         after.as_ref(),
         &state.pg_pool,
     ).await else {
+        tracing::error!("request is not handled correctly due to a server error while selecting tables");
 	return Err(anyhow!("error occured while selecting tables(s)").into());
     };
     if tables.len() == limit + 1 {
         let next = &tables[limit];
         let tables = &tables[..limit];
-        debug!(r"found {} tables(s)", tables.len());
+        tracing::info!("tables were successfully returned");
         return Ok((
             StatusCode::OK,
             Json(SharesSchemasTablesListResponse {
@@ -114,7 +118,7 @@ pub async fn list(
         )
             .into_response());
     }
-    debug!(r"found {} tables(s)", tables.len());
+    tracing::info!("tables were successfully returned");
     Ok((
         StatusCode::OK,
         Json(SharesSchemasTablesListResponse {
