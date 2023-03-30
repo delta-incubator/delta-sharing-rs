@@ -4,8 +4,8 @@ Kotosiro Sharing Server
 Supported Providers
 ==============================
 
-|:---------------:|:----------------:|:---------------:|
 | Amazon AWS      | Google GCP       | Microsoft Azure |
+|:---------------:|:----------------:|:---------------:|
 | :green_square:  | :green_square:   | :red_square:    |
 
 API
