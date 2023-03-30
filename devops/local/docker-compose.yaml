@@ -16,8 +16,3 @@ services:
       - 8081:8080
     depends_on:
       - postgres
-  redis:
-    image: redis:7-alpine
-    restart: always
-    ports:
-      - 6379:6379
