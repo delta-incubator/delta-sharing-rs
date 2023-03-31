@@ -105,6 +105,40 @@ impl Service {
         Ok(row)
     }
 
+    pub async fn query_by_fqn(
+        share_name: &ShareName,
+        schema_name: &SchemaName,
+        table_name: &TableName,
+        executor: impl PgAcquire<'_>,
+    ) -> Result<Option<Table>> {
+        let mut conn = executor
+            .acquire()
+            .await
+            .context("failed to acquire postgres connection")?;
+        let row: Option<Table> = sqlx::query_as::<_, Table>(
+            r#"SELECT
+                   "table".id::text AS id,
+                   "table".name AS name,
+                   "table".location AS location
+               FROM "table"
+               LEFT JOIN "schema" ON "schema".table_id = "table".id
+               LEFT JOIN share ON share.id = "schema".share_id
+               WHERE share.name = $1 AND "schema".name = $2 AND "table".name = $3"#,
+        )
+        .bind(share_name)
+        .bind(schema_name)
+        .bind(table_name)
+        .fetch_optional(&mut *conn)
+        .await
+        .context(format!(
+            r#"failed to select "{}"/"{}"/"{}" from [table]"#,
+            share_name.as_str(),
+            schema_name.as_str(),
+            table_name.as_str(),
+        ))?;
+        Ok(row)
+    }
+
     pub async fn query_by_share_name(
         share_name: &ShareName,
         limit: Option<&i64>,
@@ -386,7 +420,43 @@ mod tests {
             assert_eq!(&fetched.id, table.id().as_uuid().to_string().as_str());
             assert_eq!(&fetched.name, table.name().as_str());
         } else {
-            panic!("created account should be found");
+            panic!("created table should be found");
+        }
+        tx.rollback()
+            .await
+            .expect("rollback should be done properly");
+        Ok(())
+    }
+
+    #[sqlx::test]
+    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
+    async fn test_create_and_query_by_fqn(pool: PgPool) -> Result<()> {
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("transaction should be started properly");
+        let account = create_account(&mut tx)
+            .await
+            .expect("new account should be created");
+        let share = create_share(account.id(), &mut tx)
+            .await
+            .expect("new share should be created");
+        let schema_name = SchemaName::new(testutils::rand::string(10))
+            .expect("new schema name should be created");
+        let table = create_table(account.id(), &mut tx)
+            .await
+            .expect("new table should be created");
+        create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+            .await
+            .expect("new schema should be created");
+        let fetched = Service::query_by_fqn(share.name(), &schema_name, table.name(), &mut tx)
+            .await
+            .expect("created table should be found");
+        if let Some(fetched) = fetched {
+            assert_eq!(&fetched.id, table.id().as_uuid().to_string().as_str());
+            assert_eq!(&fetched.name, table.name().as_str());
+        } else {
+            panic!("created table should be found");
         }
         tx.rollback()
             .await
