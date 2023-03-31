@@ -10,6 +10,7 @@ use axum::extract::Path;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
+use deltalake::delta::open_table;
 use utoipa::IntoParams;
 
 use axum::http::header::HeaderMap;
@@ -53,7 +54,24 @@ pub async fn get(
         tracing::error!("requested table data is malformed");
 	return Err(Error::ValidationFailed);
     };
+    let Ok(table) = TableService::query_by_fqn(
+        &share,
+        &schema,
+        &table,
+        &state.pg_pool,
+    ).await else {
+        tracing::error!("request is not handled correctly due to a server error while selecting table");
+	return Err(anyhow!("error occured while selecting tables(s)").into());
+    };
+    let Some(table) = table else {
+        tracing::error!("requested table does not exist");
+	return Err(Error::NotFound);
+    };
+    let Ok(table) = open_table(&table.location).await else {
+        tracing::error!("request is not handled correctly due to a server error while loading delta table");
+	return Err(anyhow!("error occured while selecting tables(s)").into());
+    };
     let mut headers = HeaderMap::new();
-    headers.insert(HEADER_NAME, "123".parse().unwrap());
+    headers.insert(HEADER_NAME, table.version().into());
     Ok((StatusCode::OK, headers).into_response())
 }

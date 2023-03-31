@@ -25,6 +25,7 @@ use utoipa::OpenApi;
         shares::all_tables::list,
         shares::schemas::list,
         shares::schemas::tables::list,
+        shares::schemas::tables::version::get,
     ),
     components(
 	schemas(
