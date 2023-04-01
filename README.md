@@ -32,7 +32,7 @@ API
 | :heavy_check_mark: | :green_square: | GET    | */shares/{share}/schemas*                                          |
 | :heavy_check_mark: | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables*                          |
 | :heavy_check_mark: | :green_square: | GET    | */shares/{share}/all-tables*                                       |
-|                    | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables/{table}/version*          |
+| :heavy_check_mark: | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables/{table}/version*          |
 |                    | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables/{table}/metadata*         |
 |                    | :green_square: | POST   | */shares/{share}/schemas/{schema}/tables/{table}/query*            |
 |                    | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables/{table}/changes*          |
@@ -40,6 +40,7 @@ API
 TODO
 ==============================
 
+ - [ ] Use 'deltalake::open_table_with_storage_options', i.e., open delta tables with credentials
  - [ ] README
  - [ ] Wiki
  - [ ] Dockerfile

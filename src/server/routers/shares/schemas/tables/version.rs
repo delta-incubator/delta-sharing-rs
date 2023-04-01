@@ -1,3 +1,4 @@
+use crate::config;
 use crate::server::entities::schema::Name as SchemaName;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::entities::table::Name as TableName;
@@ -11,6 +12,8 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use deltalake::delta::open_table;
+use deltalake::delta::open_table_with_storage_options;
+use std::collections::hash_map::HashMap;
 use utoipa::IntoParams;
 
 use axum::http::header::HeaderMap;
@@ -67,6 +70,11 @@ pub async fn get(
         tracing::error!("requested table does not exist");
 	return Err(Error::NotFound);
     };
+    //    let options = HashMap::from([(
+    //        String::from("google_service_account_path"),
+    //        config::fetch::<String>("gcp_sa_private_key"),
+    //    )]);
+    // TODO: Replace this with open_table_with_storage_options
     let Ok(table) = open_table(&table.location).await else {
         tracing::error!("request is not handled correctly due to a server error while loading delta table");
 	return Err(anyhow!("error occured while selecting tables(s)").into());
