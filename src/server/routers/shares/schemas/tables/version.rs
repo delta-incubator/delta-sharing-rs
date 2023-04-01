@@ -8,7 +8,6 @@ use crate::server::services::table::Service as TableService;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Path;
-use axum::http::header::HeaderMap;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
@@ -78,12 +77,9 @@ pub async fn get(
         tracing::error!("request is not handled correctly due to a server error while loading delta table");
 	return Err(anyhow!("error occured while selecting tables(s)").into());
     };
-    //    let Ok(metadata) = table.get_metadata() else {
-    //        tracing::error!("request is not handled correctly due to a server error while loading delta table");
-    //	return Err(anyhow!("error occured while selecting tables(s)").into());
-    //    };
-    let mut headers = HeaderMap::new();
+    let mut response = StatusCode::OK.into_response();
+    let headers = response.headers_mut();
     headers.insert(HEADER_NAME, table.version().into());
     tracing::info!("delta table version was successfully returned");
-    Ok((StatusCode::OK, headers).into_response())
+    Ok(response)
 }

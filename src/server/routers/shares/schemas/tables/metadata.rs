@@ -11,7 +11,8 @@ use crate::server::services::table::Service as TableService;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Path;
-use axum::http::header::HeaderMap;
+use axum::http::header;
+use axum::http::header::HeaderValue;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
@@ -121,13 +122,17 @@ pub async fn get(
     let metadata = SharesSchemasTablesMetadataGetMetadataResponse {
         meta_data: metadata,
     };
-    let mut headers = HeaderMap::new();
-    headers.insert(HEADER_NAME, table.version().into());
-    tracing::info!("delta table metadata was successfully returned");
-    Ok((
+    let mut response = (
         StatusCode::OK,
-        headers,
         JsonLines::new(to_stream(json!(protocol), json!(metadata))),
     )
-        .into_response())
+        .into_response();
+    let headers = response.headers_mut();
+    headers.insert(HEADER_NAME, table.version().into());
+    headers.insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("application/x-ndjson"),
+    );
+    tracing::info!("delta table metadata was successfully returned");
+    Ok(response)
 }
