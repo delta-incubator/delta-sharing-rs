@@ -33,7 +33,7 @@ API
 | :heavy_check_mark: | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables*                          |
 | :heavy_check_mark: | :green_square: | GET    | */shares/{share}/all-tables*                                       |
 | :heavy_check_mark: | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables/{table}/version*          |
-|                    | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables/{table}/metadata*         |
+| :heavy_check_mark: | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables/{table}/metadata*         |
 |                    | :green_square: | POST   | */shares/{share}/schemas/{schema}/tables/{table}/query*            |
 |                    | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables/{table}/changes*          |
 

@@ -11,8 +11,11 @@ anyhow = { version = "1.0.69", features = ["backtrace"] }
 async-session = "3.0.0"
 async-trait = "0.1.64"
 axum = { version = "0.6.7", features = ["headers"] }
+axum-extra = { version = "0.7.2", features = ["json-lines"] }
 clap = "4.1.4"
 deltalake = { version = "0.8.0", features = ["s3", "azure", "gcs"] }
+futures = "0.3.28"
+futures-util = "0.3.28"
 tokio = { version = "1.25.0", features = [ "full", "rt-multi-thread" ] }
 tower = { version = "0.4.13", features = ["limit", "filter", "util"] }
 config = "0.13.3"

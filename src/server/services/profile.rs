@@ -14,12 +14,12 @@ use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
 use utoipa::ToSchema;
 
-pub const VERSION: i64 = 1;
+pub const VERSION: i32 = 1;
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
-    pub share_credentials_version: i64,
+    pub share_credentials_version: i32,
     pub endpoint: String,
     pub bearer_token: String,
     pub expiration_time: String,

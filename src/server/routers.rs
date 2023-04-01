@@ -78,6 +78,10 @@ async fn route(
             "/shares/:share/schemas/:schema/tables/:table/version",
             get(self::shares::schemas::tables::version::get),
         )
+        .route(
+            "/shares/:share/schemas/:schema/tables/:table/metadata",
+            get(self::shares::schemas::tables::metadata::get),
+        )
         .route_layer(middleware::from_fn(jwt::as_guest))
         .layer(Extension(state.clone()));
 
