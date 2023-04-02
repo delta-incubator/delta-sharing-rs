@@ -40,7 +40,6 @@ API
 TODO
 ==============================
 
- - [ ] Use 'deltalake::open_table_with_storage_options', i.e., open delta tables with credentials
  - [ ] README
  - [ ] Wiki
  - [ ] Dockerfile

@@ -14,7 +14,6 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use chrono::TimeZone;
 use chrono::Utc;
-use deltalake::delta::open_table;
 use deltalake::delta::open_table_with_storage_options;
 use std::collections::hash_map::HashMap;
 use utoipa::IntoParams;
@@ -87,12 +86,11 @@ pub async fn get(
         tracing::error!("requested table does not exist");
 	return Err(Error::NotFound);
     };
-    // TODO: Replace this with open_table_with_storage_options
-    //    let options = HashMap::from([(
-    //        String::from("google_service_account_path"),
-    //        config::fetch::<String>("gcp_sa_private_key"),
-    //    )]);
-    let Ok(mut table) = open_table(&table.location).await else {
+    let options = HashMap::from([(
+        String::from("google_service_account_path"),
+        config::fetch::<String>("gcp_sa_private_key"),
+    )]);
+    let Ok(mut table) = open_table_with_storage_options(&table.location, options).await else {
         tracing::error!("request is not handled correctly due to a server error while loading delta table");
 	return Err(anyhow!("error occured while selecting table(s)").into());
     };
