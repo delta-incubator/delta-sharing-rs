@@ -8,9 +8,12 @@ use crate::server::services::table::Service as TableService;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Path;
+use axum::extract::Query;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
+use chrono::TimeZone;
+use chrono::Utc;
 use deltalake::delta::open_table;
 use deltalake::delta::open_table_with_storage_options;
 use std::collections::hash_map::HashMap;
@@ -24,6 +27,12 @@ pub struct SharesSchemasTablesVersionGetParams {
     share: String,
     schema: String,
     table: String,
+}
+
+#[derive(Debug, serde::Deserialize, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct SharesSchemasTablesVersionGetQuery {
+    pub starting_timestamp: Option<String>,
 }
 
 #[utoipa::path(
@@ -42,7 +51,17 @@ pub struct SharesSchemasTablesVersionGetParams {
 pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(params): Path<SharesSchemasTablesVersionGetParams>,
+    Query(query): Query<SharesSchemasTablesVersionGetQuery>,
 ) -> Result<Response, Error> {
+    let starting_timestamp = if let Some(starting_timestamp) = &query.starting_timestamp {
+        let Ok(starting_timestamp) = Utc.datetime_from_str(starting_timestamp, "%Y/%m/%d %H:%M:%S") else {
+            tracing::error!("requested starting timestamp is malformed");
+	    return Err(Error::ValidationFailed);
+	};
+        Some(starting_timestamp)
+    } else {
+        None
+    };
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
 	return Err(Error::ValidationFailed);
@@ -73,10 +92,16 @@ pub async fn get(
     //        String::from("google_service_account_path"),
     //        config::fetch::<String>("gcp_sa_private_key"),
     //    )]);
-    let Ok(table) = open_table(&table.location).await else {
+    let Ok(mut table) = open_table(&table.location).await else {
         tracing::error!("request is not handled correctly due to a server error while loading delta table");
-	return Err(anyhow!("error occured while selecting tables(s)").into());
+	return Err(anyhow!("error occured while selecting table(s)").into());
     };
+    if let Some(starting_timestamp) = starting_timestamp {
+        let Ok(_) = table.load_with_datetime(starting_timestamp).await else {
+            tracing::error!("request is not handled correctly due to a server error while time-traveling delta table");
+	    return Err(anyhow!("error occured while selecting table(s)").into());
+	};
+    }
     let mut response = StatusCode::OK.into_response();
     let headers = response.headers_mut();
     headers.insert(HEADER_NAME, table.version().into());

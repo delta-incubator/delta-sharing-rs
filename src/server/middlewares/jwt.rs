@@ -132,13 +132,3 @@ where
     };
     Ok(next.run(request).await)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test() {
-        println!("TEST JWT!!!");
-    }
-}
