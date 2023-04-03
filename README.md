@@ -18,10 +18,14 @@ Once you've created the IAM user, you must configure the profile name and region
 Server to access the S3 bucket. The location of the credentials file is specified by the environment variable
 AWS_SHARED_CREDENTIALS_FILE. If this variable is not set, the credentials file should be located at ~/.aws/credentials.
  
-  1. **Google GCP**
+  2. **Google GCP**
 
  To access the GCS Delta Table backend, you need to create a GCS service account. Once you've created the service account,
 you must configure the location of the GCP service account private key JSON.
+
+  3. **Microsoft Azure**
+  
+ Microsoft Azure backed Delta Tables will be supported in the near future.
 
 API
 ==============================
