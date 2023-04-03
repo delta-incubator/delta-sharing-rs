@@ -9,6 +9,7 @@ use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Path;
 use axum::extract::Query;
+use axum::http::header::HeaderMap;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
@@ -94,9 +95,8 @@ pub async fn get(
     	    return Err(anyhow!("error occured while selecting table(s)").into());
     	};
     }
-    let mut response = StatusCode::OK.into_response();
-    let headers = response.headers_mut();
+    let mut headers = HeaderMap::new();
     headers.insert(HEADER_NAME, table.version().into());
     tracing::info!("delta table version was successfully returned");
-    Ok(response)
+    Ok((StatusCode::OK, headers).into_response())
 }

@@ -1,5 +1,7 @@
 use anyhow::Result;
+use axum::BoxError;
 use deltalake::delta::DeltaTableMetaData;
+use futures_util::stream::Stream;
 use serde_json::json;
 use std::collections::HashMap;
 use utoipa::ToSchema;
@@ -8,8 +10,24 @@ pub const VERSION: i32 = 1;
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct Protocol {
+pub struct ProtocolDetail {
     pub min_reader_version: i32,
+}
+
+#[derive(serde::Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Protocol {
+    pub protocol: ProtocolDetail,
+}
+
+impl Protocol {
+    fn new() -> Self {
+        Self {
+            protocol: ProtocolDetail {
+                min_reader_version: VERSION,
+            },
+        }
+    }
 }
 
 #[derive(serde::Serialize, ToSchema)]
@@ -20,7 +38,7 @@ pub struct Format {
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct Metadata {
+pub struct MetadataDetail {
     pub id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -38,38 +56,43 @@ pub struct Metadata {
     pub num_files: Option<i64>,
 }
 
-impl TryFrom<DeltaTableMetaData> for Metadata {
-    type Error = anyhow::Error;
+#[derive(serde::Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Metadata {
+    pub meta_data: MetadataDetail,
+}
 
-    fn try_from(metadata: DeltaTableMetaData) -> std::result::Result<Self, Self::Error> {
-        Ok(Self {
-            id: metadata.id,
-            name: metadata.name,
-            description: metadata.description,
-            format: Format {
-                provider: metadata.format.get_provider(),
+impl Metadata {
+    fn from(metadata: DeltaTableMetaData) -> Self {
+        Self {
+            meta_data: MetadataDetail {
+                id: metadata.id,
+                name: metadata.name,
+                description: metadata.description,
+                format: Format {
+                    provider: metadata.format.get_provider(),
+                },
+                schema_string: json!(metadata.schema).to_string(),
+                partition_columns: metadata.partition_columns,
+                configuration: metadata.configuration,
+                version: None,
+                size: None,
+                num_files: None,
             },
-            schema_string: json!(metadata.schema).to_string(),
-            partition_columns: metadata.partition_columns,
-            configuration: metadata.configuration,
-            version: None,
-            size: None,
-            num_files: None,
-        })
+        }
     }
 }
 
 pub struct Service;
 
 impl Service {
-    pub fn new_protocol() -> Result<Protocol> {
-        Ok(Protocol {
-            min_reader_version: VERSION,
-        })
-    }
-
-    pub fn metadata_from(metadata: DeltaTableMetaData) -> Result<Metadata> {
-        Metadata::try_from(metadata)
+    pub fn load_metadata(
+        metadata: DeltaTableMetaData,
+    ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
+        futures_util::stream::iter(vec![
+            Ok::<serde_json::Value, BoxError>(json!(Protocol::new())),
+            Ok::<serde_json::Value, BoxError>(json!(Metadata::from(metadata))),
+        ])
     }
 }
 

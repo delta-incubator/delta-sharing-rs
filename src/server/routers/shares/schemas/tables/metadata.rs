@@ -2,8 +2,6 @@ use crate::server::entities::schema::Name as SchemaName;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::entities::table::Name as TableName;
 use crate::server::routers::SharedState;
-use crate::server::services::deltalake::Metadata;
-use crate::server::services::deltalake::Protocol;
 use crate::server::services::deltalake::Service as DeltalakeService;
 use crate::server::services::error::Error;
 use crate::server::services::table::Service as TableService;
@@ -12,16 +10,13 @@ use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Path;
 use axum::http::header;
+use axum::http::header::HeaderMap;
 use axum::http::header::HeaderValue;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use axum::BoxError;
 use axum_extra::json_lines::JsonLines;
-use futures_util::stream::Stream;
-use serde_json::json;
 use utoipa::IntoParams;
-use utoipa::ToSchema;
 
 const HEADER_NAME: &str = "Delta-Table-Version";
 
@@ -31,25 +26,6 @@ pub struct SharesSchemasTablesMetadataGetParams {
     share: String,
     schema: String,
     table: String,
-}
-
-#[derive(serde::Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct SharesSchemasTablesMetadataGetProtocolResponse {
-    pub protocol: Protocol,
-}
-
-#[derive(serde::Serialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct SharesSchemasTablesMetadataGetMetadataResponse {
-    pub meta_data: Metadata,
-}
-
-fn to_stream(
-    protocol: serde_json::Value,
-    metadata: serde_json::Value,
-) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
-    futures_util::stream::iter(vec![Ok(protocol), Ok(metadata)])
 }
 
 #[utoipa::path(
@@ -100,31 +76,19 @@ pub async fn get(
     };
     let Ok(metadata) = table.get_metadata() else {
         tracing::error!("request is not handled correctly due to a server error while loading delta table metadata");
-    	return Err(anyhow!("error occured while selecting tables(s)").into());
+        return Err(anyhow!("error occured while selecting tables(s)").into());
     };
-    let Ok(metadata) = DeltalakeService::metadata_from(metadata.to_owned()) else {
-        tracing::error!("request is not handled correctly due to a server error while loading delta table metadata");
-    	return Err(anyhow!("error occured while selecting tables(s)").into());
-    };
-    let Ok(protocol) = DeltalakeService::new_protocol() else {
-        tracing::error!("request is not handled correctly due to a server error while loading delta table protocol");
-    	return Err(anyhow!("error occured while selecting tables(s)").into());
-    };
-    let protocol = SharesSchemasTablesMetadataGetProtocolResponse { protocol: protocol };
-    let metadata = SharesSchemasTablesMetadataGetMetadataResponse {
-        meta_data: metadata,
-    };
-    let mut response = (
-        StatusCode::OK,
-        JsonLines::new(to_stream(json!(protocol), json!(metadata))),
-    )
-        .into_response();
-    let headers = response.headers_mut();
+    let mut headers = HeaderMap::new();
     headers.insert(HEADER_NAME, table.version().into());
     headers.insert(
         header::CONTENT_TYPE,
         HeaderValue::from_static("application/x-ndjson"),
     );
     tracing::info!("delta table metadata was successfully returned");
-    Ok(response)
+    Ok((
+        StatusCode::OK,
+        headers,
+        JsonLines::new(DeltalakeService::load_metadata(metadata.to_owned())),
+    )
+        .into_response())
 }
