@@ -12,14 +12,15 @@ Cofigure Credentials for Cloud Storage Backends
 ==============================
  1. **Amazon AWS**
 
-To access the S3 Delta Table backend, you must prepare an IAM user with an Amazon S3 permissions policy.
-After creating the IAM user, you must configure the profile name and the region to enable Kotosiro Sharing
-Server can access the S3 bucket. The location of credentials file is specified with the environment variable
-`AWS_SHARED_CREDENTIALS_FILE` otherwise "~/.aws/credentials".
+
+ To access the S3 Delta Table backend, you need to create an IAM user with an Amazon S3 permissions policy.
+ Once you've created the IAM user, you must configure the profile name and region to allow Kotosiro Sharing
+ Server to access the S3 bucket. The location of the credentials file is specified by the environment variable
+ AWS_SHARED_CREDENTIALS_FILE. If this variable is not set, the credentials file should be located at ~/.aws/credentials.
  
   1. **Google GCP**
 
-To access the GCS Delta Table backend, you must prepare a GCS service account. After creating the service account,
+ To access the GCS Delta Table backend, you need to create a GCS service account. Once you've created the service account,
 you must configure the location of the GCP service account private key JSON.
 
 API
