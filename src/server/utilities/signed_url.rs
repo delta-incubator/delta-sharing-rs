@@ -114,7 +114,7 @@ mod tests {
         let bucket = testutils::rand::string(10);
         let path = testutils::rand::string(10);
         let url = format!("gs://{}/{}", bucket, path);
-        let provider = Platform::from_str(&url).expect("should parse s3 url properly");
+        let provider = Platform::from_str(&url).expect("should parse gcs url properly");
         if let Platform::GCP {
             bucket: parsed_bucket,
             path: parsed_path,
@@ -131,16 +131,13 @@ mod tests {
 
     //#[tokio::test]
     async fn test_aws_sign_local() {
-        let pp = if let Ok(pp) = bootstrap::aws::new(
-            &config::fetch::<String>("aws_credentials"),
-            &config::fetch::<String>("aws_profile"),
-        ) {
+        let pp = if let Ok(pp) = bootstrap::aws::new(&config::fetch::<String>("aws_profile")) {
             pp
         } else {
             panic!("failed to create AWS profile provider");
         };
         if let Ok(Platform::AWS { bucket, path }) =
-            Platform::from_str("s3://kotosiro-sharing-test/sample.txt")
+            Platform::from_str("s3://kotosiro-sharing-test/covid")
         {
             if let Ok(url) = Utility::sign_aws(&pp, &bucket, &path, &300).await {
                 println!("{:?}", url);
@@ -159,7 +156,7 @@ mod tests {
             panic!("failed to create GCP service account");
         };
         if let Ok(Platform::GCP { bucket, path }) =
-            Platform::from_str("gs://kotosiro-sharing-test/sample.txt")
+            Platform::from_str("gs://kotosiro-sharing-test/covid")
         {
             if let Ok(url) = Utility::sign_gcp(&sa, &bucket, &path, &300).await {
                 println!("{:?}", url);

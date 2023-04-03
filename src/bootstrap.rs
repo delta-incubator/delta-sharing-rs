@@ -16,8 +16,5 @@ pub(crate) fn new_gcp_service_account() -> Result<ServiceAccount> {
 }
 
 pub(crate) fn new_aws_profile_provider() -> Result<ProfileProvider> {
-    aws::new(
-        &config::fetch::<String>("aws_credentials"),
-        &config::fetch::<String>("aws_profile"),
-    )
+    aws::new(&config::fetch::<String>("aws_profile"))
 }

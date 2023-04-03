@@ -7,8 +7,8 @@ admin_password = "password"
 admin_namespace = "admin"
 admin_ttl = 28800
 jwt_secret = "your secret here"
-gcp_sa_private_key = "creds/gcp/sa-private-key.json"
-aws_credentials = "creds/aws/credentials"
+gcp_sa_private_key = "./creds/gcp/sa-private-key.json"
 aws_profile = "kotosiro-sharing"
+aws_region = "ap-northeast-1"
 use_json_log = false
 log_filter = "warn,kotosiro_sharing=debug"

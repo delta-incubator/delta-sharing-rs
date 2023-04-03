@@ -8,7 +8,7 @@ if ! pyenv versions | grep -q spark3; then
 fi
 
 pyenv local spark3
-pip install pyspark delta-spark google-cloud-storage
+pip install pyspark delta-spark google-cloud-storage boto3
 
 PYSPARK_LOCATION=$(pip show pyspark | grep -e "Location" | cut -d ' ' -f 2)
 PYSPARK_NAME=$(pip show pyspark | grep -e "Name" | cut -d ' ' -f 2)

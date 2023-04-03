@@ -1,12 +1,24 @@
 Kotosiro Sharing Server
 ==============================
 
-Supported Providers
+Supported Platforms
 ==============================
 
 | Amazon AWS      | Google GCP       | Microsoft Azure |
 |:---------------:|:----------------:|:---------------:|
 | :green_square:  | :green_square:   | :red_square:    |
+
+Cofigure Credentials for Cloud Storage Backends
+==============================
+ 1. **Amazon AWS**
+ To access the S3 Delta Table backend, you must prepare an IAM user with an Amazon S3 permissions policy.
+ After creating the IAM user, you must configure the profile name and the region to enable Kotosiro Sharing
+ Server can access the S3 bucket. The location of credentials file is specified with the environment variable
+ `AWS_SHARED_CREDENTIALS_FILE` otherwise "~/.aws/credentials".
+ 
+  1. **Google GCP**
+ To access the GCS Delta Table backend, you must prepare a GCS service account. After creating the service account,
+ you must configure the location of the GCP service account private key JSON.
 
 API
 ==============================

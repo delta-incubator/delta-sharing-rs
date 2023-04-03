@@ -1,10 +1,10 @@
-use crate::config;
 use crate::server::entities::schema::Name as SchemaName;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::entities::table::Name as TableName;
 use crate::server::routers::SharedState;
 use crate::server::services::error::Error;
 use crate::server::services::table::Service as TableService;
+use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Path;
@@ -14,8 +14,6 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use chrono::TimeZone;
 use chrono::Utc;
-use deltalake::delta::open_table_with_storage_options;
-use std::collections::hash_map::HashMap;
 use utoipa::IntoParams;
 
 const HEADER_NAME: &str = "Delta-Table-Version";
@@ -86,19 +84,15 @@ pub async fn get(
         tracing::error!("requested table does not exist");
 	return Err(Error::NotFound);
     };
-    let options = HashMap::from([(
-        String::from("google_service_account_path"),
-        config::fetch::<String>("gcp_sa_private_key"),
-    )]);
-    let Ok(mut table) = open_table_with_storage_options(&table.location, options).await else {
+    let Ok(mut table) = DeltalakeUtility::open_table(&table.location).await else {
         tracing::error!("request is not handled correctly due to a server error while loading delta table");
-	return Err(anyhow!("error occured while selecting table(s)").into());
+    	return Err(anyhow!("error occured while selecting table(s)").into());
     };
     if let Some(starting_timestamp) = starting_timestamp {
         let Ok(_) = table.load_with_datetime(starting_timestamp).await else {
-            tracing::error!("request is not handled correctly due to a server error while time-traveling delta table");
-	    return Err(anyhow!("error occured while selecting table(s)").into());
-	};
+                tracing::error!("request is not handled correctly due to a server error while time-traveling delta table");
+    	    return Err(anyhow!("error occured while selecting table(s)").into());
+    	};
     }
     let mut response = StatusCode::OK.into_response();
     let headers = response.headers_mut();

@@ -1,9 +1,11 @@
+use anyhow::Context;
 use anyhow::Result;
 use rusoto_credential::ProfileProvider;
 
-pub fn new(path: &str, profile: &str) -> Result<ProfileProvider> {
+pub fn new(profile: &str) -> Result<ProfileProvider> {
     tracing::info!("creating AWS profile provider");
-    let pp = ProfileProvider::with_configuration(path, profile);
+    let mut pp = ProfileProvider::new().context("failed to create AWS profile provider")?;
+    pp.set_profile(profile);
     tracing::info!("created AWS profile provider");
     Ok(pp)
 }
@@ -16,10 +18,7 @@ mod tests {
     #[test]
     fn test_new() {
         assert!(matches!(
-            new(
-                &config::fetch::<String>("aws_credentials"),
-                &config::fetch::<String>("aws_profile")
-            ),
+            new(&config::fetch::<String>("aws_profile")),
             Ok(_)
         ));
     }

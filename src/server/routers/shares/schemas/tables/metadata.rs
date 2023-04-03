@@ -1,4 +1,3 @@
-use crate::config;
 use crate::server::entities::schema::Name as SchemaName;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::entities::table::Name as TableName;
@@ -8,6 +7,7 @@ use crate::server::services::deltalake::Protocol;
 use crate::server::services::deltalake::Service as DeltalakeService;
 use crate::server::services::error::Error;
 use crate::server::services::table::Service as TableService;
+use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Path;
@@ -18,10 +18,8 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum::BoxError;
 use axum_extra::json_lines::JsonLines;
-use deltalake::delta::open_table_with_storage_options;
 use futures_util::stream::Stream;
 use serde_json::json;
-use std::collections::hash_map::HashMap;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
 
@@ -96,11 +94,7 @@ pub async fn get(
         tracing::error!("requested table does not exist");
 	return Err(Error::NotFound);
     };
-    let options = HashMap::from([(
-        String::from("google_service_account_path"),
-        config::fetch::<String>("gcp_sa_private_key"),
-    )]);
-    let Ok(table) = open_table_with_storage_options(&table.location, options).await else {
+    let Ok(table) = DeltalakeUtility::open_table(&table.location).await else {
         tracing::error!("request is not handled correctly due to a server error while loading delta table");
 	return Err(anyhow!("error occured while selecting tables(s)").into());
     };
