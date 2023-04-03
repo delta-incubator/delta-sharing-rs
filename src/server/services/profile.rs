@@ -85,9 +85,58 @@ impl Service {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::JWT_SECRET;
+    use jsonwebtoken::decode;
+    use jsonwebtoken::Validation;
+    use std::str::FromStr;
+    use std::thread::sleep;
+    use std::time::Duration;
 
-    #[tokio::test]
-    async fn test() {
-        println!("TEST PROFILE!!!");
+    //#[test]
+    fn test_expired_profile() -> Result<()> {
+        let roles = vec!["Admin", "Guest"];
+        let role = testutils::rand::choose(&roles);
+        let role = Role::from_str(role).context("failed to choose role")?;
+        let two_mins = Duration::from_millis(120000);
+        let profile = Service::issue(
+            testutils::rand::string(10),
+            testutils::rand::string(10),
+            testutils::rand::string(10),
+            role,
+            0,
+        )
+        .expect("profile should be issued properly");
+        sleep(two_mins);
+        let Err(_) = decode::<Claims>(
+            &profile.bearer_token,
+            &JWT_SECRET.decoding,
+            &Validation::default(),
+        ) else {
+            panic!("new profile should be expired");
+        };
+        Ok(())
+    }
+
+    #[test]
+    fn test_unexpired_profile() -> Result<()> {
+        let roles = vec!["Admin", "Guest"];
+        let role = testutils::rand::choose(&roles);
+        let role = Role::from_str(role).context("failed to choose role")?;
+        let profile = Service::issue(
+            testutils::rand::string(10),
+            testutils::rand::string(10),
+            testutils::rand::string(10),
+            role,
+            testutils::rand::i64(100000, 1000000),
+        )
+        .expect("profile should be issued properly");
+        let Ok(_) = decode::<Claims>(
+            &profile.bearer_token,
+            &JWT_SECRET.decoding,
+            &Validation::default(),
+        ) else {
+            panic!("new profile should not be expired");
+        };
+        Ok(())
     }
 }

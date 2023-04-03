@@ -90,8 +90,8 @@ impl Service {
         metadata: DeltaTableMetaData,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
         futures_util::stream::iter(vec![
-            Ok::<serde_json::Value, BoxError>(json!(Protocol::new())),
-            Ok::<serde_json::Value, BoxError>(json!(Metadata::from(metadata))),
+            Ok(json!(Protocol::new())),
+            Ok(json!(Metadata::from(metadata))),
         ])
     }
 }
