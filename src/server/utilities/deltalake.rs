@@ -8,7 +8,7 @@ use std::cmp::min;
 use std::collections::hash_map::HashMap;
 use std::fmt;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Interval<T>
 where
     T: Copy + PartialOrd + Ord,
@@ -22,7 +22,7 @@ where
     T: Copy + PartialOrd + Ord + fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Interval: [{}, {}]", self.min, self.max)
+        write!(f, "[{}, {}]", self.min, self.max)
     }
 }
 
