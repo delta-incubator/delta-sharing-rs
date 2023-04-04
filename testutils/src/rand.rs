@@ -29,6 +29,11 @@ pub fn usize(upper: usize) -> usize {
     rand::random::<usize>() % upper
 }
 
+pub fn f64(lower: f64, upper: f64) -> f64 {
+    let mut rng = rand::thread_rng();
+    rng.gen_range(lower..upper)
+}
+
 pub fn bool() -> bool {
     let mut rng = rand::thread_rng();
     rng.gen_range(0..1) % 2 == 0

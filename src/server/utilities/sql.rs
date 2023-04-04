@@ -2,6 +2,13 @@ use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
 
+static ALPHANUMERIC: &[char] = &[
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
+    'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+    'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4',
+    '5', '6', '7', '8', '9', '.', '-',
+];
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Token {
     EQ,
@@ -51,10 +58,10 @@ fn lex(code: String) -> Result<Vec<Token>> {
                     toks.push(Token::LT);
                 }
             }
-            c if c.is_ascii_alphanumeric() => {
+            c if ALPHANUMERIC.contains(&c) => {
                 let tail: String = iter
                     .by_ref()
-                    .take_while(|c| match c.is_ascii_alphanumeric() {
+                    .take_while(|c| match ALPHANUMERIC.contains(c) {
                         true => true,
                         false => {
                             next = Some(*c);
@@ -80,9 +87,40 @@ mod tests {
 
     #[test]
     fn test_lex() {
-        let expr = "col = 10";
-        let ret = lex(expr.into());
-        println!("{:?}", ret);
+        let col = testutils::rand::string(10);
+        let val = testutils::rand::f64(-1.5, 1.5);
+        let expr = format!(
+            "{}{}{}={}{}{}",
+            " ".repeat(testutils::rand::usize(10)),
+            col,
+            " ".repeat(testutils::rand::usize(10)),
+            " ".repeat(testutils::rand::usize(10)),
+            val,
+            " ".repeat(testutils::rand::usize(10)),
+        );
+        let toks = lex(expr.into()).expect("expression should be parsed properly");
+        assert_eq!(toks.len(), 4);
+        assert_eq!(toks[0], Token::Key(col));
+        assert_eq!(toks[1], Token::EQ);
+        assert_eq!(toks[2], Token::Key(val.to_string()));
+        assert_eq!(toks[3], Token::End);
+
+        let col = testutils::rand::string(10);
+        let val = testutils::rand::i64(-15, 15);
+        let expr = format!(
+            "{}{}{}={}'{}'{}",
+            " ".repeat(testutils::rand::usize(10)),
+            col,
+            " ".repeat(testutils::rand::usize(10)),
+            " ".repeat(testutils::rand::usize(10)),
+            val,
+            " ".repeat(testutils::rand::usize(10)),
+        );
+        let toks = lex(expr.into()).expect("expression should be parsed properly");
+        assert_eq!(toks.len(), 6);
+        assert_eq!(toks[0], Token::Key(col));
+        assert_eq!(toks[1], Token::EQ);
+        assert_eq!(toks[2], Token::Key(val.to_string()));
         let expr = "col >= '10'";
         let ret = lex(expr.into());
         println!("{:?}", ret);

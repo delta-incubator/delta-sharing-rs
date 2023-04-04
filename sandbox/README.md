@@ -1,6 +1,9 @@
 Kotosiro Sharing Server Python Sandbox
 ==============================
 
+ This directory contains code snippets and notebooks to test the functionality of Kotosiro Sharing Server,
+primarily for checking connectivity between cloud service backends.
+
 Setup
 ==============================
 
