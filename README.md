@@ -65,3 +65,4 @@ TODO
  - [ ] Kubernetes
  - [ ] React/Frontend
  - [ ] CORS
+ - [ ] Audit (namespace, tenant, log etc...)

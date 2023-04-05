@@ -44,15 +44,23 @@ where
     }
 
     pub fn is_before(&self, value: T) -> bool {
+        self.max < value
+    }
+
+    pub fn is_on_or_before(&self, value: T) -> bool {
         self.max <= value
     }
 
     pub fn contains(&self, value: T) -> bool {
-        self.min <= value && value < self.max
+        self.min <= value && value <= self.max
     }
 
     pub fn is_after(&self, value: T) -> bool {
         self.min > value
+    }
+
+    pub fn is_on_or_after(&self, value: T) -> bool {
+        self.min >= value
     }
 
     pub fn is_empty(&self) -> bool {
@@ -106,10 +114,14 @@ mod tests {
         let interval = Interval::new(min, max);
         let val = testutils::rand::i64(10, 100);
         assert!(interval.contains(val));
-        let val = testutils::rand::i64(1000, 2000);
+        let val = testutils::rand::i64(1001, 2000);
         assert!(interval.is_before(val));
-        let val = testutils::rand::i64(-100, -10);
+        let val = testutils::rand::i64(1000, 2000);
+        assert!(interval.is_on_or_before(val));
+        let val = testutils::rand::i64(-100, -11);
         assert!(interval.is_after(val));
+        let val = testutils::rand::i64(-100, -10);
+        assert!(interval.is_on_or_after(val));
         let min = testutils::rand::i64(100, 1000);
         let max = testutils::rand::i64(-10, 10);
         let interval = Interval::new(min, max);
@@ -123,10 +135,14 @@ mod tests {
         let interval = Interval::new(&min, &max);
         let val = testutils::rand::i64(3000, 4000).to_string();
         assert!(interval.contains(&val));
-        let val = testutils::rand::i64(5000, 6000).to_string();
+        let val = testutils::rand::i64(5001, 6000).to_string();
         assert!(interval.is_before(&val));
-        let val = testutils::rand::i64(1000, 2000).to_string();
+        let val = testutils::rand::i64(5000, 6000).to_string();
+        assert!(interval.is_on_or_before(&val));
+        let val = testutils::rand::i64(1000, 1999).to_string();
         assert!(interval.is_after(&val));
+        let val = testutils::rand::i64(1000, 2000).to_string();
+        assert!(interval.is_on_or_after(&val));
         let min = testutils::rand::i64(4000, 5000).to_string();
         let max = testutils::rand::i64(2000, 3000).to_string();
         let interval = Interval::new(&min, &max);
