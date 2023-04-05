@@ -41,7 +41,7 @@ fn lex(code: String) -> Result<Vec<Token>> {
             '\'' => toks.push(Token::QT),
             '>' => {
                 if iter.peek() == Some(&'=') {
-                    let _ = iter.by_ref().take(1);
+                    iter.next();
                     toks.push(Token::GE);
                 } else {
                     toks.push(Token::GT);
@@ -49,10 +49,10 @@ fn lex(code: String) -> Result<Vec<Token>> {
             }
             '<' => {
                 if iter.peek() == Some(&'=') {
-                    let _ = iter.by_ref().take(1);
+                    iter.next();
                     toks.push(Token::LE);
                 } else if iter.peek() == Some(&'>') {
-                    let _ = iter.by_ref().take(1);
+                    iter.next();
                     toks.push(Token::NE);
                 } else {
                     toks.push(Token::LT);
@@ -104,11 +104,10 @@ mod tests {
         assert_eq!(toks[1], Token::EQ);
         assert_eq!(toks[2], Token::Key(val.to_string()));
         assert_eq!(toks[3], Token::End);
-
         let col = testutils::rand::string(10);
         let val = testutils::rand::i64(-15, 15);
         let expr = format!(
-            "{}{}{}={}'{}'{}",
+            "{}{}{}>{}'{}'{}",
             " ".repeat(testutils::rand::usize(10)),
             col,
             " ".repeat(testutils::rand::usize(10)),
@@ -119,10 +118,111 @@ mod tests {
         let toks = lex(expr.into()).expect("expression should be parsed properly");
         assert_eq!(toks.len(), 6);
         assert_eq!(toks[0], Token::Key(col));
-        assert_eq!(toks[1], Token::EQ);
+        assert_eq!(toks[1], Token::GT);
+        assert_eq!(toks[2], Token::QT);
+        assert_eq!(toks[3], Token::Key(val.to_string()));
+        assert_eq!(toks[4], Token::QT);
+        assert_eq!(toks[5], Token::End);
+        let col = testutils::rand::string(10);
+        let val = testutils::rand::f64(-1.5, 1.5);
+        let expr = format!(
+            "{}{}{}<{}{}{}",
+            " ".repeat(testutils::rand::usize(10)),
+            col,
+            " ".repeat(testutils::rand::usize(10)),
+            " ".repeat(testutils::rand::usize(10)),
+            val,
+            " ".repeat(testutils::rand::usize(10)),
+        );
+        let toks = lex(expr.into()).expect("expression should be parsed properly");
+        assert_eq!(toks.len(), 4);
+        assert_eq!(toks[0], Token::Key(col));
+        assert_eq!(toks[1], Token::LT);
         assert_eq!(toks[2], Token::Key(val.to_string()));
-        let expr = "col >= '10'";
-        let ret = lex(expr.into());
-        println!("{:?}", ret);
+        assert_eq!(toks[3], Token::End);
+        let col = testutils::rand::string(10);
+        let val = testutils::rand::i64(-15, 15);
+        let expr = format!(
+            "{}{}{}>={}'{}'{}",
+            " ".repeat(testutils::rand::usize(10)),
+            col,
+            " ".repeat(testutils::rand::usize(10)),
+            " ".repeat(testutils::rand::usize(10)),
+            val,
+            " ".repeat(testutils::rand::usize(10)),
+        );
+        let toks = lex(expr.into()).expect("expression should be parsed properly");
+        assert_eq!(toks.len(), 6);
+        assert_eq!(toks[0], Token::Key(col));
+        assert_eq!(toks[1], Token::GE);
+        assert_eq!(toks[2], Token::QT);
+        assert_eq!(toks[3], Token::Key(val.to_string()));
+        assert_eq!(toks[4], Token::QT);
+        assert_eq!(toks[5], Token::End);
+        let col = testutils::rand::string(10);
+        let val = testutils::rand::f64(-1.5, 1.5);
+        let expr = format!(
+            "{}{}{}<={}{}{}",
+            " ".repeat(testutils::rand::usize(10)),
+            col,
+            " ".repeat(testutils::rand::usize(10)),
+            " ".repeat(testutils::rand::usize(10)),
+            val,
+            " ".repeat(testutils::rand::usize(10)),
+        );
+        let toks = lex(expr.into()).expect("expression should be parsed properly");
+        assert_eq!(toks.len(), 4);
+        assert_eq!(toks[0], Token::Key(col));
+        assert_eq!(toks[1], Token::LE);
+        assert_eq!(toks[2], Token::Key(val.to_string()));
+        assert_eq!(toks[3], Token::End);
+        let col = testutils::rand::string(10);
+        let val = testutils::rand::i64(-15, 15);
+        let expr = format!(
+            "{}{}{}<>{}'{}'{}",
+            " ".repeat(testutils::rand::usize(10)),
+            col,
+            " ".repeat(testutils::rand::usize(10)),
+            " ".repeat(testutils::rand::usize(10)),
+            val,
+            " ".repeat(testutils::rand::usize(10)),
+        );
+        let toks = lex(expr.into()).expect("expression should be parsed properly");
+        assert_eq!(toks.len(), 6);
+        assert_eq!(toks[0], Token::Key(col));
+        assert_eq!(toks[1], Token::NE);
+        assert_eq!(toks[2], Token::QT);
+        assert_eq!(toks[3], Token::Key(val.to_string()));
+        assert_eq!(toks[4], Token::QT);
+        assert_eq!(toks[5], Token::End);
+        let col = testutils::rand::string(10);
+        let expr = format!(
+            "{}{} IS {} NULL",
+            " ".repeat(testutils::rand::usize(10)),
+            col,
+            " ".repeat(testutils::rand::usize(10)),
+        );
+        let toks = lex(expr.into()).expect("expression should be parsed properly");
+        assert_eq!(toks.len(), 4);
+        assert_eq!(toks[0], Token::Key(col));
+        assert_eq!(toks[1], Token::Key("IS".into()));
+        assert_eq!(toks[2], Token::Key("NULL".into()));
+        assert_eq!(toks[3], Token::End);
+
+        let col = testutils::rand::string(10);
+        let expr = format!(
+            "{}{} IS {} NOT {} NULL",
+            " ".repeat(testutils::rand::usize(10)),
+            col,
+            " ".repeat(testutils::rand::usize(10)),
+            " ".repeat(testutils::rand::usize(10)),
+        );
+        let toks = lex(expr.into()).expect("expression should be parsed properly");
+        assert_eq!(toks.len(), 5);
+        assert_eq!(toks[0], Token::Key(col));
+        assert_eq!(toks[1], Token::Key("IS".into()));
+        assert_eq!(toks[2], Token::Key("NOT".into()));
+        assert_eq!(toks[3], Token::Key("NULL".into()));
+        assert_eq!(toks[4], Token::End);
     }
 }
