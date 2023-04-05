@@ -1,4 +1,5 @@
 pub mod metadata;
+pub mod query;
 pub mod version;
 use crate::server::entities::schema::Name as SchemaName;
 use crate::server::entities::share::Entity as ShareEntity;

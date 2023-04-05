@@ -3,12 +3,7 @@ use anyhow::Context;
 use anyhow::Result;
 use std::collections::VecDeque;
 
-static ALPHANUMERIC: &[char] = &[
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
-    'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-    'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4',
-    '5', '6', '7', '8', '9', '.', '-',
-];
+static KEYWORDS: &[char] = &['=', '\'', '>', '<'];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Token {
@@ -62,13 +57,13 @@ impl Token {
                         tokens.push_back(Token::LT);
                     }
                 }
-                c if ALPHANUMERIC.contains(&c) => {
+                c if !KEYWORDS.contains(&c) && !c.is_whitespace() => {
                     let tail: String = iter
                         .by_ref()
-                        .take_while(|c| match ALPHANUMERIC.contains(c) {
+                        .take_while(|&c| match !KEYWORDS.contains(&c) && !c.is_whitespace() {
                             true => true,
                             false => {
-                                next = Some(*c);
+                                next = Some(c);
                                 false
                             }
                         })
@@ -222,47 +217,37 @@ impl Utility {
                     return Err(anyhow!("failed to parse SQL expression"));
                 }
             }
-        } else {
-            if Some(&Token::QT) == tokens.front() {
-                let value = Self::string(&mut tokens)
-                    .context("third entry of SQL expression should be value")?;
-                Self::end(&mut tokens).context("invalid SQL expression")?;
-                match operator {
-                    Operator::Equal => {
-                        return Ok(Predicate::StrEqual { column, value });
-                    }
-                    Operator::GreaterThan => {
-                        return Ok(Predicate::StrGreaterThan { column, value })
-                    }
-                    Operator::LessThan => return Ok(Predicate::StrLessThan { column, value }),
-                    Operator::GreaterEqual => {
-                        return Ok(Predicate::StrGreaterEqual { column, value })
-                    }
-                    Operator::LessEqual => return Ok(Predicate::StrLessEqual { column, value }),
-                    Operator::NotEqual => return Ok(Predicate::StrNotEqual { column, value }),
-                    _ => {
-                        return Err(anyhow!("failed to parse SQL expression"));
-                    }
+        }
+        if Some(&Token::QT) == tokens.front() {
+            let value = Self::string(&mut tokens)
+                .context("third entry of SQL expression should be value")?;
+            Self::end(&mut tokens).context("invalid SQL expression")?;
+            match operator {
+                Operator::Equal => {
+                    return Ok(Predicate::StrEqual { column, value });
                 }
-            } else {
-                let value = Self::number(&mut tokens)
-                    .context("third entry of SQL expression should be value")?;
-                Self::end(&mut tokens).context("invalid SQL expression")?;
-                match operator {
-                    Operator::Equal => return Ok(Predicate::NumEqual { column, value }),
-                    Operator::GreaterThan => {
-                        return Ok(Predicate::NumGreaterThan { column, value })
-                    }
-                    Operator::LessThan => return Ok(Predicate::NumLessThan { column, value }),
-                    Operator::GreaterEqual => {
-                        return Ok(Predicate::NumGreaterEqual { column, value })
-                    }
-                    Operator::LessEqual => return Ok(Predicate::NumLessEqual { column, value }),
-                    Operator::NotEqual => return Ok(Predicate::NumNotEqual { column, value }),
-                    _ => {
-                        return Err(anyhow!("failed to parse SQL expression"));
-                    }
+                Operator::GreaterThan => return Ok(Predicate::StrGreaterThan { column, value }),
+                Operator::LessThan => return Ok(Predicate::StrLessThan { column, value }),
+                Operator::GreaterEqual => return Ok(Predicate::StrGreaterEqual { column, value }),
+                Operator::LessEqual => return Ok(Predicate::StrLessEqual { column, value }),
+                Operator::NotEqual => return Ok(Predicate::StrNotEqual { column, value }),
+                _ => {
+                    return Err(anyhow!("failed to parse SQL expression"));
                 }
+            }
+        }
+        let value =
+            Self::number(&mut tokens).context("third entry of SQL expression should be value")?;
+        Self::end(&mut tokens).context("invalid SQL expression")?;
+        match operator {
+            Operator::Equal => return Ok(Predicate::NumEqual { column, value }),
+            Operator::GreaterThan => return Ok(Predicate::NumGreaterThan { column, value }),
+            Operator::LessThan => return Ok(Predicate::NumLessThan { column, value }),
+            Operator::GreaterEqual => return Ok(Predicate::NumGreaterEqual { column, value }),
+            Operator::LessEqual => return Ok(Predicate::NumLessEqual { column, value }),
+            Operator::NotEqual => return Ok(Predicate::NumNotEqual { column, value }),
+            _ => {
+                return Err(anyhow!("failed to parse SQL expression"));
             }
         }
     }

@@ -1,5 +1,10 @@
+use crate::server::utilities::sql::Predicate as SQLPredicate;
+use anyhow::Context;
 use anyhow::Result;
 use axum::BoxError;
+use chrono::DateTime;
+use chrono::Utc;
+use deltalake::delta::DeltaTable;
 use deltalake::delta::DeltaTableMetaData;
 use futures_util::stream::Stream;
 use serde_json::json;
@@ -83,9 +88,167 @@ impl Metadata {
     }
 }
 
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Stats {
+    pub num_records: i64,
+    pub min_values: HashMap<String, serde_json::Value>,
+    pub max_values: HashMap<String, serde_json::Value>,
+    pub null_count: HashMap<String, i64>,
+}
+
 pub struct Service;
 
 impl Service {
+    fn check(predicate: &SQLPredicate, stats: &Stats) -> bool {
+        match predicate {
+            SQLPredicate::IsNull { column } => {
+                let Some(count) = stats.null_count.get(column) else {
+		    return true;
+		};
+                return count > &0;
+            }
+            SQLPredicate::IsNotNull { column } => {
+                let Some(count) = stats.null_count.get(column) else {
+		    return false;
+		};
+                return count == &0;
+            }
+            SQLPredicate::StrEqual { column, value } => {
+                let Some(serde_json::Value::String(min)) = stats.min_values.get(column) else {
+		    return false;
+		};
+                let Some(serde_json::Value::String(max)) = stats.max_values.get(column) else {
+		    return false;
+		};
+                return min <= value && value <= max;
+            }
+            SQLPredicate::StrGreaterThan { column, value } => {
+                let Some(serde_json::Value::String(max)) = stats.max_values.get(column) else {
+		    return false;
+		};
+                return value < max;
+            }
+            SQLPredicate::StrLessThan { column, value } => {
+                let Some(serde_json::Value::String(min)) = stats.min_values.get(column) else {
+		    return false;
+		};
+                return min < value;
+            }
+            SQLPredicate::StrGreaterEqual { column, value } => {
+                let Some(serde_json::Value::String(max)) = stats.max_values.get(column) else {
+		    return false;
+		};
+                return value <= max;
+            }
+            SQLPredicate::StrLessEqual { column, value } => {
+                let Some(serde_json::Value::String(min)) = stats.min_values.get(column) else {
+		    return false;
+		};
+                return min <= value;
+            }
+            SQLPredicate::StrNotEqual { column, value: _ } => {
+                let Some(serde_json::Value::String(_)) = stats.min_values.get(column) else {
+		    return false;
+		};
+                let Some(serde_json::Value::String(_)) = stats.max_values.get(column) else {
+		    return false;
+		};
+                return true;
+            }
+            SQLPredicate::NumEqual { column, value } => {
+                let Some(serde_json::Value::Number(min)) = stats.min_values.get(column) else {
+		    return false;
+		};
+                let Some(serde_json::Value::Number(max)) = stats.max_values.get(column) else {
+		    return false;
+		};
+                let Some(min) = min.as_f64() else {
+		    return false;
+		};
+                let Some(max) = max.as_f64() else {
+		    return false;
+		};
+                return &min <= value && value <= &max;
+            }
+            SQLPredicate::NumGreaterThan { column, value } => {
+                let Some(serde_json::Value::Number(max)) = stats.max_values.get(column) else {
+		    return false;
+		};
+                let Some(max) = max.as_f64() else {
+		    return false;
+		};
+                return value < &max;
+            }
+            SQLPredicate::NumLessThan { column, value } => {
+                let Some(serde_json::Value::Number(min)) = stats.min_values.get(column) else {
+		    return false;
+		};
+                let Some(min) = min.as_f64() else {
+		    return false;
+		};
+                return &min < value;
+            }
+            SQLPredicate::NumGreaterEqual { column, value } => {
+                let Some(serde_json::Value::Number(max)) = stats.max_values.get(column) else {
+		    return false;
+		};
+                let Some(max) = max.as_f64() else {
+		    return false;
+		};
+                return value <= &max;
+            }
+            SQLPredicate::NumLessEqual { column, value } => {
+                let Some(serde_json::Value::Number(min)) = stats.min_values.get(column) else {
+		    return false;
+		};
+                let Some(min) = min.as_f64() else {
+		    return false;
+		};
+                return &min <= value;
+            }
+            SQLPredicate::NumNotEqual { column, value: _ } => {
+                let Some(serde_json::Value::Number(_)) = stats.min_values.get(column) else {
+		    return false;
+		};
+                let Some(serde_json::Value::Number(_)) = stats.max_values.get(column) else {
+		    return false;
+		};
+                return true;
+            }
+        }
+    }
+
+    pub fn load_files(
+        table: DeltaTable,
+        predicate_hints: Option<Vec<SQLPredicate>>,
+    ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
+        let files = table.get_state().files();
+        if let Some(predicates) = predicate_hints {
+            if predicates.len() > 0 {
+                let filtered = files.iter().filter(|&f| {
+                    predicates.iter().all(|p| {
+                        let Some(stats) = &f.stats else {
+			    return false;
+			};
+                        let Ok(stats): Result<Stats, _> = serde_json::from_str(stats) else {
+			    return false;
+			};
+                        Self::check(&p, &stats)
+                    })
+                });
+                println!("FILTERED");
+                println!("{:?}", filtered);
+                todo!()
+            }
+        }
+        for file in files {
+            let stats: Stats = serde_json::from_str(file.stats.as_ref().unwrap()).unwrap();
+            println!("{:?}", stats);
+        }
+        futures_util::stream::iter(vec![])
+    }
+
     pub fn load_metadata(
         metadata: DeltaTableMetaData,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
