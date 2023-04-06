@@ -100,7 +100,7 @@ struct Stats {
 pub struct Service;
 
 impl Service {
-    fn check(predicate: &SQLPredicate, stats: &Stats) -> bool {
+    fn check_hints(predicate: &SQLPredicate, stats: &Stats) -> bool {
         match predicate {
             SQLPredicate::IsNull { column } => {
                 let Some(count) = stats.null_count.get(column) else {
@@ -114,107 +114,118 @@ impl Service {
 		};
                 return count == &0;
             }
-            SQLPredicate::StrEqual { column, value } => {
-                let Some(serde_json::Value::String(min)) = stats.min_values.get(column) else {
-		    return false;
-		};
-                let Some(serde_json::Value::String(max)) = stats.max_values.get(column) else {
-		    return false;
-		};
-                return min <= value && value <= max;
+            SQLPredicate::Equal { column, value } => {
+                let min = stats.min_values.get(column);
+                let max = stats.max_values.get(column);
+                match (min, max) {
+                    (
+                        Some(serde_json::Value::String(min)),
+                        Some(serde_json::Value::String(max)),
+                    ) => {
+                        return min <= value && value <= max;
+                    }
+                    (
+                        Some(serde_json::Value::Number(min)),
+                        Some(serde_json::Value::Number(max)),
+                    ) => {
+                        let Ok(value) = value.parse::<f64>() else {
+			    return false;
+			};
+                        let Some(min) = min.as_f64() else {
+			    return false;
+			};
+                        let Some(max) = max.as_f64() else {
+			    return false;
+			};
+                        return min <= value && value <= max;
+                    }
+                    _ => false,
+                }
             }
-            SQLPredicate::StrGreaterThan { column, value } => {
-                let Some(serde_json::Value::String(max)) = stats.max_values.get(column) else {
-		    return false;
-		};
-                return value < max;
+            SQLPredicate::GreaterThan { column, value } => {
+                let max = stats.max_values.get(column);
+                match max {
+                    Some(serde_json::Value::String(max)) => {
+                        return value < max;
+                    }
+                    Some(serde_json::Value::Number(max)) => {
+                        let Ok(value) = value.parse::<f64>() else {
+			    return false;
+			};
+                        let Some(max) = max.as_f64() else {
+			    return false;
+			};
+                        return value < max;
+                    }
+                    _ => false,
+                }
             }
-            SQLPredicate::StrLessThan { column, value } => {
-                let Some(serde_json::Value::String(min)) = stats.min_values.get(column) else {
-		    return false;
-		};
-                return min < value;
+            SQLPredicate::LessThan { column, value } => {
+                let min = stats.min_values.get(column);
+                match min {
+                    Some(serde_json::Value::String(min)) => {
+                        return min < value;
+                    }
+                    Some(serde_json::Value::Number(min)) => {
+                        let Ok(value) = value.parse::<f64>() else {
+			    return false;
+			};
+                        let Some(min) = min.as_f64() else {
+			    return false;
+			};
+                        return min < value;
+                    }
+                    _ => false,
+                }
             }
-            SQLPredicate::StrGreaterEqual { column, value } => {
-                let Some(serde_json::Value::String(max)) = stats.max_values.get(column) else {
-		    return false;
-		};
-                return value <= max;
+            SQLPredicate::GreaterEqual { column, value } => {
+                let max = stats.max_values.get(column);
+                match max {
+                    Some(serde_json::Value::String(max)) => {
+                        return value <= max;
+                    }
+                    Some(serde_json::Value::Number(max)) => {
+                        let Ok(value) = value.parse::<f64>() else {
+			    return false;
+			};
+                        let Some(max) = max.as_f64() else {
+			    return false;
+			};
+                        return value <= max;
+                    }
+                    _ => false,
+                }
             }
-            SQLPredicate::StrLessEqual { column, value } => {
-                let Some(serde_json::Value::String(min)) = stats.min_values.get(column) else {
-		    return false;
-		};
-                return min <= value;
+            SQLPredicate::LessEqual { column, value } => {
+                let min = stats.min_values.get(column);
+                match min {
+                    Some(serde_json::Value::String(min)) => {
+                        return min <= value;
+                    }
+                    Some(serde_json::Value::Number(min)) => {
+                        let Ok(value) = value.parse::<f64>() else {
+			    return false;
+			};
+                        let Some(min) = min.as_f64() else {
+			    return false;
+			};
+                        return min <= value;
+                    }
+                    _ => false,
+                }
             }
-            SQLPredicate::StrNotEqual { column, value: _ } => {
-                let Some(serde_json::Value::String(_)) = stats.min_values.get(column) else {
-		    return false;
-		};
-                let Some(serde_json::Value::String(_)) = stats.max_values.get(column) else {
-		    return false;
-		};
-                return true;
-            }
-            SQLPredicate::NumEqual { column, value } => {
-                let Some(serde_json::Value::Number(min)) = stats.min_values.get(column) else {
-		    return false;
-		};
-                let Some(serde_json::Value::Number(max)) = stats.max_values.get(column) else {
-		    return false;
-		};
-                let Some(min) = min.as_f64() else {
-		    return false;
-		};
-                let Some(max) = max.as_f64() else {
-		    return false;
-		};
-                return &min <= value && value <= &max;
-            }
-            SQLPredicate::NumGreaterThan { column, value } => {
-                let Some(serde_json::Value::Number(max)) = stats.max_values.get(column) else {
-		    return false;
-		};
-                let Some(max) = max.as_f64() else {
-		    return false;
-		};
-                return value < &max;
-            }
-            SQLPredicate::NumLessThan { column, value } => {
-                let Some(serde_json::Value::Number(min)) = stats.min_values.get(column) else {
-		    return false;
-		};
-                let Some(min) = min.as_f64() else {
-		    return false;
-		};
-                return &min < value;
-            }
-            SQLPredicate::NumGreaterEqual { column, value } => {
-                let Some(serde_json::Value::Number(max)) = stats.max_values.get(column) else {
-		    return false;
-		};
-                let Some(max) = max.as_f64() else {
-		    return false;
-		};
-                return value <= &max;
-            }
-            SQLPredicate::NumLessEqual { column, value } => {
-                let Some(serde_json::Value::Number(min)) = stats.min_values.get(column) else {
-		    return false;
-		};
-                let Some(min) = min.as_f64() else {
-		    return false;
-		};
-                return &min <= value;
-            }
-            SQLPredicate::NumNotEqual { column, value: _ } => {
-                let Some(serde_json::Value::Number(_)) = stats.min_values.get(column) else {
-		    return false;
-		};
-                let Some(serde_json::Value::Number(_)) = stats.max_values.get(column) else {
-		    return false;
-		};
-                return true;
+            SQLPredicate::NotEqual { column, value: _ } => {
+                let min = stats.min_values.get(column);
+                let max = stats.max_values.get(column);
+                match (min, max) {
+                    (Some(serde_json::Value::String(_)), Some(serde_json::Value::String(_))) => {
+                        return true;
+                    }
+                    (Some(serde_json::Value::Number(_)), Some(serde_json::Value::Number(_))) => {
+                        return true;
+                    }
+                    _ => false,
+                }
             }
         }
     }
@@ -226,17 +237,20 @@ impl Service {
         let files = table.get_state().files();
         if let Some(predicates) = predicate_hints {
             if predicates.len() > 0 {
-                let filtered = files.iter().filter(|&f| {
-                    predicates.iter().all(|p| {
-                        let Some(stats) = &f.stats else {
-			    return false;
-			};
-                        let Ok(stats): Result<Stats, _> = serde_json::from_str(stats) else {
-			    return false;
-			};
-                        Self::check(&p, &stats)
+                let filtered: Vec<_> = files
+                    .iter()
+                    .filter(|&f| {
+                        predicates.iter().all(|p| {
+                            let Some(stats) = &f.stats else {
+                        	return false;
+                            };
+                            let Ok(stats): Result<Stats, _> = serde_json::from_str(stats) else {
+                        	return false;
+                            };
+                            Self::check_hints(&p, &stats)
+                        })
                     })
-                });
+                    .collect();
                 println!("FILTERED");
                 println!("{:?}", filtered);
                 todo!()

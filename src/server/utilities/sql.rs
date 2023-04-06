@@ -3,7 +3,7 @@ use anyhow::Context;
 use anyhow::Result;
 use std::collections::VecDeque;
 
-static KEYWORDS: &[char] = &['=', '\'', '>', '<'];
+static KEYWORDS: &[char] = &[' ', '=', '\'', '\"', '>', '<'];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Token {
@@ -13,16 +13,18 @@ enum Token {
     GE,
     LE,
     NE,
-    QT,
     Key(String),
     End,
 }
 
 type Tokens = VecDeque<Token>;
 
+type Stack = Vec<char>;
+
 impl Token {
     fn lex(code: String) -> Result<Tokens> {
         let mut tokens: Tokens = VecDeque::new();
+        let mut stack: Stack = Vec::new();
         let mut iter = code.chars().peekable();
         let mut next: Option<char> = None;
         loop {
@@ -34,10 +36,24 @@ impl Token {
                 },
             };
             next = None;
+            if stack.len() > 0 {
+                let tail: String = iter
+                    .by_ref()
+                    .take_while(|c| c != stack.last().unwrap())
+                    .collect();
+                let key: String = format!("{}{}", c, tail)
+                    .parse()
+                    .context("failed to lex key")?;
+                tokens.push_back(Token::Key(key));
+                iter.next();
+                stack.pop();
+                continue;
+            }
             match c {
                 ' ' => continue,
                 '=' => tokens.push_back(Token::EQ),
-                '\'' => tokens.push_back(Token::QT),
+                '\'' => stack.push('\''),
+                '\"' => stack.push('\"'),
                 '>' => {
                     if iter.peek() == Some(&'=') {
                         iter.next();
@@ -57,10 +73,10 @@ impl Token {
                         tokens.push_back(Token::LT);
                     }
                 }
-                c if !KEYWORDS.contains(&c) && !c.is_whitespace() => {
+                c if !KEYWORDS.contains(&c) => {
                     let tail: String = iter
                         .by_ref()
-                        .take_while(|&c| match !KEYWORDS.contains(&c) && !c.is_whitespace() {
+                        .take_while(|&c| match !KEYWORDS.contains(&c) {
                             true => true,
                             false => {
                                 next = Some(c);
@@ -95,18 +111,12 @@ enum Operator {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Predicate {
-    StrEqual { column: String, value: String },
-    StrGreaterThan { column: String, value: String },
-    StrLessThan { column: String, value: String },
-    StrGreaterEqual { column: String, value: String },
-    StrLessEqual { column: String, value: String },
-    StrNotEqual { column: String, value: String },
-    NumEqual { column: String, value: f64 },
-    NumGreaterThan { column: String, value: f64 },
-    NumLessThan { column: String, value: f64 },
-    NumGreaterEqual { column: String, value: f64 },
-    NumLessEqual { column: String, value: f64 },
-    NumNotEqual { column: String, value: f64 },
+    Equal { column: String, value: String },
+    GreaterThan { column: String, value: String },
+    LessThan { column: String, value: String },
+    GreaterEqual { column: String, value: String },
+    LessEqual { column: String, value: String },
+    NotEqual { column: String, value: String },
     IsNull { column: String },
     IsNotNull { column: String },
 }
@@ -165,32 +175,13 @@ impl Utility {
         }
     }
 
-    fn string(tokens: &mut Tokens) -> Result<String> {
+    fn value(tokens: &mut Tokens) -> Result<String> {
         match tokens.pop_front() {
-            Some(Token::QT) => {
-                let Some(Token::Key(value)) = tokens.pop_front() else {
-		    return Err(anyhow!("failed to parse alphabetic value"));
-		};
-                let Some(Token::QT) = tokens.pop_front() else {
-		    return Err(anyhow!("failed to parse alphabetic value"));
-		};
+            Some(Token::Key(value)) => {
                 return Ok(value);
             }
             _ => {
                 return Err(anyhow!("failed to parse string"));
-            }
-        }
-    }
-
-    fn number(tokens: &mut Tokens) -> Result<f64> {
-        match tokens.pop_front() {
-            Some(Token::Key(value)) => {
-                return Ok(value
-                    .parse::<f64>()
-                    .context("failed to parse numeric value")?);
-            }
-            _ => {
-                return Err(anyhow!("failed to parse value"));
             }
         }
     }
@@ -218,34 +209,18 @@ impl Utility {
                 }
             }
         }
-        if Some(&Token::QT) == tokens.front() {
-            let value = Self::string(&mut tokens)
-                .context("third entry of SQL expression should be value")?;
-            Self::end(&mut tokens).context("invalid SQL expression")?;
-            match operator {
-                Operator::Equal => {
-                    return Ok(Predicate::StrEqual { column, value });
-                }
-                Operator::GreaterThan => return Ok(Predicate::StrGreaterThan { column, value }),
-                Operator::LessThan => return Ok(Predicate::StrLessThan { column, value }),
-                Operator::GreaterEqual => return Ok(Predicate::StrGreaterEqual { column, value }),
-                Operator::LessEqual => return Ok(Predicate::StrLessEqual { column, value }),
-                Operator::NotEqual => return Ok(Predicate::StrNotEqual { column, value }),
-                _ => {
-                    return Err(anyhow!("failed to parse SQL expression"));
-                }
-            }
-        }
         let value =
-            Self::number(&mut tokens).context("third entry of SQL expression should be value")?;
+            Self::value(&mut tokens).context("third entry of SQL expression should be value")?;
         Self::end(&mut tokens).context("invalid SQL expression")?;
         match operator {
-            Operator::Equal => return Ok(Predicate::NumEqual { column, value }),
-            Operator::GreaterThan => return Ok(Predicate::NumGreaterThan { column, value }),
-            Operator::LessThan => return Ok(Predicate::NumLessThan { column, value }),
-            Operator::GreaterEqual => return Ok(Predicate::NumGreaterEqual { column, value }),
-            Operator::LessEqual => return Ok(Predicate::NumLessEqual { column, value }),
-            Operator::NotEqual => return Ok(Predicate::NumNotEqual { column, value }),
+            Operator::Equal => {
+                return Ok(Predicate::Equal { column, value });
+            }
+            Operator::GreaterThan => return Ok(Predicate::GreaterThan { column, value }),
+            Operator::LessThan => return Ok(Predicate::LessThan { column, value }),
+            Operator::GreaterEqual => return Ok(Predicate::GreaterEqual { column, value }),
+            Operator::LessEqual => return Ok(Predicate::LessEqual { column, value }),
+            Operator::NotEqual => return Ok(Predicate::NotEqual { column, value }),
             _ => {
                 return Err(anyhow!("failed to parse SQL expression"));
             }
@@ -260,7 +235,7 @@ mod tests {
     #[test]
     fn test_lex() {
         let column = testutils::rand::string(10);
-        let value = testutils::rand::f64(-1.5, 1.5);
+        let value = testutils::rand::f64(-1.5, 1.5).to_string();
         let expr = format!(
             "{}{}{}={}{}{}",
             " ".repeat(testutils::rand::usize(10)),
@@ -274,10 +249,10 @@ mod tests {
         assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::EQ);
-        assert_eq!(tokens[2], Token::Key(value.to_string()));
+        assert_eq!(tokens[2], Token::Key(value));
         assert_eq!(tokens[3], Token::End);
         let column = testutils::rand::string(10);
-        let value = testutils::rand::i64(-15, 15);
+        let value = testutils::rand::i64(-15, 15).to_string();
         let expr = format!(
             "{}{}{}>{}'{}'{}",
             " ".repeat(testutils::rand::usize(10)),
@@ -288,15 +263,13 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let tokens = Token::lex(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(tokens.len(), 6);
+        assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::GT);
-        assert_eq!(tokens[2], Token::QT);
-        assert_eq!(tokens[3], Token::Key(value.to_string()));
-        assert_eq!(tokens[4], Token::QT);
-        assert_eq!(tokens[5], Token::End);
+        assert_eq!(tokens[2], Token::Key(value));
+        assert_eq!(tokens[3], Token::End);
         let column = testutils::rand::string(10);
-        let value = testutils::rand::f64(-1.5, 1.5);
+        let value = testutils::rand::f64(-1.5, 1.5).to_string();
         let expr = format!(
             "{}{}{}<{}{}{}",
             " ".repeat(testutils::rand::usize(10)),
@@ -310,10 +283,10 @@ mod tests {
         assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::LT);
-        assert_eq!(tokens[2], Token::Key(value.to_string()));
+        assert_eq!(tokens[2], Token::Key(value));
         assert_eq!(tokens[3], Token::End);
         let column = testutils::rand::string(10);
-        let value = testutils::rand::i64(-15, 15);
+        let value = testutils::rand::i64(-15, 15).to_string();
         let expr = format!(
             "{}{}{}>={}'{}'{}",
             " ".repeat(testutils::rand::usize(10)),
@@ -324,15 +297,13 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let tokens = Token::lex(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(tokens.len(), 6);
+        assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::GE);
-        assert_eq!(tokens[2], Token::QT);
-        assert_eq!(tokens[3], Token::Key(value.to_string()));
-        assert_eq!(tokens[4], Token::QT);
-        assert_eq!(tokens[5], Token::End);
+        assert_eq!(tokens[2], Token::Key(value));
+        assert_eq!(tokens[3], Token::End);
         let column = testutils::rand::string(10);
-        let value = testutils::rand::f64(-1.5, 1.5);
+        let value = testutils::rand::f64(-1.5, 1.5).to_string();
         let expr = format!(
             "{}{}{}<={}{}{}",
             " ".repeat(testutils::rand::usize(10)),
@@ -346,10 +317,10 @@ mod tests {
         assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::LE);
-        assert_eq!(tokens[2], Token::Key(value.to_string()));
+        assert_eq!(tokens[2], Token::Key(value));
         assert_eq!(tokens[3], Token::End);
         let column = testutils::rand::string(10);
-        let value = testutils::rand::i64(-15, 15);
+        let value = testutils::rand::i64(-15, 15).to_string();
         let expr = format!(
             "{}{}{}<>{}'{}'{}",
             " ".repeat(testutils::rand::usize(10)),
@@ -360,13 +331,11 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let tokens = Token::lex(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(tokens.len(), 6);
+        assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::NE);
-        assert_eq!(tokens[2], Token::QT);
-        assert_eq!(tokens[3], Token::Key(value.to_string()));
-        assert_eq!(tokens[4], Token::QT);
-        assert_eq!(tokens[5], Token::End);
+        assert_eq!(tokens[2], Token::Key(value));
+        assert_eq!(tokens[3], Token::End);
         let column = testutils::rand::string(10);
         let expr = format!(
             "{}{} IS {} NULL",
@@ -380,7 +349,6 @@ mod tests {
         assert_eq!(tokens[1], Token::Key("IS".into()));
         assert_eq!(tokens[2], Token::Key("NULL".into()));
         assert_eq!(tokens[3], Token::End);
-
         let column = testutils::rand::string(10);
         let expr = format!(
             "{}{} IS {} NOT {} NULL",
@@ -401,7 +369,7 @@ mod tests {
     #[test]
     fn test_parse() {
         let column = testutils::rand::string(10);
-        let value = testutils::rand::f64(-1.5, 1.5);
+        let value = testutils::rand::f64(-1.5, 1.5).to_string();
         let expr = format!(
             "{}{}{}={}{}{}",
             " ".repeat(testutils::rand::usize(10)),
@@ -412,7 +380,7 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::NumEqual { column, value });
+        assert_eq!(predicate, Predicate::Equal { column, value });
 
         let column = testutils::rand::string(10);
         let value = testutils::rand::string(10);
@@ -426,9 +394,9 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::StrGreaterThan { column, value });
+        assert_eq!(predicate, Predicate::GreaterThan { column, value });
         let column = testutils::rand::string(10);
-        let value = testutils::rand::f64(-1.5, 1.5);
+        let value = testutils::rand::f64(-1.5, 1.5).to_string();
         let expr = format!(
             "{}{}{}<{}{}{}",
             " ".repeat(testutils::rand::usize(10)),
@@ -439,7 +407,7 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::NumLessThan { column, value });
+        assert_eq!(predicate, Predicate::LessThan { column, value });
         let column = testutils::rand::string(10);
         let value = testutils::rand::string(10);
         let expr = format!(
@@ -452,9 +420,9 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::StrGreaterEqual { column, value });
+        assert_eq!(predicate, Predicate::GreaterEqual { column, value });
         let column = testutils::rand::string(10);
-        let value = testutils::rand::f64(-1.5, 1.5);
+        let value = testutils::rand::f64(-1.5, 1.5).to_string();
         let expr = format!(
             "{}{}{}<={}{}{}",
             " ".repeat(testutils::rand::usize(10)),
@@ -465,7 +433,7 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::NumLessEqual { column, value });
+        assert_eq!(predicate, Predicate::LessEqual { column, value });
         let column = testutils::rand::string(10);
         let value = testutils::rand::string(10);
         let expr = format!(
@@ -478,7 +446,7 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::StrNotEqual { column, value });
+        assert_eq!(predicate, Predicate::NotEqual { column, value });
         let column = testutils::rand::string(10);
         let expr = format!(
             "{}{} IS {} NULL",
