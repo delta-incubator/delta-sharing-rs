@@ -1,3 +1,5 @@
+use crate::server::utilities::deltalake::Stats;
+use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
 use crate::server::utilities::sql::Predicate as SQLPredicate;
 use anyhow::Context;
 use anyhow::Result;
@@ -12,6 +14,8 @@ use std::collections::HashMap;
 use utoipa::ToSchema;
 
 pub const VERSION: i32 = 1;
+
+type File = deltalake::action::Add;
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -88,178 +92,66 @@ impl Metadata {
     }
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Stats {
-    pub num_records: i64,
-    pub min_values: HashMap<String, serde_json::Value>,
-    pub max_values: HashMap<String, serde_json::Value>,
-    pub null_count: HashMap<String, i64>,
-}
-
 pub struct Service;
 
 impl Service {
-    fn check_hints(predicate: &SQLPredicate, stats: &Stats) -> bool {
-        match predicate {
-            SQLPredicate::IsNull { column } => {
-                let Some(count) = stats.null_count.get(column) else {
-		    return true;
-		};
-                return count > &0;
+    fn check_sql_hints(predicate: &SQLPredicate, stats: &Stats) -> bool {
+        let min = stats.min_values.get(predicate.column());
+        let max = stats.max_values.get(predicate.column());
+        let null_count = stats.null_count.get(predicate.column());
+        let (min, max) = match (min, max) {
+            (Some(serde_json::Value::String(min)), Some(serde_json::Value::String(max))) => {
+                (min, max)
             }
-            SQLPredicate::IsNotNull { column } => {
-                let Some(count) = stats.null_count.get(column) else {
-		    return false;
-		};
-                return count == &0;
+            (Some(serde_json::Value::Number(min)), Some(serde_json::Value::Number(max))) => {
+                (min, max)
             }
-            SQLPredicate::Equal { column, value } => {
-                let min = stats.min_values.get(column);
-                let max = stats.max_values.get(column);
-                match (min, max) {
-                    (
-                        Some(serde_json::Value::String(min)),
-                        Some(serde_json::Value::String(max)),
-                    ) => {
-                        return min <= value && value <= max;
-                    }
-                    (
-                        Some(serde_json::Value::Number(min)),
-                        Some(serde_json::Value::Number(max)),
-                    ) => {
-                        let Ok(value) = value.parse::<f64>() else {
-			    return false;
-			};
-                        let Some(min) = min.as_f64() else {
-			    return false;
-			};
-                        let Some(max) = max.as_f64() else {
-			    return false;
-			};
-                        return min <= value && value <= max;
-                    }
-                    _ => false,
-                }
-            }
-            SQLPredicate::GreaterThan { column, value } => {
-                let max = stats.max_values.get(column);
-                match max {
-                    Some(serde_json::Value::String(max)) => {
-                        return value < max;
-                    }
-                    Some(serde_json::Value::Number(max)) => {
-                        let Ok(value) = value.parse::<f64>() else {
-			    return false;
-			};
-                        let Some(max) = max.as_f64() else {
-			    return false;
-			};
-                        return value < max;
-                    }
-                    _ => false,
-                }
-            }
-            SQLPredicate::LessThan { column, value } => {
-                let min = stats.min_values.get(column);
-                match min {
-                    Some(serde_json::Value::String(min)) => {
-                        return min < value;
-                    }
-                    Some(serde_json::Value::Number(min)) => {
-                        let Ok(value) = value.parse::<f64>() else {
-			    return false;
-			};
-                        let Some(min) = min.as_f64() else {
-			    return false;
-			};
-                        return min < value;
-                    }
-                    _ => false,
-                }
-            }
-            SQLPredicate::GreaterEqual { column, value } => {
-                let max = stats.max_values.get(column);
-                match max {
-                    Some(serde_json::Value::String(max)) => {
-                        return value <= max;
-                    }
-                    Some(serde_json::Value::Number(max)) => {
-                        let Ok(value) = value.parse::<f64>() else {
-			    return false;
-			};
-                        let Some(max) = max.as_f64() else {
-			    return false;
-			};
-                        return value <= max;
-                    }
-                    _ => false,
-                }
-            }
-            SQLPredicate::LessEqual { column, value } => {
-                let min = stats.min_values.get(column);
-                match min {
-                    Some(serde_json::Value::String(min)) => {
-                        return min <= value;
-                    }
-                    Some(serde_json::Value::Number(min)) => {
-                        let Ok(value) = value.parse::<f64>() else {
-			    return false;
-			};
-                        let Some(min) = min.as_f64() else {
-			    return false;
-			};
-                        return min <= value;
-                    }
-                    _ => false,
-                }
-            }
-            SQLPredicate::NotEqual { column, value: _ } => {
-                let min = stats.min_values.get(column);
-                let max = stats.max_values.get(column);
-                match (min, max) {
-                    (Some(serde_json::Value::String(_)), Some(serde_json::Value::String(_))) => {
-                        return true;
-                    }
-                    (Some(serde_json::Value::Number(_)), Some(serde_json::Value::Number(_))) => {
-                        return true;
-                    }
-                    _ => false,
-                }
+            _ => return false,
+        };
+        let Some(count) = null_count else {
+	    return false;
+	};
+        predicate.hold(min, max, null_count)
+    }
+
+    fn filter_with_sql_hints(
+        files: Vec<File>,
+        predicate_hints: Option<Vec<SQLPredicate>>,
+    ) -> Vec<File> {
+        if let Some(predicates) = predicate_hints {
+            if predicates.len() > 0 {
+                return files
+                    .into_iter()
+                    .filter(|f| {
+                        predicates.iter().all(|p| {
+                            let Ok(stats) = DeltalakeUtility::get_stats(f) else {
+				return false;
+			    };
+                            Self::check_sql_hints(&p, &stats)
+                        })
+                    })
+                    .collect::<Vec<File>>();
             }
         }
+        files
     }
 
     pub fn load_files(
         table: DeltaTable,
         predicate_hints: Option<Vec<SQLPredicate>>,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
-        let files = table.get_state().files();
-        if let Some(predicates) = predicate_hints {
-            if predicates.len() > 0 {
-                let filtered: Vec<_> = files
-                    .iter()
-                    .filter(|&f| {
-                        predicates.iter().all(|p| {
-                            let Some(stats) = &f.stats else {
-                        	return false;
-                            };
-                            let Ok(stats): Result<Stats, _> = serde_json::from_str(stats) else {
-                        	return false;
-                            };
-                            Self::check_hints(&p, &stats)
-                        })
-                    })
-                    .collect();
-                println!("FILTERED");
-                println!("{:?}", filtered);
-                todo!()
-            }
-        }
+        let files =
+            Self::filter_with_sql_hints(table.get_state().files().to_owned(), predicate_hints);
         for file in files {
-            let stats: Stats = serde_json::from_str(file.stats.as_ref().unwrap()).unwrap();
+            let stats_raw = file.stats.as_ref().unwrap();
+            let stats: Stats = serde_json::from_str(stats_raw).unwrap();
+            println!("{:?}", file);
+            println!("{:?}", stats_raw);
             println!("{:?}", stats);
         }
+        let metadata = table.get_metadata().unwrap();
+        //        let schema = DeltalakeUtility::get_schema(metadata).unwrap();
+        //        println!("{:?}", schema);
         futures_util::stream::iter(vec![])
     }
 

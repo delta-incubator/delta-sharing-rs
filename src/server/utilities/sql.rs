@@ -226,6 +226,58 @@ impl Utility {
             }
         }
     }
+
+    pub fn check<T: PartialOrd + std::str::FromStr>(
+        predicate: &Predicate,
+        min: &T,
+        max: &T,
+        null_count: &i64,
+    ) -> bool {
+        match predicate {
+            Predicate::IsNull { .. } => {
+                return null_count > &0;
+            }
+            Predicate::IsNotNull { .. } => {
+                return null_count == &0;
+            }
+            Predicate::Equal { value, .. } => {
+                let Ok(ref value) = value.parse::<T>() else {
+		    return false;
+		};
+                return min <= value && value <= max;
+            }
+            Predicate::GreaterThan { value, .. } => {
+                let Ok(ref value) = value.parse::<T>() else {
+		    return false;
+		};
+                return value < max;
+            }
+            Predicate::LessThan { value, .. } => {
+                let Ok(ref value) = value.parse::<T>() else {
+		    return false;
+		};
+                return min < value;
+            }
+            Predicate::GreaterEqual { value, .. } => {
+                let Ok(ref value) = value.parse::<T>() else {
+		    return false;
+		};
+                return value <= max;
+            }
+            Predicate::LessEqual { value, .. } => {
+                let Ok(ref value) = value.parse::<T>() else {
+		    return false;
+		};
+                return min <= value;
+            }
+            Predicate::NotEqual { value, .. } => {
+                let Ok(ref value) = value.parse::<T>() else {
+		    return false;
+		};
+                return true;
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -381,7 +433,6 @@ mod tests {
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
         assert_eq!(predicate, Predicate::Equal { column, value });
-
         let column = testutils::rand::string(10);
         let value = testutils::rand::string(10);
         let expr = format!(

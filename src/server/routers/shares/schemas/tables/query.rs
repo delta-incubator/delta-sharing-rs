@@ -76,7 +76,7 @@ pub async fn post(
         None
     };
     let timestamp = if let Some(timestamp) = &payload.timestamp {
-        let Ok(timestamp) = Utc.datetime_from_str(timestamp, "%Y/%m/%d %H:%M:%S") else {
+        let Ok(timestamp) = DeltalakeUtility::datetime_yyyy_mm_dd_hh_mm_ss(timestamp) else {
             tracing::error!("requested timestamp is malformed");
 	    return Err(Error::ValidationFailed);
 	};

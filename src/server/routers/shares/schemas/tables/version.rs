@@ -52,7 +52,7 @@ pub async fn get(
     Query(query): Query<SharesSchemasTablesVersionGetQuery>,
 ) -> Result<Response, Error> {
     let starting_timestamp = if let Some(starting_timestamp) = &query.starting_timestamp {
-        let Ok(starting_timestamp) = Utc.datetime_from_str(starting_timestamp, "%Y/%m/%d %H:%M:%S") else {
+        let Ok(starting_timestamp) = DeltalakeUtility::datetime_yyyy_mm_dd_hh_mm_ss(starting_timestamp) else {
             tracing::error!("requested starting timestamp is malformed");
 	    return Err(Error::ValidationFailed);
 	};
