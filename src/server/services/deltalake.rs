@@ -1,3 +1,4 @@
+use crate::server::utilities::deltalake::ColumnType;
 use crate::server::utilities::deltalake::Stats;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
 use crate::server::utilities::sql::ColumnFilter as SQLColumnFilter;
@@ -9,6 +10,7 @@ use chrono::DateTime;
 use chrono::Utc;
 use deltalake::delta::DeltaTable;
 use deltalake::delta::DeltaTableMetaData;
+use deltalake::schema::Schema;
 use futures_util::stream::Stream;
 use serde_json::json;
 use std::collections::HashMap;
@@ -96,38 +98,104 @@ impl Metadata {
 pub struct Service;
 
 impl Service {
-    fn check_sql_hints(filter: &SQLColumnFilter, stats: &Stats) -> bool {
+    fn check_sql_hints(filter: &SQLColumnFilter, stats: &Stats, schema: &Schema) -> bool {
         let min = stats.min_values.get(&filter.name);
         let max = stats.max_values.get(&filter.name);
         let null_count = stats.null_count.get(&filter.name);
+        let field = schema.get_field_with_name(&filter.name);
+        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
         let Some(null_count) = null_count else {
-	    return false;
+	    return true;
+	};
+        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+        let Ok(field) = field else {
+	    return true;
+	};
+        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+        let Ok(column_type) = ColumnType::try_from(field.get_type()) else {
+	    return true;
 	};
         match (min, max) {
             (Some(serde_json::Value::String(min)), Some(serde_json::Value::String(max))) => {
-                return SQLUtility::check(&filter.predicate, min, max, null_count);
+                match column_type {
+                    ColumnType::Boolean => {
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Ok(ref min) = min.parse::<bool>() else {
+			    return true;
+			};
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Ok(ref max) = max.parse::<bool>() else {
+			    return true;
+			};
+                        return SQLUtility::check(&filter.predicate, min, max, null_count);
+                    }
+                    ColumnType::String => {
+                        return SQLUtility::check(&filter.predicate, min, max, null_count);
+                    }
+                    ColumnType::Date => {
+                        return SQLUtility::check(&filter.predicate, min, max, null_count);
+                    }
+                    // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                    _ => {
+                        return true;
+                    }
+                }
             }
             (Some(serde_json::Value::Number(min)), Some(serde_json::Value::Number(max))) => {
-                return SQLUtility::check(&filter.predicate, min, max, null_count);
+                match column_type {
+                    ColumnType::Int => {
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Some(ref min) = min.as_i64() else {
+			    return true;
+			};
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Some(ref max) = max.as_i64() else {
+			    return true;
+			};
+                        return SQLUtility::check(&filter.predicate, min, max, null_count);
+                    }
+                    ColumnType::Long => {
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Some(ref min) = min.as_i64() else {
+			    return true;
+			};
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Some(ref max) = max.as_i64() else {
+			    return true;
+			};
+                        return SQLUtility::check(&filter.predicate, min, max, null_count);
+                    }
+                    // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                    _ => {
+                        return true;
+                    }
+                }
             }
-            _ => return false,
+            // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+            _ => return true,
         };
     }
 
     fn filter_with_sql_hints(
         files: Vec<File>,
+        schema: Option<Schema>,
         predicate_hints: Option<Vec<SQLColumnFilter>>,
     ) -> Vec<File> {
+        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+        let Some(schema) = schema else {
+	    return files;
+	};
         if let Some(predicates) = predicate_hints {
             if predicates.len() > 0 {
                 return files
                     .into_iter()
                     .filter(|f| {
                         predicates.iter().all(|p| {
+                            // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                             let Ok(stats) = DeltalakeUtility::get_stats(f) else {
-				return false;
+				return true;
 			    };
-                            Self::check_sql_hints(&p, &stats)
+                            Self::check_sql_hints(&p, &stats, &schema)
                         })
                     })
                     .collect::<Vec<File>>();
@@ -140,8 +208,11 @@ impl Service {
         table: DeltaTable,
         predicate_hints: Option<Vec<SQLColumnFilter>>,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
-        let files =
-            Self::filter_with_sql_hints(table.get_state().files().to_owned(), predicate_hints);
+        let files = Self::filter_with_sql_hints(
+            table.get_state().files().to_owned(),
+            table.schema().cloned(),
+            predicate_hints,
+        );
         for file in files {
             let stats_raw = file.stats.as_ref().unwrap();
             let stats: Stats = serde_json::from_str(stats_raw).unwrap();

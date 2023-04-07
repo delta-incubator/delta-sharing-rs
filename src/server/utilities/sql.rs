@@ -285,40 +285,46 @@ impl Utility {
                 return null_count == &0;
             }
             Predicate::Equal(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return false;
+		    return true;
 		};
                 return min <= value && value <= max;
             }
             Predicate::GreaterThan(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return false;
+		    return true;
 		};
                 return value < max;
             }
             Predicate::LessThan(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return false;
+		    return true;
 		};
                 return min < value;
             }
             Predicate::GreaterEqual(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return false;
+		    return true;
 		};
                 return value <= max;
             }
             Predicate::LessEqual(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return false;
+		    return true;
 		};
                 return min <= value;
             }
             Predicate::NotEqual(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return false;
+		    return true;
 		};
-                return true;
+                return min != value && value != max;
             }
         }
     }

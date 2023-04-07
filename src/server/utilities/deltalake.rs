@@ -8,6 +8,7 @@ use chrono::Utc;
 use deltalake::delta::open_table_with_storage_options;
 use deltalake::delta::DeltaTable;
 use deltalake::delta::DeltaTableMetaData;
+use deltalake::schema::SchemaDataType;
 use std::cmp::max;
 use std::cmp::min;
 use std::collections::hash_map::HashMap;
@@ -114,6 +115,56 @@ impl AsRef<str> for ColumnType {
 impl std::fmt::Display for ColumnType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:?}", self)
+    }
+}
+
+impl TryFrom<SchemaDataType> for ColumnType {
+    type Error = anyhow::Error;
+
+    fn try_from(schema_data_type: SchemaDataType) -> std::result::Result<Self, Self::Error> {
+        match schema_data_type {
+            SchemaDataType::primitive(name) if name.to_lowercase() == "boolean" => {
+                Ok(ColumnType::Boolean)
+            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "integer" => {
+                Ok(ColumnType::Int)
+            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "long" => {
+                Ok(ColumnType::Long)
+            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "string" => {
+                Ok(ColumnType::String)
+            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "date" => {
+                Ok(ColumnType::Date)
+            }
+            _ => Err(anyhow!("failed to parse column type")),
+        }
+    }
+}
+
+impl TryFrom<&SchemaDataType> for ColumnType {
+    type Error = anyhow::Error;
+
+    fn try_from(schema_data_type: &SchemaDataType) -> std::result::Result<Self, Self::Error> {
+        match schema_data_type {
+            SchemaDataType::primitive(name) if name.to_lowercase() == "boolean" => {
+                Ok(ColumnType::Boolean)
+            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "integer" => {
+                Ok(ColumnType::Int)
+            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "long" => {
+                Ok(ColumnType::Long)
+            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "string" => {
+                Ok(ColumnType::String)
+            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "date" => {
+                Ok(ColumnType::Date)
+            }
+            _ => Err(anyhow!("failed to parse column type")),
+        }
     }
 }
 
