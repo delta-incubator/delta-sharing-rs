@@ -262,26 +262,30 @@ impl Service {
             table.schema().cloned(),
             predicate_hints,
         );
-        let files = files
+        let mut files = files
             .into_iter()
-            .map(|f| File::from(f, version, timestamp, url_signer))
-            .collect::<Vec<File>>();
-        for file in files {
-            println!("{:?}", json!(file));
-        }
-        futures_util::stream::iter(vec![
+            .map(|f| {
+                Ok::<serde_json::Value, BoxError>(json!(File::from(
+                    f, version, timestamp, url_signer
+                )))
+            })
+            .collect::<Vec<Result<serde_json::Value, BoxError>>>();
+        let mut ret = vec![
             Ok(json!(Protocol::new())),
             Ok(json!(Metadata::from(metadata))),
-        ])
+        ];
+        ret.append(&mut files);
+        futures_util::stream::iter(ret)
     }
 
     pub fn metadata_from(
         metadata: DeltaTableMetaData,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
-        futures_util::stream::iter(vec![
+        let ret = vec![
             Ok(json!(Protocol::new())),
             Ok(json!(Metadata::from(metadata))),
-        ])
+        ];
+        futures_util::stream::iter(ret)
     }
 }
 
