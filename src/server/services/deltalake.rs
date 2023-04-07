@@ -1,6 +1,7 @@
 use crate::server::utilities::deltalake::Stats;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
-use crate::server::utilities::sql::Predicate as SQLPredicate;
+use crate::server::utilities::sql::ColumnFilter as SQLColumnFilter;
+use crate::server::utilities::sql::Utility as SQLUtility;
 use anyhow::Context;
 use anyhow::Result;
 use axum::BoxError;
@@ -95,28 +96,27 @@ impl Metadata {
 pub struct Service;
 
 impl Service {
-    fn check_sql_hints(predicate: &SQLPredicate, stats: &Stats) -> bool {
-        let min = stats.min_values.get(predicate.column());
-        let max = stats.max_values.get(predicate.column());
-        let null_count = stats.null_count.get(predicate.column());
-        let (min, max) = match (min, max) {
+    fn check_sql_hints(filter: &SQLColumnFilter, stats: &Stats) -> bool {
+        let min = stats.min_values.get(&filter.name);
+        let max = stats.max_values.get(&filter.name);
+        let null_count = stats.null_count.get(&filter.name);
+        let Some(null_count) = null_count else {
+	    return false;
+	};
+        match (min, max) {
             (Some(serde_json::Value::String(min)), Some(serde_json::Value::String(max))) => {
-                (min, max)
+                return SQLUtility::check(&filter.predicate, min, max, null_count);
             }
             (Some(serde_json::Value::Number(min)), Some(serde_json::Value::Number(max))) => {
-                (min, max)
+                return SQLUtility::check(&filter.predicate, min, max, null_count);
             }
             _ => return false,
         };
-        let Some(count) = null_count else {
-	    return false;
-	};
-        predicate.hold(min, max, null_count)
     }
 
     fn filter_with_sql_hints(
         files: Vec<File>,
-        predicate_hints: Option<Vec<SQLPredicate>>,
+        predicate_hints: Option<Vec<SQLColumnFilter>>,
     ) -> Vec<File> {
         if let Some(predicates) = predicate_hints {
             if predicates.len() > 0 {
@@ -138,7 +138,7 @@ impl Service {
 
     pub fn load_files(
         table: DeltaTable,
-        predicate_hints: Option<Vec<SQLPredicate>>,
+        predicate_hints: Option<Vec<SQLColumnFilter>>,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
         let files =
             Self::filter_with_sql_hints(table.get_state().files().to_owned(), predicate_hints);

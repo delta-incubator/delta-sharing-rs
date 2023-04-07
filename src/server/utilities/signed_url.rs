@@ -16,7 +16,7 @@ use tame_gcs::BucketName;
 use tame_gcs::ObjectName;
 use url::Url;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Platform {
     AWS { bucket: String, path: String },
     GCP { bucket: String, path: String },

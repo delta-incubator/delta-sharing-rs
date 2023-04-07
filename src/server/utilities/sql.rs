@@ -5,7 +5,7 @@ use std::collections::VecDeque;
 
 static KEYWORDS: &[char] = &[' ', '=', '\'', '\"', '>', '<'];
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 enum Token {
     EQ,
     GT,
@@ -97,7 +97,7 @@ impl Token {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 enum Operator {
     Equal,
     GreaterThan,
@@ -109,16 +109,22 @@ enum Operator {
     IsNotNull,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Predicate {
-    Equal { column: String, value: String },
-    GreaterThan { column: String, value: String },
-    LessThan { column: String, value: String },
-    GreaterEqual { column: String, value: String },
-    LessEqual { column: String, value: String },
-    NotEqual { column: String, value: String },
-    IsNull { column: String },
-    IsNotNull { column: String },
+    Equal(String),
+    GreaterThan(String),
+    LessThan(String),
+    GreaterEqual(String),
+    LessEqual(String),
+    NotEqual(String),
+    IsNull,
+    IsNotNull,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct ColumnFilter {
+    pub name: String,
+    pub predicate: Predicate,
 }
 
 pub struct Utility;
@@ -193,7 +199,7 @@ impl Utility {
         Ok(())
     }
 
-    pub fn parse(code: String) -> Result<Predicate> {
+    pub fn parse(code: String) -> Result<ColumnFilter> {
         let mut tokens = Token::lex(code).context("failed to lex given string")?;
         let column = Self::column(&mut tokens)
             .context("first entry of SQL expression should be column name")?;
@@ -202,8 +208,18 @@ impl Utility {
         if operator == Operator::IsNull || operator == Operator::IsNotNull {
             Self::end(&mut tokens).context("invalid SQL expression")?;
             match operator {
-                Operator::IsNull => return Ok(Predicate::IsNull { column }),
-                Operator::IsNotNull => return Ok(Predicate::IsNotNull { column }),
+                Operator::IsNull => {
+                    return Ok(ColumnFilter {
+                        name: column,
+                        predicate: Predicate::IsNull,
+                    })
+                }
+                Operator::IsNotNull => {
+                    return Ok(ColumnFilter {
+                        name: column,
+                        predicate: Predicate::IsNotNull,
+                    })
+                }
                 _ => {
                     return Err(anyhow!("failed to parse SQL expression"));
                 }
@@ -214,13 +230,41 @@ impl Utility {
         Self::end(&mut tokens).context("invalid SQL expression")?;
         match operator {
             Operator::Equal => {
-                return Ok(Predicate::Equal { column, value });
+                return Ok(ColumnFilter {
+                    name: column,
+                    predicate: Predicate::Equal(value),
+                });
             }
-            Operator::GreaterThan => return Ok(Predicate::GreaterThan { column, value }),
-            Operator::LessThan => return Ok(Predicate::LessThan { column, value }),
-            Operator::GreaterEqual => return Ok(Predicate::GreaterEqual { column, value }),
-            Operator::LessEqual => return Ok(Predicate::LessEqual { column, value }),
-            Operator::NotEqual => return Ok(Predicate::NotEqual { column, value }),
+            Operator::GreaterThan => {
+                return Ok(ColumnFilter {
+                    name: column,
+                    predicate: Predicate::GreaterThan(value),
+                })
+            }
+            Operator::LessThan => {
+                return Ok(ColumnFilter {
+                    name: column,
+                    predicate: Predicate::LessThan(value),
+                })
+            }
+            Operator::GreaterEqual => {
+                return Ok(ColumnFilter {
+                    name: column,
+                    predicate: Predicate::GreaterEqual(value),
+                })
+            }
+            Operator::LessEqual => {
+                return Ok(ColumnFilter {
+                    name: column,
+                    predicate: Predicate::LessEqual(value),
+                })
+            }
+            Operator::NotEqual => {
+                return Ok(ColumnFilter {
+                    name: column,
+                    predicate: Predicate::NotEqual(value),
+                })
+            }
             _ => {
                 return Err(anyhow!("failed to parse SQL expression"));
             }
@@ -234,43 +278,43 @@ impl Utility {
         null_count: &i64,
     ) -> bool {
         match predicate {
-            Predicate::IsNull { .. } => {
+            Predicate::IsNull => {
                 return null_count > &0;
             }
-            Predicate::IsNotNull { .. } => {
+            Predicate::IsNotNull => {
                 return null_count == &0;
             }
-            Predicate::Equal { value, .. } => {
+            Predicate::Equal(value) => {
                 let Ok(ref value) = value.parse::<T>() else {
 		    return false;
 		};
                 return min <= value && value <= max;
             }
-            Predicate::GreaterThan { value, .. } => {
+            Predicate::GreaterThan(value) => {
                 let Ok(ref value) = value.parse::<T>() else {
 		    return false;
 		};
                 return value < max;
             }
-            Predicate::LessThan { value, .. } => {
+            Predicate::LessThan(value) => {
                 let Ok(ref value) = value.parse::<T>() else {
 		    return false;
 		};
                 return min < value;
             }
-            Predicate::GreaterEqual { value, .. } => {
+            Predicate::GreaterEqual(value) => {
                 let Ok(ref value) = value.parse::<T>() else {
 		    return false;
 		};
                 return value <= max;
             }
-            Predicate::LessEqual { value, .. } => {
+            Predicate::LessEqual(value) => {
                 let Ok(ref value) = value.parse::<T>() else {
 		    return false;
 		};
                 return min <= value;
             }
-            Predicate::NotEqual { value, .. } => {
+            Predicate::NotEqual(value) => {
                 let Ok(ref value) = value.parse::<T>() else {
 		    return false;
 		};
@@ -432,7 +476,13 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::Equal { column, value });
+        assert_eq!(
+            predicate,
+            ColumnFilter {
+                name: column,
+                predicate: Predicate::Equal(value)
+            }
+        );
         let column = testutils::rand::string(10);
         let value = testutils::rand::string(10);
         let expr = format!(
@@ -445,7 +495,13 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::GreaterThan { column, value });
+        assert_eq!(
+            predicate,
+            ColumnFilter {
+                name: column,
+                predicate: Predicate::GreaterThan(value)
+            }
+        );
         let column = testutils::rand::string(10);
         let value = testutils::rand::f64(-1.5, 1.5).to_string();
         let expr = format!(
@@ -458,7 +514,13 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::LessThan { column, value });
+        assert_eq!(
+            predicate,
+            ColumnFilter {
+                name: column,
+                predicate: Predicate::LessThan(value)
+            }
+        );
         let column = testutils::rand::string(10);
         let value = testutils::rand::string(10);
         let expr = format!(
@@ -471,7 +533,13 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::GreaterEqual { column, value });
+        assert_eq!(
+            predicate,
+            ColumnFilter {
+                name: column,
+                predicate: Predicate::GreaterEqual(value)
+            }
+        );
         let column = testutils::rand::string(10);
         let value = testutils::rand::f64(-1.5, 1.5).to_string();
         let expr = format!(
@@ -484,7 +552,13 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::LessEqual { column, value });
+        assert_eq!(
+            predicate,
+            ColumnFilter {
+                name: column,
+                predicate: Predicate::LessEqual(value)
+            }
+        );
         let column = testutils::rand::string(10);
         let value = testutils::rand::string(10);
         let expr = format!(
@@ -497,7 +571,13 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::NotEqual { column, value });
+        assert_eq!(
+            predicate,
+            ColumnFilter {
+                name: column,
+                predicate: Predicate::NotEqual(value)
+            }
+        );
         let column = testutils::rand::string(10);
         let expr = format!(
             "{}{} IS {} NULL",
@@ -506,7 +586,13 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::IsNull { column });
+        assert_eq!(
+            predicate,
+            ColumnFilter {
+                name: column,
+                predicate: Predicate::IsNull
+            }
+        );
         let column = testutils::rand::string(10);
         let expr = format!(
             "{}{} IS {} NOT {} NULL",
@@ -516,6 +602,12 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
         );
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
-        assert_eq!(predicate, Predicate::IsNotNull { column });
+        assert_eq!(
+            predicate,
+            ColumnFilter {
+                name: column,
+                predicate: Predicate::IsNotNull
+            }
+        );
     }
 }
