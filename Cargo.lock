@@ -2302,6 +2302,7 @@ dependencies = [
  "git-version",
  "glob",
  "jsonwebtoken",
+ "md5",
  "once_cell",
  "rand",
  "rusoto_core 0.48.0",
@@ -2536,6 +2537,12 @@ checksum = "6365506850d44bff6e2fbcb5176cf63650e48bd45ef2fe2665ae1570e0f4b9ca"
 dependencies = [
  "digest 0.10.6",
 ]
+
+[[package]]
+name = "md5"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "490cc448043f947bae3cbee9c203358d62dbee0db12107a74be5c30ccfd09771"
 
 [[package]]
 name = "memchr"

@@ -79,7 +79,7 @@ pub async fn get(
         &state.pg_pool,
     ).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting table");
-	return Err(anyhow!("error occured while selecting tables(s)").into());
+	return Err(anyhow!("error occured while selecting table(s)").into());
     };
     let Some(table) = table else {
         tracing::error!("requested table does not exist");

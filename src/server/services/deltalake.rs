@@ -1,6 +1,7 @@
 use crate::server::utilities::deltalake::ColumnType;
 use crate::server::utilities::deltalake::Stats;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
+use crate::server::utilities::signed_url::Platform;
 use crate::server::utilities::sql::ColumnFilter as SQLColumnFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 use anyhow::Context;
@@ -8,17 +9,17 @@ use anyhow::Result;
 use axum::BoxError;
 use chrono::DateTime;
 use chrono::Utc;
+use deltalake::action::Add;
 use deltalake::delta::DeltaTable;
 use deltalake::delta::DeltaTableMetaData;
 use deltalake::schema::Schema;
 use futures_util::stream::Stream;
+use md5;
 use serde_json::json;
 use std::collections::HashMap;
 use utoipa::ToSchema;
 
 pub const VERSION: i32 = 1;
-
-type File = deltalake::action::Add;
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -95,27 +96,62 @@ impl Metadata {
     }
 }
 
+#[derive(serde::Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct File {
+    pub id: String,
+    pub url: String,
+    pub partition_values: HashMap<String, String>,
+    pub size: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stats: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub timestamp: Option<i64>,
+}
+
+impl File {
+    fn from(add: Add, version: Option<i64>, timestamp: Option<i64>) -> Self {
+        let digest = md5::compute(add.path.as_bytes());
+        let mut partition_values: HashMap<String, String> = HashMap::new();
+        for (k, v) in add.partition_values.into_iter() {
+            if let Some(v) = v {
+                partition_values.insert(k, v);
+            }
+        }
+        Self {
+            id: String::from(format!("{:x}", digest)),
+            url: String::from(""),
+            partition_values: partition_values,
+            size: add.size,
+            stats: add.stats,
+            version: version,
+            timestamp: timestamp,
+        }
+    }
+}
+
 pub struct Service;
 
 impl Service {
     fn check_sql_hints(filter: &SQLColumnFilter, stats: &Stats, schema: &Schema) -> bool {
-        let min = stats.min_values.get(&filter.name);
-        let max = stats.max_values.get(&filter.name);
-        let null_count = stats.null_count.get(&filter.name);
-        let field = schema.get_field_with_name(&filter.name);
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-        let Some(null_count) = null_count else {
+        let Some(null_count) = stats.null_count.get(&filter.name) else {
 	    return true;
 	};
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-        let Ok(field) = field else {
+        let Ok(field) = schema.get_field_with_name(&filter.name) else {
 	    return true;
 	};
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
         let Ok(column_type) = ColumnType::try_from(field.get_type()) else {
 	    return true;
 	};
-        match (min, max) {
+        match (
+            stats.min_values.get(&filter.name),
+            stats.max_values.get(&filter.name),
+        ) {
             (Some(serde_json::Value::String(min)), Some(serde_json::Value::String(max))) => {
                 match column_type {
                     ColumnType::Boolean => {
@@ -177,10 +213,10 @@ impl Service {
     }
 
     fn filter_with_sql_hints(
-        files: Vec<File>,
+        files: Vec<Add>,
         schema: Option<Schema>,
         predicate_hints: Option<Vec<SQLColumnFilter>>,
-    ) -> Vec<File> {
+    ) -> Vec<Add> {
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
         let Some(schema) = schema else {
 	    return files;
@@ -198,15 +234,18 @@ impl Service {
                             Self::check_sql_hints(&p, &stats, &schema)
                         })
                     })
-                    .collect::<Vec<File>>();
+                    .collect::<Vec<Add>>();
             }
         }
         files
     }
 
-    pub fn load_files(
+    pub fn files_from(
         table: DeltaTable,
+        metadata: DeltaTableMetaData,
+        platform: Platform,
         predicate_hints: Option<Vec<SQLColumnFilter>>,
+        is_time_traveled: bool,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
         let files = Self::filter_with_sql_hints(
             table.get_state().files().to_owned(),
@@ -216,17 +255,14 @@ impl Service {
         for file in files {
             let stats_raw = file.stats.as_ref().unwrap();
             let stats: Stats = serde_json::from_str(stats_raw).unwrap();
-            println!("{:?}", file);
+            println!("{:?}", json!(file));
             println!("{:?}", stats_raw);
             println!("{:?}", stats);
         }
-        let metadata = table.get_metadata().unwrap();
-        //        let schema = DeltalakeUtility::get_schema(metadata).unwrap();
-        //        println!("{:?}", schema);
         futures_util::stream::iter(vec![])
     }
 
-    pub fn load_metadata(
+    pub fn metadata_from(
         metadata: DeltaTableMetaData,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
         futures_util::stream::iter(vec![

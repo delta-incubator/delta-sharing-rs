@@ -6,6 +6,7 @@ use crate::server::services::deltalake::Service as DeltalakeService;
 use crate::server::services::error::Error;
 use crate::server::services::table::Service as TableService;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
+use crate::server::utilities::signed_url::Platform;
 use crate::server::utilities::sql::ColumnFilter as SQLColumnFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 use anyhow::anyhow;
@@ -21,6 +22,7 @@ use axum::response::Response;
 use axum_extra::json_lines::JsonLines;
 use chrono::TimeZone;
 use chrono::Utc;
+use std::str::FromStr;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
 
@@ -103,22 +105,28 @@ pub async fn post(
         &state.pg_pool,
     ).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting table");
-	return Err(anyhow!("error occured while selecting tables(s)").into());
+	return Err(anyhow!("error occured while selecting table(s)").into());
     };
     let Some(table) = table else {
         tracing::error!("requested table does not exist");
 	return Err(Error::NotFound);
     };
+    let Ok(platform) = Platform::from_str(&table.location) else {
+        tracing::error!("requested cloud platform is not supported");
+	return Err(anyhow!("error occured while identifying cloud platform").into());
+    };
     let Ok(mut table) = DeltalakeUtility::open_table(&table.location).await else {
         tracing::error!("request is not handled correctly due to a server error while loading delta table");
-	return Err(anyhow!("error occured while selecting tables(s)").into());
+	return Err(anyhow!("error occured while selecting table(s)").into());
     };
+    let mut is_time_traveled = false;
     // NOTE: version precedes over timestamp
     if let Some(timestamp) = timestamp {
         let Ok(_) = table.load_with_datetime(timestamp).await else {
                 tracing::error!("request is not handled correctly due to a server error while time-traveling delta table");
     	    return Err(anyhow!("error occured while selecting table(s)").into());
     	};
+        is_time_traveled = true;
     }
     // NOTE: version precedes over timestamp
     if let Some(version) = &payload.version {
@@ -126,7 +134,15 @@ pub async fn post(
                 tracing::error!("request is not handled correctly due to a server error while time-traveling delta table");
     	    return Err(anyhow!("error occured while selecting table(s)").into());
     	};
+        is_time_traveled = true;
     }
+    let metadata = {
+        let Ok(metadata) = table.get_metadata() else {
+            tracing::error!("request is not handled correctly due to a server error while loading delta table metadata");
+            return Err(anyhow!("error occured while selecting table(s)").into());
+	};
+        metadata.to_owned()
+    };
     let mut headers = HeaderMap::new();
     headers.insert(HEADER_NAME, table.version().into());
     headers.insert(
@@ -134,6 +150,7 @@ pub async fn post(
         HeaderValue::from_static("application/x-ndjson"),
     );
     tracing::info!("delta table metadata was successfully returned");
-    let _ = DeltalakeService::load_files(table, predicate_hints);
+    let _ =
+        DeltalakeService::files_from(table, metadata, platform, predicate_hints, is_time_traveled);
     todo!()
 }

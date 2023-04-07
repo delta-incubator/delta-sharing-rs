@@ -64,7 +64,7 @@ pub async fn get(
         &state.pg_pool,
     ).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting table");
-	return Err(anyhow!("error occured while selecting tables(s)").into());
+	return Err(anyhow!("error occured while selecting table(s)").into());
     };
     let Some(table) = table else {
         tracing::error!("requested table does not exist");
@@ -72,11 +72,11 @@ pub async fn get(
     };
     let Ok(table) = DeltalakeUtility::open_table(&table.location).await else {
         tracing::error!("request is not handled correctly due to a server error while loading delta table");
-	return Err(anyhow!("error occured while selecting tables(s)").into());
+	return Err(anyhow!("error occured while selecting table(s)").into());
     };
     let Ok(metadata) = table.get_metadata() else {
         tracing::error!("request is not handled correctly due to a server error while loading delta table metadata");
-        return Err(anyhow!("error occured while selecting tables(s)").into());
+        return Err(anyhow!("error occured while selecting table(s)").into());
     };
     let mut headers = HeaderMap::new();
     headers.insert(HEADER_NAME, table.version().into());
@@ -88,7 +88,7 @@ pub async fn get(
     Ok((
         StatusCode::OK,
         headers,
-        JsonLines::new(DeltalakeService::load_metadata(metadata.to_owned())),
+        JsonLines::new(DeltalakeService::metadata_from(metadata.to_owned())),
     )
         .into_response())
 }
