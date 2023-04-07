@@ -7,7 +7,6 @@ use chrono::TimeZone;
 use chrono::Utc;
 use deltalake::delta::open_table_with_storage_options;
 use deltalake::delta::DeltaTable;
-use deltalake::delta::DeltaTableMetaData;
 use deltalake::schema::SchemaDataType;
 use std::cmp::max;
 use std::cmp::min;

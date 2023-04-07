@@ -13,8 +13,6 @@ use axum::http::header::HeaderMap;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
-use chrono::TimeZone;
-use chrono::Utc;
 use utoipa::IntoParams;
 
 const HEADER_NAME: &str = "Delta-Table-Version";

@@ -1,14 +1,10 @@
 use crate::server::utilities::deltalake::ColumnType;
 use crate::server::utilities::deltalake::Stats;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
-use crate::server::utilities::signed_url::Platform;
 use crate::server::utilities::sql::ColumnFilter as SQLColumnFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
-use anyhow::Context;
 use anyhow::Result;
 use axum::BoxError;
-use chrono::DateTime;
-use chrono::Utc;
 use deltalake::action::Add;
 use deltalake::delta::DeltaTable;
 use deltalake::delta::DeltaTableMetaData;
@@ -112,8 +108,12 @@ pub struct File {
 }
 
 impl File {
-    fn from(add: Add, version: Option<i64>, timestamp: Option<i64>) -> Self {
-        let digest = md5::compute(add.path.as_bytes());
+    fn from(
+        add: Add,
+        version: Option<i64>,
+        timestamp: Option<i64>,
+        url_signer: &dyn Fn(String) -> String,
+    ) -> Self {
         let mut partition_values: HashMap<String, String> = HashMap::new();
         for (k, v) in add.partition_values.into_iter() {
             if let Some(v) = v {
@@ -121,8 +121,8 @@ impl File {
             }
         }
         Self {
-            id: String::from(format!("{:x}", digest)),
-            url: String::from(""),
+            id: String::from(format!("{:x}", md5::compute(add.path.as_bytes()))),
+            url: url_signer(add.path),
             partition_values: partition_values,
             size: add.size,
             stats: add.stats,
@@ -243,23 +243,36 @@ impl Service {
     pub fn files_from(
         table: DeltaTable,
         metadata: DeltaTableMetaData,
-        platform: Platform,
         predicate_hints: Option<Vec<SQLColumnFilter>>,
         is_time_traveled: bool,
+        url_signer: &dyn Fn(String) -> String,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
+        let version = if is_time_traveled {
+            Some(table.version())
+        } else {
+            None
+        };
+        let timestamp = if is_time_traveled {
+            metadata.created_time
+        } else {
+            None
+        };
         let files = Self::filter_with_sql_hints(
             table.get_state().files().to_owned(),
             table.schema().cloned(),
             predicate_hints,
         );
+        let files = files
+            .into_iter()
+            .map(|f| File::from(f, version, timestamp, url_signer))
+            .collect::<Vec<File>>();
         for file in files {
-            let stats_raw = file.stats.as_ref().unwrap();
-            let stats: Stats = serde_json::from_str(stats_raw).unwrap();
             println!("{:?}", json!(file));
-            println!("{:?}", stats_raw);
-            println!("{:?}", stats);
         }
-        futures_util::stream::iter(vec![])
+        futures_util::stream::iter(vec![
+            Ok(json!(Protocol::new())),
+            Ok(json!(Metadata::from(metadata))),
+        ])
     }
 
     pub fn metadata_from(

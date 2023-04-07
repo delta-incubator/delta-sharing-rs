@@ -14,7 +14,7 @@ use axum::response::Response;
 use axum::routing::get;
 use axum::routing::post;
 use axum::Router;
-use rusoto_credential::ProfileProvider;
+use rusoto_credential::AwsCredentials;
 use sqlx::PgPool;
 use std::sync::Arc;
 use tame_gcs::signing::ServiceAccount;
@@ -24,7 +24,7 @@ use utoipa_swagger_ui::SwaggerUi;
 pub struct State {
     pub pg_pool: PgPool,
     pub gcp_service_account: ServiceAccount,
-    pub aws_profile_provider: ProfileProvider,
+    pub aws_credentials: AwsCredentials,
 }
 
 pub type SharedState = Arc<State>;
@@ -36,12 +36,12 @@ async fn bad_request(_: Uri) -> std::result::Result<Response, Error> {
 async fn route(
     pg_pool: PgPool,
     gcp_service_account: ServiceAccount,
-    aws_profile_provider: ProfileProvider,
+    aws_credentials: AwsCredentials,
 ) -> Result<Router> {
     let state = Arc::new(State {
         pg_pool,
         gcp_service_account,
-        aws_profile_provider,
+        aws_credentials,
     });
 
     let swagger = SwaggerUi::new("/swagger-ui").url("/api-doc/openapi.json", ApiDoc::openapi());
@@ -101,9 +101,9 @@ async fn route(
 pub async fn bind(
     pg_pool: PgPool,
     gcp_service_account: ServiceAccount,
-    aws_profile_provider: ProfileProvider,
+    aws_credentials: AwsCredentials,
 ) -> Result<()> {
-    let app = route(pg_pool, gcp_service_account, aws_profile_provider)
+    let app = route(pg_pool, gcp_service_account, aws_credentials)
         .await
         .context("failed to create axum router")?;
     let server_bind = config::fetch::<String>("server_bind");

@@ -1,3 +1,4 @@
+use crate::config;
 use crate::server::entities::schema::Name as SchemaName;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::entities::table::Name as TableName;
@@ -7,6 +8,7 @@ use crate::server::services::error::Error;
 use crate::server::services::table::Service as TableService;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
 use crate::server::utilities::signed_url::Platform;
+use crate::server::utilities::signed_url::Utility as SignedUrlUtility;
 use crate::server::utilities::sql::ColumnFilter as SQLColumnFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 use anyhow::anyhow;
@@ -20,8 +22,6 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum_extra::json_lines::JsonLines;
-use chrono::TimeZone;
-use chrono::Utc;
 use std::str::FromStr;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
@@ -143,14 +143,51 @@ pub async fn post(
 	};
         metadata.to_owned()
     };
+    let url_signer = |name: String| match &platform {
+        Platform::AWS { bucket, path } => {
+            let file: String = format!("{}/{}", path, name);
+            let Ok(url) = SignedUrlUtility::sign_aws(
+		    &state.aws_credentials,
+		    &bucket,
+		    &file,
+		    &config::fetch::<u64>("admin_ttl")
+		) else {
+                    tracing::error!("failed to sign up AWS S3 url");
+		    return String::from("");
+		};
+            return url.into();
+        }
+        Platform::GCP { bucket, path } => {
+            let file: String = format!("{}/{}", path, name);
+            let Ok(url) = SignedUrlUtility::sign_gcp(
+		    &state.gcp_service_account,
+		    &bucket,
+		    &file,
+		    &config::fetch::<u64>("admin_ttl")
+		) else {
+                    tracing::error!("failed to sign up GCP GCS url");
+		    return String::from("");
+		};
+            return url.into();
+        }
+    };
     let mut headers = HeaderMap::new();
     headers.insert(HEADER_NAME, table.version().into());
     headers.insert(
         header::CONTENT_TYPE,
         HeaderValue::from_static("application/x-ndjson"),
     );
-    tracing::info!("delta table metadata was successfully returned");
-    let _ =
-        DeltalakeService::files_from(table, metadata, platform, predicate_hints, is_time_traveled);
-    todo!()
+    tracing::info!("delta table was successfully returned");
+    Ok((
+        StatusCode::OK,
+        headers,
+        JsonLines::new(DeltalakeService::files_from(
+            table,
+            metadata,
+            predicate_hints,
+            is_time_traveled,
+            &url_signer,
+        )),
+    )
+        .into_response())
 }

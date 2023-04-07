@@ -2,8 +2,7 @@ use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
 use rusoto_core::Region;
-use rusoto_credential::ProfileProvider as AWS;
-use rusoto_credential::ProvideAwsCredentials;
+use rusoto_credential::AwsCredentials as AWS;
 use rusoto_s3::util::PreSignedRequest;
 use rusoto_s3::util::PreSignedRequestOption;
 use rusoto_s3::GetObjectRequest;
@@ -30,15 +29,15 @@ impl FromStr for Platform {
         match url.scheme() {
             "s3" => Ok(Self::AWS {
                 bucket: String::from(url.domain().unwrap_or("")),
-                path: String::from(url.path()),
+                path: String::from(url.path().strip_prefix("/").unwrap_or("")),
             }),
             "s3a" => Ok(Self::AWS {
                 bucket: String::from(url.domain().unwrap_or("")),
-                path: String::from(url.path()),
+                path: String::from(url.path().strip_prefix("/").unwrap_or("")),
             }),
             "gs" => Ok(Self::GCP {
                 bucket: String::from(url.domain().unwrap_or("")),
-                path: String::from(url.path()),
+                path: String::from(url.path().strip_prefix("/").unwrap_or("")),
             }),
             _ => Err(anyhow!("failed to parse signed url provider")),
         }
@@ -48,11 +47,7 @@ impl FromStr for Platform {
 pub struct Utility;
 
 impl Utility {
-    pub async fn sign_aws(aws: &AWS, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
-        let credentials = aws
-            .credentials()
-            .await
-            .context("failed to acquire AWS credentials")?;
+    pub fn sign_aws(aws: &AWS, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
         let region = Region::default();
         let options = PreSignedRequestOption {
             expires_in: Duration::from_secs(*duration),
@@ -62,12 +57,12 @@ impl Utility {
             key: path.to_string(),
             ..Default::default()
         };
-        let url = request.get_presigned_url(&region, &credentials, &options);
+        let url = request.get_presigned_url(&region, aws, &options);
         let url = Url::parse(&url).context("failed to parse AWS signed URL")?;
         Ok(url)
     }
 
-    pub async fn sign_gcp(gcp: &GCP, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
+    pub fn sign_gcp(gcp: &GCP, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
         let bucket = BucketName::try_from(bucket).context("failed to parse bucket name")?;
         let object = ObjectName::try_from(path).context("failed to parse object name")?;
         let options = SignedUrlOptional {
@@ -87,6 +82,7 @@ mod tests {
     use super::*;
     use crate::bootstrap;
     use crate::config;
+    use rusoto_credential::ProvideAwsCredentials;
     use std::str::FromStr;
 
     #[test]
@@ -100,10 +96,8 @@ mod tests {
             path: parsed_path,
         } = provider
         {
-            let mut with_slash: String = "/".to_owned();
-            with_slash.push_str(&path);
             assert_eq!(parsed_bucket, bucket);
-            assert_eq!(parsed_path, with_slash);
+            assert_eq!(parsed_path, path);
         } else {
             panic!("should be parsed as S3 url");
         }
@@ -120,10 +114,8 @@ mod tests {
             path: parsed_path,
         } = provider
         {
-            let mut with_slash: String = "/".to_owned();
-            with_slash.push_str(&path);
             assert_eq!(parsed_bucket, bucket);
-            assert_eq!(parsed_path, with_slash);
+            assert_eq!(parsed_path, path);
         } else {
             panic!("should be parsed as GS url");
         }
@@ -131,15 +123,16 @@ mod tests {
 
     //#[tokio::test]
     async fn test_aws_sign_local() {
-        let pp = if let Ok(pp) = bootstrap::aws::new(&config::fetch::<String>("aws_profile")) {
-            pp
-        } else {
-            panic!("failed to create AWS profile provider");
-        };
+        let pp = bootstrap::aws::new(&config::fetch::<String>("aws_profile"))
+            .expect("AWS profile provider should be created properly");
+        let creds = pp
+            .credentials()
+            .await
+            .expect("AWS credentials should be acquired properly");
         if let Ok(Platform::AWS { bucket, path }) =
             Platform::from_str("s3://kotosiro-sharing-test/covid")
         {
-            if let Ok(url) = Utility::sign_aws(&pp, &bucket, &path, &300).await {
+            if let Ok(url) = Utility::sign_aws(&creds, &bucket, &path, &300) {
                 println!("{:?}", url);
             }
         } else {
@@ -149,16 +142,12 @@ mod tests {
 
     //#[tokio::test]
     async fn test_gcp_sign_local() {
-        let sa = if let Ok(sa) = bootstrap::gcp::new(&config::fetch::<String>("gcp_sa_private_key"))
-        {
-            sa
-        } else {
-            panic!("failed to create GCP service account");
-        };
+        let sa = bootstrap::gcp::new(&config::fetch::<String>("gcp_sa_private_key"))
+            .expect("GCP service account should be created properly");
         if let Ok(Platform::GCP { bucket, path }) =
             Platform::from_str("gs://kotosiro-sharing-test/covid")
         {
-            if let Ok(url) = Utility::sign_gcp(&sa, &bucket, &path, &300).await {
+            if let Ok(url) = Utility::sign_gcp(&sa, &bucket, &path, &300) {
                 println!("{:?}", url);
             }
         } else {
