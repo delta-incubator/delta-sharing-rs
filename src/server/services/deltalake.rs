@@ -1,6 +1,6 @@
-use crate::server::utilities::deltalake::ColumnType;
 use crate::server::utilities::deltalake::Stats;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
+use crate::server::utilities::deltalake::ValueType;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 use anyhow::Result;
@@ -153,7 +153,7 @@ impl Service {
 	    return true;
 	};
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-        let Ok(column_type) = ColumnType::try_from(field.get_type()) else {
+        let Ok(column_type) = ValueType::try_from(field.get_type()) else {
 	    return true;
 	};
         match (
@@ -162,7 +162,7 @@ impl Service {
         ) {
             (Some(serde_json::Value::String(min)), Some(serde_json::Value::String(max))) => {
                 match column_type {
-                    ColumnType::Boolean => {
+                    ValueType::Boolean => {
                         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                         let Ok(ref min) = min.parse::<bool>() else {
 			    return true;
@@ -173,10 +173,10 @@ impl Service {
 			};
                         return SQLUtility::check(&filter.predicate, min, max, null_count);
                     }
-                    ColumnType::String => {
+                    ValueType::String => {
                         return SQLUtility::check(&filter.predicate, min, max, null_count);
                     }
-                    ColumnType::Date => {
+                    ValueType::Date => {
                         return SQLUtility::check(&filter.predicate, min, max, null_count);
                     }
                     // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
@@ -187,7 +187,7 @@ impl Service {
             }
             (Some(serde_json::Value::Number(min)), Some(serde_json::Value::Number(max))) => {
                 match column_type {
-                    ColumnType::Int => {
+                    ValueType::Int => {
                         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                         let Some(ref min) = min.as_i64() else {
 			    return true;
@@ -198,7 +198,7 @@ impl Service {
 			};
                         return SQLUtility::check(&filter.predicate, min, max, null_count);
                     }
-                    ColumnType::Long => {
+                    ValueType::Long => {
                         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                         let Some(ref min) = min.as_i64() else {
 			    return true;

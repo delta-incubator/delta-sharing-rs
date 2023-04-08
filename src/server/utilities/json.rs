@@ -1,7 +1,9 @@
-use crate::server::utilities::deltalake::ColumnType as ValueType;
+use crate::server::utilities::deltalake::ValueType;
 use utoipa::ToSchema;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, serde::Deserialize, strum_macros::EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, serde::Deserialize, strum_macros::EnumString, ToSchema,
+)]
 #[serde(rename_all = "camelCase")]
 pub enum OpType {
     #[strum(ascii_case_insensitive)]

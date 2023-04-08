@@ -6,6 +6,8 @@ use crate::server::services::profile;
 use crate::server::services::schema;
 use crate::server::services::share;
 use crate::server::services::table;
+use crate::server::utilities::deltalake;
+use crate::server::utilities::json;
 use utoipa::OpenApi;
 
 #[derive(OpenApi)]
@@ -54,7 +56,7 @@ use utoipa::OpenApi;
         schemas(shares::all_tables::SharesAllTablesListResponse),
         schemas(shares::schemas::SharesSchemasListResponse),
         schemas(shares::schemas::tables::SharesSchemasTablesListResponse),
-        schemas(shares::schemas::tables::query::SharesSchemasTablesQueryPostRequest),
+        schemas(shares::schemas::tables::query::SharesSchemasTablesQueryPostRequest, deltalake::ValueType, json::OpType, json::Predicate),
     ),
     tags(
         (name = "Kotosiro Sharing", description = "Kotosiro Deltalake Sharing API")

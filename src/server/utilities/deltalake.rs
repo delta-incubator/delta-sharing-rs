@@ -12,6 +12,7 @@ use std::cmp::max;
 use std::cmp::min;
 use std::collections::hash_map::HashMap;
 use std::fmt;
+use utoipa::ToSchema;
 
 pub type File = deltalake::action::Add;
 
@@ -84,9 +85,11 @@ where
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, serde::Deserialize, strum_macros::EnumString)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, serde::Deserialize, strum_macros::EnumString, ToSchema,
+)]
 #[serde(rename_all = "lowercase")]
-pub enum ColumnType {
+pub enum ValueType {
     #[strum(ascii_case_insensitive)]
     Boolean,
     #[strum(ascii_case_insensitive)]
@@ -99,69 +102,61 @@ pub enum ColumnType {
     Date,
 }
 
-impl AsRef<str> for ColumnType {
+impl AsRef<str> for ValueType {
     fn as_ref(&self) -> &str {
         match self {
-            ColumnType::Boolean => "boolean",
-            ColumnType::Int => "int",
-            ColumnType::Long => "long",
-            ColumnType::String => "string",
-            ColumnType::Date => "date",
+            ValueType::Boolean => "boolean",
+            ValueType::Int => "int",
+            ValueType::Long => "long",
+            ValueType::String => "string",
+            ValueType::Date => "date",
         }
     }
 }
 
-impl std::fmt::Display for ColumnType {
+impl std::fmt::Display for ValueType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
-impl TryFrom<SchemaDataType> for ColumnType {
+impl TryFrom<SchemaDataType> for ValueType {
     type Error = anyhow::Error;
 
     fn try_from(schema_data_type: SchemaDataType) -> std::result::Result<Self, Self::Error> {
         match schema_data_type {
             SchemaDataType::primitive(name) if name.to_lowercase() == "boolean" => {
-                Ok(ColumnType::Boolean)
+                Ok(ValueType::Boolean)
             }
             SchemaDataType::primitive(name) if name.to_lowercase() == "integer" => {
-                Ok(ColumnType::Int)
+                Ok(ValueType::Int)
             }
-            SchemaDataType::primitive(name) if name.to_lowercase() == "long" => {
-                Ok(ColumnType::Long)
-            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "long" => Ok(ValueType::Long),
             SchemaDataType::primitive(name) if name.to_lowercase() == "string" => {
-                Ok(ColumnType::String)
+                Ok(ValueType::String)
             }
-            SchemaDataType::primitive(name) if name.to_lowercase() == "date" => {
-                Ok(ColumnType::Date)
-            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "date" => Ok(ValueType::Date),
             _ => Err(anyhow!("failed to parse column type")),
         }
     }
 }
 
-impl TryFrom<&SchemaDataType> for ColumnType {
+impl TryFrom<&SchemaDataType> for ValueType {
     type Error = anyhow::Error;
 
     fn try_from(schema_data_type: &SchemaDataType) -> std::result::Result<Self, Self::Error> {
         match schema_data_type {
             SchemaDataType::primitive(name) if name.to_lowercase() == "boolean" => {
-                Ok(ColumnType::Boolean)
+                Ok(ValueType::Boolean)
             }
             SchemaDataType::primitive(name) if name.to_lowercase() == "integer" => {
-                Ok(ColumnType::Int)
+                Ok(ValueType::Int)
             }
-            SchemaDataType::primitive(name) if name.to_lowercase() == "long" => {
-                Ok(ColumnType::Long)
-            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "long" => Ok(ValueType::Long),
             SchemaDataType::primitive(name) if name.to_lowercase() == "string" => {
-                Ok(ColumnType::String)
+                Ok(ValueType::String)
             }
-            SchemaDataType::primitive(name) if name.to_lowercase() == "date" => {
-                Ok(ColumnType::Date)
-            }
+            SchemaDataType::primitive(name) if name.to_lowercase() == "date" => Ok(ValueType::Date),
             _ => Err(anyhow!("failed to parse column type")),
         }
     }
