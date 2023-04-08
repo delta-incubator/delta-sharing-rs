@@ -41,9 +41,9 @@ pub struct Claims {
 #[sqlx(type_name = "VARCHAR")]
 pub enum Role {
     #[strum(ascii_case_insensitive)]
-    Admin = 0,
+    Admin,
     #[strum(ascii_case_insensitive)]
-    Guest = 1,
+    Guest,
 }
 
 impl AsRef<str> for Role {

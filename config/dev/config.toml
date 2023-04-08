@@ -6,6 +6,7 @@ admin_email = "kotosiro@email.com"
 admin_password = "password"
 admin_namespace = "admin"
 admin_ttl = 28800
+signed_url_ttl = 28800
 jwt_secret = "your secret here"
 gcp_sa_private_key = "./creds/gcp/sa-private-key.json"
 aws_profile = "kotosiro-sharing"

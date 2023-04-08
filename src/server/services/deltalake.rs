@@ -94,7 +94,7 @@ impl Metadata {
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct File {
+pub struct FileDetail {
     pub id: String,
     pub url: String,
     pub partition_values: HashMap<String, String>,
@@ -105,6 +105,12 @@ pub struct File {
     pub version: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timestamp: Option<i64>,
+}
+
+#[derive(serde::Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct File {
+    pub file: FileDetail,
 }
 
 impl File {
@@ -121,13 +127,15 @@ impl File {
             }
         }
         Self {
-            id: String::from(format!("{:x}", md5::compute(add.path.as_bytes()))),
-            url: url_signer(add.path),
-            partition_values: partition_values,
-            size: add.size,
-            stats: add.stats,
-            version: version,
-            timestamp: timestamp,
+            file: FileDetail {
+                id: String::from(format!("{:x}", md5::compute(add.path.as_bytes()))),
+                url: url_signer(add.path),
+                partition_values: partition_values,
+                size: add.size,
+                stats: add.stats,
+                version: version,
+                timestamp: timestamp,
+            },
         }
     }
 }

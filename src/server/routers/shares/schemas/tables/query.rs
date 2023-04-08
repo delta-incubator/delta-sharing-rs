@@ -150,7 +150,7 @@ pub async fn post(
 		    &state.aws_credentials,
 		    &bucket,
 		    &file,
-		    &config::fetch::<u64>("admin_ttl")
+		    &config::fetch::<u64>("signed_url_ttl")
 		) else {
                     tracing::error!("failed to sign up AWS S3 url");
 		    return String::from("");
@@ -163,7 +163,7 @@ pub async fn post(
 		    &state.gcp_service_account,
 		    &bucket,
 		    &file,
-		    &config::fetch::<u64>("admin_ttl")
+		    &config::fetch::<u64>("signed_url_ttl")
 		) else {
                     tracing::error!("failed to sign up GCP GCS url");
 		    return String::from("");

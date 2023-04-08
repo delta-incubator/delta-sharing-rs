@@ -88,15 +88,15 @@ where
 #[serde(rename_all = "lowercase")]
 pub enum ColumnType {
     #[strum(ascii_case_insensitive)]
-    Boolean = 0,
+    Boolean,
     #[strum(ascii_case_insensitive)]
-    Int = 1,
+    Int,
     #[strum(ascii_case_insensitive)]
-    Long = 2,
+    Long,
     #[strum(ascii_case_insensitive)]
-    String = 3,
+    String,
     #[strum(ascii_case_insensitive)]
-    Date = 4,
+    Date,
 }
 
 impl AsRef<str> for ColumnType {
