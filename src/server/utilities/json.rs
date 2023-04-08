@@ -1,6 +1,8 @@
+use crate::server::utilities::deltalake::Stats;
 use crate::server::utilities::deltalake::ValueType;
 use anyhow::anyhow;
 use anyhow::Result;
+use deltalake::schema::Schema;
 use utoipa::ToSchema;
 
 #[derive(
@@ -95,6 +97,7 @@ pub enum Predicate {
     },
     IsNull {
         column: String,
+        value_type: ValueType,
     },
     And(Vec<Predicate>),
     Or(Vec<Predicate>),
@@ -109,6 +112,55 @@ pub struct PartitionFilter {
 pub struct Utility;
 
 impl Utility {
+    fn check<T: PartialOrd + std::str::FromStr>(
+        predicate: &Predicate,
+        min: &T,
+        max: &T,
+        null_count: &i64,
+    ) -> bool {
+        match predicate {
+            Predicate::IsNull { .. } => {
+                return null_count > &0;
+            }
+            Predicate::Equal { value, .. } => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(ref value) = value.parse::<T>() else {
+                return true;
+            };
+                return min <= value && value <= max;
+            }
+            Predicate::GreaterThan { value, .. } => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(ref value) = value.parse::<T>() else {
+                return true;
+            };
+                return value < max;
+            }
+            Predicate::LessThan { value, .. } => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(ref value) = value.parse::<T>() else {
+                return true;
+            };
+                return min < value;
+            }
+            Predicate::GreaterEqual { value, .. } => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(ref value) = value.parse::<T>() else {
+                return true;
+            };
+                return value <= max;
+            }
+            Predicate::LessEqual { value, .. } => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(ref value) = value.parse::<T>() else {
+                return true;
+            };
+                return min <= value;
+            }
+            _ => unreachable!(),
+        }
+    }
+
     pub fn parse(json: PredicateJson) -> Result<Predicate> {
         match json.op {
             OpType::And => {
@@ -163,10 +215,13 @@ impl Utility {
                     return Err(anyhow!("JSON IS NULL predicate must have COLUMN predicate"));
                 };
                 let column = children.swap_remove(column);
+                let Some(value_type) = column.value_type else {
+                    return Err(anyhow!("missing column value type for JSON EQUAL predicate"));
+                };
                 let Some(column) = column.name else {
                     return Err(anyhow!("missing column name for JSON IS NULL predicate"));
                 };
-                Ok(Predicate::IsNull { column })
+                Ok(Predicate::IsNull { column, value_type })
             }
             OpType::Equal => {
                 let Some(mut children) = json.children else {
@@ -375,8 +430,116 @@ impl Utility {
         }
     }
 
-    pub fn check<T: PartialOrd + std::str::FromStr>() -> bool {
-        todo!()
+    pub fn filter(predicate: &Predicate, stats: &Stats, schema: &Schema) -> bool {
+        match predicate {
+            Predicate::And(children) => {
+                return children.iter().all(|c| Self::filter(c, stats, schema));
+            }
+            Predicate::Or(children) => {
+                return children.iter().any(|c| Self::filter(c, stats, schema));
+            }
+            Predicate::Not(child) => {
+                return !Self::filter(child, stats, schema);
+            }
+            Predicate::IsNull { column, value_type }
+            | Predicate::Equal {
+                column, value_type, ..
+            }
+            | Predicate::GreaterThan {
+                column, value_type, ..
+            }
+            | Predicate::LessThan {
+                column, value_type, ..
+            }
+            | Predicate::GreaterEqual {
+                column, value_type, ..
+            }
+            | Predicate::LessEqual {
+                column, value_type, ..
+            } => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Some(null_count) = stats.null_count.get(column) else {
+		    return true;
+		};
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(field) = schema.get_field_with_name(column) else {
+		    return true;
+		};
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(column_type) = ValueType::try_from(field.get_type()) else {
+		    return true;
+		};
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                if column_type != *value_type {
+                    return true;
+                }
+                match (stats.min_values.get(column), stats.max_values.get(column)) {
+                    (
+                        Some(serde_json::Value::String(min)),
+                        Some(serde_json::Value::String(max)),
+                    ) => {
+                        match column_type {
+                            ValueType::Boolean => {
+                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                                let Ok(ref min) = min.parse::<bool>() else {
+				    return true;
+				};
+                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                                let Ok(ref max) = max.parse::<bool>() else {
+				    return true;
+				};
+                                return Self::check(predicate, min, max, null_count);
+                            }
+                            ValueType::String => {
+                                return Self::check(predicate, min, max, null_count);
+                            }
+                            ValueType::Date => {
+                                return Self::check(predicate, min, max, null_count);
+                            }
+                            // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                            _ => {
+                                return true;
+                            }
+                        }
+                    }
+                    (
+                        Some(serde_json::Value::Number(min)),
+                        Some(serde_json::Value::Number(max)),
+                    ) => {
+                        match column_type {
+                            ValueType::Int => {
+                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                                let Some(ref min) = min.as_i64() else {
+				    return true;
+				};
+                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                                let Some(ref max) = max.as_i64() else {
+				    return true;
+				};
+                                return Self::check(predicate, min, max, null_count);
+                            }
+                            ValueType::Long => {
+                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                                let Some(ref min) = min.as_i64() else {
+				    return true;
+				};
+                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                                let Some(ref max) = max.as_i64() else {
+				    return true;
+				};
+                                return Self::check(predicate, min, max, null_count);
+                            }
+                            // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                            _ => {
+                                return true;
+                            }
+                        }
+                    }
+                    // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                    _ => return true,
+                }
+            }
+        }
     }
 }
 
@@ -407,7 +570,13 @@ mod tests {
             value_type: None,
         };
         let predicate = Utility::parse(json).expect("json should be parsed properly");
-        assert_eq!(predicate, Predicate::IsNull { column: column });
+        assert_eq!(
+            predicate,
+            Predicate::IsNull {
+                column: column,
+                value_type: value_type
+            }
+        );
         let op = OpType::Equal;
         let column = testutils::rand::string(10);
         let value = testutils::rand::f64(-1.5, 1.5).to_string();
@@ -648,8 +817,14 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::And(vec![
-                Predicate::IsNull { column: column_1 },
-                Predicate::IsNull { column: column_2 }
+                Predicate::IsNull {
+                    column: column_1,
+                    value_type: value_type_1
+                },
+                Predicate::IsNull {
+                    column: column_2,
+                    value_type: value_type_2
+                }
             ])
         );
         let op_1 = OpType::IsNull;
@@ -702,8 +877,14 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::Or(vec![
-                Predicate::IsNull { column: column_1 },
-                Predicate::IsNull { column: column_2 }
+                Predicate::IsNull {
+                    column: column_1,
+                    value_type: value_type_1
+                },
+                Predicate::IsNull {
+                    column: column_2,
+                    value_type: value_type_2
+                }
             ])
         );
 
@@ -737,7 +918,10 @@ mod tests {
         let predicate = Utility::parse(json).expect("json should be parsed properly");
         assert_eq!(
             predicate,
-            Predicate::Not(Box::new(Predicate::IsNull { column: column_1 }))
+            Predicate::Not(Box::new(Predicate::IsNull {
+                column: column_1,
+                value_type: value_type_1
+            }))
         );
     }
 }

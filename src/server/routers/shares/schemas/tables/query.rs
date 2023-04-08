@@ -7,7 +7,9 @@ use crate::server::services::deltalake::Service as DeltalakeService;
 use crate::server::services::error::Error;
 use crate::server::services::table::Service as TableService;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
+use crate::server::utilities::json::PartitionFilter as JSONPartitionFilter;
 use crate::server::utilities::json::PredicateJson;
+use crate::server::utilities::json::Utility as JSONUtility;
 use crate::server::utilities::signed_url::Platform;
 use crate::server::utilities::signed_url::Utility as SignedUrlUtility;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
@@ -66,7 +68,7 @@ pub async fn post(
     Path(params): Path<SharesSchemasTablesQueryPostParams>,
     Json(payload): Json<SharesSchemasTablesQueryPostRequest>,
 ) -> Result<Response, Error> {
-    let predicate_hints = if let Some(predicate_hints) = &payload.predicate_hints {
+    let predicate_hints = if let Some(predicate_hints) = payload.predicate_hints {
         let predicate_hints: Result<Vec<SQLPartitionFilter>, _> = predicate_hints
             .into_iter()
             .map(|p| SQLUtility::parse(p.to_owned()))
@@ -75,6 +77,20 @@ pub async fn post(
             tracing::warn!("requested predicate hints are malformed");
         }
         predicate_hints.ok()
+    } else {
+        None
+    };
+    let json_predicate_hints = if let Some(json_predicate_hints) = payload.json_predicate_hints {
+        let predicate = JSONUtility::parse(json_predicate_hints);
+        if let Err(_) = predicate {
+            tracing::warn!("requested predicate hints are malformed");
+        }
+        predicate.ok()
+    } else {
+        None
+    };
+    let json_predicate_hints = if let Some(predicate) = json_predicate_hints {
+        Some(JSONPartitionFilter { predicate })
     } else {
         None
     };
@@ -186,6 +202,7 @@ pub async fn post(
             table,
             metadata,
             predicate_hints,
+            json_predicate_hints,
             is_time_traveled,
             &url_signer,
         )),

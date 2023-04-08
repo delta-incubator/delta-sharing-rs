@@ -406,7 +406,7 @@ impl Utility {
             }
             // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
             _ => return true,
-        };
+        }
     }
 }
 

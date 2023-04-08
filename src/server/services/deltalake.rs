@@ -1,4 +1,6 @@
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
+use crate::server::utilities::json::PartitionFilter as JSONPartitionFilter;
+use crate::server::utilities::json::Utility as JSONUtility;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 use anyhow::Result;
@@ -169,10 +171,35 @@ impl Service {
         files
     }
 
+    fn filter_with_json_hints(
+        files: Vec<Add>,
+        schema: Option<Schema>,
+        json_predicate_hints: Option<JSONPartitionFilter>,
+    ) -> Vec<Add> {
+        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+        let Some(schema) = schema else {
+	    return files;
+	};
+        if let Some(JSONPartitionFilter { predicate }) = json_predicate_hints {
+            return files
+                .into_iter()
+                .filter(|f| {
+                    // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                    let Ok(stats) = DeltalakeUtility::get_stats(f) else {
+			return true;
+		    };
+                    JSONUtility::filter(&predicate, &stats, &schema)
+                })
+                .collect::<Vec<Add>>();
+        }
+        files
+    }
+
     pub fn files_from(
         table: DeltaTable,
         metadata: DeltaTableMetaData,
         predicate_hints: Option<Vec<SQLPartitionFilter>>,
+        json_predicate_hints: Option<JSONPartitionFilter>,
         is_time_traveled: bool,
         url_signer: &dyn Fn(String) -> String,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
@@ -191,6 +218,8 @@ impl Service {
             table.schema().cloned(),
             predicate_hints,
         );
+        let files =
+            Self::filter_with_json_hints(files, table.schema().cloned(), json_predicate_hints);
         let mut files = files
             .into_iter()
             .map(|f| {
