@@ -383,9 +383,361 @@ impl Utility {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
-    fn test() {
-        println!("TEST JSON!!!");
+    fn test_parse() {
+        let op = OpType::IsNull;
+        let column = testutils::rand::string(10);
+        let value_types = vec!["boolean", "int", "long", "string", "date"];
+        let value_type = testutils::rand::choose(&value_types);
+        let value_type =
+            ValueType::from_str(value_type).expect("value type should be parsed properly");
+        let json = PredicateJson {
+            op: op,
+            children: Some(vec![PredicateJson {
+                op: OpType::Column,
+                children: None,
+                name: Some(column.clone()),
+                value: None,
+                value_type: Some(value_type),
+            }]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let predicate = Utility::parse(json).expect("json should be parsed properly");
+        assert_eq!(predicate, Predicate::IsNull { column: column });
+        let op = OpType::Equal;
+        let column = testutils::rand::string(10);
+        let value = testutils::rand::f64(-1.5, 1.5).to_string();
+        let value_types = vec!["boolean", "int", "long", "string", "date"];
+        let value_type = testutils::rand::choose(&value_types);
+        let value_type =
+            ValueType::from_str(value_type).expect("value type should be parsed properly");
+        let json = PredicateJson {
+            op: op,
+            children: Some(vec![
+                PredicateJson {
+                    op: OpType::Column,
+                    children: None,
+                    name: Some(column.clone()),
+                    value: None,
+                    value_type: Some(value_type),
+                },
+                PredicateJson {
+                    op: OpType::Literal,
+                    children: None,
+                    name: None,
+                    value: Some(value.clone()),
+                    value_type: Some(value_type),
+                },
+            ]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let predicate = Utility::parse(json).expect("json should be parsed properly");
+        assert_eq!(
+            predicate,
+            Predicate::Equal {
+                column: column,
+                value: value,
+                value_type: value_type
+            }
+        );
+        let op = OpType::LessThan;
+        let column = testutils::rand::string(10);
+        let value = testutils::rand::f64(-1.5, 1.5).to_string();
+        let value_types = vec!["boolean", "int", "long", "string", "date"];
+        let value_type = testutils::rand::choose(&value_types);
+        let value_type =
+            ValueType::from_str(value_type).expect("value type should be parsed properly");
+        let json = PredicateJson {
+            op: op,
+            children: Some(vec![
+                PredicateJson {
+                    op: OpType::Column,
+                    children: None,
+                    name: Some(column.clone()),
+                    value: None,
+                    value_type: Some(value_type),
+                },
+                PredicateJson {
+                    op: OpType::Literal,
+                    children: None,
+                    name: None,
+                    value: Some(value.clone()),
+                    value_type: Some(value_type),
+                },
+            ]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let predicate = Utility::parse(json).expect("json should be parsed properly");
+        assert_eq!(
+            predicate,
+            Predicate::LessThan {
+                column: column,
+                value: value,
+                value_type: value_type
+            }
+        );
+        let op = OpType::LessThanOrEqual;
+        let column = testutils::rand::string(10);
+        let value = testutils::rand::f64(-1.5, 1.5).to_string();
+        let value_types = vec!["boolean", "int", "long", "string", "date"];
+        let value_type = testutils::rand::choose(&value_types);
+        let value_type =
+            ValueType::from_str(value_type).expect("value type should be parsed properly");
+        let json = PredicateJson {
+            op: op,
+            children: Some(vec![
+                PredicateJson {
+                    op: OpType::Column,
+                    children: None,
+                    name: Some(column.clone()),
+                    value: None,
+                    value_type: Some(value_type),
+                },
+                PredicateJson {
+                    op: OpType::Literal,
+                    children: None,
+                    name: None,
+                    value: Some(value.clone()),
+                    value_type: Some(value_type),
+                },
+            ]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let predicate = Utility::parse(json).expect("json should be parsed properly");
+        assert_eq!(
+            predicate,
+            Predicate::LessEqual {
+                column: column,
+                value: value,
+                value_type: value_type
+            }
+        );
+        let op = OpType::GreaterThan;
+        let column = testutils::rand::string(10);
+        let value = testutils::rand::f64(-1.5, 1.5).to_string();
+        let value_types = vec!["boolean", "int", "long", "string", "date"];
+        let value_type = testutils::rand::choose(&value_types);
+        let value_type =
+            ValueType::from_str(value_type).expect("value type should be parsed properly");
+        let json = PredicateJson {
+            op: op,
+            children: Some(vec![
+                PredicateJson {
+                    op: OpType::Column,
+                    children: None,
+                    name: Some(column.clone()),
+                    value: None,
+                    value_type: Some(value_type),
+                },
+                PredicateJson {
+                    op: OpType::Literal,
+                    children: None,
+                    name: None,
+                    value: Some(value.clone()),
+                    value_type: Some(value_type),
+                },
+            ]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let predicate = Utility::parse(json).expect("json should be parsed properly");
+        assert_eq!(
+            predicate,
+            Predicate::GreaterThan {
+                column: column,
+                value: value,
+                value_type: value_type
+            }
+        );
+        let op = OpType::GreaterThanOrEqual;
+        let column = testutils::rand::string(10);
+        let value = testutils::rand::f64(-1.5, 1.5).to_string();
+        let value_types = vec!["boolean", "int", "long", "string", "date"];
+        let value_type = testutils::rand::choose(&value_types);
+        let value_type =
+            ValueType::from_str(value_type).expect("value type should be parsed properly");
+        let json = PredicateJson {
+            op: op,
+            children: Some(vec![
+                PredicateJson {
+                    op: OpType::Column,
+                    children: None,
+                    name: Some(column.clone()),
+                    value: None,
+                    value_type: Some(value_type),
+                },
+                PredicateJson {
+                    op: OpType::Literal,
+                    children: None,
+                    name: None,
+                    value: Some(value.clone()),
+                    value_type: Some(value_type),
+                },
+            ]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let predicate = Utility::parse(json).expect("json should be parsed properly");
+        assert_eq!(
+            predicate,
+            Predicate::GreaterEqual {
+                column: column,
+                value: value,
+                value_type: value_type
+            }
+        );
+        let op_1 = OpType::IsNull;
+        let column_1 = testutils::rand::string(10);
+        let value_types_1 = vec!["boolean", "int", "long", "string", "date"];
+        let value_type_1 = testutils::rand::choose(&value_types_1);
+        let value_type_1 =
+            ValueType::from_str(value_type_1).expect("value type should be parsed properly");
+        let json_1 = PredicateJson {
+            op: op_1,
+            children: Some(vec![PredicateJson {
+                op: OpType::Column,
+                children: None,
+                name: Some(column_1.clone()),
+                value: None,
+                value_type: Some(value_type_1),
+            }]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let op_2 = OpType::IsNull;
+        let column_2 = testutils::rand::string(10);
+        let value_types_2 = vec!["boolean", "int", "long", "string", "date"];
+        let value_type_2 = testutils::rand::choose(&value_types_2);
+        let value_type_2 =
+            ValueType::from_str(value_type_2).expect("value type should be parsed properly");
+        let json_2 = PredicateJson {
+            op: op_2,
+            children: Some(vec![PredicateJson {
+                op: OpType::Column,
+                children: None,
+                name: Some(column_2.clone()),
+                value: None,
+                value_type: Some(value_type_2),
+            }]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let op = OpType::And;
+        let json = PredicateJson {
+            op: op,
+            children: Some(vec![json_1, json_2]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let predicate = Utility::parse(json).expect("json should be parsed properly");
+        assert_eq!(
+            predicate,
+            Predicate::And(vec![
+                Predicate::IsNull { column: column_1 },
+                Predicate::IsNull { column: column_2 }
+            ])
+        );
+        let op_1 = OpType::IsNull;
+        let column_1 = testutils::rand::string(10);
+        let value_types_1 = vec!["boolean", "int", "long", "string", "date"];
+        let value_type_1 = testutils::rand::choose(&value_types_1);
+        let value_type_1 =
+            ValueType::from_str(value_type_1).expect("value type should be parsed properly");
+        let json_1 = PredicateJson {
+            op: op_1,
+            children: Some(vec![PredicateJson {
+                op: OpType::Column,
+                children: None,
+                name: Some(column_1.clone()),
+                value: None,
+                value_type: Some(value_type_1),
+            }]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let op_2 = OpType::IsNull;
+        let column_2 = testutils::rand::string(10);
+        let value_types_2 = vec!["boolean", "int", "long", "string", "date"];
+        let value_type_2 = testutils::rand::choose(&value_types_2);
+        let value_type_2 =
+            ValueType::from_str(value_type_2).expect("value type should be parsed properly");
+        let json_2 = PredicateJson {
+            op: op_2,
+            children: Some(vec![PredicateJson {
+                op: OpType::Column,
+                children: None,
+                name: Some(column_2.clone()),
+                value: None,
+                value_type: Some(value_type_2),
+            }]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let op = OpType::Or;
+        let json = PredicateJson {
+            op: op,
+            children: Some(vec![json_1, json_2]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let predicate = Utility::parse(json).expect("json should be parsed properly");
+        assert_eq!(
+            predicate,
+            Predicate::Or(vec![
+                Predicate::IsNull { column: column_1 },
+                Predicate::IsNull { column: column_2 }
+            ])
+        );
+
+        let op_1 = OpType::IsNull;
+        let column_1 = testutils::rand::string(10);
+        let value_types_1 = vec!["boolean", "int", "long", "string", "date"];
+        let value_type_1 = testutils::rand::choose(&value_types_1);
+        let value_type_1 =
+            ValueType::from_str(value_type_1).expect("value type should be parsed properly");
+        let json_1 = PredicateJson {
+            op: op_1,
+            children: Some(vec![PredicateJson {
+                op: OpType::Column,
+                children: None,
+                name: Some(column_1.clone()),
+                value: None,
+                value_type: Some(value_type_1),
+            }]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let op = OpType::Not;
+        let json = PredicateJson {
+            op: op,
+            children: Some(vec![json_1]),
+            name: None,
+            value: None,
+            value_type: None,
+        };
+        let predicate = Utility::parse(json).expect("json should be parsed properly");
+        assert_eq!(
+            predicate,
+            Predicate::Not(Box::new(Predicate::IsNull { column: column_1 }))
+        );
     }
 }
