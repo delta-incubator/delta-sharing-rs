@@ -9,7 +9,7 @@ use crate::server::services::table::Service as TableService;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
 use crate::server::utilities::signed_url::Platform;
 use crate::server::utilities::signed_url::Utility as SignedUrlUtility;
-use crate::server::utilities::sql::ColumnFilter as SQLColumnFilter;
+use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 use anyhow::anyhow;
 use axum::extract::Extension;
@@ -66,7 +66,7 @@ pub async fn post(
     Json(payload): Json<SharesSchemasTablesQueryPostRequest>,
 ) -> Result<Response, Error> {
     let predicate_hints = if let Some(predicate_hints) = &payload.predicate_hints {
-        let predicate_hints: Result<Vec<SQLColumnFilter>, _> = predicate_hints
+        let predicate_hints: Result<Vec<SQLPartitionFilter>, _> = predicate_hints
             .into_iter()
             .map(|p| SQLUtility::parse(p.to_owned()))
             .collect();

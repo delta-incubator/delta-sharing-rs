@@ -1,7 +1,7 @@
 use crate::server::utilities::deltalake::ColumnType;
 use crate::server::utilities::deltalake::Stats;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
-use crate::server::utilities::sql::ColumnFilter as SQLColumnFilter;
+use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 use anyhow::Result;
 use axum::BoxError;
@@ -135,13 +135,13 @@ impl File {
 pub struct Service;
 
 impl Service {
-    fn check_sql_hints(filter: &SQLColumnFilter, stats: &Stats, schema: &Schema) -> bool {
+    fn check_sql_hints(filter: &SQLPartitionFilter, stats: &Stats, schema: &Schema) -> bool {
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-        let Some(null_count) = stats.null_count.get(&filter.name) else {
+        let Some(null_count) = stats.null_count.get(&filter.column) else {
 	    return true;
 	};
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-        let Ok(field) = schema.get_field_with_name(&filter.name) else {
+        let Ok(field) = schema.get_field_with_name(&filter.column) else {
 	    return true;
 	};
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
@@ -149,8 +149,8 @@ impl Service {
 	    return true;
 	};
         match (
-            stats.min_values.get(&filter.name),
-            stats.max_values.get(&filter.name),
+            stats.min_values.get(&filter.column),
+            stats.max_values.get(&filter.column),
         ) {
             (Some(serde_json::Value::String(min)), Some(serde_json::Value::String(max))) => {
                 match column_type {
@@ -215,7 +215,7 @@ impl Service {
     fn filter_with_sql_hints(
         files: Vec<Add>,
         schema: Option<Schema>,
-        predicate_hints: Option<Vec<SQLColumnFilter>>,
+        predicate_hints: Option<Vec<SQLPartitionFilter>>,
     ) -> Vec<Add> {
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
         let Some(schema) = schema else {
@@ -243,7 +243,7 @@ impl Service {
     pub fn files_from(
         table: DeltaTable,
         metadata: DeltaTableMetaData,
-        predicate_hints: Option<Vec<SQLColumnFilter>>,
+        predicate_hints: Option<Vec<SQLPartitionFilter>>,
         is_time_traveled: bool,
         url_signer: &dyn Fn(String) -> String,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {

@@ -122,8 +122,8 @@ pub enum Predicate {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct ColumnFilter {
-    pub name: String,
+pub struct PartitionFilter {
+    pub column: String,
     pub predicate: Predicate,
 }
 
@@ -199,7 +199,7 @@ impl Utility {
         Ok(())
     }
 
-    pub fn parse(code: String) -> Result<ColumnFilter> {
+    pub fn parse(code: String) -> Result<PartitionFilter> {
         let mut tokens = Token::lex(code).context("failed to lex given string")?;
         let column = Self::column(&mut tokens)
             .context("first entry of SQL expression should be column name")?;
@@ -209,14 +209,14 @@ impl Utility {
             Self::end(&mut tokens).context("invalid SQL expression")?;
             match operator {
                 Operator::IsNull => {
-                    return Ok(ColumnFilter {
-                        name: column,
+                    return Ok(PartitionFilter {
+                        column: column,
                         predicate: Predicate::IsNull,
                     })
                 }
                 Operator::IsNotNull => {
-                    return Ok(ColumnFilter {
-                        name: column,
+                    return Ok(PartitionFilter {
+                        column: column,
                         predicate: Predicate::IsNotNull,
                     })
                 }
@@ -230,38 +230,38 @@ impl Utility {
         Self::end(&mut tokens).context("invalid SQL expression")?;
         match operator {
             Operator::Equal => {
-                return Ok(ColumnFilter {
-                    name: column,
+                return Ok(PartitionFilter {
+                    column: column,
                     predicate: Predicate::Equal(value),
                 });
             }
             Operator::GreaterThan => {
-                return Ok(ColumnFilter {
-                    name: column,
+                return Ok(PartitionFilter {
+                    column: column,
                     predicate: Predicate::GreaterThan(value),
                 })
             }
             Operator::LessThan => {
-                return Ok(ColumnFilter {
-                    name: column,
+                return Ok(PartitionFilter {
+                    column: column,
                     predicate: Predicate::LessThan(value),
                 })
             }
             Operator::GreaterEqual => {
-                return Ok(ColumnFilter {
-                    name: column,
+                return Ok(PartitionFilter {
+                    column: column,
                     predicate: Predicate::GreaterEqual(value),
                 })
             }
             Operator::LessEqual => {
-                return Ok(ColumnFilter {
-                    name: column,
+                return Ok(PartitionFilter {
+                    column: column,
                     predicate: Predicate::LessEqual(value),
                 })
             }
             Operator::NotEqual => {
-                return Ok(ColumnFilter {
-                    name: column,
+                return Ok(PartitionFilter {
+                    column: column,
                     predicate: Predicate::NotEqual(value),
                 })
             }
@@ -484,8 +484,8 @@ mod tests {
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
-            ColumnFilter {
-                name: column,
+            PartitionFilter {
+                column: column,
                 predicate: Predicate::Equal(value)
             }
         );
@@ -503,8 +503,8 @@ mod tests {
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
-            ColumnFilter {
-                name: column,
+            PartitionFilter {
+                column: column,
                 predicate: Predicate::GreaterThan(value)
             }
         );
@@ -522,8 +522,8 @@ mod tests {
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
-            ColumnFilter {
-                name: column,
+            PartitionFilter {
+                column: column,
                 predicate: Predicate::LessThan(value)
             }
         );
@@ -541,8 +541,8 @@ mod tests {
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
-            ColumnFilter {
-                name: column,
+            PartitionFilter {
+                column: column,
                 predicate: Predicate::GreaterEqual(value)
             }
         );
@@ -560,8 +560,8 @@ mod tests {
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
-            ColumnFilter {
-                name: column,
+            PartitionFilter {
+                column: column,
                 predicate: Predicate::LessEqual(value)
             }
         );
@@ -579,8 +579,8 @@ mod tests {
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
-            ColumnFilter {
-                name: column,
+            PartitionFilter {
+                column: column,
                 predicate: Predicate::NotEqual(value)
             }
         );
@@ -594,8 +594,8 @@ mod tests {
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
-            ColumnFilter {
-                name: column,
+            PartitionFilter {
+                column: column,
                 predicate: Predicate::IsNull
             }
         );
@@ -610,8 +610,8 @@ mod tests {
         let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
-            ColumnFilter {
-                name: column,
+            PartitionFilter {
+                column: column,
                 predicate: Predicate::IsNotNull
             }
         );
