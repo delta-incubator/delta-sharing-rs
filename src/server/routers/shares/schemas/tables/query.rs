@@ -7,7 +7,7 @@ use crate::server::services::deltalake::Service as DeltalakeService;
 use crate::server::services::error::Error;
 use crate::server::services::table::Service as TableService;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
-use crate::server::utilities::json::Predicate;
+use crate::server::utilities::json::PredicateJson;
 use crate::server::utilities::signed_url::Platform;
 use crate::server::utilities::signed_url::Utility as SignedUrlUtility;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
@@ -33,7 +33,7 @@ const HEADER_NAME: &str = "Delta-Table-Version";
 #[serde(rename_all = "camelCase")]
 pub struct SharesSchemasTablesQueryPostRequest {
     pub predicate_hints: Option<Vec<String>>,
-    pub json_predicate_hints: Option<Predicate>,
+    pub json_predicate_hints: Option<PredicateJson>,
     pub limit_hint: Option<i32>,
     pub version: Option<i64>,
     pub timestamp: Option<String>,

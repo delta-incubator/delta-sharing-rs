@@ -56,7 +56,7 @@ use utoipa::OpenApi;
         schemas(shares::all_tables::SharesAllTablesListResponse),
         schemas(shares::schemas::SharesSchemasListResponse),
         schemas(shares::schemas::tables::SharesSchemasTablesListResponse),
-        schemas(shares::schemas::tables::query::SharesSchemasTablesQueryPostRequest, deltalake::ValueType, json::OpType, json::Predicate),
+        schemas(shares::schemas::tables::query::SharesSchemasTablesQueryPostRequest, deltalake::ValueType, json::OpType, json::PredicateJson),
     ),
     tags(
         (name = "Kotosiro Sharing", description = "Kotosiro Deltalake Sharing API")
