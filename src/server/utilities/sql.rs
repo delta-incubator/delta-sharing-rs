@@ -1,6 +1,9 @@
+use crate::server::utilities::deltalake::Stats;
+use crate::server::utilities::deltalake::ValueType;
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
+use deltalake::schema::Schema;
 use std::collections::VecDeque;
 
 static KEYWORDS: &[char] = &[' ', '=', '\'', '\"', '>', '<'];
@@ -199,6 +202,64 @@ impl Utility {
         Ok(())
     }
 
+    fn check<T: PartialOrd + std::str::FromStr>(
+        predicate: &Predicate,
+        min: &T,
+        max: &T,
+        null_count: &i64,
+    ) -> bool {
+        match predicate {
+            Predicate::IsNull => {
+                return null_count > &0;
+            }
+            Predicate::IsNotNull => {
+                return null_count == &0;
+            }
+            Predicate::Equal(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(ref value) = value.parse::<T>() else {
+		    return true;
+		};
+                return min <= value && value <= max;
+            }
+            Predicate::GreaterThan(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(ref value) = value.parse::<T>() else {
+		    return true;
+		};
+                return value < max;
+            }
+            Predicate::LessThan(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(ref value) = value.parse::<T>() else {
+		    return true;
+		};
+                return min < value;
+            }
+            Predicate::GreaterEqual(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(ref value) = value.parse::<T>() else {
+		    return true;
+		};
+                return value <= max;
+            }
+            Predicate::LessEqual(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(ref value) = value.parse::<T>() else {
+		    return true;
+		};
+                return min <= value;
+            }
+            Predicate::NotEqual(value) => {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(ref value) = value.parse::<T>() else {
+		    return true;
+		};
+                return min != value && value != max;
+            }
+        }
+    }
+
     pub fn parse(code: String) -> Result<PartitionFilter> {
         let mut tokens = Token::lex(code).context("failed to lex given string")?;
         let column = Self::column(&mut tokens)
@@ -271,62 +332,81 @@ impl Utility {
         }
     }
 
-    pub fn check<T: PartialOrd + std::str::FromStr>(
-        predicate: &Predicate,
-        min: &T,
-        max: &T,
-        null_count: &i64,
-    ) -> bool {
-        match predicate {
-            Predicate::IsNull => {
-                return null_count > &0;
+    pub fn filter(filter: &PartitionFilter, stats: &Stats, schema: &Schema) -> bool {
+        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+        let Some(null_count) = stats.null_count.get(&filter.column) else {
+	    return true;
+	};
+        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+        let Ok(field) = schema.get_field_with_name(&filter.column) else {
+	    return true;
+	};
+        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+        let Ok(column_type) = ValueType::try_from(field.get_type()) else {
+	    return true;
+	};
+        match (
+            stats.min_values.get(&filter.column),
+            stats.max_values.get(&filter.column),
+        ) {
+            (Some(serde_json::Value::String(min)), Some(serde_json::Value::String(max))) => {
+                match column_type {
+                    ValueType::Boolean => {
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Ok(ref min) = min.parse::<bool>() else {
+			    return true;
+			};
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Ok(ref max) = max.parse::<bool>() else {
+			    return true;
+			};
+                        return Self::check(&filter.predicate, min, max, null_count);
+                    }
+                    ValueType::String => {
+                        return Self::check(&filter.predicate, min, max, null_count);
+                    }
+                    ValueType::Date => {
+                        return Self::check(&filter.predicate, min, max, null_count);
+                    }
+                    // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                    _ => {
+                        return true;
+                    }
+                }
             }
-            Predicate::IsNotNull => {
-                return null_count == &0;
+            (Some(serde_json::Value::Number(min)), Some(serde_json::Value::Number(max))) => {
+                match column_type {
+                    ValueType::Int => {
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Some(ref min) = min.as_i64() else {
+			    return true;
+			};
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Some(ref max) = max.as_i64() else {
+			    return true;
+			};
+                        return Self::check(&filter.predicate, min, max, null_count);
+                    }
+                    ValueType::Long => {
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Some(ref min) = min.as_i64() else {
+			    return true;
+			};
+                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                        let Some(ref max) = max.as_i64() else {
+			    return true;
+			};
+                        return Self::check(&filter.predicate, min, max, null_count);
+                    }
+                    // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                    _ => {
+                        return true;
+                    }
+                }
             }
-            Predicate::Equal(value) => {
-                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return min <= value && value <= max;
-            }
-            Predicate::GreaterThan(value) => {
-                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return value < max;
-            }
-            Predicate::LessThan(value) => {
-                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return min < value;
-            }
-            Predicate::GreaterEqual(value) => {
-                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return value <= max;
-            }
-            Predicate::LessEqual(value) => {
-                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return min <= value;
-            }
-            Predicate::NotEqual(value) => {
-                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return min != value && value != max;
-            }
-        }
+            // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+            _ => return true,
+        };
     }
 }
 

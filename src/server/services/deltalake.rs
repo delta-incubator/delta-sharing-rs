@@ -1,6 +1,4 @@
-use crate::server::utilities::deltalake::Stats;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
-use crate::server::utilities::deltalake::ValueType;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 use anyhow::Result;
@@ -143,83 +141,6 @@ impl File {
 pub struct Service;
 
 impl Service {
-    fn check_sql_hints(filter: &SQLPartitionFilter, stats: &Stats, schema: &Schema) -> bool {
-        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-        let Some(null_count) = stats.null_count.get(&filter.column) else {
-	    return true;
-	};
-        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-        let Ok(field) = schema.get_field_with_name(&filter.column) else {
-	    return true;
-	};
-        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-        let Ok(column_type) = ValueType::try_from(field.get_type()) else {
-	    return true;
-	};
-        match (
-            stats.min_values.get(&filter.column),
-            stats.max_values.get(&filter.column),
-        ) {
-            (Some(serde_json::Value::String(min)), Some(serde_json::Value::String(max))) => {
-                match column_type {
-                    ValueType::Boolean => {
-                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                        let Ok(ref min) = min.parse::<bool>() else {
-			    return true;
-			};
-                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                        let Ok(ref max) = max.parse::<bool>() else {
-			    return true;
-			};
-                        return SQLUtility::check(&filter.predicate, min, max, null_count);
-                    }
-                    ValueType::String => {
-                        return SQLUtility::check(&filter.predicate, min, max, null_count);
-                    }
-                    ValueType::Date => {
-                        return SQLUtility::check(&filter.predicate, min, max, null_count);
-                    }
-                    // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                    _ => {
-                        return true;
-                    }
-                }
-            }
-            (Some(serde_json::Value::Number(min)), Some(serde_json::Value::Number(max))) => {
-                match column_type {
-                    ValueType::Int => {
-                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                        let Some(ref min) = min.as_i64() else {
-			    return true;
-			};
-                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                        let Some(ref max) = max.as_i64() else {
-			    return true;
-			};
-                        return SQLUtility::check(&filter.predicate, min, max, null_count);
-                    }
-                    ValueType::Long => {
-                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                        let Some(ref min) = min.as_i64() else {
-			    return true;
-			};
-                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                        let Some(ref max) = max.as_i64() else {
-			    return true;
-			};
-                        return SQLUtility::check(&filter.predicate, min, max, null_count);
-                    }
-                    // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                    _ => {
-                        return true;
-                    }
-                }
-            }
-            // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-            _ => return true,
-        };
-    }
-
     fn filter_with_sql_hints(
         files: Vec<Add>,
         schema: Option<Schema>,
@@ -239,7 +160,7 @@ impl Service {
                             let Ok(stats) = DeltalakeUtility::get_stats(f) else {
 				return true;
 			    };
-                            Self::check_sql_hints(&p, &stats, &schema)
+                            SQLUtility::filter(&p, &stats, &schema)
                         })
                     })
                     .collect::<Vec<Add>>();
