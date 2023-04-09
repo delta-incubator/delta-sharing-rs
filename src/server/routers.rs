@@ -47,6 +47,7 @@ async fn route(
     let swagger = SwaggerUi::new("/swagger-ui").url("/api-doc/openapi.json", ApiDoc::openapi());
 
     let admin = Router::new()
+        .route("/admin/profile", get(self::admin::profile))
         .route("/admin/accounts", post(self::admin::accounts::post))
         .route("/admin/accounts", get(self::admin::accounts::list))
         .route("/admin/accounts/:account", get(self::admin::accounts::get))

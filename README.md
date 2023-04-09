@@ -36,7 +36,7 @@ API
 |:------------------:|:--------------:|--------|--------------------------------------------------------------------|
 | :heavy_check_mark: | :red_square:   | GET    | */swagger-ui*                                                      |
 | :heavy_check_mark: | :red_square:   | POST   | */admin/login*                                                     |
-|                    | :red_square:   | GET    | */admin/token*                                                     |
+| :heavy_check_mark: | :red_square:   | GET    | */admin/profile*                                                   |
 | :heavy_check_mark: | :red_square:   | GET    | */admin/accounts*                                                  |
 | :heavy_check_mark: | :red_square:   | POST   | */admin/accounts*                                                  |
 | :heavy_check_mark: | :red_square:   | GET    | */admin/accounts/{account}*                                        |
@@ -53,16 +53,21 @@ API
 | :heavy_check_mark: | :green_square: | GET    | */shares/{share}/all-tables*                                       |
 | :heavy_check_mark: | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables/{table}/version*          |
 | :heavy_check_mark: | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables/{table}/metadata*         |
-|                    | :green_square: | POST   | */shares/{share}/schemas/{schema}/tables/{table}/query*            |
+| :heavy_check_mark: | :green_square: | POST   | */shares/{share}/schemas/{schema}/tables/{table}/query*            |
 |                    | :green_square: | GET    | */shares/{share}/schemas/{schema}/tables/{table}/changes*          |
 
 TODO
 ==============================
 
- - [ ] README
- - [ ] Wiki
- - [ ] Dockerfile
- - [ ] Kubernetes
- - [ ] React/Frontend
- - [ ] CORS
- - [ ] Audit (namespace, tenant, log etc...)
+- [ ] API
+  - [ ] Change Data Feed Related API
+- [ ] Documentation
+  - [x] README
+  - [ ] Wiki
+- [ ] DevOps
+  - [ ] Dockerfile
+  - [ ] Helm Chart
+- [ ] Admin Console (React/Frontend)
+- [ ] Data Access Audit
+  - [ ] Enrich Access Log
+  - [ ] Share Namespaces

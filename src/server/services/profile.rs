@@ -75,7 +75,7 @@ impl Service {
             .context("profile creation failed")?;
         Ok(Profile {
             share_credentials_version: VERSION,
-            endpoint: config::fetch::<String>("server_bind"),
+            endpoint: config::fetch::<String>("server_addr"),
             bearer_token: token,
             expiration_time: expiration_time.to_string(),
         })

@@ -104,3 +104,40 @@ pub async fn login(
     )
         .into_response())
 }
+
+#[derive(serde::Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct AdminProfileResponse {
+    pub profile: Profile,
+}
+
+#[utoipa::path(
+    get,
+    path = "/admin/profile",
+    responses(
+        (status = 200, description = "The profile were successfully returned.", body = AdminProfileResponse),
+        (status = 400, description = "The request is malformed.", body = ErrorMessage),
+        (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
+        (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
+        (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
+    )
+)]
+#[tracing::instrument(skip(account))]
+pub async fn profile(Extension(account): Extension<AccountEntity>) -> Result<Response, Error> {
+    let Ok(profile) = ProfileService::issue(
+        account.name().to_string(),
+        account.email().to_string(),
+        account.namespace().to_string(),
+        Role::Guest,
+        account.ttl().to_i64(),
+    ) else {
+        tracing::error!("request is not handled correctly due to a server error while creating profile");
+        return Err(anyhow!("failed to create profile").into());
+    };
+    tracing::info!("profile was successfully returned");
+    Ok((
+        StatusCode::OK,
+        Json(AdminProfileResponse { profile: profile }),
+    )
+        .into_response())
+}

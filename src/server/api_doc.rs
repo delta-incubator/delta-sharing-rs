@@ -14,6 +14,7 @@ use utoipa::OpenApi;
 #[openapi(
     paths(
         admin::login,
+        admin::profile,
         admin::accounts::post,
         admin::accounts::get,
         admin::accounts::list,
@@ -42,7 +43,7 @@ use utoipa::OpenApi;
 	    schema::SchemaDetail,
 	    error::ErrorMessage,
 	),
-        schemas(admin::AdminLoginRequest, admin::AdminLoginResponse),
+        schemas(admin::AdminLoginRequest, admin::AdminLoginResponse, admin::AdminProfileResponse),
         schemas(admin::accounts::AdminAccountsPostRequest, admin::accounts::AdminAccountsPostResponse),
         schemas(admin::accounts::AdminAccountsGetResponse),
         schemas(admin::accounts::AdminAccountsListResponse),
