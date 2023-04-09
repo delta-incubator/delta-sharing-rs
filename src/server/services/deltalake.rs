@@ -143,6 +143,29 @@ impl File {
 pub struct Service;
 
 impl Service {
+    fn filter_with_limit_hint(files: Vec<Add>, limit_hint: Option<i32>) -> Vec<Add> {
+        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+        let Some(limit_hint) = limit_hint else {
+	    return files;
+	};
+        let mut records_so_far = 0;
+        return files
+            .into_iter()
+            .filter(|f| {
+                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                let Ok(stats) = DeltalakeUtility::get_stats(f) else {
+		    return true;
+		};
+                if records_so_far > limit_hint.into() {
+                    return false;
+                } else {
+                    records_so_far += stats.num_records;
+                    return true;
+                }
+            })
+            .collect::<Vec<Add>>();
+    }
+
     fn filter_with_sql_hints(
         files: Vec<Add>,
         schema: Option<Schema>,
@@ -200,6 +223,7 @@ impl Service {
         metadata: DeltaTableMetaData,
         predicate_hints: Option<Vec<SQLPartitionFilter>>,
         json_predicate_hints: Option<JSONPartitionFilter>,
+        limit_hint: Option<i32>,
         is_time_traveled: bool,
         url_signer: &dyn Fn(String) -> String,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
@@ -213,11 +237,8 @@ impl Service {
         } else {
             None
         };
-        let files = Self::filter_with_sql_hints(
-            table.get_state().files().to_owned(),
-            table.schema().cloned(),
-            predicate_hints,
-        );
+        let files = Self::filter_with_limit_hint(table.get_state().files().to_owned(), limit_hint);
+        let files = Self::filter_with_sql_hints(files, table.schema().cloned(), predicate_hints);
         let files =
             Self::filter_with_json_hints(files, table.schema().cloned(), json_predicate_hints);
         let mut files = files

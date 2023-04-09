@@ -203,6 +203,7 @@ pub async fn post(
             metadata,
             predicate_hints,
             json_predicate_hints,
+            payload.limit_hint,
             is_time_traveled,
             &url_signer,
         )),
