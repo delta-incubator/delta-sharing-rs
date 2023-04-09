@@ -2,9 +2,13 @@ Kotosiro Sharing Server
 ==============================
 
  Kotosiro Sharing is a Rust-based Delta Sharing Server that includes administration functionality.
-Unlike the reference implementation of a Delta Sharing Server, which primarily focuses on the API
-specification and uses static file-based sharing information, Kotosiro Sharing manages its sharing
-information through an API.
+Unlike [the reference implementation of a Delta Sharing Server](https://github.com/delta-io/delta-sharing),
+which primarily focuses on the API specification and uses static file-based sharing information,
+Kotosiro Sharing manages its sharing information through an API.
+
+<p align="center">
+  <img src="images/delta-sharing.png" width="85%"/>
+</p>
 
 Supported Platforms
 ==============================
@@ -48,6 +52,7 @@ chart will be added to the project in the near future.
  To run the unit tests, execute the following commands in this directory:
 
  ```bash
+  $ just docker
   $ just test
   $ just testdb
  ```
