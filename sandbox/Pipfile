@@ -9,6 +9,7 @@ delta-spark = "==2.2.0"
 google-cloud-storage = "==2.8.0"
 boto3 = "==1.26.104"
 notebook = "==6.5.3"
+delta-sharing = "==0.6.3"
 
 [dev-packages]
 
