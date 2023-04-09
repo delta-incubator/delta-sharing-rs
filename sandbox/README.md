@@ -7,7 +7,7 @@ primarily for checking connectivity between cloud service backends.
 Setup
 ==============================
 
- Run the following commands in this directory to setup the virtual environment:
+ To set up the virtual environment, run the following commands in this directory:
  
  ```bash
   $ pyenv local 3.8.13

@@ -31,6 +31,26 @@ you must configure the location of the GCP service account private key JSON.
   3. **Microsoft Azure**
   
  Microsoft Azure backed Delta Tables will be supported in the near future.
+ 
+Starting the Development Server
+==============================
+
+ Since the implementation is still in the early stages, only the development server is currently available. A Helm
+chart will be added to the project in the near future.
+ 
+ To run the development server, execute the following commands in this directory:
+
+```bash
+  $ just docker
+  $ just server
+ ```
+
+ To run the unit tests, execute the following commands in this directory:
+
+ ```bash
+  $ just test
+  $ just testdb
+ ```
 
 API
 ==============================
