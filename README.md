@@ -130,6 +130,8 @@ Create a New Sharing via the API
 Kotosiro Sharing per Server Configuration
 ==============================
 
+ Will be available in the near future. [SEE ALSO](/config)
+
 API
 ==============================
 
