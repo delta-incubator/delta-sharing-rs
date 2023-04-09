@@ -56,6 +56,79 @@ chart will be added to the project in the near future.
   $ just test
   $ just testdb
  ```
+ 
+Create a New Sharing via the API
+==============================
+
+ Once you've started the development server, you can create a new sharing via the API. Follow these steps:
+ 
+ 1. Log in to Kotosiro Sharing and get the admin access token by running the following command:
+ 
+ ```bash
+ $ curl -s -X POST http://localhost:8080/admin/login -H "Content-Type: application/json" -d '{"account": "kotosiro", "password": "password"}' | jq '.'
+{
+  "profile": {
+    "shareCredentialsVersion": 1,
+    "endpoint": "http://127.0.0.1:8080",
+    "bearerToken": "YOUR_ADMIN_ACCESS_TOKEN",
+    "expirationTime": "2023-04-09 19:34:04 UTC"
+  }
+}
+ ```
+ 
+ 2. Register a new share by running the following command:
+ 
+ ```bash
+  $ curl -s -X POST "http://localhost:8080/admin/shares" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" -d'{ "name": "share1" }' | jq '.'
+{
+  "share": {
+    "id": "6986c361-5e6a-4554-b698-11875d6598e0",
+    "name": "share1"
+  }
+}
+ ```
+ 
+ 3. Register a new table by running the following command:
+
+```bash
+ $ curl -s -X POST "http://localhost:8080/admin/tables" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" -d'{ "name": "table1", "location": "s3://kotosiro-sharing-test/examination" }' | jq '.'
+{
+  "table": {
+    "id": "579df9cd-a674-459d-9599-d38d54583cd0",
+    "name": "table1",
+    "location": "s3://kotosiro-sharing-test/examination"
+  }
+}
+```
+
+ 4. Register a new table as a part of schema1 in the share1 by running the following command:
+ 
+```bash
+ $ curl -s -X POST "http://localhost:8080/admin/shares/share1/schemas/schema1/tables" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" -d'{ "table": "table1" }' | jq '.'
+{
+  "schema": {
+    "id": "689ed733-bec8-4796-a2dd-4f82dce6beab",
+    "name": "schema1"
+  }
+}
+```
+
+ 5. Issue a new recipient profile by running the following command:
+
+```bash
+ $ curl -s -X GET "http://localhost:8080/admin/profile" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" | jq '.'
+{
+  "profile": {
+    "shareCredentialsVersion": 1,
+    "endpoint": "http://127.0.0.1:8080",
+    "bearerToken": "YOUR_RECIPIENT_ACCESS_TOKEN",
+    "expirationTime": "2023-04-09 19:55:19 UTC"
+  }
+}
+```
+
+Kotosiro Sharing per Server Configuration
+==============================
 
 API
 ==============================
