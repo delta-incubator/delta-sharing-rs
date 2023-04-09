@@ -1,6 +1,11 @@
 Kotosiro Sharing Server
 ==============================
 
+ Kotosiro Sharing is a Rust-based Delta Sharing Server that includes administration functionality.
+Unlike the reference implementation of a Delta Sharing Server, which primarily focuses on the API
+specification and uses static file-based sharing information, Kotosiro Sharing manages its sharing
+information through an API.
+
 Supported Platforms
 ==============================
 
@@ -60,7 +65,7 @@ TODO
 ==============================
 
 - [ ] API
-  - [ ] Change Data Feed Related API
+  - [ ] CDF Related API
 - [ ] Documentation
   - [x] README
   - [ ] Wiki
