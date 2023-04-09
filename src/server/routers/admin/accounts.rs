@@ -146,7 +146,8 @@ pub struct AdminAccountsListQuery {
 #[serde(rename_all = "camelCase")]
 pub struct AdminAccountsListResponse {
     pub items: Vec<Account>,
-    pub next_page_token: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub next_page_token: Option<String>,
 }
 
 #[utoipa::path(
@@ -178,11 +179,7 @@ pub async fn list(
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &query.page_token {
-        let Ok(after) = AccountName::new(name) else {
-            tracing::error!("requested next page token is malformed");
-	    return Err(Error::ValidationFailed);
-	};
-        Some(after)
+        AccountName::new(name).ok()
     } else {
         None
     };
@@ -198,7 +195,7 @@ pub async fn list(
             StatusCode::OK,
             Json(AdminAccountsListResponse {
                 items: accounts.to_vec(),
-                next_page_token: next.name.clone(),
+                next_page_token: next.name.clone().into(),
             }),
         )
             .into_response());
@@ -208,7 +205,7 @@ pub async fn list(
         StatusCode::OK,
         Json(AdminAccountsListResponse {
             items: accounts,
-            next_page_token: None.unwrap_or_default(),
+            next_page_token: None,
         }),
     )
         .into_response())
