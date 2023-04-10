@@ -133,70 +133,23 @@ Kotosiro Sharing Configuration
  The `config.toml` ([SEE ALSO](/config)) should be configured before starting the server. As mentioned before, secrets for
 accessing cloud backends must be configured as well. The following is the list of configuration variables:
 
-|===
-| Name | Required | Description
-
-| `db_url`
-| yes
-| URL of PostgreSQL server
-
-| `server_addr`
-| yes
-| Address of Kotosiro Sharing server which will be used for Sharing Profile
-
-| `server_bind`
-| yes
-| Address of Korosiro Sharing server which will be used for Axum server binding
-
-| `admin_name`
-| yes
-| Default admin user name
-
-| `admin_email`
-| yes
-| Default admin user email
-
-| `admin_password`
-| yes
-| Default admin user password
-
-| `admin_namespace`
-| yes
-| Default admin user namespace
-
-| `admin_ttl`
-| yes
-| Default admin user access token TTL in seconds
-
-| `signed_url_ttl`
-| yes
-| Valid duration of signed URL of cloud backends in seconds
-
-| `jwt_secret`
-| yes
-| JWT secret key
-
-| `gcp_sa_private_key`
-| yes*
-| Path to GCP service account JSON file
-
-| `aws_profile`
-| yes[^1]
-| AWS profile
-
-| `aws_region`
-| yes[^1]
-| AWS region
-
-| `use_json_log`
-| yes
-| If this value set to be true, log outputs in JSON format
-
-| `log_filter`
-| yes
-| Tracing log filter
-
-|===
+| Name                 | Required | Description                                                                      |
+|:--------------------:|:--------:|----------------------------------------------------------------------------------|
+| `db_url`             | yes      | URL of PostgreSQL server                                                         |
+| `server_addr`        | yes      | URL of Kotosiro Sharing server which will be used for sharing profile            |
+| `server_bind`        | yes      | IP address of Korosiro Sharing server which will be used for Axum server binding |
+| `admin_name`         | yes      | Default admin user name                                                          |
+| `admin_email`        | yes      | Default admin user email                                                         |
+| `admin_password`     | yes      | Default admin user password                                                      |
+| `admin_namespace`    | yes      | Default admin user namespace                                                     |
+| `admin_ttl`          | yes      | Default admin user access token TTL in seconds                                   |
+| `signed_url_ttl`     | yes      | Valid duration of signed URL of cloud backends in seconds                        |
+| `jwt_secret`         | yes      | JWT secret key                                                                   |
+| `gcp_sa_private_key` | yes[^1]  | Path to GCP service account JSON file                                            |
+| `aws_profile`        | yes[^1]  | AWS profile                                                                      |
+| `aws_region`         | yes[^1]  | AWS region                                                                       |
+| `use_json_log`       | yes      | If this value set to be true, log outputs in JSON format                         |
+| `log_filter`         | yes      | Tracing log filter                                                               |
 
 [^1]: The required configuration variables depend on which cloud backends are being used.
 
