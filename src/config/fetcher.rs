@@ -4,17 +4,10 @@ use glob::glob;
 use once_cell::sync::Lazy;
 
 pub static CONFIG: Lazy<Config> = Lazy::new(|| {
-    let mut glob_path = "config/dev/*";
-    let mode = match std::env::var("RUST_ENV") {
-        Ok(value) => value,
-        Err(_) => String::new(),
-    };
-    if mode.eq("production") {
-        glob_path = "config/prod/*";
-        tracing::info!(r#"RUST_ENV = "{}""#, mode);
-    }
+    let conf_dir = std::env::var("KOTOSIRO_CONF_DIR").unwrap_or("config/dev".to_string());
+    let glob_path = format!("{}/*", conf_dir);
     let mut builder = Config::builder();
-    if let Ok(paths) = glob(glob_path) {
+    if let Ok(paths) = glob(&glob_path) {
         for entry in paths {
             match entry {
                 Ok(path) => {

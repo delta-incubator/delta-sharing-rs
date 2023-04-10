@@ -130,8 +130,8 @@ Create a New Sharing via the API
 Kotosiro Sharing Configuration
 ==============================
 
- The `config.toml` ([SEE ALSO](/config)) should be configured before starting the server. As mentioned before, secrets for
-accessing cloud backends must be configured as well. The following is the list of configuration variables:
+ All `TOML`, `JSON`, `YAML`, `INI`, `RON`, and `JSON5` files located in the configuration directory will be loaded as configuration files.
+The path to the configuration directory can be set using the `KOTOSIRO_CONF_DIR` environment variable. Below is a list of the configuration variables:
 
 | Name                 | Required | Description                                                                      |
 |:--------------------:|:--------:|----------------------------------------------------------------------------------|
@@ -150,6 +150,8 @@ accessing cloud backends must be configured as well. The following is the list o
 | `aws_region`         | yes[^1]  | AWS region                                                                       |
 | `use_json_log`       | yes      | If this value set to be true, log outputs in JSON format                         |
 | `log_filter`         | yes      | Tracing log filter                                                               |
+
+ An example configuration can also be found at [`conf/dev`](/config/dev).
 
 [^1]: The required configuration variables depend on which cloud backends are being used.
 
