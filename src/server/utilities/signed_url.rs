@@ -1,4 +1,3 @@
-use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
 use rusoto_core::Region;
@@ -17,29 +16,45 @@ use url::Url;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Platform {
-    AWS { bucket: String, path: String },
-    GCP { bucket: String, path: String },
+    AWS {
+        url: String,
+        bucket: String,
+        path: String,
+    },
+    GCP {
+        url: String,
+        bucket: String,
+        path: String,
+    },
+    NONE {
+        url: String,
+    },
 }
 
 impl FromStr for Platform {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> std::result::Result<Self, Self::Err> {
-        let url = Url::parse(input).context("failed to parse signed url provider")?;
+        let url = Url::parse(input).context("failed to parse URL")?;
         match url.scheme() {
             "s3" => Ok(Self::AWS {
+                url: String::from(url.as_str()),
                 bucket: String::from(url.domain().unwrap_or("")),
                 path: String::from(url.path().strip_prefix("/").unwrap_or("")),
             }),
             "s3a" => Ok(Self::AWS {
+                url: String::from(url.as_str()),
                 bucket: String::from(url.domain().unwrap_or("")),
                 path: String::from(url.path().strip_prefix("/").unwrap_or("")),
             }),
             "gs" => Ok(Self::GCP {
+                url: String::from(url.as_str()),
                 bucket: String::from(url.domain().unwrap_or("")),
                 path: String::from(url.path().strip_prefix("/").unwrap_or("")),
             }),
-            _ => Err(anyhow!("failed to parse signed url provider")),
+            _ => Ok(Self::NONE {
+                url: String::from(url.as_str()),
+            }),
         }
     }
 }

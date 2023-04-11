@@ -161,31 +161,43 @@ pub async fn post(
         metadata.to_owned()
     };
     let url_signer = |name: String| match &platform {
-        Platform::AWS { bucket, path } => {
-            let file: String = format!("{}/{}", path, name);
-            let Ok(url) = SignedUrlUtility::sign_aws(
-		    &state.aws_credentials,
+        Platform::AWS { url, bucket, path } => {
+            if let Some(aws_credentials) = &state.aws_credentials {
+                let file: String = format!("{}/{}", path, name);
+                let Ok(signed) = SignedUrlUtility::sign_aws(
+		    &aws_credentials,
 		    &bucket,
 		    &file,
 		    &config::fetch::<u64>("signed_url_ttl")
 		) else {
-                    tracing::error!("failed to sign up AWS S3 url");
-		    return String::from("");
+		    tracing::error!("failed to sign up AWS S3 url");
+		    return url.clone();
 		};
-            return url.into();
+                return signed.into();
+            }
+            tracing::warn!("AWS credentials were not set");
+            return url.clone();
         }
-        Platform::GCP { bucket, path } => {
-            let file: String = format!("{}/{}", path, name);
-            let Ok(url) = SignedUrlUtility::sign_gcp(
-		    &state.gcp_service_account,
+        Platform::GCP { url, bucket, path } => {
+            if let Some(gcp_service_account) = &state.gcp_service_account {
+                let file: String = format!("{}/{}", path, name);
+                let Ok(signed) = SignedUrlUtility::sign_gcp(
+		    &gcp_service_account,
 		    &bucket,
 		    &file,
 		    &config::fetch::<u64>("signed_url_ttl")
 		) else {
-                    tracing::error!("failed to sign up GCP GCS url");
-		    return String::from("");
+		    tracing::error!("failed to sign up GCP GCS url");
+		    return url.clone();
 		};
-            return url.into();
+                return signed.into();
+            }
+            tracing::warn!("GCP service account was not set");
+            return url.clone();
+        }
+        Platform::NONE { url } => {
+            tracing::warn!("no supported platforms");
+            return url.clone();
         }
     };
     let mut headers = HeaderMap::new();
