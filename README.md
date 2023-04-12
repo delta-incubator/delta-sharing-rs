@@ -130,7 +130,7 @@ Create a New Sharing via the API
 Kotosiro Sharing Configuration
 ==============================
 
- All `TOML`, `JSON`, `YAML`, `INI`, `RON`, and `JSON5` files located in the configuration directory will be loaded as configuration files.
+ All `TOML`, `JSON`, `YAML`, `INI`, `RON`, and `JSON5` files located in the configuration directory will be loaded as configuration files[^1].
 The path to the configuration directory can be set using the `KOTOSIRO_CONF_DIR` environment variable. Below is a list of the configuration variables:
 
 | Name                 | Required | Description                                                                      |
@@ -145,15 +145,15 @@ The path to the configuration directory can be set using the `KOTOSIRO_CONF_DIR`
 | `admin_ttl`          | yes      | Default admin user access token TTL in seconds                                   |
 | `signed_url_ttl`     | yes      | Valid duration of signed URL of cloud backends in seconds                        |
 | `jwt_secret`         | yes      | JWT secret key                                                                   |
-| `gcp_sa_private_key` | no[^1]   | Path to GCP service account JSON file                                            |
-| `aws_profile`        | no[^1]   | AWS profile                                                                      |
-| `aws_region`         | no[^1]   | AWS region                                                                       |
+| `gcp_sa_private_key` | no[^2]   | Path to GCP service account JSON file                                            |
+| `aws_profile`        | no[^2]   | AWS profile                                                                      |
+| `aws_region`         | no[^2]   | AWS region                                                                       |
 | `use_json_log`       | yes      | If this value set to be true, log outputs in JSON format                         |
 | `log_filter`         | yes      | Tracing log filter                                                               |
 
- An example configuration can also be found at [`conf/dev`](/config/dev).
+[^1]: An example configuration can also be found at [`conf/dev`](/config/dev).
 
-[^1]: These variables may be required when you use the corresponding cloud backends. If these variables are not set when dealing with tables located in the corresponding storage backends, Kotosito server will return unsigned URLs instead and may cause internal server errors.
+[^2]: These variables may be required when you use the corresponding cloud backends. If these variables are not set when dealing with tables located in the corresponding storage backends, Kotosito server will return unsigned URLs instead and may cause internal server errors.
 
 API
 ==============================
@@ -189,6 +189,7 @@ TODO
 
 - [ ] API
   - [ ] CDF Related API
+  - [ ] Microsoft Azure Pre-Signed URL
 - [ ] Documentation
   - [x] README
   - [ ] Wiki
