@@ -151,7 +151,7 @@ The path to the configuration directory can be set using the `KOTOSIRO_CONF_DIR`
 | `use_json_log`       | yes      | If this value set to be true, log outputs in JSON format                         |
 | `log_filter`         | yes      | Tracing log filter                                                               |
 
-[^1]: An example configuration can also be found at [`conf/dev`](https://github.com/kotosiro/sharing/tree/main/config).
+[^1]: An example configuration can also be found at [`conf`](https://github.com/kotosiro/sharing/tree/main/config) directory.
 
 [^2]: These variables may be required when you use the corresponding cloud backends. If these variables are not set when dealing with tables located in the corresponding storage backends, Kotosito server will return unsigned URLs instead and may cause internal server errors.
 
