@@ -1,18 +1,15 @@
-FROM rust:1.67.0-bullseye AS builder
+FROM rust:1.67 as build
 
-WORKDIR /usr/src/app
+WORKDIR /home/rust
 
 COPY . .
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/src/app/target \
-    cargo build --release \
-    && mv /usr/src/app/target/release/kotosiro-sharing /usr/bin
+RUN cargo build --release && mv /home/rust/target/release/kotosiro-sharing /usr/bin
 
 
 FROM debian:bullseye-slim
 
-COPY --from=builder /usr/bin/kotosiro-sharing /usr/bin
+COPY --from=build /usr/bin/kotosiro-sharing /usr/bin
 
 ENTRYPOINT ["/usr/bin/kotosiro-sharing"]
 

@@ -36,4 +36,4 @@ server:
 
 # Build Kotosiro into a docker image for local use
 package:
-    DOCKER_BUILDKIT=1 docker build . -t kotosiro-sharing:local -f devops/docker/Dockerfile
+    DOCKER_BUILDKIT=0 docker build . -t kotosiro-sharing:local -f devops/docker/Dockerfile

@@ -16,28 +16,28 @@ async fn main() -> Result<()> {
                 .about("Launch the server process")
                 .after_help("The server implements Delta Sharing REST protocol."),
         );
-    logging::setup();
-    tracing::debug!(
-        db_url = config::fetch::<String>("db_url"),
-        server_addr = config::fetch::<String>("server_addr"),
-        server_bind = config::fetch::<String>("server_bind"),
-        jwt_secret = config::fetch::<String>("jwt_secret"),
-        admin_name = config::fetch::<String>("admin_name"),
-        admin_email = config::fetch::<String>("admin_email"),
-        admin_password = config::fetch::<String>("admin_password"),
-        admin_namespace = config::fetch::<String>("admin_namespace"),
-        admin_ttl = config::fetch::<i64>("admin_ttl"),
-        signed_url_ttl = config::fetch::<i64>("signed_url_ttl"),
-        gcp_sa_private_key = config::fetch::<String>("gcp_sa_private_key"),
-        aws_profile = config::fetch::<String>("aws_profile"),
-        aws_region = config::fetch::<String>("aws_region"),
-        use_json_log = config::fetch::<bool>("use_json_log"),
-        log_filter = config::fetch::<String>("log_filter"),
-    );
     let args = app.get_matches();
     match args.subcommand().expect("subcommand is required") {
         ("server", _args) => {
+            logging::setup();
             tracing::info!("kotosiro sharing server is starting");
+            tracing::debug!(
+                db_url = config::fetch::<String>("db_url"),
+                server_addr = config::fetch::<String>("server_addr"),
+                server_bind = config::fetch::<String>("server_bind"),
+                jwt_secret = config::fetch::<String>("jwt_secret"),
+                admin_name = config::fetch::<String>("admin_name"),
+                admin_email = config::fetch::<String>("admin_email"),
+                admin_password = config::fetch::<String>("admin_password"),
+                admin_namespace = config::fetch::<String>("admin_namespace"),
+                admin_ttl = config::fetch::<i64>("admin_ttl"),
+                signed_url_ttl = config::fetch::<i64>("signed_url_ttl"),
+                gcp_sa_private_key = config::fetch::<String>("gcp_sa_private_key"),
+                aws_profile = config::fetch::<String>("aws_profile"),
+                aws_region = config::fetch::<String>("aws_region"),
+                use_json_log = config::fetch::<bool>("use_json_log"),
+                log_filter = config::fetch::<String>("log_filter"),
+            );
             let server = Server::new().await.context("failed to create server")?;
             server.start().await.context("failed to start server")
         }
