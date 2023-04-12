@@ -209,6 +209,10 @@ References
 
 1. [Delta Sharing: An Open Protocol for Secure Data Sharing](https://github.com/delta-io/delta-sharing)
 
+ You can find the Delta Sharing open protocol specification here.
+
 ### Related Projects
 
-1. [Another Rust-based Delta Sharing Server](https://github.com/delta-incubator/riverbank)
+1. [Riverbank](https://github.com/delta-incubator/riverbank)
+
+ This project motivated and helped me a lot to start Kotosiro Sharing project.
