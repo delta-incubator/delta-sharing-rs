@@ -159,6 +159,9 @@ impl TryFrom<&SchemaDataType> for ValueType {
                 Ok(ValueType::Int)
             }
             SchemaDataType::primitive(name) if name.to_lowercase() == "long" => Ok(ValueType::Long),
+            SchemaDataType::primitive(name) if name.to_lowercase() == "decimal" => {
+                Ok(ValueType::Decimal)
+            }
             SchemaDataType::primitive(name) if name.to_lowercase() == "string" => {
                 Ok(ValueType::String)
             }
