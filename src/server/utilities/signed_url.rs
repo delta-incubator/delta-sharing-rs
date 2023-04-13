@@ -107,10 +107,12 @@ mod tests {
         let url = format!("s3://{}/{}", bucket, path);
         let provider = Platform::from_str(&url).expect("should parse s3 url properly");
         if let Platform::AWS {
+            url: parsed_url,
             bucket: parsed_bucket,
             path: parsed_path,
         } = provider
         {
+            assert_eq!(parsed_url, url);
             assert_eq!(parsed_bucket, bucket);
             assert_eq!(parsed_path, path);
         } else {
@@ -125,10 +127,12 @@ mod tests {
         let url = format!("gs://{}/{}", bucket, path);
         let provider = Platform::from_str(&url).expect("should parse gcs url properly");
         if let Platform::GCP {
+            url: parsed_url,
             bucket: parsed_bucket,
             path: parsed_path,
         } = provider
         {
+            assert_eq!(parsed_url, url);
             assert_eq!(parsed_bucket, bucket);
             assert_eq!(parsed_path, path);
         } else {
@@ -144,7 +148,7 @@ mod tests {
             .credentials()
             .await
             .expect("AWS credentials should be acquired properly");
-        if let Ok(Platform::AWS { bucket, path }) =
+        if let Ok(Platform::AWS { bucket, path, .. }) =
             Platform::from_str("s3://kotosiro-sharing-test/covid")
         {
             if let Ok(url) = Utility::sign_aws(&creds, &bucket, &path, &300) {
@@ -159,7 +163,7 @@ mod tests {
     async fn test_gcp_sign_local() {
         let sa = bootstrap::gcp::new(&config::fetch::<String>("gcp_sa_private_key"))
             .expect("GCP service account should be created properly");
-        if let Ok(Platform::GCP { bucket, path }) =
+        if let Ok(Platform::GCP { bucket, path, .. }) =
             Platform::from_str("gs://kotosiro-sharing-test/covid")
         {
             if let Ok(url) = Utility::sign_gcp(&sa, &bucket, &path, &300) {

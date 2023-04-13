@@ -474,22 +474,22 @@ impl Utility {
                     return true;
                 }
                 match (stats.min_values.get(column), stats.max_values.get(column)) {
+                    (Some(serde_json::Value::Bool(min)), Some(serde_json::Value::Bool(max))) => {
+                        match column_type {
+                            ValueType::Boolean => {
+                                return Self::check(predicate, min, max, null_count);
+                            }
+                            // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                            _ => {
+                                return true;
+                            }
+                        }
+                    }
                     (
                         Some(serde_json::Value::String(min)),
                         Some(serde_json::Value::String(max)),
                     ) => {
                         match column_type {
-                            ValueType::Boolean => {
-                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                                let Ok(ref min) = min.parse::<bool>() else {
-				    return true;
-				};
-                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                                let Ok(ref max) = max.parse::<bool>() else {
-				    return true;
-				};
-                                return Self::check(predicate, min, max, null_count);
-                            }
                             ValueType::String => {
                                 return Self::check(predicate, min, max, null_count);
                             }
@@ -525,6 +525,17 @@ impl Utility {
 				};
                                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                                 let Some(ref max) = max.as_i64() else {
+				    return true;
+				};
+                                return Self::check(predicate, min, max, null_count);
+                            }
+                            ValueType::Decimal => {
+                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                                let Some(ref min) = min.as_f64() else {
+				    return true;
+				};
+                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                                let Some(ref max) = max.as_f64() else {
 				    return true;
 				};
                                 return Self::check(predicate, min, max, null_count);
