@@ -349,19 +349,19 @@ impl Utility {
             stats.min_values.get(&filter.column),
             stats.max_values.get(&filter.column),
         ) {
-            (Some(serde_json::Value::String(min)), Some(serde_json::Value::String(max))) => {
+            (Some(serde_json::Value::Bool(min)), Some(serde_json::Value::Bool(max))) => {
                 match column_type {
                     ValueType::Boolean => {
-                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                        let Ok(ref min) = min.parse::<bool>() else {
-			    return true;
-			};
-                        // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                        let Ok(ref max) = max.parse::<bool>() else {
-			    return true;
-			};
                         return Self::check(&filter.predicate, min, max, null_count);
                     }
+                    // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
+                    _ => {
+                        return true;
+                    }
+                }
+            }
+            (Some(serde_json::Value::String(min)), Some(serde_json::Value::String(max))) => {
+                match column_type {
                     ValueType::String => {
                         return Self::check(&filter.predicate, min, max, null_count);
                     }

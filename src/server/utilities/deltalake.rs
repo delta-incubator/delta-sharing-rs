@@ -97,8 +97,6 @@ pub enum ValueType {
     #[strum(ascii_case_insensitive)]
     Long,
     #[strum(ascii_case_insensitive)]
-    Decimal,
-    #[strum(ascii_case_insensitive)]
     String,
     #[strum(ascii_case_insensitive)]
     Date,
@@ -110,7 +108,6 @@ impl AsRef<str> for ValueType {
             ValueType::Boolean => "boolean",
             ValueType::Int => "int",
             ValueType::Long => "long",
-            ValueType::Decimal => "decimal",
             ValueType::String => "string",
             ValueType::Date => "date",
         }
@@ -135,9 +132,6 @@ impl TryFrom<SchemaDataType> for ValueType {
                 Ok(ValueType::Int)
             }
             SchemaDataType::primitive(name) if name.to_lowercase() == "long" => Ok(ValueType::Long),
-            SchemaDataType::primitive(name) if name.to_lowercase() == "decimal" => {
-                Ok(ValueType::Decimal)
-            }
             SchemaDataType::primitive(name) if name.to_lowercase() == "string" => {
                 Ok(ValueType::String)
             }
@@ -159,9 +153,6 @@ impl TryFrom<&SchemaDataType> for ValueType {
                 Ok(ValueType::Int)
             }
             SchemaDataType::primitive(name) if name.to_lowercase() == "long" => Ok(ValueType::Long),
-            SchemaDataType::primitive(name) if name.to_lowercase() == "decimal" => {
-                Ok(ValueType::Decimal)
-            }
             SchemaDataType::primitive(name) if name.to_lowercase() == "string" => {
                 Ok(ValueType::String)
             }

@@ -45,16 +45,16 @@ chart will be added to the project in the near future.
  To run the development server, execute the following commands in this directory:
 
 ```bash
-  $ just docker
-  $ just server
+ $ just docker
+ $ just server
  ```
 
  To run the unit tests, execute the following commands in this directory:
 
  ```bash
-  $ just docker
-  $ just test
-  $ just testdb
+ $ just docker
+ $ just test
+ $ just testdb
  ```
  
 Create a New Sharing via the API

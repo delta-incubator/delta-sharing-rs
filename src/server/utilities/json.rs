@@ -529,17 +529,6 @@ impl Utility {
 				};
                                 return Self::check(predicate, min, max, null_count);
                             }
-                            ValueType::Decimal => {
-                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                                let Some(ref min) = min.as_f64() else {
-				    return true;
-				};
-                                // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                                let Some(ref max) = max.as_f64() else {
-				    return true;
-				};
-                                return Self::check(predicate, min, max, null_count);
-                            }
                             // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                             _ => {
                                 return true;
