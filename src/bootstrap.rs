@@ -12,7 +12,16 @@ pub(crate) async fn new_pg_pool() -> Result<PgPool> {
 }
 
 pub(crate) fn new_gcp_service_account() -> Result<ServiceAccount> {
-    gcp::new(&config::fetch::<String>("gcp_sa_private_key"))
+    let path = format!(
+        "{}",
+        shellexpand::tilde(
+            std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
+                .ok()
+                .unwrap_or("~/.gcp/service-account-file.json".into())
+                .as_str()
+        )
+    );
+    gcp::new(&path)
 }
 
 pub(crate) fn new_aws_profile_provider() -> Result<ProfileProvider> {

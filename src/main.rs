@@ -20,8 +20,28 @@ async fn main() -> Result<()> {
     match args.subcommand().expect("subcommand is required") {
         ("server", _args) => {
             logging::setup();
+            let aws_shared_credentials_file = format!(
+                "{}",
+                shellexpand::tilde(
+                    std::env::var("AWS_SHARED_CREDENTIALS_FILE")
+                        .ok()
+                        .unwrap_or("~/.aws/credentials".into())
+                        .as_str()
+                )
+            );
+            let google_applicayion_credentials = format!(
+                "{}",
+                shellexpand::tilde(
+                    std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
+                        .ok()
+                        .unwrap_or("~/.gcp/service-account-file.json".into())
+                        .as_str()
+                )
+            );
             tracing::info!("kotosiro sharing server is starting");
             tracing::debug!(
+                AWS_SHARED_CREDENTIALS_FILE = aws_shared_credentials_file,
+                GOOGLE_APPLICATION_CREDENTIALS = google_applicayion_credentials,
                 db_url = config::fetch::<String>("db_url"),
                 server_addr = config::fetch::<String>("server_addr"),
                 server_bind = config::fetch::<String>("server_bind"),
@@ -32,7 +52,6 @@ async fn main() -> Result<()> {
                 admin_namespace = config::fetch::<String>("admin_namespace"),
                 admin_ttl = config::fetch::<i64>("admin_ttl"),
                 signed_url_ttl = config::fetch::<i64>("signed_url_ttl"),
-                gcp_sa_private_key = config::fetch::<String>("gcp_sa_private_key"),
                 aws_profile = config::fetch::<String>("aws_profile"),
                 aws_region = config::fetch::<String>("aws_region"),
                 use_json_log = config::fetch::<bool>("use_json_log"),

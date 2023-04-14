@@ -175,13 +175,19 @@ pub struct Utility;
 
 impl Utility {
     pub async fn open_table(location: &str) -> Result<DeltaTable> {
+        let path = format!(
+            "{}",
+            shellexpand::tilde(
+                std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
+                    .ok()
+                    .unwrap_or("~/.gcp/service-account-file.json".into())
+                    .as_str()
+            )
+        );
         open_table_with_storage_options(
             location,
             HashMap::from([
-                (
-                    String::from("google_service_account_path"),
-                    config::fetch::<String>("gcp_sa_private_key"),
-                ),
+                (String::from("google_service_account_path"), path.into()),
                 (
                     String::from("region"),
                     config::fetch::<String>("aws_region"),

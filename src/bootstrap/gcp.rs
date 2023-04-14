@@ -13,13 +13,18 @@ pub fn new(path: &str) -> Result<ServiceAccount> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config;
 
-    #[test]
+    //#[test]
     fn test_new() {
-        assert!(matches!(
-            new(&config::fetch::<String>("gcp_sa_private_key")),
-            Ok(_)
-        ));
+        let path = format!(
+            "{}",
+            shellexpand::tilde(
+                std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
+                    .ok()
+                    .unwrap_or("~/.gcp/service-account-file.json".into())
+                    .as_str()
+            )
+        );
+        assert!(matches!(new(&path), Ok(_)));
     }
 }

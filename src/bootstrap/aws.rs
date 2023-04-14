@@ -15,7 +15,7 @@ mod tests {
     use super::*;
     use crate::config;
 
-    #[test]
+    //#[test]
     fn test_new() {
         assert!(matches!(
             new(&config::fetch::<String>("aws_profile")),

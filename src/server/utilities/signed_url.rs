@@ -161,8 +161,17 @@ mod tests {
 
     //#[tokio::test]
     async fn test_gcp_sign_local() {
-        let sa = bootstrap::gcp::new(&config::fetch::<String>("gcp_sa_private_key"))
-            .expect("GCP service account should be created properly");
+        let path = format!(
+            "{}",
+            shellexpand::tilde(
+                std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
+                    .ok()
+                    .unwrap_or("~/.gcp/service-account-file.json".into())
+                    .as_str()
+            )
+        );
+        let sa =
+            bootstrap::gcp::new(&path).expect("GCP service account should be created properly");
         if let Ok(Platform::GCP { bucket, path, .. }) =
             Platform::from_str("gs://kotosiro-sharing-test/covid")
         {

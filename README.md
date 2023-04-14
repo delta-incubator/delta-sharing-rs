@@ -29,8 +29,9 @@ Server to access the S3 bucket. The location of the credentials file is specifie
  
   2. **Google GCP**
 
- To access the GCS Delta Table backend, you need to create a GCS service account. Once you've created the service account,
-you must configure the location of the GCP service account private key JSON.
+ To access the GCS Delta Table backend, you need to create a GCS service account. The location of the GCP service
+account private key JSON is specified by the environment variable `GOOGLE_APPLICATION_CREDENTIALS`. If this
+variable is not set, the private key JSON file should be located at `~/.gcp/service-account-file.json`.
 
   3. **Microsoft Azure**
   
@@ -132,7 +133,8 @@ Kotosiro Sharing Configuration
 
  All `TOML`, `JSON`, `YAML`, `INI`, `RON`, and `JSON5` files located in the configuration directory will be loaded as configuration files[^1].
 The path to the configuration directory can be set using the `KOTOSIRO_CONF_DIR` environment variable. You can also configure Kotosiro Sharing
-using the corresponding environment variables, which is helpful when setting up a Kubernetes cluster.[^2].
+using the corresponding environment variables, which is helpful when setting up a Kubernetes cluster.[^2]. Please be sure that the environment
+variables `AWS_SHARED_CREDENTIALS_FILE` and `GOOGLE_APPLICATION_CREDENTIALS` are set properly if necessary.
 Below is a list of the configuration variables:
 
 | Name                 | Environment Variable        | Required | Description                                                                      |
@@ -147,7 +149,6 @@ Below is a list of the configuration variables:
 | `admin_ttl`          | KOTOSIRO_ADMIN_TTL          | yes      | Default admin user access token TTL in seconds                                   |
 | `signed_url_ttl`     | KOTOSIRO_SIGNED_URL_TTL     | yes      | Valid duration of signed URL of cloud backends in seconds                        |
 | `jwt_secret`         | KOTOSIRO_JWT_SECRET         | yes      | JWT secret key                                                                   |
-| `gcp_sa_private_key` | KOTOSIRO_GCP_SA_PRIVATE_KEY | no[^3]   | Path to GCP service account JSON file                                            |
 | `aws_profile`        | KOTOSIRO_AWS_PROFILE        | no[^3]   | AWS profile                                                                      |
 | `aws_region`         | KOTOSIRO_AWS_REGION         | no[^3]   | AWS region                                                                       |
 | `use_json_log`       | KOTOSIRO_USE_JSON_LOG       | yes      | If this value set to be true, log outputs in JSON format                         |
