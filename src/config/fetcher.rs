@@ -1,4 +1,5 @@
 use config::Config;
+use config::Environment;
 use config::File;
 use glob::glob;
 use once_cell::sync::Lazy;
@@ -17,6 +18,7 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
             }
         }
     }
+    builder = builder.add_source(Environment::with_prefix("KOTOSIRO").try_parsing(true));
     builder.build().unwrap_or(Config::default())
 });
 

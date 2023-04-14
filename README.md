@@ -131,29 +131,33 @@ Kotosiro Sharing Configuration
 ==============================
 
  All `TOML`, `JSON`, `YAML`, `INI`, `RON`, and `JSON5` files located in the configuration directory will be loaded as configuration files[^1].
-The path to the configuration directory can be set using the `KOTOSIRO_CONF_DIR` environment variable. Below is a list of the configuration variables:
+The path to the configuration directory can be set using the `KOTOSIRO_CONF_DIR` environment variable. You can also configure Kotosiro Sharing
+using the corresponding environment variables, which is helpful when setting up a Kubernetes cluster.[^2].
+Below is a list of the configuration variables:
 
-| Name                 | Required | Description                                                                      |
-|:--------------------:|:--------:|----------------------------------------------------------------------------------|
-| `db_url`             | yes      | URL of PostgreSQL server                                                         |
-| `server_addr`        | yes      | URL of Kotosiro Sharing server which will be used for sharing profile            |
-| `server_bind`        | yes      | IP address of Korosiro Sharing server which will be used for Axum server binding |
-| `admin_name`         | yes      | Default admin user name                                                          |
-| `admin_email`        | yes      | Default admin user email                                                         |
-| `admin_password`     | yes      | Default admin user password                                                      |
-| `admin_namespace`    | yes      | Default admin user namespace                                                     |
-| `admin_ttl`          | yes      | Default admin user access token TTL in seconds                                   |
-| `signed_url_ttl`     | yes      | Valid duration of signed URL of cloud backends in seconds                        |
-| `jwt_secret`         | yes      | JWT secret key                                                                   |
-| `gcp_sa_private_key` | no[^2]   | Path to GCP service account JSON file                                            |
-| `aws_profile`        | no[^2]   | AWS profile                                                                      |
-| `aws_region`         | no[^2]   | AWS region                                                                       |
-| `use_json_log`       | yes      | If this value set to be true, log outputs in JSON format                         |
-| `log_filter`         | yes      | Tracing log filter                                                               |
+| Name                 | Environment Variable        | Required | Description                                                                      |
+|:--------------------:|:---------------------------:|:--------:|----------------------------------------------------------------------------------|
+| `db_url`             | KOTOSIRO_DB_URL             | yes      | URL of PostgreSQL server                                                         |
+| `server_addr`        | KOTOSIRO_SERVER_ADDR        | yes      | URL of Kotosiro Sharing server which will be used for sharing profile            |
+| `server_bind`        | KOTOSIRO_SERVER_BIND        | yes      | IP address of Korosiro Sharing server which will be used for Axum server binding |
+| `admin_name`         | KOTOSIRO_ADMIN_NAME         | yes      | Default admin user name                                                          |
+| `admin_email`        | KOTOSIRO_ADMIN_EMAIL        | yes      | Default admin user email                                                         |
+| `admin_password`     | KOTOSIRO_ADMIN_PASSWORD     | yes      | Default admin user password                                                      |
+| `admin_namespace`    | KOTOSIRO_ADMIN_NAMESPACE    | yes      | Default admin user namespace                                                     |
+| `admin_ttl`          | KOTOSIRO_ADMIN_TTL          | yes      | Default admin user access token TTL in seconds                                   |
+| `signed_url_ttl`     | KOTOSIRO_SIGNED_URL_TTL     | yes      | Valid duration of signed URL of cloud backends in seconds                        |
+| `jwt_secret`         | KOTOSIRO_JWT_SECRET         | yes      | JWT secret key                                                                   |
+| `gcp_sa_private_key` | KOTOSIRO_GCP_SA_PRIVATE_KEY | no[^3]   | Path to GCP service account JSON file                                            |
+| `aws_profile`        | KOTOSIRO_AWS_PROFILE        | no[^3]   | AWS profile                                                                      |
+| `aws_region`         | KOTOSIRO_AWS_REGION         | no[^3]   | AWS region                                                                       |
+| `use_json_log`       | KOTOSIRO_USE_JSON_LOG       | yes      | If this value set to be true, log outputs in JSON format                         |
+| `log_filter`         | KOTOSIRO_LOG_FILTER         | yes      | Tracing log filter                                                               |
 
 [^1]: An example configuration can also be found at [`config`](https://github.com/kotosiro/sharing/tree/main/config) directory.
 
-[^2]: These variables may be required when you use the corresponding cloud backends. If these variables are not set when dealing with tables located in the corresponding storage backends, Kotosito server will return unsigned URLs instead and may cause internal server errors.
+[^2]: When Kotosiro Sharing detects duplicated configuration variables, the values from environment variables take precedence over those from configuration files.
+
+[^3]: These variables may be required when you use the corresponding cloud backends. If these variables are not set when dealing with tables located in the corresponding storage backends, Kotosito server will return unsigned URLs instead and may cause internal server errors.
 
 API
 ==============================
