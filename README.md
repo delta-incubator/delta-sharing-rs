@@ -48,15 +48,15 @@ chart will be added to the project in the near future.
 ```bash
  $ just docker
  $ just server
- ```
+```
 
  To run the unit tests, execute the following commands in this directory:
 
- ```bash
+```bash
  $ just docker
  $ just test
  $ just testdb
- ```
+```
  
 Create a New Sharing via the API
 ==============================
@@ -65,7 +65,7 @@ Create a New Sharing via the API
  
  1. Log in to Kotosiro Sharing and get the admin access token by running the following command:
  
- ```bash
+```bash
  $ curl -s -X POST http://localhost:8080/admin/login -H "Content-Type: application/json" -d '{"account": "kotosiro", "password": "password"}' | jq '.'
 {
   "profile": {
@@ -75,11 +75,11 @@ Create a New Sharing via the API
     "expirationTime": "2023-04-09 19:34:04 UTC"
   }
 }
- ```
+```
  
  2. Register a new share by running the following command:
  
- ```bash
+```bash
   $ curl -s -X POST "http://localhost:8080/admin/shares" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" -d'{ "name": "share1" }' | jq '.'
 {
   "share": {
@@ -87,7 +87,7 @@ Create a New Sharing via the API
     "name": "share1"
   }
 }
- ```
+```
  
  3. Register a new table by running the following command:
 
@@ -133,7 +133,7 @@ Kotosiro Sharing Configuration
 
  All `TOML`, `JSON`, `YAML`, `INI`, `RON`, and `JSON5` files located in the configuration directory will be loaded as configuration files[^1].
 The path to the configuration directory can be set using the `KOTOSIRO_CONF_DIR` environment variable. You can also configure Kotosiro Sharing
-using the corresponding environment variables, which is helpful when setting up a Kubernetes cluster.[^2]. Please be sure that the environment
+using the corresponding environment variables, which is helpful when setting up a Kubernetes cluster[^2]. Please be sure that the environment
 variables `AWS_SHARED_CREDENTIALS_FILE` and `GOOGLE_APPLICATION_CREDENTIALS` are set properly if necessary.
 Below is a list of the configuration variables:
 
