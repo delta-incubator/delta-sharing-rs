@@ -221,3 +221,7 @@ References
 1. [Riverbank](https://github.com/delta-incubator/riverbank)
 
  This project motivated and helped me a lot to start Kotosiro Sharing project.
+
+2. [delta-rs](https://github.com/delta-io/delta-rs)
+
+ Needless to say, this great Rust crate allowed me to create full-fledged Delta Sharing APIs.
