@@ -237,10 +237,14 @@ impl Service {
         } else {
             None
         };
-        let files = Self::filter_with_limit_hint(table.get_state().files().to_owned(), limit_hint);
-        let files = Self::filter_with_sql_hints(files, table.schema().cloned(), predicate_hints);
+        let files = Self::filter_with_sql_hints(
+            table.get_state().files().to_owned(),
+            table.schema().cloned(),
+            predicate_hints,
+        );
         let files =
             Self::filter_with_json_hints(files, table.schema().cloned(), json_predicate_hints);
+        let files = Self::filter_with_limit_hint(files, limit_hint);
         let mut files = files
             .into_iter()
             .map(|f| {

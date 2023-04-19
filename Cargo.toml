@@ -1,6 +1,6 @@
 [package]
 name = "kotosiro-sharing"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["Shingo OKAWA <shingo.okawa.g.h.c@gmail.com>"]
 edition = "2021"
 rust-version = "1.67"
