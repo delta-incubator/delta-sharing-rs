@@ -7,7 +7,7 @@ which primarily focuses on the API specification and uses static file-based shar
 Kotosiro Sharing manages its sharing information through an API.
 
 <p align="center">
-  <img src="images/delta-sharing.png" width="85%"/>
+  <img src="images/workflow.png" width="85%"/>
 </p>
 
 Supported Platforms
