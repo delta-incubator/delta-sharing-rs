@@ -46,14 +46,14 @@ chart will be added to the project in the near future.
  To run the development server, execute the following commands in this directory:
 
 ```bash
- $ just docker
+ $ just docker-local
  $ just server
 ```
 
  To run the unit tests, execute the following commands in this directory:
 
 ```bash
- $ just docker
+ $ just docker-local
  $ just test
  $ just testdb
 ```

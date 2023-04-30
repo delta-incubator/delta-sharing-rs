@@ -27,8 +27,12 @@ testdb:
     @cargo test -- --nocapture --ignored
 
 # Run local docker emvironment
-docker:
+docker-local:
     @docker compose -f devops/local/docker-compose.yaml up
+
+# Run docker
+docker:
+    @docker compose -f devops/prod/docker-compose.yaml up
 
 # Run server locally
 server:
