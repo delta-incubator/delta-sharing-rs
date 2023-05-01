@@ -37,6 +37,18 @@ variable is not set, the private key JSON file should be located at `~/.gcp/serv
   
  Microsoft Azure backed Delta Tables will be supported in the near future.
  
+Starting Kotosiro Sharing
+==============================
+
+ You can start Kotosiro Sharing using one of the following two options:
+ 
+ 1. [Docker Compose](https://github.com/kotosiro/docker-compose-files)
+ 2. [Helm Chart](https://github.com/kotosiro/helm-charts): Currently, Kotosiro Sharing is not available as a Helm Chart.
+	We are working on creating one, and it will be available soon.
+ 
+ Please choose the option that best fits your needs and follow the instructions in the corresponding link to start
+Kotosiro Sharing.
+ 
 Starting the Development Server
 ==============================
 
@@ -46,14 +58,14 @@ chart will be added to the project in the near future.
  To run the development server, execute the following commands in this directory:
 
 ```bash
- $ just docker-local
+ $ just docker
  $ just server
 ```
 
  To run the unit tests, execute the following commands in this directory:
 
 ```bash
- $ just docker-local
+ $ just docker
  $ just test
  $ just testdb
 ```
