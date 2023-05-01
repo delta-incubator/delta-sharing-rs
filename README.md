@@ -227,6 +227,10 @@ References
 1. [Delta Sharing: An Open Protocol for Secure Data Sharing](https://github.com/delta-io/delta-sharing)
 
  You can find the Delta Sharing open protocol specification here.
+ 
+2. [Open source self-hosted Delta Sharing server](https://delta.io/blog/2023-04-24-open-source-selfhosted-delta-sharing-server/)
+
+ My blog post on the official Delta Lake community.
 
 ### Related Projects
 
@@ -236,4 +240,4 @@ References
 
 2. [delta-rs](https://github.com/delta-io/delta-rs)
 
- Needless to say, this great Rust crate allowed me to create full-fledged Delta Sharing APIs.
+ Needless to say, this great Rust crate allowed me low level access to Delta tables in Rust.
