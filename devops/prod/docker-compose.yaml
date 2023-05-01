@@ -29,5 +29,3 @@ services:
       - POSTGRES_DB=sharing
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret
-    ports:
-      - 5432:5432
