@@ -30,7 +30,7 @@ impl Server {
         if gcp_service_account.is_none() {
             tracing::warn!("failed to load GCP service account");
         }
-        let aws_region = config::fetch::<String>("aws_profile");
+        let aws_region = config::fetch::<String>("aws_region");
         let aws_region = if !aws_region.is_empty() {
             Some(aws_region)
         } else {
