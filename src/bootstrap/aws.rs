@@ -13,13 +13,10 @@ pub fn new(profile: &str) -> Result<ProfileProvider> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config;
 
     //#[test]
     fn test_new() {
-        assert!(matches!(
-            new(&config::fetch::<String>("aws_profile")),
-            Ok(_)
-        ));
+        let aws_profile = std::env::var("AWS_PROFILE").expect("AWS profile should be specified");
+        assert!(matches!(new(&aws_profile), Ok(_)));
     }
 }

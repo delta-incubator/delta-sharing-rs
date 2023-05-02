@@ -2,6 +2,7 @@ pub(crate) mod aws;
 pub(crate) mod gcp;
 mod postgres;
 use crate::config;
+use anyhow::Context;
 use anyhow::Result;
 use rusoto_credential::ProfileProvider;
 use sqlx::PgPool;
@@ -25,6 +26,7 @@ pub(crate) fn new_gcp_service_account() -> Result<ServiceAccount> {
 }
 
 pub(crate) fn new_aws_profile_provider() -> Result<ProfileProvider> {
-    let aws_profile = std::env::var("AWS_PROFILE").unwrap_or("default".into());
+    let aws_profile =
+        std::env::var("AWS_PROFILE").context("failed to get `AWS_PROFILE` environment variable")?;
     aws::new(&aws_profile)
 }

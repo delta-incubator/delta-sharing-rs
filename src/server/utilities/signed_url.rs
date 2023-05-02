@@ -96,7 +96,6 @@ impl Utility {
 mod tests {
     use super::*;
     use crate::bootstrap;
-    use crate::config;
     use rusoto_credential::ProvideAwsCredentials;
     use std::str::FromStr;
 
@@ -142,8 +141,8 @@ mod tests {
 
     //#[tokio::test]
     async fn test_aws_sign_local() {
-        let aws_profile = std::env::var("AWS_PROFILE").unwrap_or("default".into());
-        let pp = bootstrap::aws::new(&config::fetch::<String>(&aws_profile))
+        let aws_profile = std::env::var("AWS_PROFILE").expect("AWS profile should be specified");
+        let pp = bootstrap::aws::new(&aws_profile)
             .expect("AWS profile provider should be created properly");
         let creds = pp
             .credentials()

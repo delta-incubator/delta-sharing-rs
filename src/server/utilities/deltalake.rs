@@ -183,8 +183,10 @@ impl Utility {
                     .as_str()
             )
         );
-        let aws_profile = std::env::var("AWS_PROFILE").unwrap_or("default".into());
-        let aws_region = std::env::var("AWS_REGION").unwrap_or("us-east-1".into());
+        let aws_profile = std::env::var("AWS_PROFILE")
+            .context("failed to get `AWS_PROFILE` environment variable")?;
+        let aws_region = std::env::var("AWS_REGION")
+            .context("failed to get `AWS_REGION` environment variable")?;
         open_table_with_storage_options(
             location,
             HashMap::from([
