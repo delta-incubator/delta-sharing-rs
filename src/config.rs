@@ -2,6 +2,10 @@ mod fetcher;
 use crate::server::utilities::bootstrap::JwtKeys;
 use once_cell::sync::Lazy;
 
+pub(crate) static AWS_PROFILE: &str = "default";
+
+pub(crate) static AWS_REGION: &str = "us-east-1";
+
 pub(crate) static JWT_SECRET: Lazy<JwtKeys> = Lazy::new(|| {
     let secret = fetch::<String>("jwt_secret");
     JwtKeys::new(secret.as_bytes())

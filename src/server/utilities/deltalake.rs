@@ -1,3 +1,4 @@
+use crate::config;
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
@@ -183,10 +184,8 @@ impl Utility {
                     .as_str()
             )
         );
-        let aws_profile = std::env::var("AWS_PROFILE")
-            .context("failed to get `AWS_PROFILE` environment variable")?;
-        let aws_region = std::env::var("AWS_REGION")
-            .context("failed to get `AWS_REGION` environment variable")?;
+        let aws_profile = std::env::var("AWS_PROFILE").unwrap_or(config::AWS_PROFILE.into());
+        let aws_region = std::env::var("AWS_REGION").unwrap_or(config::AWS_REGION.into());
         open_table_with_storage_options(
             location,
             HashMap::from([
