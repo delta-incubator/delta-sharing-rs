@@ -12,7 +12,7 @@ pub(crate) async fn new_pg_pool() -> Result<PgPool> {
 }
 
 pub(crate) fn new_gcp_service_account() -> Result<ServiceAccount> {
-    let path = format!(
+    let google_applicayion_credentials_path = format!(
         "{}",
         shellexpand::tilde(
             std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
@@ -21,9 +21,10 @@ pub(crate) fn new_gcp_service_account() -> Result<ServiceAccount> {
                 .as_str()
         )
     );
-    gcp::new(&path)
+    gcp::new(&google_applicayion_credentials_path)
 }
 
 pub(crate) fn new_aws_profile_provider() -> Result<ProfileProvider> {
-    aws::new(&config::fetch::<String>("aws_profile"))
+    let aws_profile = std::env::var("AWS_PROFILE").unwrap_or("default".into());
+    aws::new(&aws_profile)
 }

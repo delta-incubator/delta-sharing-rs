@@ -24,7 +24,6 @@ use utoipa_swagger_ui::SwaggerUi;
 pub struct State {
     pub pg_pool: PgPool,
     pub gcp_service_account: Option<ServiceAccount>,
-    pub aws_region: Option<String>,
     pub aws_credentials: Option<AwsCredentials>,
 }
 
@@ -37,13 +36,11 @@ async fn bad_request(_: Uri) -> std::result::Result<Response, Error> {
 async fn route(
     pg_pool: PgPool,
     gcp_service_account: Option<ServiceAccount>,
-    aws_region: Option<String>,
     aws_credentials: Option<AwsCredentials>,
 ) -> Result<Router> {
     let state = Arc::new(State {
         pg_pool,
         gcp_service_account,
-        aws_region,
         aws_credentials,
     });
 
@@ -105,10 +102,9 @@ async fn route(
 pub async fn bind(
     pg_pool: PgPool,
     gcp_service_account: Option<ServiceAccount>,
-    aws_region: Option<String>,
     aws_credentials: Option<AwsCredentials>,
 ) -> Result<()> {
-    let app = route(pg_pool, gcp_service_account, aws_region, aws_credentials)
+    let app = route(pg_pool, gcp_service_account, aws_credentials)
         .await
         .context("failed to create axum router")?;
     let server_bind = config::fetch::<String>("server_bind");

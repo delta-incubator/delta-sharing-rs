@@ -1,4 +1,3 @@
-use crate::config;
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
@@ -175,7 +174,7 @@ pub struct Utility;
 
 impl Utility {
     pub async fn open_table(location: &str) -> Result<DeltaTable> {
-        let path = format!(
+        let google_service_account_path = format!(
             "{}",
             shellexpand::tilde(
                 std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
@@ -184,18 +183,17 @@ impl Utility {
                     .as_str()
             )
         );
+        let aws_profile = std::env::var("AWS_PROFILE").unwrap_or("default".into());
+        let aws_region = std::env::var("AWS_REGION").unwrap_or("us-east-1".into());
         open_table_with_storage_options(
             location,
             HashMap::from([
-                (String::from("google_service_account_path"), path.into()),
                 (
-                    String::from("region"),
-                    config::fetch::<String>("aws_region"),
+                    String::from("google_service_account_path"),
+                    google_service_account_path.into(),
                 ),
-                (
-                    String::from("profile"),
-                    config::fetch::<String>("aws_profile"),
-                ),
+                (String::from("profile"), aws_profile.into()),
+                (String::from("region"), aws_region.into()),
             ]),
         )
         .await

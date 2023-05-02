@@ -26,6 +26,8 @@ Cofigure Credentials for Cloud Storage Backends
 Once you've created the IAM user, you must configure the profile name and region to allow Kotosiro Sharing
 Server to access the S3 bucket. The location of the credentials file is specified by the environment variable
 `AWS_SHARED_CREDENTIALS_FILE`. If this variable is not set, the credentials file should be located at `~/.aws/credentials`.
+ Kotosiro Sharing utilizes the [Object Store](https://crates.io/crates/object_store) crate with the [aws-config](https://crates.io/crates/aws-config)
+feature, which requires the `AWS_PROFILE` and `AWS_REGION` environment variables if you use S3 Delta Table backend.
  
   2. **Google GCP**
 
@@ -161,8 +163,6 @@ Below is a list of the configuration variables:
 | `admin_ttl`          | KOTOSIRO_ADMIN_TTL          | yes      | Default admin user access token TTL in seconds                                   |
 | `signed_url_ttl`     | KOTOSIRO_SIGNED_URL_TTL     | yes      | Valid duration of signed URL of cloud backends in seconds                        |
 | `jwt_secret`         | KOTOSIRO_JWT_SECRET         | yes      | JWT secret key                                                                   |
-| `aws_profile`        | KOTOSIRO_AWS_PROFILE        | no[^3]   | AWS profile                                                                      |
-| `aws_region`         | KOTOSIRO_AWS_REGION         | no[^3]   | AWS region                                                                       |
 | `use_json_log`       | KOTOSIRO_USE_JSON_LOG       | yes      | If this value set to be true, log outputs in JSON format                         |
 | `log_filter`         | KOTOSIRO_LOG_FILTER         | yes      | Tracing log filter                                                               |
 

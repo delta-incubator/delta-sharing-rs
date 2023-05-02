@@ -183,8 +183,6 @@ mod tests {
         assert!(matches!(config.get::<String>("admin_namespace"), Ok(_)));
         assert!(matches!(config.get::<i64>("admin_ttl"), Ok(_)));
         assert!(matches!(config.get::<String>("jwt_secret"), Ok(_)));
-        assert!(matches!(config.get::<String>("aws_profile"), Ok(_)));
-        assert!(matches!(config.get::<String>("aws_region"), Ok(_)));
         assert!(matches!(config.get::<String>("use_json_log"), Ok(_)));
         assert!(matches!(config.get::<String>("log_filter"), Ok(_)));
     }

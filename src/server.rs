@@ -6,7 +6,6 @@ mod routers;
 mod services;
 pub(crate) mod utilities;
 use crate::bootstrap;
-use crate::config;
 use anyhow::Context;
 use anyhow::Result;
 use rusoto_credential::AwsCredentials;
@@ -17,7 +16,6 @@ use tame_gcs::signing::ServiceAccount;
 pub struct Server {
     pg_pool: PgPool,
     gcp_service_account: Option<ServiceAccount>,
-    aws_region: Option<String>,
     aws_credentials: Option<AwsCredentials>,
 }
 
@@ -29,15 +27,6 @@ impl Server {
         let gcp_service_account = bootstrap::new_gcp_service_account().ok();
         if gcp_service_account.is_none() {
             tracing::warn!("failed to load GCP service account");
-        }
-        let aws_region = config::fetch::<String>("aws_region");
-        let aws_region = if !aws_region.is_empty() {
-            Some(aws_region)
-        } else {
-            None
-        };
-        if aws_region.is_none() {
-            tracing::warn!("failed to load AWS region");
         }
         let aws_credentials =
             if let Ok(aws_profile_provider) = bootstrap::new_aws_profile_provider() {
@@ -56,19 +45,13 @@ impl Server {
         Ok(Server {
             pg_pool,
             gcp_service_account,
-            aws_region,
             aws_credentials,
         })
     }
 
     pub async fn start(self: Self) -> Result<()> {
-        routers::bind(
-            self.pg_pool,
-            self.gcp_service_account,
-            self.aws_region,
-            self.aws_credentials,
-        )
-        .await
-        .context("failed to start API server")
+        routers::bind(self.pg_pool, self.gcp_service_account, self.aws_credentials)
+            .await
+            .context("failed to start API server")
     }
 }
