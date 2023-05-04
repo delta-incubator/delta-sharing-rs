@@ -42,9 +42,9 @@ variable is not set, the private key JSON file should be located at `~/.gcp/serv
 Starting Kotosiro Sharing
 ==============================
 
- You can start Kotosiro Sharing using one of the following two options:
+ You can start Kotosiro Sharing using one of the following three options:
  
- 1. [Docker Hub](https://hub.docker.com/repository/docker/kotosiro/sharing/general)
+ 1. [Docker Hub](https://hub.docker.com/r/kotosiro/sharing)
  2. [Docker Compose](https://github.com/kotosiro/docker-compose-files)
  3. [Helm Chart](https://github.com/kotosiro/helm-charts): Currently, Kotosiro Sharing is not available as a Helm Chart.
 	We are working on creating one, and it will be available soon.
