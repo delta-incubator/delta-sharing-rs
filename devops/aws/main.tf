@@ -3,6 +3,7 @@ variable "secret_key" {}
 variable "region" {}
 variable "az" {}
 variable "bucket" {}
+variable "key_name" {}
 
 provider "aws" {
   access_key = var.access_key
@@ -50,6 +51,29 @@ resource "aws_security_group" "allow_http" {
         protocol = "-1"
         cidr_blocks = ["0.0.0.0/0"]
     }
+}
+
+#
+# EC2 Key Pair
+#
+resource "tls_private_key" "kotosiro_sharing_tls_private_key" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+locals {
+  public_key_file  = "~/.kotosiro/${var.key_name}.id_rsa.pub"
+  private_key_file = "~/.kotosiro/${var.key_name}.id_rsa"
+}
+
+resource "local_file" "handson_private_key_pem" {
+  filename = "${local.private_key_file}"
+  content  = "${tls_private_key.kotosiro_sharing_tls_private_key.private_key_pem}"
+}
+
+resource "aws_key_pair" "kotosiro_sharing_key_pair" {
+  key_name   = "${var.key_name}"
+  public_key = "${tls_private_key.kotosiro_sharing_tls_private_key.public_key_openssh}"
 }
 
 #
