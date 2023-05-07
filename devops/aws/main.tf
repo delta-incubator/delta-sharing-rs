@@ -37,7 +37,7 @@ resource "aws_subnet" "kotosiro_sharing_public_subnet" {
   depends_on = [aws_internet_gateway.kotosiro_sharing_internet_gateway]
 }
 
-resource "aws_security_group" "allow_http" {
+resource "aws_security_group" "kotosiro_sharing_sg" {
     name = "allow_http"
     ingress {
         from_port = 80
@@ -74,6 +74,22 @@ resource "local_file" "handson_private_key_pem" {
 resource "aws_key_pair" "kotosiro_sharing_key_pair" {
   key_name   = "${var.key_name}"
   public_key = "${tls_private_key.kotosiro_sharing_tls_private_key.public_key_openssh}"
+}
+
+#
+# EC2
+#
+#data "aws_ssm_parameter" "amzn2_latest_ami" {
+#  name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+#}
+
+resource "aws_instance" "kotosiro_sharing_ec2"{
+  ami                         = "ami-0e0820ad173f20fbb"
+  instance_type               = "t2.micro"
+  availability_zone           = "${var.az}"
+  vpc_security_group_ids      = [aws_security_group.kotosiro_sharing_sg.id]
+  associate_public_ip_address = "true"
+  key_name                    = "${var.key_name}"
 }
 
 #
