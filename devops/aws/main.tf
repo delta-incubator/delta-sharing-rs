@@ -69,8 +69,8 @@ resource "tls_private_key" "ks_tls_private_key" {
 }
 
 locals {
-  public_key_file  = "~/.kotosiro/${var.key_name}.id_rsa.pub"
-  private_key_file = "~/.kotosiro/${var.key_name}.id_rsa"
+  public_key_file  = "creds/${var.key_name}.id_rsa.pub"
+  private_key_file = "creds/${var.key_name}.id_rsa"
 }
 
 resource "local_file" "ks_private_key_pem" {
@@ -112,6 +112,10 @@ resource "aws_s3_bucket_ownership_controls" "kotosiro_sharing_s3" {
   rule {
     object_ownership = "BucketOwnerEnforced"
   }
+}
+
+output "ec2_global_ips" {
+  value = aws_instance.ks_ec2.*.public_ip
 }
 
 output "bucket" {
