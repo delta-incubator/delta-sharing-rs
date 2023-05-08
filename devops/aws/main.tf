@@ -14,49 +14,56 @@ provider "aws" {
 #
 # VPC
 #
-resource "aws_vpc" "kotosiro_sharing_vpc" {
-  cidr_block = "10.0.0.0/16"
+resource "aws_vpc" "ks_vpc" {
+  cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
 }
 
-resource "aws_internet_gateway" "kotosiro_sharing_internet_gateway" {
-  vpc_id = aws_vpc.kotosiro_sharing_vpc.id
-}
-
-resource "aws_route" "kotosiro_sharing_to_internet" {
-  route_table_id = aws_vpc.kotosiro_sharing_vpc.main_route_table_id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id = aws_internet_gateway.kotosiro_sharing_internet_gateway.id
-}
-
-resource "aws_subnet" "kotosiro_sharing_public_subnet" {
-  vpc_id = aws_vpc.kotosiro_sharing_vpc.id
+resource "aws_subnet" "ks_sn" {
+  vpc_id            = aws_vpc.ks_vpc.id
+  cidr_block        = "10.0.0.0/24"
   availability_zone = var.az
-  cidr_block = "10.0.0.0/18"
-  map_public_ip_on_launch = true
-  depends_on = [aws_internet_gateway.kotosiro_sharing_internet_gateway]
 }
 
-resource "aws_security_group" "kotosiro_sharing_sg" {
-    name = "allow_http"
-    ingress {
-        from_port = 80
-        to_port = 80
-        protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-    egress {
-        from_port = 0
-        to_port = 0
-        protocol = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
+resource "aws_internet_gateway" "ks_igw" {
+  vpc_id = aws_vpc.ks_vpc.id
+}
+
+resource "aws_route_table" "ks_rt" {
+  vpc_id = aws_vpc.ks_vpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.ks_igw.id
+  }
+}
+
+resource "aws_route_table_association" "ks_rt_associate" {
+  subnet_id      = aws_subnet.ks_sn.id
+  route_table_id = aws_route_table.ks_rt.id
+}
+
+resource "aws_security_group" "ks_sg" {
+  name        = "kotosiro-sharing-sg"
+  description = "For EC2 Linux"
+  vpc_id      = aws_vpc.ks_vpc.id
+  ingress {
+    from_port = 8080
+    to_port = 8080
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 #
 # EC2 Key Pair
 #
-resource "tls_private_key" "kotosiro_sharing_tls_private_key" {
+resource "tls_private_key" "ks_tls_private_key" {
   algorithm = "RSA"
   rsa_bits  = 2048
 }
@@ -66,29 +73,26 @@ locals {
   private_key_file = "~/.kotosiro/${var.key_name}.id_rsa"
 }
 
-resource "local_file" "handson_private_key_pem" {
+resource "local_file" "ks_private_key_pem" {
   filename = "${local.private_key_file}"
-  content  = "${tls_private_key.kotosiro_sharing_tls_private_key.private_key_pem}"
+  content  = "${tls_private_key.ks_tls_private_key.private_key_pem}"
 }
 
-resource "aws_key_pair" "kotosiro_sharing_key_pair" {
+resource "aws_key_pair" "ks_key_pair" {
   key_name   = "${var.key_name}"
-  public_key = "${tls_private_key.kotosiro_sharing_tls_private_key.public_key_openssh}"
+  public_key = "${tls_private_key.ks_tls_private_key.public_key_openssh}"
 }
 
 #
 # EC2
 #
-#data "aws_ssm_parameter" "amzn2_latest_ami" {
-#  name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
-#}
-
-resource "aws_instance" "kotosiro_sharing_ec2"{
+resource "aws_instance" "ks_ec2"{
   ami                         = "ami-0e0820ad173f20fbb"
   instance_type               = "t2.micro"
   availability_zone           = "${var.az}"
-  vpc_security_group_ids      = [aws_security_group.kotosiro_sharing_sg.id]
-  associate_public_ip_address = "true"
+  vpc_security_group_ids      = [aws_security_group.ks_sg.id]
+  subnet_id                   = aws_subnet.ks_sn.id
+  associate_public_ip_address = true
   key_name                    = "${var.key_name}"
 }
 
