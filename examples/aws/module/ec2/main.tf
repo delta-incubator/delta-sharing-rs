@@ -29,15 +29,16 @@ resource "aws_instance" "instance_1" {
   availability_zone      = var.availability_zone_1
   vpc_security_group_ids = var.vpc_security_group_ids
   key_name               = var.key_name
-
-  user_data = <<EOF
-      #!/bin/bash
-      yum update -y
-      yum install -y httpd
-      systemctl start httpd
-      chkconfig httpd on
-      echo "<h1 style='color: indigo;'>Hi there, I'm the first EC2 instance.</h1>" > var/www/html/index.html
-  EOF
+  user_data              = <<-EOF
+          #!/bin/bash 
+          yum install httpd -y
+          echo "hello world 1" > /var/www/html/index.html
+          yum update -y
+          systemctl start httpd
+          firewall-cmd --zone=public --permanent --add-service=http
+          firewall-cmd --zone=public --permanent --add-service=https
+          firewall-cmd --reload
+          EOF
 }
 
 # EC2 2
@@ -48,13 +49,14 @@ resource "aws_instance" "instance_2" {
   availability_zone      = var.availability_zone_2
   vpc_security_group_ids = var.vpc_security_group_ids
   key_name               = var.key_name
-
-  user_data = <<EOF
-      #!/bin/bash
-      yum update -y
-      yum install -y httpd
-      systemctl start httpd
-      chkconfig httpd on
-      echo "<h1 style='color: orange;'>Yo, I'm the second EC2 instance.</h1>" > var/www/html/index.html
-  EOF
+  user_data              = <<-EOF
+          #!/bin/bash 
+          yum install httpd -y
+          echo "hello world 2" > /var/www/html/index.html
+          yum update -y
+          systemctl start httpd
+          firewall-cmd --zone=public --permanent --add-service=http
+          firewall-cmd --zone=public --permanent --add-service=https
+          firewall-cmd --reload
+          EOF
 }
