@@ -1,3 +1,7 @@
-variable "az_1" {}
+variable "availability_zone_1" {
+  type = string
+}
 
-variable "az_2" {}
+variable "availability_zone_2" {
+  type = string
+}
