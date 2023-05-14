@@ -14,7 +14,6 @@ variable "service_account" {
   type = string
 }
 
-
 provider "google" {
   project = var.project
 }
