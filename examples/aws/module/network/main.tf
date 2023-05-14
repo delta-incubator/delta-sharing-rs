@@ -5,7 +5,7 @@ resource "aws_vpc" "this" {
 
 # Internet Gateway
 resource "aws_internet_gateway" "this" {
-  vpc_id = aws_vpc.this
+  vpc_id = aws_vpc.this.id
 }
 
 # Public Subnet 1
