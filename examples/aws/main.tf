@@ -14,6 +14,9 @@ variable "availability_zone_2" {
   type = string
 }
 
+variable "domain" {
+  type = string
+}
 
 provider "aws" {
   region = var.region
@@ -48,4 +51,11 @@ module "alb" {
   vpc_id          = module.network.vpc_id
   target_id_1     = module.ec2.instance_id_1
   target_id_2     = module.ec2.instance_id_2
+}
+
+module "route53" {
+  source       = "./module/route53"
+  domain       = var.domain
+  alb_dns_name = module.alb.dns_name
+  alb_zone_id  = module.alb.zone_id
 }

@@ -12,4 +12,5 @@ Acquiring Your Domain
 ==============================
 
  Before proceeding with the instructions, you will need to acquire your own domain name to enable HTTPS. We purchased
-one from Amazon Route 53, but you can also find another (free) domain registry, such as Netfy (https://netfy.domains/).
+one from [Amazon Route 53](https://aws.amazon.com/route53/), but you can also find another (free) domain registry,
+such as [Netfy](https://netfy.domains/).
