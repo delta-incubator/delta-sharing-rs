@@ -5,7 +5,7 @@ Kotosiro Sharing Server on AWS
 enabled in an AWS environment. The target architecture is as follows:
 
 <p align="center">
-  <img src="images/architecture.png" width="70%"/>
+  <img src="images/architecture.png" width="50%"/>
 </p>
 
 Acquiring Your Domain
