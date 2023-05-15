@@ -5,7 +5,7 @@ data "aws_route53_zone" "this" {
 }
 
 # DNS Record
-resource "aws_route53_record" "this" {
+resource "aws_route53_record" "dns" {
   zone_id = data.aws_route53_zone.this.id
   name    = var.domain
   type    = "A"

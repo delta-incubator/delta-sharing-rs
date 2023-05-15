@@ -59,3 +59,12 @@ module "route53" {
   alb_dns_name = module.alb.dns_name
   alb_zone_id  = module.alb.zone_id
 }
+
+module "acm" {
+  source              = "./module/acm"
+  dns_record_name     = module.route53.dns_record_name
+  zone_id             = module.route53.zone_id
+  alb_arn             = module.alb.arn
+  alb_target_group_id = module.alb.target_group_id
+  security_group_id   = module.security_group.security_group_id
+}
