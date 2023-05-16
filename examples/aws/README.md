@@ -25,7 +25,7 @@ Provisioning AWS Infrastructure
  $ terraform apply
 ```
 
- You need to configure at least the following Terraform variables:
+ You need to configure at least the following Terraform variables in `terraform.tfvars`:
 
 ```terraform: terraform.tfvars
 name                = "kotosiro"
@@ -69,7 +69,8 @@ Setting Up Kotosiro Server
 
  The `docker-compose.yaml` file should look like this:
 
-```json
+```yaml: docker-compose.yaml
+version: "3.9"
 services:
   app:
     image: kotosiro/sharing:latest
