@@ -10,7 +10,7 @@ variable "storage_type" {
 
 variable "instance_class" {
   type    = string
-  default = "db.t2.micro"
+  default = "db.t3.micro"
 }
 
 variable "db_name" {
@@ -25,7 +25,7 @@ variable "db_username" {
 
 variable "db_password" {
   type    = string
-  default = "secret"
+  default = "secretpassword"
 }
 
 variable "name" {
@@ -38,8 +38,4 @@ variable "subnet_ids" {
 
 variable "vpc_security_group_ids" {
   type = list(string)
-}
-
-variable "db_subnet_group_name" {
-  type = string
 }

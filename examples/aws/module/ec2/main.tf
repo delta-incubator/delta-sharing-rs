@@ -30,14 +30,16 @@ resource "aws_instance" "instance_1" {
   vpc_security_group_ids = var.vpc_security_group_ids
   key_name               = var.key_name
   user_data              = <<-EOF
-          #!/bin/bash 
-          yum install httpd -y
-          echo "hello world 1" > /var/www/html/index.html
-          yum update -y
-          systemctl start httpd
-          firewall-cmd --zone=public --permanent --add-service=http
-          firewall-cmd --zone=public --permanent --add-service=https
-          firewall-cmd --reload
+          #!/bin/bash
+          sudo yum update -y
+          sudo yum install -y git
+          sudo yum install -y docker
+          sudo usermod -a -G docker ec2-user
+          sudo curl -L https://github.com/docker/compose/releases/download/2.17.0/docker-compose-`uname -s`-`uname -m` | sudo tee /usr/local/bin/docker-compose > /dev/null
+          sudo chmod +x /usr/local/bin/docker-compose
+          sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+          sudo service docker start
+          sudo chkconfig docker on
           EOF
 }
 
@@ -51,12 +53,14 @@ resource "aws_instance" "instance_2" {
   key_name               = var.key_name
   user_data              = <<-EOF
           #!/bin/bash 
-          yum install httpd -y
-          echo "hello world 2" > /var/www/html/index.html
-          yum update -y
-          systemctl start httpd
-          firewall-cmd --zone=public --permanent --add-service=http
-          firewall-cmd --zone=public --permanent --add-service=https
-          firewall-cmd --reload
+          sudo yum update -y
+          sudo yum install -y git
+          sudo yum install -y docker
+          sudo usermod -a -G docker ec2-user
+          sudo curl -L https://github.com/docker/compose/releases/download/2.17.0/docker-compose-`uname -s`-`uname -m` | sudo tee /usr/local/bin/docker-compose > /dev/null
+          sudo chmod +x /usr/local/bin/docker-compose
+          sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+          sudo service docker start
+          sudo chkconfig docker on
           EOF
 }

@@ -84,5 +84,4 @@ module "rds" {
   name                   = "${var.name}-rds"
   subnet_ids             = module.network.private_subnet_ids
   vpc_security_group_ids = module.security_group.private_security_group_ids
-  db_subnet_group_name   = module.security_group.private_security_group_name
 }
