@@ -40,14 +40,14 @@ module "ec2" {
   subnet_id_2            = module.network.public_subnet_id_2
   availability_zone_1    = var.availability_zone_1
   availability_zone_2    = var.availability_zone_2
-  vpc_security_group_ids = module.security_group.security_group_ids
+  vpc_security_group_ids = module.security_group.public_security_group_ids
 }
 
 module "alb" {
   source          = "./module/alb"
   name            = "${var.name}-alb"
   subnets         = module.network.public_subnet_ids
-  security_groups = module.security_group.security_group_ids
+  security_groups = module.security_group.public_security_group_ids
   vpc_id          = module.network.vpc_id
   target_id_1     = module.ec2.instance_id_1
   target_id_2     = module.ec2.instance_id_2
@@ -66,7 +66,7 @@ module "acm" {
   zone_id             = module.route53.zone_id
   alb_arn             = module.alb.arn
   alb_target_group_id = module.alb.target_group_id
-  security_group_id   = module.security_group.security_group_id
+  security_group_id   = module.security_group.public_security_group_id
 }
 
 module "s3" {
