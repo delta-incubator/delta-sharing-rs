@@ -35,7 +35,7 @@ resource "aws_instance" "instance_1" {
           sudo yum install -y git
           sudo yum install -y docker
           sudo usermod -a -G docker ec2-user
-          sudo curl -L https://github.com/docker/compose/releases/download/2.17.0/docker-compose-`uname -s`-`uname -m` | sudo tee /usr/local/bin/docker-compose > /dev/null
+          sudo curl -L https://github.com/docker/compose/releases/download/v2.17.0/docker-compose-`uname -s`-`uname -m` | sudo tee /usr/local/bin/docker-compose > /dev/null
           sudo chmod +x /usr/local/bin/docker-compose
           sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
           sudo service docker start
@@ -57,7 +57,7 @@ resource "aws_instance" "instance_2" {
           sudo yum install -y git
           sudo yum install -y docker
           sudo usermod -a -G docker ec2-user
-          sudo curl -L https://github.com/docker/compose/releases/download/2.17.0/docker-compose-`uname -s`-`uname -m` | sudo tee /usr/local/bin/docker-compose > /dev/null
+          sudo curl -L https://github.com/docker/compose/releases/download/v2.17.0/docker-compose-`uname -s`-`uname -m` | sudo tee /usr/local/bin/docker-compose > /dev/null
           sudo chmod +x /usr/local/bin/docker-compose
           sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
           sudo service docker start
