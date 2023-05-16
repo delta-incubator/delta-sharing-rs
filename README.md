@@ -48,7 +48,7 @@ Starting Kotosiro Sharing
  2. [Docker Compose](https://github.com/kotosiro/docker-compose-files)
  
  Please choose the option that best fits your needs and follow the instructions in the corresponding link to start
-Kotosiro Sharing.
+Kotosiro Sharing. You can also find deployment examples [here](examples).
  
 Starting the Development Server
 ==============================
