@@ -14,6 +14,10 @@ variable "availability_zone_2" {
   type = string
 }
 
+variable "ssh_cidr_blocks" {
+  type = list(string)
+}
+
 variable "domain" {
   type = string
 }
@@ -29,9 +33,10 @@ module "network" {
 }
 
 module "security_group" {
-  source = "./module/security_group"
-  name   = "${var.name}-security-group"
-  vpc_id = module.network.vpc_id
+  source          = "./module/security_group"
+  name            = "${var.name}-security-group"
+  vpc_id          = module.network.vpc_id
+  ssh_cidr_blocks = var.ssh_cidr_blocks
 }
 
 module "ec2" {
