@@ -36,8 +36,8 @@ module "security_group" {
 
 module "ec2" {
   source                 = "./module/ec2"
-  subnet_id_1            = module.network.subnet_id_1
-  subnet_id_2            = module.network.subnet_id_2
+  subnet_id_1            = module.network.public_subnet_id_1
+  subnet_id_2            = module.network.public_subnet_id_2
   availability_zone_1    = var.availability_zone_1
   availability_zone_2    = var.availability_zone_2
   vpc_security_group_ids = module.security_group.security_group_ids
@@ -46,7 +46,7 @@ module "ec2" {
 module "alb" {
   source          = "./module/alb"
   name            = "${var.name}-alb"
-  subnets         = module.network.subnet_ids
+  subnets         = module.network.public_subnet_ids
   security_groups = module.security_group.security_group_ids
   vpc_id          = module.network.vpc_id
   target_id_1     = module.ec2.instance_id_1
