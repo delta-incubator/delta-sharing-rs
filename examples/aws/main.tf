@@ -68,3 +68,8 @@ module "acm" {
   alb_target_group_id = module.alb.target_group_id
   security_group_id   = module.security_group.security_group_id
 }
+
+module "s3" {
+  source = "./module/s3"
+  bucket = "${var.name}-s3"
+}

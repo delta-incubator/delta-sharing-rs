@@ -14,3 +14,11 @@ output "instance_id_1" {
 output "instance_id_2" {
   value = aws_instance.instance_2.id
 }
+
+output "instance_public_id_1" {
+  value = aws_instance.instance_1.public_ip
+}
+
+output "instance_public_id_2" {
+  value = aws_instance.instance_2.public_ip
+}
