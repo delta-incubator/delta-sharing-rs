@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  app:
+    image: delta-sharing:local
+    restart: always
+    environment:
+      - AWS_SHARED_CREDENTIALS_FILE=/.aws/credentials
+      - AWS_PROFILE=delta-sharing
+      - AWS_REGION=ap-northeast-1
+      - GOOGLE_APPLICATION_CREDENTIALS=/.gcp/service-account-file.json
+      - DELTA_SHARING_RS_DB_URL=postgres://postgres:secret@db:5432/sharing
+      - DELTA_SHARING_RS_SERVER_ADDR=http://127.0.0.1:8080
+      - DELTA_SHARING_RS_SERVER_BIND=0.0.0.0:8080
+      - DELTA_SHARING_RS_ADMIN_NAME=delta
+      - DELTA_SHARING_RS_ADMIN_EMAIL=delta@email.com
+      - DELTA_SHARING_RS_ADMIN_PASSWORD=password
+      - DELTA_SHARING_RS_ADMIN_NAMESPACE=delta
+      - DELTA_SHARING_RS_ADMIN_TTL=28800
+      - DELTA_SHARING_RS_SIGNED_URL_TTL=28800
+      - DELTA_SHARING_RS_JWT_SECRET=secret
+      - DELTA_SHARING_RS_USE_JSON_LOG=true
+      - DELTA_SHARING_RS_LOG_FILTER=warn,delta_sharing=info
+    ports:
+      - 8080:8080
+    volumes:
+      - ~/.aws/credentials:/.aws/credentials
+      - ~/.gcp/service-account-file.json:/.gcp/service-account-file.json
+    command:
+      server
+  db:
+    image: postgres:alpine
+    restart: always
+    environment:
+      - POSTGRES_DB=sharing
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret

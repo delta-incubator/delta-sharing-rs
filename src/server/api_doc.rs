@@ -63,7 +63,7 @@ use utoipa::OpenApi;
         schemas(shares::schemas::tables::query::SharesSchemasTablesQueryPostRequest),
     ),
     tags(
-        (name = "Kotosiro Sharing", description = "Kotosiro Deltalake Sharing API")
+        (name = "Delta Sharing", description = "Delta Sharing API")
     )
 )]
 pub struct ApiDoc;

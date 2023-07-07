@@ -1,6 +1,10 @@
 Delta Sharing Server on AWS
 ==============================
 
+ **This document was primarily created to explain how to deploy the kotosiro-sharing server. Therefore,
+ the explanations provided cannot be directly applied to the delta-sharing-rs project. However, we will
+ keep this document for future adjustments and updates as needed.**
+
  In this README, we will provide a step-by-step guide on how to deploy your Delta Sharing application with HTTPS
 enabled in an AWS environment. The target architecture is as follows:
 

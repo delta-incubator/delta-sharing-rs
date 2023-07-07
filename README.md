@@ -42,6 +42,19 @@ variable is not set, the private key JSON file should be located at `~/.gcp/serv
 Starting Delta Sharing Server
 ==============================
 
+ Due to the donation on 07/07/2023, we haven't prepared a designated Docker repository offering the latest image of
+delta-sharing-rs. Therefore, you will need to build your own release manually. To build the release binary, please
+run the following command in the project directory:
+
+```bash
+$ just build
+```
+
+The following files might be helpful for you in creating your own `docker-compose` file.
+
+ - [Dockerfile](devops/docker/Dockerfile)
+ - [Docker Compose](devops/docker/docker-compose-files)
+
 ~~You can start Delta Sharing using one of the following two options:~~
  
 ~~1. [Docker Hub](https://hub.docker.com/r/kotosiro/sharing)~~
@@ -236,7 +249,8 @@ References
 
 1. [Riverbank](https://github.com/delta-incubator/riverbank)
 
- This project motivated and helped me a lot to start this project.
+ This project was primarily started as a *kotosiro-sharing* project and was highly motivated by the *riverbank* project.
+If the preceding *riverbank* project had not existed, the road of development would have been much harder.
 
 2. [delta-rs](https://github.com/delta-io/delta-rs)
 
