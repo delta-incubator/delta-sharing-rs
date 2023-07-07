@@ -1,14 +1,14 @@
 use anyhow::Context;
 use anyhow::Result;
-use kotosiro_sharing::config;
-use kotosiro_sharing::logging;
-use kotosiro_sharing::server::Server;
+use delta_sharing::config;
+use delta_sharing::logging;
+use delta_sharing::server::Server;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let app = clap::Command::new("kotosiro-sharing")
+    let app = clap::Command::new("delta-sharing")
         .author("Shingo OKAWA <shingo.okawa.g.h.c@gmail.com>")
-        .version(kotosiro_sharing::VERSION)
+        .version(delta_sharing::VERSION)
         .subcommand_required(true)
         .arg_required_else_help(true)
         .subcommand(
@@ -20,7 +20,7 @@ async fn main() -> Result<()> {
     match args.subcommand().expect("subcommand is required") {
         ("server", _args) => {
             logging::setup();
-            tracing::info!("kotosiro sharing server is starting");
+            tracing::info!("delta sharing server is starting");
             tracing::debug!(
                 db_url = config::fetch::<String>("db_url"),
                 server_addr = config::fetch::<String>("server_addr"),

@@ -112,7 +112,7 @@ pub async fn bind(
         r#"failed to parse "{}" to SocketAddr"#,
         server_bind
     ))?;
-    tracing::info!("kotosiro sharing server listening on {}", addr);
+    tracing::info!("delta sharing server listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await

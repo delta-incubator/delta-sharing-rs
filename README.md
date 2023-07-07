@@ -1,10 +1,10 @@
-Kotosiro Sharing Server
+Delta Sharing Server
 ==============================
 
- Kotosiro Sharing is a Rust-based Delta Sharing Server that includes administration functionality.
-Unlike [the reference implementation of a Delta Sharing Server](https://github.com/delta-io/delta-sharing),
+ delta-sharing-rs is a Rust-based Delta Sharing server that includes administration functionality.
+Unlike [the reference implementation of a Delta Sharing server](https://github.com/delta-io/delta-sharing),
 which primarily focuses on the API specification and uses static file-based sharing information,
-Kotosiro Sharing manages its sharing information through an API.
+delta-sharing-rs manages its sharing information through an API.
 
 <p align="center">
   <img src="images/workflow.png" width="85%"/>
@@ -22,33 +22,35 @@ Cofigure Credentials for Cloud Storage Backends
  1. **Amazon AWS**
 
 
- To access the S3 Delta Table backend, you need to create an IAM user with an Amazon S3 permissions policy.
-Once you've created the IAM user, you must configure the profile name and region to allow Kotosiro Sharing
-Server to access the S3 bucket. The location of the credentials file is specified by the environment variable
+ To access the S3 Delta table backend, you need to create an IAM user with an Amazon S3 permissions policy.
+Once you've created the IAM user, you must configure the profile name and region to allow the Delta Sharing
+server to access the S3 bucket. The location of the credentials file is specified by the environment variable
 `AWS_SHARED_CREDENTIALS_FILE`. If this variable is not set, the credentials file should be located at `~/.aws/credentials`.
- Kotosiro Sharing utilizes the [Object Store](https://crates.io/crates/object_store) crate with the [aws-config](https://crates.io/crates/aws-config)
-feature, which requires the `AWS_PROFILE` and `AWS_REGION` environment variables if you use S3 Delta Table backend.
+ delta-sharing-rs utilizes the [Object Store](https://crates.io/crates/object_store) crate with the [aws-config](https://crates.io/crates/aws-config)
+feature, which requires the `AWS_PROFILE` and `AWS_REGION` environment variables if you use S3 Delta table backend.
  
   2. **Google GCP**
 
- To access the GCS Delta Table backend, you need to create a GCS service account. The location of the GCP service
+ To access the GCS Delta table backend, you need to create a GCS service account. The location of the GCP service
 account private key JSON is specified by the environment variable `GOOGLE_APPLICATION_CREDENTIALS`. If this
 variable is not set, the private key JSON file should be located at `~/.gcp/service-account-file.json`.
 
   3. **Microsoft Azure**
   
- Microsoft Azure backed Delta Tables will be supported in the near future.
+ Microsoft Azure backed Delta tables will be supported in the near future.
  
-Starting Kotosiro Sharing
+Starting Delta Sharing Server
 ==============================
 
- You can start Kotosiro Sharing using one of the following two options:
+ You can start Delta Sharing using one of the following two options:
  
  1. [Docker Hub](https://hub.docker.com/r/kotosiro/sharing)
  2. [Docker Compose](https://github.com/kotosiro/docker-compose-files)
  
  Please choose the option that best fits your needs and follow the instructions in the corresponding link to start
-Kotosiro Sharing. You can also find deployment examples [here](examples).
+Delta Sharing. You can also find deployment examples [here](examples).
+ Please note that these two repositories are not part of the delta-incubator project due to the donation, but they
+still maintain the latest image of the official build. This arrangement may change in the future.
  
 Starting the Development Server
 ==============================
@@ -76,10 +78,10 @@ Create a New Sharing via the API
 
  Once you've started the development server, you can create a new sharing via the API. Follow these steps:
  
- 1. Log in to Kotosiro Sharing and get the admin access token by running the following command:
+ 1. Log in to Delta Sharing server and get the admin access token by running the following command:
  
 ```bash
- $ curl -s -X POST http://localhost:8080/admin/login -H "Content-Type: application/json" -d '{"account": "kotosiro", "password": "password"}' | jq '.'
+ $ curl -s -X POST http://localhost:8080/admin/login -H "Content-Type: application/json" -d '{"account": "deltars", "password": "password"}' | jq '.'
 {
   "profile": {
     "shareCredentialsVersion": 1,
@@ -105,12 +107,12 @@ Create a New Sharing via the API
  3. Register a new table by running the following command:
 
 ```bash
- $ curl -s -X POST "http://localhost:8080/admin/tables" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" -d'{ "name": "table1", "location": "s3://kotosiro-sharing-test/examination" }' | jq '.'
+ $ curl -s -X POST "http://localhost:8080/admin/tables" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" -d'{ "name": "table1", "location": "s3://delta-sharing-test/examination" }' | jq '.'
 {
   "table": {
     "id": "579df9cd-a674-459d-9599-d38d54583cd0",
     "name": "table1",
-    "location": "s3://kotosiro-sharing-test/examination"
+    "location": "s3://delta-sharing-test/examination"
   }
 }
 ```
@@ -141,35 +143,35 @@ Create a New Sharing via the API
 }
 ```
 
-Kotosiro Sharing Configuration
+Delta Sharing Configuration
 ==============================
 
  All `TOML`, `JSON`, `YAML`, `INI`, `RON`, and `JSON5` files located in the configuration directory will be loaded as configuration files[^1].
-The path to the configuration directory can be set using the `KOTOSIRO_CONF_DIR` environment variable. You can also configure Kotosiro Sharing
+The path to the configuration directory can be set using the `DELTA_SHARING_RS_CONF_DIR` environment variable. You can also configure Delta Sharing
 using the corresponding environment variables, which is helpful when setting up a Kubernetes cluster[^2]. Please be sure that the environment
 variables `AWS_SHARED_CREDENTIALS_FILE` and `GOOGLE_APPLICATION_CREDENTIALS` are set properly if necessary.
 Below is a list of the configuration variables:
 
 | Name                 | Environment Variable        | Required | Description                                                                      |
 |:--------------------:|:---------------------------:|:--------:|----------------------------------------------------------------------------------|
-| `db_url`             | KOTOSIRO_DB_URL             | yes      | URL of PostgreSQL server                                                         |
-| `server_addr`        | KOTOSIRO_SERVER_ADDR        | yes      | URL of Kotosiro Sharing server which will be used for sharing profile            |
-| `server_bind`        | KOTOSIRO_SERVER_BIND        | yes      | IP address of Korosiro Sharing server which will be used for Axum server binding |
-| `admin_name`         | KOTOSIRO_ADMIN_NAME         | yes      | Default admin user name                                                          |
-| `admin_email`        | KOTOSIRO_ADMIN_EMAIL        | yes      | Default admin user email                                                         |
-| `admin_password`     | KOTOSIRO_ADMIN_PASSWORD     | yes      | Default admin user password                                                      |
-| `admin_namespace`    | KOTOSIRO_ADMIN_NAMESPACE    | yes      | Default admin user namespace                                                     |
-| `admin_ttl`          | KOTOSIRO_ADMIN_TTL          | yes      | Default admin user access token TTL in seconds                                   |
-| `signed_url_ttl`     | KOTOSIRO_SIGNED_URL_TTL     | yes      | Valid duration of signed URL of cloud backends in seconds                        |
-| `jwt_secret`         | KOTOSIRO_JWT_SECRET         | yes      | JWT secret key                                                                   |
-| `use_json_log`       | KOTOSIRO_USE_JSON_LOG       | yes      | If this value set to be true, log outputs in JSON format                         |
-| `log_filter`         | KOTOSIRO_LOG_FILTER         | yes      | Tracing log filter                                                               |
+| `db_url`             | DELTA_SHARING_RS_DB_URL             | yes      | URL of PostgreSQL server                                                         |
+| `server_addr`        | DELTA_SHARING_RS_SERVER_ADDR        | yes      | URL of Delys Sharing server which will be used for sharing profile               |
+| `server_bind`        | DELTA_SHARING_RS_SERVER_BIND        | yes      | IP address of Korosiro Sharing server which will be used for Axum server binding |
+| `admin_name`         | DELTA_SHARING_RS_ADMIN_NAME         | yes      | Default admin user name                                                          |
+| `admin_email`        | DELTA_SHARING_RS_ADMIN_EMAIL        | yes      | Default admin user email                                                         |
+| `admin_password`     | DELTA_SHARING_RS_ADMIN_PASSWORD     | yes      | Default admin user password                                                      |
+| `admin_namespace`    | DELTA_SHARING_RS_ADMIN_NAMESPACE    | yes      | Default admin user namespace                                                     |
+| `admin_ttl`          | DELTA_SHARING_RS_ADMIN_TTL          | yes      | Default admin user access token TTL in seconds                                   |
+| `signed_url_ttl`     | DELTA_SHARING_RS_SIGNED_URL_TTL     | yes      | Valid duration of signed URL of cloud backends in seconds                        |
+| `jwt_secret`         | DELTA_SHARING_RS_JWT_SECRET         | yes      | JWT secret key                                                                   |
+| `use_json_log`       | DELTA_SHARING_RS_USE_JSON_LOG       | yes      | If this value set to be true, log outputs in JSON format                         |
+| `log_filter`         | DELTA_SHARING_RS_LOG_FILTER         | yes      | Tracing log filter                                                               |
 
-[^1]: An example configuration can also be found at [`config`](https://github.com/kotosiro/sharing/tree/main/config) directory.
+[^1]: An example configuration can also be found at [`config`](https://github.com/delta-incubator/delta-sharing-rs/tree/main/config) directory.
 
-[^2]: When Kotosiro Sharing detects duplicated configuration variables, the values from environment variables take precedence over those from configuration files.
+[^2]: When delta-sharing-rs detects duplicated configuration variables, the values from environment variables take precedence over those from configuration files.
 
-[^3]: These variables may be required when you use the corresponding cloud backends. If these variables are not set when dealing with tables located in the corresponding storage backends, Kotosito server will return unsigned URLs instead and may cause internal server errors.
+[^3]: These variables may be required when you use the corresponding cloud backends. If these variables are not set when dealing with tables located in the corresponding storage backends, the server will return unsigned URLs instead and may cause internal server errors.
 
 API
 ==============================
@@ -211,7 +213,6 @@ TODO
   - [ ] Wiki
 - [ ] DevOps
   - [x] Dockerfile
-  - [ ] Helm Chart
 - [ ] Admin Console (React/Frontend)
 - [ ] Data Access Audit
   - [ ] Enrich Access Log
@@ -235,7 +236,7 @@ References
 
 1. [Riverbank](https://github.com/delta-incubator/riverbank)
 
- This project motivated and helped me a lot to start Kotosiro Sharing project.
+ This project motivated and helped me a lot to start this project.
 
 2. [delta-rs](https://github.com/delta-io/delta-rs)
 
