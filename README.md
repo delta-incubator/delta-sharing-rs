@@ -42,15 +42,15 @@ variable is not set, the private key JSON file should be located at `~/.gcp/serv
 Starting Delta Sharing Server
 ==============================
 
- You can start Delta Sharing using one of the following two options:
+~~ You can start Delta Sharing using one of the following two options:~~
  
- 1. [Docker Hub](https://hub.docker.com/r/kotosiro/sharing)
- 2. [Docker Compose](https://github.com/kotosiro/docker-compose-files)
+~~ 1. [Docker Hub](https://hub.docker.com/r/kotosiro/sharing)~~
+~~ 2. [Docker Compose](https://github.com/kotosiro/docker-compose-files)~~
  
- Please choose the option that best fits your needs and follow the instructions in the corresponding link to start
-Delta Sharing. You can also find deployment examples [here](examples).
- Please note that these two repositories are not part of the delta-incubator project due to the donation, but they
-still maintain the latest image of the official build. This arrangement may change in the future.
+~~ Please choose the option that best fits your needs and follow the instructions in the corresponding link to start~~
+~~Delta Sharing. You can also find deployment examples [here](examples).~~
+~~ Please note that these two repositories are not part of the delta-incubator project due to the donation, but they~~
+~~still maintain the latest image of the official build. This arrangement may change in the future.~~
  
 Starting the Development Server
 ==============================
