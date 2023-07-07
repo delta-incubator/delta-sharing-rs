@@ -53,7 +53,7 @@ $ just build
 The following files might be helpful for you in creating your own `docker-compose` file.
 
  - [Dockerfile](devops/docker/Dockerfile)
- - [Docker Compose](devops/docker/docker-compose-files)
+ - [Docker Compose](devops/docker/docker-compose.yaml)
 
 ~~You can start Delta Sharing using one of the following two options:~~
  
