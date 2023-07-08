@@ -4,7 +4,7 @@ services:
     image: postgres:alpine
     restart: always
     environment:
-      - POSTGRES_DB=kotosiro_sharing
+      - POSTGRES_DB=delta_sharing
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret
     ports:

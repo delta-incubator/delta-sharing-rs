@@ -1,7 +1,11 @@
-Kotosiro Sharing Server on AWS
+Delta Sharing Server on AWS
 ==============================
 
- In this README, we will provide a step-by-step guide on how to deploy your Kotosiro Sharing application with HTTPS
+ **This document was primarily created to explain how to deploy the kotosiro-sharing server. Therefore,
+ the explanations provided cannot be directly applied to the delta-sharing-rs project. However, we will
+ keep this document for future adjustments and updates as needed.**
+
+ In this README, we will provide a step-by-step guide on how to deploy your Delta Sharing application with HTTPS
 enabled in an AWS environment. The target architecture is as follows:
 
 <p align="center">
@@ -28,7 +32,7 @@ Provisioning AWS Infrastructure
  You need to configure at least the following Terraform variables in `terraform.tfvars`:
 
 ```terraform: terraform.tfvars
-name                = "kotosiro"
+name                = "delta"
 region              = "your-aws-region"
 availability_zone_1 = "your-aws-availability-zone-a"
 availability_zone_2 = "your-aws-availability-zone-b"
@@ -55,10 +59,10 @@ you can follow these steps for each EC2 instance:
  $ scp -i creds/key.id_rsa path/to/aws/credentials ec2-user@YOUR_EC2_IP_ADDRESS:~/.aws/credentials
 ```
 
-Setting Up Kotosiro Server
+Setting Up Server
 ==============================
 
- To configure the Kotosiro Sharing server, follow these steps for each EC2 instance:
+ To configure the Delta Sharing server, follow these steps for each EC2 instance:
 
 ```bash
  $ ssh -i creds/key.id_rsa ec2-user@YOUR_EC2_IP_ADDRESS

@@ -25,7 +25,7 @@ pub enum Error {
 
 impl std::fmt::Debug for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut f = f.debug_tuple("kotosiro_sharing::Error");
+        let mut f = f.debug_tuple("delta_sharing::Error");
         match self {
             Error::InternalServerProblem(_) => {
                 f.field(&"Something went wrong");

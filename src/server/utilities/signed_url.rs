@@ -149,7 +149,7 @@ mod tests {
             .await
             .expect("AWS credentials should be acquired properly");
         if let Ok(Platform::AWS { bucket, path, .. }) =
-            Platform::from_str("s3://kotosiro-sharing-test/covid")
+            Platform::from_str("s3://delta-sharing-test/covid")
         {
             if let Ok(url) = Utility::sign_aws(&creds, &bucket, &path, &300) {
                 println!("{:?}", url);
@@ -173,7 +173,7 @@ mod tests {
         let sa =
             bootstrap::gcp::new(&path).expect("GCP service account should be created properly");
         if let Ok(Platform::GCP { bucket, path, .. }) =
-            Platform::from_str("gs://kotosiro-sharing-test/covid")
+            Platform::from_str("gs://delta-sharing-test/covid")
         {
             if let Ok(url) = Utility::sign_gcp(&sa, &bucket, &path, &300) {
                 println!("{:?}", url);

@@ -5,7 +5,7 @@ use glob::glob;
 use once_cell::sync::Lazy;
 
 pub static CONFIG: Lazy<Config> = Lazy::new(|| {
-    let conf_dir = std::env::var("KOTOSIRO_CONF_DIR").unwrap_or("config/dev".to_string());
+    let conf_dir = std::env::var("DELTA_SHARING_RS_CONF_DIR").unwrap_or("config/dev".to_string());
     let glob_path = format!("{}/*", conf_dir);
     let mut builder = Config::builder();
     if let Ok(paths) = glob(&glob_path) {
@@ -18,7 +18,7 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
             }
         }
     }
-    builder = builder.add_source(Environment::with_prefix("KOTOSIRO").try_parsing(true));
+    builder = builder.add_source(Environment::with_prefix("DELTA_SHARING_RS").try_parsing(true));
     builder.build().unwrap_or(Config::default())
 });
 

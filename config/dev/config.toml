@@ -1,12 +1,12 @@
-db_url = "postgres://postgres:secret@127.0.0.1:5432/kotosiro_sharing"
+db_url = "postgres://postgres:secret@127.0.0.1:5432/delta_sharing"
 server_addr = "http://127.0.0.1:8080"
 server_bind = "127.0.0.1:8080"
-admin_name = "kotosiro"
-admin_email = "kotosiro@email.com"
+admin_name = "delta"
+admin_email = "delta@email.com"
 admin_password = "password"
 admin_namespace = "admin"
 admin_ttl = 28800
 signed_url_ttl = 28800
 jwt_secret = "your secret here"
 use_json_log = false
-log_filter = "warn,kotosiro_sharing=debug"
+log_filter = "warn,delta_sharing=debug"
