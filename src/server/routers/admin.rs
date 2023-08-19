@@ -18,11 +18,20 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use utoipa::ToSchema;
 
-#[derive(Debug, serde::Deserialize, ToSchema)]
+#[derive(serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminLoginRequest {
     pub account: String,
     pub password: String,
+}
+
+impl std::fmt::Debug for AdminLoginRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AdminLoginRequest")
+            .field("account", &self.account)
+            .field("password", &"***")
+            .finish()
+    }
 }
 
 #[derive(serde::Serialize, ToSchema)]
