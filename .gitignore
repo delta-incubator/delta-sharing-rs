@@ -1,3 +1,4 @@
 /target
 /creds/aws
 /creds/gcp
+.vscode
