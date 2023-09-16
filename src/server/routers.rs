@@ -1,6 +1,5 @@
 pub mod admin;
 pub mod shares;
-pub mod tables;
 
 use std::sync::Arc;
 

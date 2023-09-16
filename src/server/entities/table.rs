@@ -67,7 +67,7 @@ impl Entity {
     }
 
     pub async fn load(name: &Name, pg_pool: &PgPool) -> Result<Option<Self>> {
-        match Repository::select_by_name(&name, pg_pool).await? {
+        match Repository::select_by_name(name, pg_pool).await? {
             Some(row) => Ok(Self {
                 id: Id::new(row.id),
                 name: Name::new(row.name)?,
@@ -81,7 +81,7 @@ impl Entity {
     }
 
     pub async fn save(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
-        Repository::upsert(&self, pg_pool).await
+        Repository::upsert(self, pg_pool).await
     }
 }
 
@@ -91,31 +91,31 @@ mod tests {
 
     #[test]
     fn test_valid_id() {
-        assert!(matches!(Id::try_from(testutils::rand::uuid()), Ok(_)));
+        assert!(Id::try_from(testutils::rand::uuid()).is_ok());
     }
 
     #[test]
     fn test_invalid_id() {
-        assert!(matches!(Id::try_from(testutils::rand::string(255)), Err(_)));
+        assert!(Id::try_from(testutils::rand::string(255)).is_err());
     }
 
     #[test]
     fn test_valid_name() {
-        assert!(matches!(Name::new(testutils::rand::string(255)), Ok(_)));
+        assert!(Name::new(testutils::rand::string(255)).is_ok());
     }
 
     #[test]
     fn test_invalid_name() {
-        assert!(matches!(Name::new(""), Err(_)));
+        assert!(Name::new("").is_err());
     }
 
     #[test]
     fn test_valid_location() {
-        assert!(matches!(Location::new(testutils::rand::string(255)), Ok(_)));
+        assert!(Location::new(testutils::rand::string(255)).is_ok());
     }
 
     #[test]
     fn test_invalid_location() {
-        assert!(matches!(Location::new(""), Err(_)));
+        assert!(Location::new("").is_err());
     }
 }

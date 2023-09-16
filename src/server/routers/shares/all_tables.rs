@@ -62,21 +62,23 @@ pub async fn list(
 ) -> Result<Response, Error> {
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
-	return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     let Ok(share) = ShareEntity::load(&share, &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting share");
+        tracing::error!(
+            "request is not handled correctly due to a server error while selecting share"
+        );
         return Err(anyhow!("error occured while selecting share").into());
     };
     let Some(share) = share else {
         tracing::error!("requested share does not exist");
-	return Err(Error::NotFound);
+        return Err(Error::NotFound);
     };
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
             tracing::error!("requested limit is malformed");
-	    return Err(Error::ValidationFailed);
-	};
+            return Err(Error::ValidationFailed);
+        };
         limit
     } else {
         DEFAULT_PAGE_RESULTS
@@ -91,9 +93,13 @@ pub async fn list(
         Some(&((limit + 1) as i64)),
         after.as_ref(),
         &state.pg_pool,
-    ).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting tables");
-	return Err(anyhow!("error occured while selecting tables(s)").into());
+    )
+    .await
+    else {
+        tracing::error!(
+            "request is not handled correctly due to a server error while selecting tables"
+        );
+        return Err(anyhow!("error occured while selecting tables(s)").into());
     };
     if tables.len() == limit + 1 {
         let next = &tables[limit];

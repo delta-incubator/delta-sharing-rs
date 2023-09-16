@@ -48,7 +48,7 @@ where
     T: Copy + PartialOrd + Ord,
 {
     pub fn new(min: T, max: T) -> Self {
-        Interval { min: min, max: max }
+        Interval { min, max }
     }
 
     pub fn is_before(&self, value: T) -> bool {
@@ -191,10 +191,10 @@ impl Utility {
             HashMap::from([
                 (
                     String::from("google_service_account_path"),
-                    google_service_account_path.into(),
+                    google_service_account_path,
                 ),
-                (String::from("profile"), aws_profile.into()),
-                (String::from("region"), aws_region.into()),
+                (String::from("profile"), aws_profile),
+                (String::from("region"), aws_region),
             ]),
         )
         .await
@@ -203,9 +203,9 @@ impl Utility {
 
     pub fn get_stats(file: &File) -> Result<Stats> {
         let Some(stats) = &file.stats else {
-	    return Err(anyhow!("failed to acquire statistics json"));
-	};
-        serde_json::from_str(&stats).context("failed to serialize statistics")
+            return Err(anyhow!("failed to acquire statistics json"));
+        };
+        serde_json::from_str(stats).context("failed to serialize statistics")
     }
 
     pub fn datetime_yyyy_mm_dd(datetime: &str) -> Result<DateTime<Utc>> {

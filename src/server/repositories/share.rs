@@ -126,7 +126,7 @@ mod tests {
         let share = create_share(account.id(), &mut tx)
             .await
             .expect("new share should be created");
-        let fetched = Repository::select_by_name(&share.name(), &mut tx)
+        let fetched = Repository::select_by_name(share.name(), &mut tx)
             .await
             .expect("created share should be found");
         if let Some(fetched) = fetched {

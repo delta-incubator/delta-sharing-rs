@@ -52,18 +52,20 @@ pub async fn get(
 ) -> Result<Response, Error> {
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
-	return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     let Ok(share) = ShareService::query_by_name(&share, &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting share");
+        tracing::error!(
+            "request is not handled correctly due to a server error while selecting share"
+        );
         return Err(anyhow!("error occured while selecting share").into());
     };
     let Some(share) = share else {
         tracing::error!("requested share does not exist");
-	return Err(Error::NotFound);
+        return Err(Error::NotFound);
     };
     tracing::info!("share's metadata was successfully returned");
-    Ok((StatusCode::OK, Json(SharesGetResponse { share: share })).into_response())
+    Ok((StatusCode::OK, Json(SharesGetResponse { share })).into_response())
 }
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
@@ -103,8 +105,8 @@ pub async fn list(
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
             tracing::error!("requested limit is malformed");
-	    return Err(Error::ValidationFailed);
-	};
+            return Err(Error::ValidationFailed);
+        };
         limit
     } else {
         DEFAULT_PAGE_RESULTS
@@ -114,8 +116,12 @@ pub async fn list(
     } else {
         None
     };
-    let Ok(shares) = ShareService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting shares");
+    let Ok(shares) =
+        ShareService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool).await
+    else {
+        tracing::error!(
+            "request is not handled correctly due to a server error while selecting shares"
+        );
         return Err(anyhow!("error occured while selecting share(s)").into());
     };
     if shares.len() == limit + 1 {

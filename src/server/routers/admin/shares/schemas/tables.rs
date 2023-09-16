@@ -31,6 +31,7 @@ pub struct AdminSharesSchemasTablesPostParams {
 #[serde(rename_all = "camelCase")]
 pub struct AdminSharesSchemasTablesPostRequest {
     pub name: String,
+    pub location: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
@@ -63,41 +64,46 @@ pub async fn post(
 ) -> Result<Response, Error> {
     let Ok(share_name) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
-	    return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     let Ok(maybe_share) = ShareEntity::load(&share_name, &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting share");
+        tracing::error!(
+            "request is not handled correctly due to a server error while selecting share"
+        );
         return Err(anyhow!("error occured while selecting share").into());
     };
     let Some(share) = maybe_share else {
         tracing::error!("share was not found");
-	    return Err(Error::BadRequest);
+        return Err(Error::BadRequest);
     };
     let Ok(schema_name) = SchemaName::new(params.schema) else {
         tracing::error!("requested share data is malformed");
-	    return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
-    let Ok(maybe_schema) = SchemaEntity::load(share.id(), &schema_name, &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting share");
-        return Err(anyhow!("error occured while selecting share").into());
+    let Ok(maybe_schema) = SchemaEntity::load(share.id(), &schema_name, &state.pg_pool).await
+    else {
+        tracing::error!(
+            "request is not handled correctly due to a server error while selecting share"
+        );
+        return Err(anyhow!("error occurred while selecting share").into());
     };
     let Some(schema) = maybe_schema else {
         tracing::error!("share was not found");
-	    return Err(Error::BadRequest);
+        return Err(Error::BadRequest);
     };
     let Ok(table_name) = TableName::new(payload.name) else {
         tracing::error!("requested table data is malformed");
-	    return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     let Ok(table) = TableEntity::new(
         None,
         table_name.to_string(),
         schema.id().to_string(),
-        share.id().to_string(),
+        payload.location,
         account.id().to_string(),
     ) else {
         tracing::error!("requested schema data is malformed");
-	    return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     match PostgresUtility::error(table.save(&state.pg_pool).await)? {
         Ok(_) => {

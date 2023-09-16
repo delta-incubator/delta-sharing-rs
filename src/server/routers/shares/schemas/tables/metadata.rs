@@ -47,32 +47,32 @@ pub async fn get(
 ) -> Result<Response, Error> {
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
-	return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     let Ok(schema) = SchemaName::new(params.schema) else {
         tracing::error!("requested schema data is malformed");
-	return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     let Ok(table) = TableName::new(params.table) else {
         tracing::error!("requested table data is malformed");
-	return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
-    let Ok(table) = TableService::query_by_fqn(
-        &share,
-        &schema,
-        &table,
-        &state.pg_pool,
-    ).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting table");
-	return Err(anyhow!("error occured while selecting table(s)").into());
+    let Ok(table) = TableService::query_by_fqn(&share, &schema, &table, &state.pg_pool).await
+    else {
+        tracing::error!(
+            "request is not handled correctly due to a server error while selecting table"
+        );
+        return Err(anyhow!("error occured while selecting table(s)").into());
     };
     let Some(table) = table else {
         tracing::error!("requested table does not exist");
-	return Err(Error::NotFound);
+        return Err(Error::NotFound);
     };
     let Ok(table) = DeltalakeUtility::open_table(&table.location).await else {
-        tracing::error!("request is not handled correctly due to a server error while loading delta table");
-	return Err(anyhow!("error occured while selecting table(s)").into());
+        tracing::error!(
+            "request is not handled correctly due to a server error while loading delta table"
+        );
+        return Err(anyhow!("error occured while selecting table(s)").into());
     };
     let Ok(metadata) = table.get_metadata() else {
         tracing::error!("request is not handled correctly due to a server error while loading delta table metadata");

@@ -56,7 +56,7 @@ impl Service {
             builder.push(" LIMIT ");
             builder.push_bind(limit);
         }
-        let mut query = sqlx::query_as::<_, Account>(builder.build().sql().into());
+        let mut query = sqlx::query_as::<_, Account>(builder.build().sql());
         if let Some(name) = after {
             query = query.bind(name);
         }
@@ -182,7 +182,7 @@ mod tests {
         let account = create(&mut tx)
             .await
             .expect("new account should be created");
-        let fetched = Service::query_by_name(&account.name(), &mut tx)
+        let fetched = Service::query_by_name(account.name(), &mut tx)
             .await
             .expect("created account should be found");
         if let Some(fetched) = fetched {

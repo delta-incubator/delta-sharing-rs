@@ -128,13 +128,13 @@ impl File {
         }
         Self {
             file: FileDetail {
-                id: String::from(format!("{:x}", md5::compute(add.path.as_bytes()))),
+                id: format!("{:x}", md5::compute(add.path.as_bytes())),
                 url: url_signer(add.path),
-                partition_values: partition_values,
+                partition_values,
                 size: add.size,
                 stats: add.stats,
-                version: version,
-                timestamp: timestamp,
+                version,
+                timestamp,
             },
         }
     }
@@ -146,24 +146,24 @@ impl Service {
     fn filter_with_limit_hint(files: Vec<Add>, limit_hint: Option<i32>) -> Vec<Add> {
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
         let Some(limit_hint) = limit_hint else {
-	    return files;
-	};
+            return files;
+        };
         let mut records_so_far = 0;
-        return files
+        files
             .into_iter()
             .filter(|f| {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(stats) = DeltalakeUtility::get_stats(f) else {
-		    return true;
-		};
+                    return true;
+                };
                 if records_so_far > limit_hint.into() {
-                    return false;
+                    false
                 } else {
                     records_so_far += stats.num_records;
-                    return true;
+                    true
                 }
             })
-            .collect::<Vec<Add>>();
+            .collect::<Vec<Add>>()
     }
 
     fn filter_with_sql_hints(
@@ -173,19 +173,19 @@ impl Service {
     ) -> Vec<Add> {
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
         let Some(schema) = schema else {
-	    return files;
-	};
+            return files;
+        };
         if let Some(predicates) = predicate_hints {
-            if predicates.len() > 0 {
+            if !predicates.is_empty() {
                 return files
                     .into_iter()
                     .filter(|f| {
                         predicates.iter().all(|p| {
                             // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                             let Ok(stats) = DeltalakeUtility::get_stats(f) else {
-				return true;
-			    };
-                            SQLUtility::filter(&p, &stats, &schema)
+                                return true;
+                            };
+                            SQLUtility::filter(p, &stats, &schema)
                         })
                     })
                     .collect::<Vec<Add>>();
@@ -201,16 +201,16 @@ impl Service {
     ) -> Vec<Add> {
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
         let Some(schema) = schema else {
-	    return files;
-	};
+            return files;
+        };
         if let Some(JSONPartitionFilter { predicate }) = json_predicate_hints {
             return files
                 .into_iter()
                 .filter(|f| {
                     // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                     let Ok(stats) = DeltalakeUtility::get_stats(f) else {
-			return true;
-		    };
+                        return true;
+                    };
                     JSONUtility::filter(&predicate, &stats, &schema)
                 })
                 .collect::<Vec<Add>>();
@@ -274,7 +274,6 @@ impl Service {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[tokio::test]
     async fn test() {

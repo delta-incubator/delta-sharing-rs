@@ -70,7 +70,7 @@ impl Service {
             builder.push(" LIMIT ");
             builder.push_bind(limit);
         }
-        let mut query = sqlx::query_as::<_, SchemaDetail>(builder.build().sql().into());
+        let mut query = sqlx::query_as::<_, SchemaDetail>(builder.build().sql());
         query = query.bind(share_name);
         if let Some(name) = after {
             query = query.bind(name);

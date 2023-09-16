@@ -62,19 +62,21 @@ pub async fn post(
 ) -> Result<Response, Error> {
     let Ok(share_name) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
-	    return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     let Ok(maybe_share) = ShareEntity::load(&share_name, &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting share");
+        tracing::error!(
+            "request is not handled correctly due to a server error while selecting share"
+        );
         return Err(anyhow!("error occured while selecting share").into());
     };
     let Some(share) = maybe_share else {
         tracing::error!("share was not found");
-	    return Err(Error::BadRequest);
+        return Err(Error::BadRequest);
     };
     let Ok(schema_name) = SchemaName::new(payload.name) else {
         tracing::error!("schema name is malformed");
-	    return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     let Ok(schema) = SchemaEntity::new(
         None,
@@ -83,7 +85,7 @@ pub async fn post(
         account.id().to_string(),
     ) else {
         tracing::error!("requested schema data is malformed");
-	    return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     match PostgresUtility::error(schema.save(&state.pg_pool).await)? {
         Ok(_) => {

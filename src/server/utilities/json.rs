@@ -119,43 +119,41 @@ impl Utility {
         null_count: &i64,
     ) -> bool {
         match predicate {
-            Predicate::IsNull { .. } => {
-                return null_count > &0;
-            }
+            Predicate::IsNull { .. } => null_count > &0,
             Predicate::Equal { value, .. } => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-                return true;
-            };
-                return min <= value && value <= max;
+                    return true;
+                };
+                min <= value && value <= max
             }
             Predicate::GreaterThan { value, .. } => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-                return true;
-            };
-                return value < max;
+                    return true;
+                };
+                value < max
             }
             Predicate::LessThan { value, .. } => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-                return true;
-            };
-                return min < value;
+                    return true;
+                };
+                min < value
             }
             Predicate::GreaterEqual { value, .. } => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-                return true;
-            };
-                return value <= max;
+                    return true;
+                };
+                value <= max
             }
             Predicate::LessEqual { value, .. } => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-                return true;
-            };
-                return min <= value;
+                    return true;
+                };
+                min <= value
             }
             _ => unreachable!(),
         }
@@ -165,30 +163,34 @@ impl Utility {
         match json.op {
             OpType::And => {
                 let Some(children) = json.children else {
-		    return Err(anyhow!("JSON AND predicate must have child predicates"));
-		};
+                    return Err(anyhow!("JSON AND predicate must have child predicates"));
+                };
                 let children: Result<Vec<Predicate>, _> =
-                    children.into_iter().map(|c| Self::parse(c)).collect();
+                    children.into_iter().map(Self::parse).collect();
                 let Ok(children) = children else {
-                    return Err(anyhow!("failed to parse JSON AND predicate while parsing child predicates"));
+                    return Err(anyhow!(
+                        "failed to parse JSON AND predicate while parsing child predicates"
+                    ));
                 };
                 Ok(Predicate::And(children))
             }
             OpType::Or => {
                 let Some(children) = json.children else {
-		    return Err(anyhow!("JSON OR predicate must have child predicates"));
-		};
+                    return Err(anyhow!("JSON OR predicate must have child predicates"));
+                };
                 let children: Result<Vec<Predicate>, _> =
-                    children.into_iter().map(|c| Self::parse(c)).collect();
+                    children.into_iter().map(Self::parse).collect();
                 let Ok(children) = children else {
-                    return Err(anyhow!("failed to parse JSON OR predicate while parsing child predicates"));
+                    return Err(anyhow!(
+                        "failed to parse JSON OR predicate while parsing child predicates"
+                    ));
                 };
                 Ok(Predicate::Or(children))
             }
             OpType::Not => {
                 let Some(mut children) = json.children else {
-		    return Err(anyhow!("JSON NOT predicate must have child predicate"));
-		};
+                    return Err(anyhow!("JSON NOT predicate must have child predicate"));
+                };
                 let child = if children.len() != 1 {
                     None
                 } else {
@@ -198,14 +200,16 @@ impl Utility {
                     return Err(anyhow!("JSON NOT predicate must have child predicate"));
                 };
                 let Ok(child) = Self::parse(child) else {
-                    return Err(anyhow!("failed to parse JSON NOT predicate while parsing child predicate"));
+                    return Err(anyhow!(
+                        "failed to parse JSON NOT predicate while parsing child predicate"
+                    ));
                 };
                 Ok(Predicate::Not(Box::new(child)))
             }
             OpType::IsNull => {
                 let Some(mut children) = json.children else {
-		    return Err(anyhow!("JSON IS NULL predicate must have child predicate"));
-		};
+                    return Err(anyhow!("JSON IS NULL predicate must have child predicate"));
+                };
                 if children.len() != 1 {
                     return Err(anyhow!(
                         "wrong number of arguments for JSON IS NULL predicate"
@@ -216,7 +220,9 @@ impl Utility {
                 };
                 let column = children.swap_remove(column);
                 let Some(value_type) = column.value_type else {
-                    return Err(anyhow!("missing column value type for JSON EQUAL predicate"));
+                    return Err(anyhow!(
+                        "missing column value type for JSON EQUAL predicate"
+                    ));
                 };
                 let Some(column) = column.name else {
                     return Err(anyhow!("missing column name for JSON IS NULL predicate"));
@@ -225,8 +231,8 @@ impl Utility {
             }
             OpType::Equal => {
                 let Some(mut children) = json.children else {
-		    return Err(anyhow!("JSON EQUAL predicate must have child predicates"));
-		};
+                    return Err(anyhow!("JSON EQUAL predicate must have child predicates"));
+                };
                 if children.len() != 2 {
                     return Err(anyhow!(
                         "wrong number of arguments for JSON EQUAL predicate"
@@ -237,7 +243,9 @@ impl Utility {
                 };
                 let column = children.swap_remove(column);
                 let Some(column_type) = column.value_type else {
-                    return Err(anyhow!("missing column value type for JSON EQUAL predicate"));
+                    return Err(anyhow!(
+                        "missing column value type for JSON EQUAL predicate"
+                    ));
                 };
                 let Some(column) = column.name else {
                     return Err(anyhow!("missing column name for JSON EQUAL predicate"));
@@ -247,7 +255,9 @@ impl Utility {
                 };
                 let value = children.swap_remove(value);
                 let Some(value_type) = value.value_type else {
-                    return Err(anyhow!("missing literal value type for JSON EQUAL predicate"));
+                    return Err(anyhow!(
+                        "missing literal value type for JSON EQUAL predicate"
+                    ));
                 };
                 let Some(value) = value.value else {
                     return Err(anyhow!("missing literal value for JSON EQUAL predicate"));
@@ -263,32 +273,46 @@ impl Utility {
             }
             OpType::GreaterThan => {
                 let Some(mut children) = json.children else {
-		    return Err(anyhow!("JSON GREATER THAN predicate must have child predicates"));
-		};
+                    return Err(anyhow!(
+                        "JSON GREATER THAN predicate must have child predicates"
+                    ));
+                };
                 if children.len() != 2 {
                     return Err(anyhow!(
                         "wrong number of arguments for JSON GREATER THAN predicate"
                     ));
                 }
                 let Some(column) = children.iter().position(|c| c.op == OpType::Column) else {
-                    return Err(anyhow!("JSON GREATER THAN predicate must have COLUMN predicate"));
+                    return Err(anyhow!(
+                        "JSON GREATER THAN predicate must have COLUMN predicate"
+                    ));
                 };
                 let column = children.swap_remove(column);
                 let Some(column_type) = column.value_type else {
-                    return Err(anyhow!("missing column value type for JSON GREATER THAN predicate"));
+                    return Err(anyhow!(
+                        "missing column value type for JSON GREATER THAN predicate"
+                    ));
                 };
                 let Some(column) = column.name else {
-                    return Err(anyhow!("missing column name for JSON GREATER THAN predicate"));
+                    return Err(anyhow!(
+                        "missing column name for JSON GREATER THAN predicate"
+                    ));
                 };
                 let Some(value) = children.iter().position(|c| c.op == OpType::Literal) else {
-                    return Err(anyhow!("JSON GREATER THAN predicate must have LITERAL predicate"));
+                    return Err(anyhow!(
+                        "JSON GREATER THAN predicate must have LITERAL predicate"
+                    ));
                 };
                 let value = children.swap_remove(value);
                 let Some(value_type) = value.value_type else {
-                    return Err(anyhow!("missing literal value type for JSON GREATER THAN predicate"));
+                    return Err(anyhow!(
+                        "missing literal value type for JSON GREATER THAN predicate"
+                    ));
                 };
                 let Some(value) = value.value else {
-                    return Err(anyhow!("missing literal value for JSON GREATER THAN predicate"));
+                    return Err(anyhow!(
+                        "missing literal value for JSON GREATER THAN predicate"
+                    ));
                 };
                 if column_type != value_type {
                     return Err(anyhow!(
@@ -303,32 +327,44 @@ impl Utility {
             }
             OpType::LessThan => {
                 let Some(mut children) = json.children else {
-		    return Err(anyhow!("JSON LESS THAN predicate must have child predicates"));
-		};
+                    return Err(anyhow!(
+                        "JSON LESS THAN predicate must have child predicates"
+                    ));
+                };
                 if children.len() != 2 {
                     return Err(anyhow!(
                         "wrong number of arguments for JSON LESS THAN predicate"
                     ));
                 }
                 let Some(column) = children.iter().position(|c| c.op == OpType::Column) else {
-                    return Err(anyhow!("JSON LESS THAN predicate must have COLUMN predicate"));
+                    return Err(anyhow!(
+                        "JSON LESS THAN predicate must have COLUMN predicate"
+                    ));
                 };
                 let column = children.swap_remove(column);
                 let Some(column_type) = column.value_type else {
-                    return Err(anyhow!("missing column value type for JSON LESS THAN predicate"));
+                    return Err(anyhow!(
+                        "missing column value type for JSON LESS THAN predicate"
+                    ));
                 };
                 let Some(column) = column.name else {
                     return Err(anyhow!("missing column name for JSON LESS THAN predicate"));
                 };
                 let Some(value) = children.iter().position(|c| c.op == OpType::Literal) else {
-                    return Err(anyhow!("JSON LESS THAN predicate must have LITERAL predicate"));
+                    return Err(anyhow!(
+                        "JSON LESS THAN predicate must have LITERAL predicate"
+                    ));
                 };
                 let value = children.swap_remove(value);
                 let Some(value_type) = value.value_type else {
-                    return Err(anyhow!("missing literal value type for JSON LESS THAN predicate"));
+                    return Err(anyhow!(
+                        "missing literal value type for JSON LESS THAN predicate"
+                    ));
                 };
                 let Some(value) = value.value else {
-                    return Err(anyhow!("missing literal value for JSON LESS THAN predicate"));
+                    return Err(anyhow!(
+                        "missing literal value for JSON LESS THAN predicate"
+                    ));
                 };
                 if column_type != value_type {
                     return Err(anyhow!(
@@ -343,32 +379,46 @@ impl Utility {
             }
             OpType::GreaterThanOrEqual => {
                 let Some(mut children) = json.children else {
-		    return Err(anyhow!("JSON GREATER THAN OR EQUAL predicate must have child predicates"));
-		};
+                    return Err(anyhow!(
+                        "JSON GREATER THAN OR EQUAL predicate must have child predicates"
+                    ));
+                };
                 if children.len() != 2 {
                     return Err(anyhow!(
                         "wrong number of arguments for JSON GREATER THAN OR EQUAL predicate"
                     ));
                 }
                 let Some(column) = children.iter().position(|c| c.op == OpType::Column) else {
-                    return Err(anyhow!("JSON GREATER THAN OR EQUAL predicate must have COLUMN predicate"));
+                    return Err(anyhow!(
+                        "JSON GREATER THAN OR EQUAL predicate must have COLUMN predicate"
+                    ));
                 };
                 let column = children.swap_remove(column);
                 let Some(column_type) = column.value_type else {
-                    return Err(anyhow!("missing column value type for JSON GREATER THAN OR EQUAL predicate"));
+                    return Err(anyhow!(
+                        "missing column value type for JSON GREATER THAN OR EQUAL predicate"
+                    ));
                 };
                 let Some(column) = column.name else {
-                    return Err(anyhow!("missing column name for JSON GREATER THAN OR EQUAL predicate"));
+                    return Err(anyhow!(
+                        "missing column name for JSON GREATER THAN OR EQUAL predicate"
+                    ));
                 };
                 let Some(value) = children.iter().position(|c| c.op == OpType::Literal) else {
-                    return Err(anyhow!("JSON GREATER THAN OR EQUAL predicate must have LITERAL predicate"));
+                    return Err(anyhow!(
+                        "JSON GREATER THAN OR EQUAL predicate must have LITERAL predicate"
+                    ));
                 };
                 let value = children.swap_remove(value);
                 let Some(value_type) = value.value_type else {
-                    return Err(anyhow!("missing literal value type for JSON GREATER THAN OR EQUAL predicate"));
+                    return Err(anyhow!(
+                        "missing literal value type for JSON GREATER THAN OR EQUAL predicate"
+                    ));
                 };
                 let Some(value) = value.value else {
-                    return Err(anyhow!("missing literal value for JSON GREATER THAN OR EQUAL predicate"));
+                    return Err(anyhow!(
+                        "missing literal value for JSON GREATER THAN OR EQUAL predicate"
+                    ));
                 };
                 if column_type != value_type {
                     return Err(anyhow!(
@@ -383,32 +433,46 @@ impl Utility {
             }
             OpType::LessThanOrEqual => {
                 let Some(mut children) = json.children else {
-		    return Err(anyhow!("JSON LESS THAN OR EQUAL predicate must have child predicates"));
-		};
+                    return Err(anyhow!(
+                        "JSON LESS THAN OR EQUAL predicate must have child predicates"
+                    ));
+                };
                 if children.len() != 2 {
                     return Err(anyhow!(
                         "wrong number of arguments for JSON LESS THAN OR EQUAL predicate"
                     ));
                 }
                 let Some(column) = children.iter().position(|c| c.op == OpType::Column) else {
-                    return Err(anyhow!("JSON LESS THAN OR EQUAL predicate must have COLUMN predicate"));
+                    return Err(anyhow!(
+                        "JSON LESS THAN OR EQUAL predicate must have COLUMN predicate"
+                    ));
                 };
                 let column = children.swap_remove(column);
                 let Some(column_type) = column.value_type else {
-                    return Err(anyhow!("missing column value type for JSON LESS THAN OR EQUAL predicate"));
+                    return Err(anyhow!(
+                        "missing column value type for JSON LESS THAN OR EQUAL predicate"
+                    ));
                 };
                 let Some(column) = column.name else {
-                    return Err(anyhow!("missing column name for JSON LESS THAN OR EQUAL predicate"));
+                    return Err(anyhow!(
+                        "missing column name for JSON LESS THAN OR EQUAL predicate"
+                    ));
                 };
                 let Some(value) = children.iter().position(|c| c.op == OpType::Literal) else {
-                    return Err(anyhow!("JSON LESS THAN OR EQUAL predicate must have LITERAL predicate"));
+                    return Err(anyhow!(
+                        "JSON LESS THAN OR EQUAL predicate must have LITERAL predicate"
+                    ));
                 };
                 let value = children.swap_remove(value);
                 let Some(value_type) = value.value_type else {
-                    return Err(anyhow!("missing literal value type for JSON LESS THAN OR EQUAL predicate"));
+                    return Err(anyhow!(
+                        "missing literal value type for JSON LESS THAN OR EQUAL predicate"
+                    ));
                 };
                 let Some(value) = value.value else {
-                    return Err(anyhow!("missing literal value for JSON LESS THAN OR EQUAL predicate"));
+                    return Err(anyhow!(
+                        "missing literal value for JSON LESS THAN OR EQUAL predicate"
+                    ));
                 };
                 if column_type != value_type {
                     return Err(anyhow!(
@@ -421,12 +485,8 @@ impl Utility {
                     value_type,
                 })
             }
-            OpType::Column => {
-                return Err(anyhow!("invalid JSON predicate"));
-            }
-            OpType::Literal => {
-                return Err(anyhow!("invalid JSON predicate"));
-            }
+            OpType::Column => Err(anyhow!("invalid JSON predicate")),
+            OpType::Literal => Err(anyhow!("invalid JSON predicate")),
         }
     }
 
@@ -438,9 +498,7 @@ impl Utility {
             Predicate::Or(children) => {
                 return children.iter().any(|c| Self::filter(c, stats, schema));
             }
-            Predicate::Not(child) => {
-                return !Self::filter(child, stats, schema);
-            }
+            Predicate::Not(child) => !Self::filter(child, stats, schema),
             Predicate::IsNull { column, value_type }
             | Predicate::Equal {
                 column, value_type, ..
@@ -459,16 +517,16 @@ impl Utility {
             } => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Some(null_count) = stats.null_count.get(column) else {
-		    return true;
-		};
+                    return true;
+                };
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(field) = schema.get_field_with_name(column) else {
-		    return true;
-		};
+                    return true;
+                };
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(column_type) = ValueType::try_from(field.get_type()) else {
-		    return true;
-		};
+                    return true;
+                };
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 if column_type != *value_type {
                     return true;
@@ -476,13 +534,9 @@ impl Utility {
                 match (stats.min_values.get(column), stats.max_values.get(column)) {
                     (Some(serde_json::Value::Bool(min)), Some(serde_json::Value::Bool(max))) => {
                         match column_type {
-                            ValueType::Boolean => {
-                                return Self::check(predicate, min, max, null_count);
-                            }
+                            ValueType::Boolean => Self::check(predicate, min, max, null_count),
                             // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                            _ => {
-                                return true;
-                            }
+                            _ => true,
                         }
                     }
                     (
@@ -490,16 +544,10 @@ impl Utility {
                         Some(serde_json::Value::String(max)),
                     ) => {
                         match column_type {
-                            ValueType::String => {
-                                return Self::check(predicate, min, max, null_count);
-                            }
-                            ValueType::Date => {
-                                return Self::check(predicate, min, max, null_count);
-                            }
+                            ValueType::String => Self::check(predicate, min, max, null_count),
+                            ValueType::Date => Self::check(predicate, min, max, null_count),
                             // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                            _ => {
-                                return true;
-                            }
+                            _ => true,
                         }
                     }
                     (
@@ -510,33 +558,31 @@ impl Utility {
                             ValueType::Int => {
                                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                                 let Some(ref min) = min.as_i64() else {
-				    return true;
-				};
+                                    return true;
+                                };
                                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                                 let Some(ref max) = max.as_i64() else {
-				    return true;
-				};
-                                return Self::check(predicate, min, max, null_count);
+                                    return true;
+                                };
+                                Self::check(predicate, min, max, null_count)
                             }
                             ValueType::Long => {
                                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                                 let Some(ref min) = min.as_i64() else {
-				    return true;
-				};
+                                    return true;
+                                };
                                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                                 let Some(ref max) = max.as_i64() else {
-				    return true;
-				};
-                                return Self::check(predicate, min, max, null_count);
+                                    return true;
+                                };
+                                Self::check(predicate, min, max, null_count)
                             }
                             // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                            _ => {
-                                return true;
-                            }
+                            _ => true,
                         }
                     }
                     // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                    _ => return true,
+                    _ => true,
                 }
             }
         }
@@ -557,7 +603,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![PredicateJson {
                 op: OpType::Column,
                 children: None,
@@ -570,13 +616,7 @@ mod tests {
             value_type: None,
         };
         let predicate = Utility::parse(json).expect("json should be parsed properly");
-        assert_eq!(
-            predicate,
-            Predicate::IsNull {
-                column: column,
-                value_type: value_type
-            }
-        );
+        assert_eq!(predicate, Predicate::IsNull { column, value_type });
         let op = OpType::Equal;
         let column = testutils::rand::string(10);
         let value = testutils::rand::f64(-1.5, 1.5).to_string();
@@ -585,7 +625,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![
                 PredicateJson {
                     op: OpType::Column,
@@ -610,9 +650,9 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::Equal {
-                column: column,
-                value: value,
-                value_type: value_type
+                column,
+                value,
+                value_type
             }
         );
         let op = OpType::LessThan;
@@ -623,7 +663,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![
                 PredicateJson {
                     op: OpType::Column,
@@ -648,9 +688,9 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::LessThan {
-                column: column,
-                value: value,
-                value_type: value_type
+                column,
+                value,
+                value_type
             }
         );
         let op = OpType::LessThanOrEqual;
@@ -661,7 +701,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![
                 PredicateJson {
                     op: OpType::Column,
@@ -686,9 +726,9 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::LessEqual {
-                column: column,
-                value: value,
-                value_type: value_type
+                column,
+                value,
+                value_type
             }
         );
         let op = OpType::GreaterThan;
@@ -699,7 +739,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![
                 PredicateJson {
                     op: OpType::Column,
@@ -724,9 +764,9 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::GreaterThan {
-                column: column,
-                value: value,
-                value_type: value_type
+                column,
+                value,
+                value_type
             }
         );
         let op = OpType::GreaterThanOrEqual;
@@ -737,7 +777,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![
                 PredicateJson {
                     op: OpType::Column,
@@ -762,9 +802,9 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::GreaterEqual {
-                column: column,
-                value: value,
-                value_type: value_type
+                column,
+                value,
+                value_type
             }
         );
         let op_1 = OpType::IsNull;
@@ -807,7 +847,7 @@ mod tests {
         };
         let op = OpType::And;
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![json_1, json_2]),
             name: None,
             value: None,
@@ -867,7 +907,7 @@ mod tests {
         };
         let op = OpType::Or;
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![json_1, json_2]),
             name: None,
             value: None,
@@ -909,7 +949,7 @@ mod tests {
         };
         let op = OpType::Not;
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![json_1]),
             name: None,
             value: None,
