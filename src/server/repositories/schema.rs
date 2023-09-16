@@ -16,7 +16,6 @@ use uuid::Uuid;
 pub struct Row {
     pub id: Uuid,
     pub name: String,
-    pub table_id: Uuid,
     pub share_id: Uuid,
     pub created_by: Uuid,
     pub created_at: DateTime<Utc>,
@@ -35,20 +34,17 @@ impl Repository {
             r#"INSERT INTO "schema" (
                    id,
                    name,
-                   table_id,
                    share_id,
                    created_by
-               ) VALUES ($1, $2, $3, $4, $5)
+               ) VALUES ($1, $2, $3, $4)
                ON CONFLICT(id)
                DO UPDATE
                SET name = $2,
-                   table_id = $3,
-                   share_id = $4,
-                   created_by = $5"#,
+                   share_id = $3,
+                   created_by = $4"#,
         )
         .bind(schema.id())
         .bind(schema.name())
-        .bind(schema.table_id())
         .bind(schema.share_id())
         .bind(schema.created_by())
         .execute(&mut *conn)
@@ -58,6 +54,37 @@ impl Repository {
             schema.id().as_uuid()
         ))
     }
+
+    pub async fn select_by_name(
+        share_id: &ShareId,
+        name: &Name,
+        executor: impl PgAcquire<'_>,
+    ) -> Result<Option<Row>> {
+        let mut conn = executor
+            .acquire()
+            .await
+            .context("failed to acquire postgres connection")?;
+        let row: Option<Row> = sqlx::query_as::<_, Row>(
+            r#"SELECT
+                 id,
+                 name,
+                 share_id,
+                 created_by,
+                 created_at,
+                 updated_at
+             FROM "schema"
+             WHERE share_id = $1 AND name = $2"#,
+        )
+        .bind(share_id)
+        .bind(name)
+        .fetch_optional(&mut *conn)
+        .await
+        .context(format!(
+            r#"failed to select "{}" from [schema]"#,
+            name.as_str()
+        ))?;
+        Ok(row)
+    }
 }
 
 #[cfg(test)]
@@ -65,11 +92,11 @@ mod tests {
     use super::*;
     use crate::server::entities::account::Entity as Account;
     use crate::server::entities::account::Id as AccountId;
+    use crate::server::entities::schema::Entity as Schema;
     use crate::server::entities::share::Entity as Share;
-    use crate::server::entities::table::Entity as Table;
     use crate::server::repositories::account::Repository as AccountRepository;
+    use crate::server::repositories::schema::Repository as SchemaRepository;
     use crate::server::repositories::share::Repository as ShareRepository;
-    use crate::server::repositories::table::Repository as TableRepository;
     use anyhow::Context;
     use anyhow::Result;
     use sqlx::PgConnection;
@@ -92,19 +119,19 @@ mod tests {
         Ok(account)
     }
 
-    async fn create_table(account_id: &AccountId, tx: &mut PgConnection) -> Result<Table> {
-        let table = Table::new(
-            testutils::rand::uuid(),
-            testutils::rand::string(10),
-            testutils::rand::string(10),
-            account_id.to_uuid().to_string(),
-        )
-        .context("failed to validate table")?;
-        TableRepository::upsert(&table, tx)
-            .await
-            .context("failed to create table")?;
-        Ok(table)
-    }
+    // async fn create_schema(account_id: &AccountId, tx: &mut PgConnection) -> Result<Schema> {
+    //     let schema = Schema::new(
+    //         testutils::rand::uuid(),
+    //         testutils::rand::string(10),
+    //         testutils::rand::string(10),
+    //         account_id.to_uuid().to_string(),
+    //     )
+    //     .context("failed to validate table")?;
+    //     SchemaRepository::upsert(&schema, tx)
+    //         .await
+    //         .context("failed to create table")?;
+    //     Ok(schema)
+    // }
 
     async fn create_share(account_id: &AccountId, tx: &mut PgConnection) -> Result<Share> {
         let share = Share::new(
@@ -121,14 +148,12 @@ mod tests {
 
     async fn create_schema(
         account_id: &AccountId,
-        table_id: &TableId,
         share_id: &ShareId,
         tx: &mut PgConnection,
     ) -> Result<Entity> {
         let schema = Entity::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
-            table_id.to_uuid().to_string(),
             share_id.to_uuid().to_string(),
             account_id.to_uuid().to_string(),
         )
@@ -149,15 +174,12 @@ mod tests {
         let account = create_account(&mut tx)
             .await
             .expect("new account should be created");
-        let table = create_table(account.id(), &mut tx)
-            .await
-            .expect("new table should be created");
         let share = create_share(account.id(), &mut tx)
             .await
             .expect("new share should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            create_schema(account.id(), table.id(), share.id(), &mut tx)
+            create_schema(account.id(), share.id(), &mut tx)
                 .await
                 .expect("new schema should be created");
         }

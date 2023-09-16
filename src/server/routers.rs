@@ -1,25 +1,27 @@
 pub mod admin;
 pub mod shares;
 pub mod tables;
+
+use std::sync::Arc;
+
+use anyhow::{Context, Result};
+use axum::extract::Extension;
+use axum::http::{header, Method, Uri};
+use axum::middleware;
+use axum::response::Response;
+use axum::routing::{get, post};
+use axum::Router;
+use rusoto_credential::AwsCredentials;
+use sqlx::PgPool;
+use tame_gcs::signing::ServiceAccount;
+use tower_http::cors::CorsLayer;
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
+
 use crate::config;
 use crate::server::api_doc::ApiDoc;
 use crate::server::middlewares::jwt;
 use crate::server::services::error::Error;
-use anyhow::Context;
-use anyhow::Result;
-use axum::extract::Extension;
-use axum::http::Uri;
-use axum::middleware;
-use axum::response::Response;
-use axum::routing::get;
-use axum::routing::post;
-use axum::Router;
-use rusoto_credential::AwsCredentials;
-use sqlx::PgPool;
-use std::sync::Arc;
-use tame_gcs::signing::ServiceAccount;
-use utoipa::OpenApi;
-use utoipa_swagger_ui::SwaggerUi;
 
 pub struct State {
     pub pg_pool: PgPool,
@@ -52,16 +54,28 @@ async fn route(
         .route("/admin/accounts", get(self::admin::accounts::list))
         .route("/admin/accounts/:account", get(self::admin::accounts::get))
         .route("/admin/shares", post(self::admin::shares::post))
-        .route("/admin/tables", post(self::admin::tables::post))
-        .route("/admin/tables", get(self::admin::tables::list))
-        .route("/admin/tables/:table", get(self::admin::tables::get))
+        .route(
+            "/admin/shares/:share/schemas",
+            post(admin::shares::schemas::post),
+        )
         .route(
             "/admin/shares/:share/schemas/:schema/tables",
             post(admin::shares::schemas::tables::post),
         )
         .route_layer(middleware::from_fn(jwt::as_admin))
         .route("/admin/login", post(self::admin::login))
-        .layer(Extension(state.clone()));
+        .layer(Extension(state.clone()))
+        .layer(
+            CorsLayer::new()
+                .allow_origin(
+                    "http://localhost:3000"
+                        .parse::<header::HeaderValue>()
+                        .unwrap(),
+                )
+                .allow_methods([Method::GET, Method::POST, Method::OPTIONS, Method::HEAD])
+                .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
+                .allow_credentials(true),
+        );
 
     let guest = Router::new()
         .route("/shares", get(self::shares::list))
@@ -88,7 +102,18 @@ async fn route(
             post(self::shares::schemas::tables::query::post),
         )
         .route_layer(middleware::from_fn(jwt::as_guest))
-        .layer(Extension(state.clone()));
+        .layer(Extension(state.clone()))
+        .layer(
+            CorsLayer::new()
+                .allow_origin(
+                    "http://localhost:3000"
+                        .parse::<header::HeaderValue>()
+                        .unwrap(),
+                )
+                .allow_methods([Method::GET, Method::POST, Method::OPTIONS, Method::HEAD])
+                .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
+                .allow_credentials(true),
+        );
 
     let app = Router::new()
         .merge(swagger)

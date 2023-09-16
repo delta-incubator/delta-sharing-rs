@@ -1,7 +1,3 @@
-use crate::impl_string_property;
-use crate::impl_uuid_property;
-use crate::server::entities::account::Id as AccountId;
-use crate::server::repositories::table::Repository;
 use anyhow::Result;
 use getset::Getters;
 use getset::Setters;
@@ -9,6 +5,12 @@ use sqlx::postgres::PgQueryResult;
 use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
+
+use crate::impl_string_property;
+use crate::impl_uuid_property;
+use crate::server::entities::account::Id as AccountId;
+use crate::server::entities::schema::Id as SchemaId;
+use crate::server::repositories::table::Repository;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Id {
@@ -40,6 +42,8 @@ pub struct Entity {
     #[getset(get = "pub", set = "pub")]
     name: Name,
     #[getset(get = "pub", set = "pub")]
+    schema_id: SchemaId,
+    #[getset(get = "pub", set = "pub")]
     location: Location,
     #[getset(get = "pub")]
     created_by: AccountId,
@@ -49,12 +53,14 @@ impl Entity {
     pub fn new(
         id: impl Into<Option<String>>,
         name: String,
+        schema_id: String,
         location: String,
         created_by: String,
     ) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
             name: Name::new(name)?,
+            schema_id: SchemaId::try_from(schema_id)?,
             location: Location::new(location)?,
             created_by: AccountId::try_from(created_by)?,
         })
@@ -65,6 +71,7 @@ impl Entity {
             Some(row) => Ok(Self {
                 id: Id::new(row.id),
                 name: Name::new(row.name)?,
+                schema_id: SchemaId::new(row.schema_id),
                 location: Location::new(row.location)?,
                 created_by: AccountId::new(row.created_by),
             }

@@ -1,13 +1,3 @@
-use crate::server::entities::account::Entity as AccountEntity;
-use crate::server::entities::schema::Entity as SchemaEntity;
-use crate::server::entities::share::Entity as ShareEntity;
-use crate::server::entities::share::Name as ShareName;
-use crate::server::entities::table::Entity as TableEntity;
-use crate::server::entities::table::Name as TableName;
-use crate::server::routers::SharedState;
-use crate::server::services::error::Error;
-use crate::server::services::schema::Schema;
-use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -17,6 +7,18 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
+
+use crate::server::entities::account::Entity as AccountEntity;
+use crate::server::entities::schema::Entity as SchemaEntity;
+use crate::server::entities::schema::Name as SchemaName;
+use crate::server::entities::share::Entity as ShareEntity;
+use crate::server::entities::share::Name as ShareName;
+use crate::server::entities::table::Entity as TableEntity;
+use crate::server::entities::table::Name as TableName;
+use crate::server::routers::SharedState;
+use crate::server::services::error::Error;
+use crate::server::services::table::Table;
+use crate::server::utilities::postgres::Utility as PostgresUtility;
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
@@ -28,14 +30,13 @@ pub struct AdminSharesSchemasTablesPostParams {
 #[derive(Debug, serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminSharesSchemasTablesPostRequest {
-    pub id: Option<String>,
-    pub table: String,
+    pub name: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminSharesSchemasTablesPostResponse {
-    pub schema: Schema,
+    pub table: Table,
 }
 
 #[utoipa::path(
@@ -60,47 +61,51 @@ pub async fn post(
     Path(params): Path<AdminSharesSchemasTablesPostParams>,
     Json(payload): Json<AdminSharesSchemasTablesPostRequest>,
 ) -> Result<Response, Error> {
-    let Ok(share) = ShareName::new(params.share) else {
+    let Ok(share_name) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
-    let Ok(share) = ShareEntity::load(&share, &state.pg_pool).await else {
+    let Ok(maybe_share) = ShareEntity::load(&share_name, &state.pg_pool).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting share");
         return Err(anyhow!("error occured while selecting share").into());
     };
-    let Some(share) = share else {
+    let Some(share) = maybe_share else {
         tracing::error!("share was not found");
-	return Err(Error::BadRequest);
+	    return Err(Error::BadRequest);
     };
-    let Ok(table) = TableName::new(payload.table) else {
+    let Ok(schema_name) = SchemaName::new(params.schema) else {
+        tracing::error!("requested share data is malformed");
+	    return Err(Error::ValidationFailed);
+    };
+    let Ok(maybe_schema) = SchemaEntity::load(share.id(), &schema_name, &state.pg_pool).await else {
+        tracing::error!("request is not handled correctly due to a server error while selecting share");
+        return Err(anyhow!("error occured while selecting share").into());
+    };
+    let Some(schema) = maybe_schema else {
+        tracing::error!("share was not found");
+	    return Err(Error::BadRequest);
+    };
+    let Ok(table_name) = TableName::new(payload.name) else {
         tracing::error!("requested table data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
-    let Ok(table) = TableEntity::load(&table, &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting table");
-        return Err(anyhow!("error occured while selecting table").into());
-    };
-    let Some(table) = table else {
-        tracing::error!("table was not found");
-	return Err(Error::BadRequest);
-    };
-    let Ok(schema) = SchemaEntity::new(
-        payload.id,
-        params.schema,
-        table.id().to_string(),
+    let Ok(table) = TableEntity::new(
+        None,
+        table_name.to_string(),
+        schema.id().to_string(),
         share.id().to_string(),
         account.id().to_string(),
     ) else {
         tracing::error!("requested schema data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
-    match PostgresUtility::error(schema.save(&state.pg_pool).await)? {
+    match PostgresUtility::error(table.save(&state.pg_pool).await)? {
         Ok(_) => {
-            tracing::info!("schema was successfully registered");
+            tracing::info!("table was successfully registered");
             Ok((
                 StatusCode::CREATED,
                 Json(AdminSharesSchemasTablesPostResponse {
-                    schema: Schema::from(schema),
+                    table: Table::from(table),
                 }),
             )
                 .into_response())
