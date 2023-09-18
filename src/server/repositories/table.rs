@@ -5,6 +5,7 @@ use chrono::Utc;
 use sqlx::postgres::PgQueryResult;
 use uuid::Uuid;
 
+use crate::server::entities::schema::Id as SchemaId;
 use crate::server::entities::table::Entity;
 use crate::server::entities::table::Name;
 use crate::server::utilities::postgres::PgAcquire;
@@ -57,7 +58,11 @@ impl Repository {
         ))
     }
 
-    pub async fn select_by_name(name: &Name, executor: impl PgAcquire<'_>) -> Result<Option<Row>> {
+    pub async fn select_by_name(
+        schema_id: &SchemaId,
+        name: &Name,
+        executor: impl PgAcquire<'_>,
+    ) -> Result<Option<Row>> {
         let mut conn = executor
             .acquire()
             .await
@@ -72,8 +77,9 @@ impl Repository {
                    created_at,
                    updated_at
                FROM "table"
-               WHERE name = $1"#,
+               WHERE schema_id = $1 AND name = $2"#,
         )
+        .bind(schema_id)
         .bind(name)
         .fetch_optional(&mut *conn)
         .await
@@ -82,126 +88,5 @@ impl Repository {
             name.as_str()
         ))?;
         Ok(row)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use anyhow::Context;
-    use anyhow::Result;
-    use sqlx::PgConnection;
-    use sqlx::PgPool;
-
-    use super::*;
-    use crate::server::entities::account::Entity as Account;
-    use crate::server::entities::account::Id as AccountId;
-    use crate::server::entities::schema::Entity as Schema;
-    use crate::server::entities::schema::Id as SchemaId;
-    use crate::server::entities::share::Entity as Share;
-    use crate::server::entities::share::Id as ShareId;
-    use crate::server::repositories::account::Repository as AccountRepository;
-    use crate::server::repositories::schema::Repository as SchemaRepository;
-    use crate::server::repositories::share::Repository as ShareRepository;
-
-    async fn create_account(tx: &mut PgConnection) -> Result<Account> {
-        let account = Account::new(
-            testutils::rand::uuid(),
-            testutils::rand::string(10),
-            testutils::rand::email(),
-            testutils::rand::string(10),
-            testutils::rand::string(10),
-            testutils::rand::i64(1, 100000),
-        )
-        .context("failed to validate account")?;
-        AccountRepository::upsert(&account, tx)
-            .await
-            .context("failed to create account")?;
-        Ok(account)
-    }
-
-    async fn create_share(account_id: &AccountId, tx: &mut PgConnection) -> Result<Share> {
-        let share = Share::new(
-            testutils::rand::uuid(),
-            testutils::rand::string(10),
-            account_id.to_uuid().to_string(),
-        )
-        .context("failed to validate share")?;
-        ShareRepository::upsert(&share, tx)
-            .await
-            .context("failed to create share")?;
-        Ok(share)
-    }
-
-    async fn create_schema(
-        account_id: &AccountId,
-        share_id: &ShareId,
-        tx: &mut PgConnection,
-    ) -> Result<Schema> {
-        let schema = Schema::new(
-            testutils::rand::uuid(),
-            testutils::rand::string(10),
-            share_id.to_uuid().to_string(),
-            account_id.to_uuid().to_string(),
-        )
-        .context("failed to validate schema")?;
-        SchemaRepository::upsert(&schema, tx)
-            .await
-            .context("failed to create schema")?;
-        Ok(schema)
-    }
-
-    async fn create_table(
-        account_id: &AccountId,
-        schema_id: &SchemaId,
-        tx: &mut PgConnection,
-    ) -> Result<Entity> {
-        let table = Entity::new(
-            testutils::rand::uuid(),
-            testutils::rand::string(10),
-            schema_id.to_uuid().to_string(),
-            testutils::rand::string(10),
-            account_id.to_uuid().to_string(),
-        )
-        .context("failed to validate table")?;
-        Repository::upsert(&table, tx)
-            .await
-            .context("failed to create table")?;
-        Ok(table)
-    }
-
-    #[sqlx::test]
-    #[ignore] // NOTE: Be sure '$ docker compose -f devops/local/docker-compose.yaml up' before running this test
-    async fn test_create_and_select_by_name(pool: PgPool) -> Result<()> {
-        let mut tx = pool
-            .begin()
-            .await
-            .expect("transaction should be started properly");
-        let account = create_account(&mut tx)
-            .await
-            .expect("new account should be created");
-        let share = create_share(account.id(), &mut tx)
-            .await
-            .expect("new share should be created");
-        let schema = create_schema(account.id(), share.id(), &mut tx)
-            .await
-            .expect("new share should be created");
-        let table = create_table(account.id(), schema.id(), &mut tx)
-            .await
-            .expect("new table should be created");
-        let fetched = Repository::select_by_name(table.name(), &mut tx)
-            .await
-            .expect("created table should be found");
-        if let Some(fetched) = fetched {
-            assert_eq!(&fetched.id, table.id().as_uuid());
-            assert_eq!(&fetched.name, table.name().as_str());
-            assert_eq!(&fetched.location, table.location().as_str());
-            assert_eq!(&fetched.created_by, table.created_by().as_uuid());
-        } else {
-            panic!("created table should be matched");
-        }
-        tx.rollback()
-            .await
-            .expect("rollback should be done properly");
-        Ok(())
     }
 }

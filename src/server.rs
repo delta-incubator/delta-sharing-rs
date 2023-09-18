@@ -15,6 +15,18 @@ use tame_gcs::signing::ServiceAccount;
 
 use crate::bootstrap;
 
+pub use crate::server::middlewares::jwt::Role;
+pub use entities::account::{Entity as AccountEntity, Id as AccountId};
+pub use entities::schema::{Entity as SchemaEntity, Id as SchemaId};
+pub use entities::share::{Entity as ShareEntity, Id as ShareId};
+pub use entities::table::{Entity as TableEntity, Id as TableId};
+pub use entities::token::{Entity as TokenEntity, Id as TokenId};
+pub use repositories::account::Repository as AccountRepository;
+pub use repositories::schema::Repository as SchemaRepository;
+pub use repositories::share::Repository as ShareRepository;
+pub use repositories::table::Repository as TableRepository;
+pub use repositories::token::Repository as TokenRepository;
+
 pub struct Server {
     pg_pool: PgPool,
     gcp_service_account: Option<ServiceAccount>,
