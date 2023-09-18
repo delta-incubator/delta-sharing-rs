@@ -26,6 +26,10 @@ pub use repositories::schema::Repository as SchemaRepository;
 pub use repositories::share::Repository as ShareRepository;
 pub use repositories::table::Repository as TableRepository;
 pub use repositories::token::Repository as TokenRepository;
+pub use services::account::Service as AccountService;
+pub use services::schema::Service as SchemaService;
+pub use services::share::Service as ShareService;
+pub use services::table::Service as TableService;
 
 pub struct Server {
     pg_pool: PgPool,
