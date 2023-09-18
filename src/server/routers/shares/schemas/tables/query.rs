@@ -77,7 +77,7 @@ pub async fn post(
             .into_iter()
             .map(|p| SQLUtility::parse(p.to_owned()))
             .collect();
-        if let Err(_) = predicate_hints {
+        if predicate_hints.is_err() {
             tracing::warn!("requested predicate hints are malformed");
         }
         predicate_hints.ok()
@@ -86,7 +86,7 @@ pub async fn post(
     };
     let json_predicate_hints = if let Some(json_predicate_hints) = payload.json_predicate_hints {
         let predicate = JSONUtility::parse(json_predicate_hints);
-        if let Err(_) = predicate {
+        if predicate.is_err() {
             tracing::warn!("requested predicate hints are malformed");
         }
         predicate.ok()
@@ -162,7 +162,7 @@ pub async fn post(
         metadata.to_owned()
     };
     let url_signer = |name: String| match &platform {
-        Platform::AWS { url, bucket, path } => {
+        Platform::Aws { url, bucket, path } => {
             if let Some(aws_credentials) = &state.aws_credentials {
                 let file: String = format!("{}/{}", path, name);
                 let Ok(signed) = SignedUrlUtility::sign_aws(
@@ -179,7 +179,7 @@ pub async fn post(
             tracing::warn!("AWS credentials were not set");
             url.clone()
         }
-        Platform::GCP { url, bucket, path } => {
+        Platform::Gcp { url, bucket, path } => {
             if let Some(gcp_service_account) = &state.gcp_service_account {
                 let file: String = format!("{}/{}", path, name);
                 let Ok(signed) = SignedUrlUtility::sign_gcp(
@@ -196,7 +196,7 @@ pub async fn post(
             tracing::warn!("GCP service account was not set");
             url.clone()
         }
-        Platform::NONE { url } => {
+        Platform::None { url } => {
             tracing::warn!("no supported platforms");
             url.clone()
         }
