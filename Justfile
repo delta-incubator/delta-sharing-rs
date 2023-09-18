@@ -19,13 +19,15 @@ build:
 
 # Conduct unit tests
 test:
-    @cargo test -- --nocapture
+    @cargo test --lib -- --nocapture
 
 # Conduct DB-related unit tests
-testdb:
+test-integration:
     @# Be sure run the following command before conducting this:
     @# $ docker compose -f ./devops/local/docker-compose.yaml up
-    @cargo test -- --nocapture --ignored
+    @cargo test --tests -- --nocapture
+
+alias testdb := test-integration
 
 # Run local docker emvironment
 docker:

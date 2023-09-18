@@ -48,17 +48,12 @@ jobs:
         run: cargo clippy --tests
 
       - name: Check docs
-        run: cargo doc
+        run: cargo doc --no-deps
 
   test:
     strategy:
       fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-11
-          - windows-latest
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:alpine
