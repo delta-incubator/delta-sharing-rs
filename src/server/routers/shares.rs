@@ -33,9 +33,9 @@ pub struct SharesGetResponse {
 #[utoipa::path(
     get,
     path = "/shares/{share}",
-    params(
-        SharesGetParams,
-    ),
+    tag = "official",
+    operation_id = "GetShare",
+    params(SharesGetParams),
     responses(
         (status = 200, description = "The share's metadata was successfully returned.", body = SharesGetResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -86,9 +86,9 @@ pub struct SharesListResponse {
 #[utoipa::path(
     get,
     path = "/shares",
-    params(
-        SharesListQuery,
-    ),
+    operation_id = "ListShares",
+    tag = "official",
+    params(SharesListQuery),
     responses(
         (status = 200, description = "The shares were successfully returned.", body = SharesListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),

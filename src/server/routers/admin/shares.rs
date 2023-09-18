@@ -28,6 +28,8 @@ pub struct AdminSharesPostResponse {
 #[utoipa::path(
     post,
     path = "/admin/shares",
+    operation_id = "CreateShare",
+    tag = "admin",
     request_body = AdminSharesPostRequest,
     responses(
         (status = 201, description = "The share was successfully registered.", body = AdminSharesPostResponse),

@@ -42,10 +42,10 @@ pub struct AdminSharesSchemasTablesPostResponse {
 
 #[utoipa::path(
     post,
-    path = "admin/shares/{share}/schemas/{schema}/tables",
-    params(
-        AdminSharesSchemasTablesPostParams,
-    ),
+    path = "/admin/shares/{share}/schemas/{schema}/tables",
+    operation_id = "CreateTable",
+    tag = "admin",
+    params(AdminSharesSchemasTablesPostParams),
     request_body = AdminSharesSchemasTablesPostRequest,
     responses(
         (status = 201, description = "The schema was successfully registered.", body = AdminSharesSchemasTablesPostResponse),

@@ -42,6 +42,7 @@ pub struct AdminLoginResponse {
 #[utoipa::path(
     post,
     path = "/admin/login",
+    tag = "admin",
     request_body = AdminLoginRequest,
     responses(
         (status = 200, description = "The profile was successfully returned.", body = AdminLoginResponse),

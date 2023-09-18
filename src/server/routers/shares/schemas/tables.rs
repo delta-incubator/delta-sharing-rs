@@ -47,7 +47,10 @@ pub struct SharesSchemasTablesListResponse {
 #[utoipa::path(
     get,
     path = "/shares/{share}/schemas/{schema}/tables",
+    operation_id = "ListTables",
+    tag = "official",
     params(
+        SharesSchemasTablesListParams,
         SharesSchemasTablesListQuery,
     ),
     responses(

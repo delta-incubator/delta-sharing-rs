@@ -34,6 +34,9 @@ pub struct SharesSchemasTablesVersionGetQuery {
 #[utoipa::path(
     get,
     path = "/shares/{share}/schemas/{schema}/tables/{table}/version",
+    operation_id = "GetTableVersion",
+    tag = "official",
+    params(SharesSchemasTablesVersionGetParams),
     responses(
         (status = 200, description = "The table version was successfully returned."),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),

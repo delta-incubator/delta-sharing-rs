@@ -42,7 +42,10 @@ pub struct SharesAllTablesListResponse {
 #[utoipa::path(
     get,
     path = "/shares/{share}/all-tables",
+    operation_id = "ListALLTables",
+    tag = "official",
     params(
+        SharesAllTablesListParams,
         SharesAllTablesListQuery,
     ),
     responses(

@@ -52,7 +52,10 @@ pub struct SharesSchemasTablesQueryPostParams {
 #[utoipa::path(
     post,
     path = "/shares/{share}/schemas/{schema}/tables/{table}/query",
+    operation_id = "QueryTable",
+    tag = "official",
     request_body = SharesSchemasTablesQueryPostRequest,
+    params(SharesSchemasTablesQueryPostParams),
     responses(
         (status = 200, description = "The tables were successfully returned.", body = String),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),

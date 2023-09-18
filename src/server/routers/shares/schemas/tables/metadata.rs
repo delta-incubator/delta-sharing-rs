@@ -31,6 +31,9 @@ pub struct SharesSchemasTablesMetadataGetParams {
 #[utoipa::path(
     get,
     path = "/shares/{share}/schemas/{schema}/tables/{table}/metadata",
+    operation_id = "GetTableMetadata",
+    tag = "official",
+    params(SharesSchemasTablesMetadataGetParams),
     responses(
         (status = 200, description = "The table metadata was successfully returned.", body = String),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
