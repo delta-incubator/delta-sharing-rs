@@ -72,7 +72,7 @@ pub async fn post(
     };
     let Some(share) = maybe_share else {
         tracing::error!("share was not found");
-        return Err(Error::BadRequest);
+        return Err(Error::NotFound);
     };
     let Ok(schema_name) = SchemaName::new(payload.name) else {
         tracing::error!("schema name is malformed");
