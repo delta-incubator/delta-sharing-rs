@@ -50,7 +50,39 @@ jobs:
       - name: Check docs
         run: cargo doc --no-deps
 
-  test:
+  unit:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-11
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+
+    env:
+      # Disable full debug symbol generation to speed up CI build and keep memory down
+      RUSTFLAGS: -C debuginfo=line-tables-only
+      # Disable incremental builds by cargo for CI which should save disk space
+      # and hopefully avoid final link "No space left on device"
+      CARGO_INCREMENTAL: 0
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install minimal stable with clippy and rustfmt
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: default
+          toolchain: "stable"
+          override: true
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run unit tests
+        run: cargo test --lib
+
+  integration:
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
@@ -82,9 +114,6 @@ jobs:
           override: true
 
       - uses: Swatinem/rust-cache@v2
-
-      - name: Run unit tests
-        run: cargo test --lib
 
       - name: Run integration tests
         run: cargo test --tests
