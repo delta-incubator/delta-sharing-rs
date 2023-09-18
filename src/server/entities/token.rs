@@ -1,8 +1,3 @@
-use crate::impl_string_property;
-use crate::impl_uuid_property;
-use crate::server::entities::account::Id as AccountId;
-use crate::server::middlewares::jwt::Role;
-use crate::server::repositories::token::Repository;
 use anyhow::Result;
 use getset::Getters;
 use getset::Setters;
@@ -11,12 +6,16 @@ use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
 
+use crate::impl_string_property;
+use crate::impl_uuid_property;
+use crate::server::entities::account::Id as AccountId;
+use crate::server::middlewares::jwt::Role;
+use crate::server::repositories::token::Repository;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Id {
     value: Uuid,
 }
-
-impl_uuid_property!(Id);
 
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Email {
@@ -24,14 +23,14 @@ pub struct Email {
     value: String,
 }
 
-impl_string_property!(Email);
-
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Value {
     #[validate(length(min = 1))]
     value: String,
 }
 
+impl_uuid_property!(Id);
+impl_string_property!(Email);
 impl_string_property!(Value);
 
 #[derive(Debug, Clone, PartialEq, Eq, Getters, Setters)]

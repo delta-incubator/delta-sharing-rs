@@ -17,15 +17,11 @@ pub struct Id {
     value: Uuid,
 }
 
-impl_uuid_property!(Id);
-
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Name {
     #[validate(length(min = 1))]
     value: String,
 }
-
-impl_string_property!(Name);
 
 #[derive(Debug, Clone, PartialEq, Eq, Getters, Setters)]
 pub struct Entity {
@@ -38,6 +34,9 @@ pub struct Entity {
     #[getset(get = "pub")]
     created_by: AccountId,
 }
+
+impl_uuid_property!(Id);
+impl_string_property!(Name);
 
 impl Entity {
     pub fn new(

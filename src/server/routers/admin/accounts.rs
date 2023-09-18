@@ -1,10 +1,3 @@
-use crate::server::entities::account::Entity as AccountEntity;
-use crate::server::entities::account::Name as AccountName;
-use crate::server::routers::SharedState;
-use crate::server::services::account::Account;
-use crate::server::services::account::Service as AccountService;
-use crate::server::services::error::Error;
-use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -15,6 +8,14 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
+
+use crate::server::entities::account::Entity as AccountEntity;
+use crate::server::entities::account::Name as AccountName;
+use crate::server::routers::SharedState;
+use crate::server::services::account::Account;
+use crate::server::services::account::Service as AccountService;
+use crate::server::services::error::Error;
+use crate::server::utilities::postgres::Utility as PostgresUtility;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
 

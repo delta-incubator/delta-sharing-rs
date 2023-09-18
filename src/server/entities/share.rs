@@ -1,7 +1,3 @@
-use crate::impl_string_property;
-use crate::impl_uuid_property;
-use crate::server::entities::account::Id as AccountId;
-use crate::server::repositories::share::Repository;
 use anyhow::Result;
 use getset::Getters;
 use getset::Setters;
@@ -10,12 +6,15 @@ use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
 
+use crate::impl_string_property;
+use crate::impl_uuid_property;
+use crate::server::entities::account::Id as AccountId;
+use crate::server::repositories::share::Repository;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Id {
     value: Uuid,
 }
-
-impl_uuid_property!(Id);
 
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Name {
@@ -23,6 +22,7 @@ pub struct Name {
     value: String,
 }
 
+impl_uuid_property!(Id);
 impl_string_property!(Name);
 
 #[derive(Debug, Clone, PartialEq, Eq, Getters, Setters)]

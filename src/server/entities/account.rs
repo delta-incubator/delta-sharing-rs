@@ -1,7 +1,3 @@
-use crate::impl_i64_property;
-use crate::impl_string_property;
-use crate::impl_uuid_property;
-use crate::server::repositories::account::Repository;
 use anyhow::anyhow;
 use anyhow::Result;
 use argon2::password_hash::rand_core::OsRng;
@@ -17,12 +13,15 @@ use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
 
+use crate::impl_i64_property;
+use crate::impl_string_property;
+use crate::impl_uuid_property;
+use crate::server::repositories::account::Repository;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Id {
     value: Uuid,
 }
-
-impl_uuid_property!(Id);
 
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Name {
@@ -30,15 +29,11 @@ pub struct Name {
     value: String,
 }
 
-impl_string_property!(Name);
-
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Email {
     #[validate(email)]
     value: String,
 }
-
-impl_string_property!(Email);
 
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Password {
@@ -46,15 +41,11 @@ pub struct Password {
     value: String,
 }
 
-impl_string_property!(Password);
-
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Namespace {
     #[validate(length(min = 1))]
     value: String,
 }
-
-impl_string_property!(Namespace);
 
 #[derive(Debug, Clone, PartialEq, Eq, Validate)]
 pub struct Ttl {
@@ -62,6 +53,11 @@ pub struct Ttl {
     value: i64,
 }
 
+impl_uuid_property!(Id);
+impl_string_property!(Name);
+impl_string_property!(Email);
+impl_string_property!(Password);
+impl_string_property!(Namespace);
 impl_i64_property!(Ttl);
 
 #[derive(Debug, Clone, PartialEq, Eq, Getters, Setters)]
