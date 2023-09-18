@@ -31,8 +31,6 @@ impl Table {
 #[derive(Debug, Clone, serde::Serialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TableDetail {
-    pub id: String,
-    pub share_id: String,
     pub name: String,
     pub schema: String,
     pub share: String,
@@ -122,7 +120,7 @@ impl Service {
                    "table".name AS name,
                    "table".location AS location
                FROM "table"
-               LEFT JOIN "schema" ON "schema".table_id = "table".id
+               LEFT JOIN "schema" ON "schema".id = "table".schema_id
                LEFT JOIN share ON share.id = "schema".share_id
                WHERE share.name = $1 AND "schema".name = $2 AND "table".name = $3"#,
         )
@@ -159,7 +157,7 @@ impl Service {
                        "schema".name AS schema,
                        share.name AS share
                    FROM "table"
-                   LEFT JOIN "schema" ON "schema".table_id = "table".id
+                   LEFT JOIN "schema" ON "schema".id = "table".schema_id
                    LEFT JOIN share ON share.id = "schema".share_id
                    WHERE share.name = "#,
         );
@@ -168,8 +166,6 @@ impl Service {
             "
                )
                SELECT
-                   id::text,
-                   share_id::text,
                    name,
                    schema,
                    share
@@ -219,7 +215,7 @@ impl Service {
                        "schema".name AS schema,
                        share.name AS share
                    FROM "table"
-                   LEFT JOIN "schema" ON "schema".table_id = "table".id
+                   LEFT JOIN "schema" ON "schema".id = "table".schema_id
                    LEFT JOIN share ON share.id = "schema".share_id
                    WHERE share.name = "#,
         );
@@ -512,8 +508,11 @@ mod tests {
         for _ in 0..num_schemas {
             let schema_name = SchemaName::new(testutils::rand::string(10))
                 .expect("new schema name should be created");
+            let schema = create_schema(&schema_name, share.id(), account.id(), &mut tx)
+                .await
+                .expect("new schema should be created");
             for _ in 0..num_tables {
-                create_schema(&schema_name, share.id(), account.id(), &mut tx)
+                create_table(account.id(), schema.id(), &mut tx)
                     .await
                     .expect("new schema should be created");
             }
@@ -546,10 +545,13 @@ mod tests {
         for _ in 0..num_schemas {
             let schema_name = SchemaName::new(testutils::rand::string(10))
                 .expect("new schema name should be created");
+            let schema = create_schema(&schema_name, share.id(), account.id(), &mut tx)
+                .await
+                .expect("new schema should be created");
             for _ in 0..num_tables {
-                create_schema(&schema_name, share.id(), account.id(), &mut tx)
+                create_table(account.id(), schema.id(), &mut tx)
                     .await
-                    .expect("new schema should be created");
+                    .expect("new table should be created");
             }
         }
         let limit = testutils::rand::i64(0, 20);
@@ -580,20 +582,14 @@ mod tests {
             .expect("new share should be created");
         let schema_name = SchemaName::new(testutils::rand::string(10))
             .expect("new schema name should be created");
+        let schema = create_schema(&schema_name, share.id(), account.id(), &mut tx)
+            .await
+            .expect("new schema should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            create_schema(&schema_name, share.id(), account.id(), &mut tx)
+            create_table(account.id(), schema.id(), &mut tx)
                 .await
                 .expect("new schema should be created");
-        }
-        for _ in 0..testutils::rand::i64(0, 20) {
-            let schema_name = SchemaName::new(testutils::rand::string(10))
-                .expect("new schema name should be created");
-            for _ in 0..records {
-                create_schema(&schema_name, share.id(), account.id(), &mut tx)
-                    .await
-                    .expect("new schema should be created");
-            }
         }
         let fetched = Service::query_by_share_and_schema_name(
             share.name(),
@@ -628,20 +624,14 @@ mod tests {
             .expect("new share should be created");
         let schema_name = SchemaName::new(testutils::rand::string(10))
             .expect("new schema name should be created");
-        let records = testutils::rand::i64(0, 20);
+        let schema = create_schema(&schema_name, share.id(), account.id(), &mut tx)
+            .await
+            .expect("new schema should be created");
+        let records = testutils::rand::i64(5, 20);
         for _ in 0..records {
-            create_schema(&schema_name, share.id(), account.id(), &mut tx)
+            create_table(account.id(), schema.id(), &mut tx)
                 .await
                 .expect("new schema should be created");
-        }
-        for _ in 0..testutils::rand::i64(0, 20) {
-            let schema_name = SchemaName::new(testutils::rand::string(10))
-                .expect("new schema name should be created");
-            for _ in 0..records {
-                create_schema(&schema_name, share.id(), account.id(), &mut tx)
-                    .await
-                    .expect("new schema should be created");
-            }
         }
         let limit = testutils::rand::i64(0, 20);
         let fetched = Service::query_by_share_and_schema_name(

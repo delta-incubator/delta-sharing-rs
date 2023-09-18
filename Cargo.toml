@@ -13,7 +13,7 @@ async-trait = "0.1.64"
 axum = { version = "0.6.20", features = ["headers"] }
 axum-extra = { version = "0.8", features = ["json-lines"] }
 clap = "4.1.4"
-deltalake = { version = "0.8.0", features = ["s3", "azure", "gcs"] }
+deltalake = { version = "0.15.0", features = ["s3", "azure", "gcs"] }
 futures = "0.3.28"
 futures-util = "0.3.28"
 tokio = { version = "1.25.0", features = ["full", "rt-multi-thread"] }

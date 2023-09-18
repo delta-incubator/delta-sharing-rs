@@ -45,12 +45,14 @@ impl Repository {
         )
         .bind(table.id())
         .bind(table.name())
+        .bind(table.schema_id())
         .bind(table.location())
         .bind(table.created_by())
         .execute(&mut *conn)
         .await
         .context(format!(
-            r#"failed to upsert "{}" into [table]"#,
+            r#"failed to upsert "{} ({})" into [table]"#,
+            table.name().to_string(),
             table.id().as_uuid()
         ))
     }
