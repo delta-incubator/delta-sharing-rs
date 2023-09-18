@@ -1,7 +1,7 @@
-use crate::config;
-use crate::config::JWT_SECRET;
-use crate::server::middlewares::jwt::Claims;
-use crate::server::middlewares::jwt::Role;
+use std::time::Duration;
+use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
+
 use anyhow::Context;
 use anyhow::Result;
 use chrono::DateTime;
@@ -9,10 +9,12 @@ use chrono::NaiveDateTime;
 use chrono::Utc;
 use jsonwebtoken::encode;
 use jsonwebtoken::Header;
-use std::time::Duration;
-use std::time::SystemTime;
-use std::time::UNIX_EPOCH;
 use utoipa::ToSchema;
+
+use crate::config;
+use crate::config::JWT_SECRET;
+use crate::server::middlewares::jwt::Claims;
+use crate::server::middlewares::jwt::Role;
 
 pub const VERSION: i32 = 1;
 

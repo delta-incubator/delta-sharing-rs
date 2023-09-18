@@ -1,6 +1,8 @@
 mod fetcher;
-use crate::server::utilities::bootstrap::JwtKeys;
+
 use once_cell::sync::Lazy;
+
+use crate::server::utilities::bootstrap::JwtKeys;
 
 pub(crate) static AWS_PROFILE: &str = "default";
 
