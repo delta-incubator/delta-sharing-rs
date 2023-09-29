@@ -65,7 +65,7 @@ impl Service {
             builder.push(" LIMIT ");
             builder.push_bind(limit);
         }
-        let mut query = sqlx::query_as::<_, Table>(builder.build().sql().into());
+        let mut query = sqlx::query_as::<_, Table>(builder.build().sql());
         if let Some(name) = after {
             query = query.bind(name);
         }
@@ -183,7 +183,7 @@ impl Service {
             builder.push(" LIMIT ");
             builder.push_bind(limit);
         }
-        let mut query = sqlx::query_as::<_, TableDetail>(builder.build().sql().into());
+        let mut query = sqlx::query_as::<_, TableDetail>(builder.build().sql());
         query = query.bind(share_name);
         if let Some(name) = after {
             query = query.bind(name);
@@ -245,7 +245,7 @@ impl Service {
             builder.push(" LIMIT ");
             builder.push_bind(limit);
         }
-        let mut query = sqlx::query_as::<_, TableDetail>(builder.build().sql().into());
+        let mut query = sqlx::query_as::<_, TableDetail>(builder.build().sql());
         query = query.bind(share_name);
         query = query.bind(schema_name);
         if let Some(name) = after {
@@ -413,7 +413,7 @@ mod tests {
         let table = create_table(account.id(), &mut tx)
             .await
             .expect("new table should be created");
-        let fetched = Service::query_by_name(&table.name(), &mut tx)
+        let fetched = Service::query_by_name(table.name(), &mut tx)
             .await
             .expect("created table should be found");
         if let Some(fetched) = fetched {

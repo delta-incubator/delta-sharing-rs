@@ -76,13 +76,13 @@ pub async fn post(
         }
         Err(e) if PostgresUtility::is_conflict(&e) => {
             tracing::error!("account was already registered");
-            return Err(Error::Conflict);
+            Err(Error::Conflict)
         }
         _ => {
             tracing::error!(
                 "request is not handled correctly due to a server error while updating account"
             );
-            return Err(anyhow!("error occured while updating account").into());
+            Err(anyhow!("error occured while updating account").into())
         }
     }
 }

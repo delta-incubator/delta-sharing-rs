@@ -109,7 +109,7 @@ pub async fn login(
     tracing::info!("profile was successfully returned");
     Ok((
         StatusCode::OK,
-        Json(AdminLoginResponse { profile: profile }),
+        Json(AdminLoginResponse { profile }),
     )
         .into_response())
 }
@@ -146,7 +146,7 @@ pub async fn profile(Extension(account): Extension<AccountEntity>) -> Result<Res
     tracing::info!("profile was successfully returned");
     Ok((
         StatusCode::OK,
-        Json(AdminProfileResponse { profile: profile }),
+        Json(AdminProfileResponse { profile }),
     )
         .into_response())
 }

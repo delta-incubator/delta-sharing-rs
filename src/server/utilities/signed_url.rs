@@ -40,17 +40,17 @@ impl FromStr for Platform {
             "s3" => Ok(Self::AWS {
                 url: String::from(url.as_str()),
                 bucket: String::from(url.domain().unwrap_or("")),
-                path: String::from(url.path().strip_prefix("/").unwrap_or("")),
+                path: String::from(url.path().strip_prefix('/').unwrap_or("")),
             }),
             "s3a" => Ok(Self::AWS {
                 url: String::from(url.as_str()),
                 bucket: String::from(url.domain().unwrap_or("")),
-                path: String::from(url.path().strip_prefix("/").unwrap_or("")),
+                path: String::from(url.path().strip_prefix('/').unwrap_or("")),
             }),
             "gs" => Ok(Self::GCP {
                 url: String::from(url.as_str()),
                 bucket: String::from(url.domain().unwrap_or("")),
-                path: String::from(url.path().strip_prefix("/").unwrap_or("")),
+                path: String::from(url.path().strip_prefix('/').unwrap_or("")),
             }),
             _ => Ok(Self::NONE {
                 url: String::from(url.as_str()),

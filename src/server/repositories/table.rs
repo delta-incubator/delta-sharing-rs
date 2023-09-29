@@ -132,7 +132,7 @@ mod tests {
         let table = create_table(account.id(), &mut tx)
             .await
             .expect("new table should be created");
-        let fetched = Repository::select_by_name(&table.name(), &mut tx)
+        let fetched = Repository::select_by_name(table.name(), &mut tx)
             .await
             .expect("created table should be found");
         if let Some(fetched) = fetched {

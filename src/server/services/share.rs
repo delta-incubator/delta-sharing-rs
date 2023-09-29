@@ -50,7 +50,7 @@ impl Service {
             builder.push(" LIMIT ");
             builder.push_bind(limit);
         }
-        let mut query = sqlx::query_as::<_, Share>(builder.build().sql().into());
+        let mut query = sqlx::query_as::<_, Share>(builder.build().sql());
         if let Some(name) = after {
             query = query.bind(name);
         }
@@ -199,7 +199,7 @@ mod tests {
         let share = create_share(account.id(), &mut tx)
             .await
             .expect("new share should be created");
-        let fetched = Service::query_by_name(&share.name(), &mut tx)
+        let fetched = Service::query_by_name(share.name(), &mut tx)
             .await
             .expect("created share should be found");
         if let Some(fetched) = fetched {

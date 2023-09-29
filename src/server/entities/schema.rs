@@ -59,7 +59,7 @@ impl Entity {
     }
 
     pub async fn save(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
-        Repository::upsert(&self, pg_pool).await
+        Repository::upsert(self, pg_pool).await
     }
 }
 

@@ -35,10 +35,10 @@ fn new_token(
     expiry: i64,
 ) -> Result<String> {
     let claims = Claims {
-        name: name,
-        email: email,
-        namespace: namespace,
-        role: role,
+        name,
+        email,
+        namespace,
+        role,
         exp: expiry,
     };
     let token = encode(&Header::default(), &claims, &JWT_SECRET.encoding)

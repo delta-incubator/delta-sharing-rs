@@ -128,13 +128,13 @@ impl File {
         }
         Self {
             file: FileDetail {
-                id: String::from(format!("{:x}", md5::compute(add.path.as_bytes()))),
+                id: format!("{:x}", md5::compute(add.path.as_bytes())),
                 url: url_signer(add.path),
-                partition_values: partition_values,
+                partition_values,
                 size: add.size,
                 stats: add.stats,
-                version: version,
-                timestamp: timestamp,
+                version,
+                timestamp,
             },
         }
     }
@@ -149,7 +149,7 @@ impl Service {
 	    return files;
 	};
         let mut records_so_far = 0;
-        return files
+        files
             .into_iter()
             .filter(|f| {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
@@ -157,13 +157,13 @@ impl Service {
 		    return true;
 		};
                 if records_so_far > limit_hint.into() {
-                    return false;
+                    false
                 } else {
                     records_so_far += stats.num_records;
-                    return true;
+                    true
                 }
             })
-            .collect::<Vec<Add>>();
+            .collect::<Vec<Add>>()
     }
 
     fn filter_with_sql_hints(
@@ -176,7 +176,7 @@ impl Service {
 	    return files;
 	};
         if let Some(predicates) = predicate_hints {
-            if predicates.len() > 0 {
+            if !predicates.is_empty() {
                 return files
                     .into_iter()
                     .filter(|f| {
@@ -185,7 +185,7 @@ impl Service {
                             let Ok(stats) = DeltalakeUtility::get_stats(f) else {
 				return true;
 			    };
-                            SQLUtility::filter(&p, &stats, &schema)
+                            SQLUtility::filter(p, &stats, &schema)
                         })
                     })
                     .collect::<Vec<Add>>();
@@ -274,7 +274,7 @@ impl Service {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    
 
     #[tokio::test]
     async fn test() {

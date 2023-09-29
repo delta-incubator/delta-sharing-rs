@@ -45,7 +45,7 @@ impl Entity {
     }
 
     pub async fn load(name: &Name, pg_pool: &PgPool) -> Result<Option<Self>> {
-        match Repository::select_by_name(&name, pg_pool).await? {
+        match Repository::select_by_name(name, pg_pool).await? {
             Some(row) => Ok(Self {
                 id: Id::new(row.id),
                 name: Name::new(row.name)?,
@@ -57,7 +57,7 @@ impl Entity {
     }
 
     pub async fn save(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
-        Repository::upsert(&self, pg_pool).await
+        Repository::upsert(self, pg_pool).await
     }
 }
 

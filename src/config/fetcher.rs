@@ -36,7 +36,7 @@ where
 {
     fn fetch(&self, config: &Config) -> bool {
         let value = match config.get::<String>(&self.key.to_string()) {
-            Ok(value) => value.to_string(),
+            Ok(value) => value,
             _ => String::new(),
         };
         if value.eq("true") || value.eq("false") {
@@ -59,7 +59,7 @@ where
 {
     fn fetch(&self, config: &Config) -> usize {
         let value = match config.get::<String>(&self.key.to_string()) {
-            Ok(value) => value.to_string(),
+            Ok(value) => value,
             _ => String::new(),
         };
         match value.parse::<usize>() {
@@ -78,7 +78,7 @@ where
 {
     fn fetch(&self, config: &Config) -> u32 {
         let value = match config.get::<String>(&self.key.to_string()) {
-            Ok(value) => value.to_string(),
+            Ok(value) => value,
             _ => String::new(),
         };
         match value.parse::<u32>() {
@@ -97,7 +97,7 @@ where
 {
     fn fetch(&self, config: &Config) -> i32 {
         let value = match config.get::<String>(&self.key.to_string()) {
-            Ok(value) => value.to_string(),
+            Ok(value) => value,
             _ => String::new(),
         };
         match value.parse::<i32>() {
@@ -116,7 +116,7 @@ where
 {
     fn fetch(&self, config: &Config) -> u64 {
         let value = match config.get::<String>(&self.key.to_string()) {
-            Ok(value) => value.to_string(),
+            Ok(value) => value,
             _ => String::new(),
         };
         match value.parse::<u64>() {
@@ -135,7 +135,7 @@ where
 {
     fn fetch(&self, config: &Config) -> i64 {
         let value = match config.get::<String>(&self.key.to_string()) {
-            Ok(value) => value.to_string(),
+            Ok(value) => value,
             _ => String::new(),
         };
         match value.parse::<i64>() {
@@ -154,7 +154,7 @@ where
 {
     fn fetch(&self, config: &Config) -> String {
         match config.get::<String>(&self.key.to_string()) {
-            Ok(value) => value.to_string(),
+            Ok(value) => value,
             _ => String::new(),
         }
     }

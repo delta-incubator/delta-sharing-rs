@@ -126,7 +126,7 @@ pub async fn get(
     tracing::info!("table's metadata was successfully returned");
     Ok((
         StatusCode::OK,
-        Json(AdminTablesGetResponse { table: table }),
+        Json(AdminTablesGetResponse { table }),
     )
         .into_response())
 }

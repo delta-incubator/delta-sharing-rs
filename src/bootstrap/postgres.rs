@@ -5,7 +5,7 @@ use sqlx::PgPool;
 
 pub async fn connect(url: &str) -> Result<PgPool> {
     tracing::info!("connecting to database");
-    let pool = PgPool::connect(&url)
+    let pool = PgPool::connect(url)
         .await
         .context("failed to acquire postgres connection")?;
     sqlx::migrate!("./migrations")
@@ -50,7 +50,7 @@ mod tests {
         .iter()
         .cloned()
         .collect();
-        let pool = connect(&url)
+        let pool = connect(url)
             .await
             .expect("connection should be established");
         let tables: HashSet<String> = HashSet::from_iter(
