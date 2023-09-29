@@ -71,7 +71,7 @@ pub async fn post(
     let predicate_hints = if let Some(predicate_hints) = payload.predicate_hints {
         let predicate_hints: Result<Vec<SQLPartitionFilter>, _> = predicate_hints
             .into_iter()
-            .map(|p| SQLUtility::parse(p.to_owned()))
+            .map(SQLUtility::parse)
             .collect();
         if let Err(_) = predicate_hints {
             tracing::warn!("requested predicate hints are malformed");
@@ -89,11 +89,7 @@ pub async fn post(
     } else {
         None
     };
-    let json_predicate_hints = if let Some(predicate) = json_predicate_hints {
-        Some(JSONPartitionFilter { predicate })
-    } else {
-        None
-    };
+    let json_predicate_hints = json_predicate_hints.map(|predicate| JSONPartitionFilter { predicate });
     let timestamp = if let Some(timestamp) = &payload.timestamp {
         let Ok(timestamp) = DeltalakeUtility::datetime_yyyy_mm_dd_hh_mm_ss(timestamp) else {
             tracing::error!("requested timestamp is malformed");
@@ -165,8 +161,8 @@ pub async fn post(
             if let Some(aws_credentials) = &state.aws_credentials {
                 let file: String = format!("{}/{}", path, name);
                 let Ok(signed) = SignedUrlUtility::sign_aws(
-		    &aws_credentials,
-		    &bucket,
+		    aws_credentials,
+		    bucket,
 		    &file,
 		    &config::fetch::<u64>("signed_url_ttl")
 		) else {
@@ -176,14 +172,14 @@ pub async fn post(
                 return signed.into();
             }
             tracing::warn!("AWS credentials were not set");
-            return url.clone();
+            url.clone()
         }
         Platform::GCP { url, bucket, path } => {
             if let Some(gcp_service_account) = &state.gcp_service_account {
                 let file: String = format!("{}/{}", path, name);
                 let Ok(signed) = SignedUrlUtility::sign_gcp(
-		    &gcp_service_account,
-		    &bucket,
+		    gcp_service_account,
+		    bucket,
 		    &file,
 		    &config::fetch::<u64>("signed_url_ttl")
 		) else {
@@ -193,11 +189,11 @@ pub async fn post(
                 return signed.into();
             }
             tracing::warn!("GCP service account was not set");
-            return url.clone();
+            url.clone()
         }
         Platform::NONE { url } => {
             tracing::warn!("no supported platforms");
-            return url.clone();
+            url.clone()
         }
     };
     let mut headers = HeaderMap::new();

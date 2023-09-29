@@ -88,7 +88,7 @@ async fn route(
             post(self::shares::schemas::tables::query::post),
         )
         .route_layer(middleware::from_fn(jwt::as_guest))
-        .layer(Extension(state.clone()));
+        .layer(Extension(state));
 
     let app = Router::new()
         .merge(swagger)

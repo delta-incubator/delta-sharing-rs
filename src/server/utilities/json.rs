@@ -120,42 +120,42 @@ impl Utility {
     ) -> bool {
         match predicate {
             Predicate::IsNull { .. } => {
-                return null_count > &0;
+                null_count > &0
             }
             Predicate::Equal { value, .. } => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
                 return true;
             };
-                return min <= value && value <= max;
+                min <= value && value <= max
             }
             Predicate::GreaterThan { value, .. } => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
                 return true;
             };
-                return value < max;
+                value < max
             }
             Predicate::LessThan { value, .. } => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
                 return true;
             };
-                return min < value;
+                min < value
             }
             Predicate::GreaterEqual { value, .. } => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
                 return true;
             };
-                return value <= max;
+                value <= max
             }
             Predicate::LessEqual { value, .. } => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
                 return true;
             };
-                return min <= value;
+                min <= value
             }
             _ => unreachable!(),
         }
@@ -168,7 +168,7 @@ impl Utility {
 		    return Err(anyhow!("JSON AND predicate must have child predicates"));
 		};
                 let children: Result<Vec<Predicate>, _> =
-                    children.into_iter().map(|c| Self::parse(c)).collect();
+                    children.into_iter().map(Self::parse).collect();
                 let Ok(children) = children else {
                     return Err(anyhow!("failed to parse JSON AND predicate while parsing child predicates"));
                 };
@@ -179,7 +179,7 @@ impl Utility {
 		    return Err(anyhow!("JSON OR predicate must have child predicates"));
 		};
                 let children: Result<Vec<Predicate>, _> =
-                    children.into_iter().map(|c| Self::parse(c)).collect();
+                    children.into_iter().map(Self::parse).collect();
                 let Ok(children) = children else {
                     return Err(anyhow!("failed to parse JSON OR predicate while parsing child predicates"));
                 };
@@ -422,10 +422,10 @@ impl Utility {
                 })
             }
             OpType::Column => {
-                return Err(anyhow!("invalid JSON predicate"));
+                Err(anyhow!("invalid JSON predicate"))
             }
             OpType::Literal => {
-                return Err(anyhow!("invalid JSON predicate"));
+                Err(anyhow!("invalid JSON predicate"))
             }
         }
     }
@@ -439,7 +439,7 @@ impl Utility {
                 return children.iter().any(|c| Self::filter(c, stats, schema));
             }
             Predicate::Not(child) => {
-                return !Self::filter(child, stats, schema);
+                !Self::filter(child, stats, schema)
             }
             Predicate::IsNull { column, value_type }
             | Predicate::Equal {
@@ -477,11 +477,11 @@ impl Utility {
                     (Some(serde_json::Value::Bool(min)), Some(serde_json::Value::Bool(max))) => {
                         match column_type {
                             ValueType::Boolean => {
-                                return Self::check(predicate, min, max, null_count);
+                                Self::check(predicate, min, max, null_count)
                             }
                             // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                             _ => {
-                                return true;
+                                true
                             }
                         }
                     }
@@ -491,14 +491,14 @@ impl Utility {
                     ) => {
                         match column_type {
                             ValueType::String => {
-                                return Self::check(predicate, min, max, null_count);
+                                Self::check(predicate, min, max, null_count)
                             }
                             ValueType::Date => {
-                                return Self::check(predicate, min, max, null_count);
+                                Self::check(predicate, min, max, null_count)
                             }
                             // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                             _ => {
-                                return true;
+                                true
                             }
                         }
                     }
@@ -516,7 +516,7 @@ impl Utility {
                                 let Some(ref max) = max.as_i64() else {
 				    return true;
 				};
-                                return Self::check(predicate, min, max, null_count);
+                                Self::check(predicate, min, max, null_count)
                             }
                             ValueType::Long => {
                                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
@@ -527,16 +527,16 @@ impl Utility {
                                 let Some(ref max) = max.as_i64() else {
 				    return true;
 				};
-                                return Self::check(predicate, min, max, null_count);
+                                Self::check(predicate, min, max, null_count)
                             }
                             // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                             _ => {
-                                return true;
+                                true
                             }
                         }
                     }
                     // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                    _ => return true,
+                    _ => true,
                 }
             }
         }
@@ -557,7 +557,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![PredicateJson {
                 op: OpType::Column,
                 children: None,
@@ -573,8 +573,8 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::IsNull {
-                column: column,
-                value_type: value_type
+                column,
+                value_type
             }
         );
         let op = OpType::Equal;
@@ -585,7 +585,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![
                 PredicateJson {
                     op: OpType::Column,
@@ -610,9 +610,9 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::Equal {
-                column: column,
-                value: value,
-                value_type: value_type
+                column,
+                value,
+                value_type
             }
         );
         let op = OpType::LessThan;
@@ -623,7 +623,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![
                 PredicateJson {
                     op: OpType::Column,
@@ -648,9 +648,9 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::LessThan {
-                column: column,
-                value: value,
-                value_type: value_type
+                column,
+                value,
+                value_type
             }
         );
         let op = OpType::LessThanOrEqual;
@@ -661,7 +661,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![
                 PredicateJson {
                     op: OpType::Column,
@@ -686,9 +686,9 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::LessEqual {
-                column: column,
-                value: value,
-                value_type: value_type
+                column,
+                value,
+                value_type
             }
         );
         let op = OpType::GreaterThan;
@@ -699,7 +699,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![
                 PredicateJson {
                     op: OpType::Column,
@@ -724,9 +724,9 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::GreaterThan {
-                column: column,
-                value: value,
-                value_type: value_type
+                column,
+                value,
+                value_type
             }
         );
         let op = OpType::GreaterThanOrEqual;
@@ -737,7 +737,7 @@ mod tests {
         let value_type =
             ValueType::from_str(value_type).expect("value type should be parsed properly");
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![
                 PredicateJson {
                     op: OpType::Column,
@@ -762,9 +762,9 @@ mod tests {
         assert_eq!(
             predicate,
             Predicate::GreaterEqual {
-                column: column,
-                value: value,
-                value_type: value_type
+                column,
+                value,
+                value_type
             }
         );
         let op_1 = OpType::IsNull;
@@ -807,7 +807,7 @@ mod tests {
         };
         let op = OpType::And;
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![json_1, json_2]),
             name: None,
             value: None,
@@ -867,7 +867,7 @@ mod tests {
         };
         let op = OpType::Or;
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![json_1, json_2]),
             name: None,
             value: None,
@@ -909,7 +909,7 @@ mod tests {
         };
         let op = OpType::Not;
         let json = PredicateJson {
-            op: op,
+            op,
             children: Some(vec![json_1]),
             name: None,
             value: None,

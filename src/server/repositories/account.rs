@@ -122,7 +122,7 @@ mod tests {
         let account = create(&mut tx)
             .await
             .expect("new account should be created");
-        let fetched = Repository::select_by_name(&account.name(), &mut tx)
+        let fetched = Repository::select_by_name(account.name(), &mut tx)
             .await
             .expect("created account should be found");
         if let Some(fetched) = fetched {

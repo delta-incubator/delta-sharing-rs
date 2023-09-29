@@ -23,7 +23,7 @@ impl Utility {
             tracing::error!("admin account data is malformed");
             return Err(anyhow!("failed to validate admin account"));
         };
-        match PostgresUtility::error(admin.save(&pool).await)? {
+        match PostgresUtility::error(admin.save(pool).await)? {
             Ok(_) => {
                 tracing::info!("admin account was successfully registered");
                 Ok(admin)

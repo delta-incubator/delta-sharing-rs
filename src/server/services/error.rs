@@ -59,7 +59,7 @@ impl std::fmt::Debug for Error {
     }
 }
 
-#[allow(clippy::to_string_in_display)]
+#[allow(clippy::recursive_format_impl)]
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

@@ -63,7 +63,7 @@ pub async fn get(
 	return Err(Error::NotFound);
     };
     tracing::info!("share's metadata was successfully returned");
-    Ok((StatusCode::OK, Json(SharesGetResponse { share: share })).into_response())
+    Ok((StatusCode::OK, Json(SharesGetResponse { share })).into_response())
 }
 
 #[derive(Debug, serde::Deserialize, IntoParams)]

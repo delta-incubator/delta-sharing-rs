@@ -59,14 +59,14 @@ impl Entity {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
             email: Email::new(email)?,
-            role: role,
+            role,
             value: Value::new(value)?,
             created_by: AccountId::try_from(created_by)?,
         })
     }
 
     pub async fn save(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
-        Repository::upsert(&self, pg_pool).await
+        Repository::upsert(self, pg_pool).await
     }
 }
 
