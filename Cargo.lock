@@ -1420,59 +1420,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "delta-sharing"
-version = "0.1.3"
-dependencies = [
- "anyhow",
- "argon2",
- "async-session",
- "async-std",
- "async-trait",
- "axum",
- "axum-extra",
- "chrono",
- "clap",
- "colored",
- "config",
- "cookie",
- "deltalake",
- "dotenv",
- "futures",
- "futures-util",
- "getset",
- "git-version",
- "glob",
- "jsonwebtoken",
- "md5",
- "once_cell",
- "rand",
- "rusoto_core 0.48.0",
- "rusoto_credential 0.48.0",
- "rusoto_s3",
- "serde",
- "serde_json",
- "serde_yaml",
- "serial_test",
- "shellexpand 3.1.0",
- "sqlx",
- "strum",
- "strum_macros",
- "tame-gcs",
- "testcontainers",
- "testutils",
- "tokio",
- "tower",
- "tracing",
- "tracing-log",
- "tracing-subscriber",
- "url",
- "utoipa",
- "utoipa-swagger-ui",
- "uuid",
- "validator",
-]
-
-[[package]]
 name = "deltalake"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5403,6 +5350,59 @@ name = "xmlparser"
 version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4d25c75bf9ea12c4040a97f829154768bbbce366287e2dc044af160cd79a13fd"
+
+[[package]]
+name = "ya-delta-sharing"
+version = "0.1.3"
+dependencies = [
+ "anyhow",
+ "argon2",
+ "async-session",
+ "async-std",
+ "async-trait",
+ "axum",
+ "axum-extra",
+ "chrono",
+ "clap",
+ "colored",
+ "config",
+ "cookie",
+ "deltalake",
+ "dotenv",
+ "futures",
+ "futures-util",
+ "getset",
+ "git-version",
+ "glob",
+ "jsonwebtoken",
+ "md5",
+ "once_cell",
+ "rand",
+ "rusoto_core 0.48.0",
+ "rusoto_credential 0.48.0",
+ "rusoto_s3",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "serial_test",
+ "shellexpand 3.1.0",
+ "sqlx",
+ "strum",
+ "strum_macros",
+ "tame-gcs",
+ "testcontainers",
+ "testutils",
+ "tokio",
+ "tower",
+ "tracing",
+ "tracing-log",
+ "tracing-subscriber",
+ "url",
+ "utoipa",
+ "utoipa-swagger-ui",
+ "uuid",
+ "validator",
+]
 
 [[package]]
 name = "yaml-rust"
