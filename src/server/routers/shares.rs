@@ -33,9 +33,9 @@ pub struct SharesGetResponse {
 #[utoipa::path(
     get,
     path = "/shares/{share}",
-    params(
-        SharesGetParams,
-    ),
+    operation_id = "GetShare",
+    tag = "official",
+    params(SharesGetParams),
     responses(
         (status = 200, description = "The share's metadata was successfully returned.", body = SharesGetResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -52,7 +52,7 @@ pub async fn get(
 ) -> Result<Response, Error> {
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
     let Ok(share) = ShareService::query_by_name(&share, &state.pg_pool).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting share");
@@ -60,7 +60,7 @@ pub async fn get(
     };
     let Some(share) = share else {
         tracing::error!("requested share does not exist");
-	return Err(Error::NotFound);
+	    return Err(Error::NotFound);
     };
     tracing::info!("share's metadata was successfully returned");
     Ok((StatusCode::OK, Json(SharesGetResponse { share })).into_response())
@@ -84,9 +84,9 @@ pub struct SharesListResponse {
 #[utoipa::path(
     get,
     path = "/shares",
-    params(
-        SharesListQuery,
-    ),
+    tag = "official",
+    operation_id = "ListShares",
+    params(SharesListQuery),
     responses(
         (status = 200, description = "The shares were successfully returned.", body = SharesListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -103,8 +103,8 @@ pub async fn list(
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
             tracing::error!("requested limit is malformed");
-	    return Err(Error::ValidationFailed);
-	};
+	        return Err(Error::ValidationFailed);
+	    };
         limit
     } else {
         DEFAULT_PAGE_RESULTS

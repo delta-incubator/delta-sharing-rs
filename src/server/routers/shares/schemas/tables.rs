@@ -47,7 +47,10 @@ pub struct SharesSchemasTablesListResponse {
 #[utoipa::path(
     get,
     path = "/shares/{share}/schemas/{schema}/tables",
+    tag = "official",
+    operation_id = "ListTables",
     params(
+        SharesSchemasTablesListParams,
         SharesSchemasTablesListQuery,
     ),
     responses(
@@ -67,7 +70,7 @@ pub async fn list(
 ) -> Result<Response, Error> {
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
     let Ok(share) = ShareEntity::load(&share, &state.pg_pool).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting share");
@@ -75,17 +78,17 @@ pub async fn list(
     };
     let Some(share) = share else {
         tracing::error!("requested share does not exist");
-	return Err(Error::NotFound);
+	    return Err(Error::NotFound);
     };
     let Ok(schema) = SchemaName::new(params.schema) else {
         tracing::error!("requested schema data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
             tracing::error!("requested limit is malformed");
-	    return Err(Error::ValidationFailed);
-	};
+	        return Err(Error::ValidationFailed);
+	    };
         limit
     } else {
         DEFAULT_PAGE_RESULTS
@@ -103,7 +106,7 @@ pub async fn list(
         &state.pg_pool,
     ).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting tables");
-	return Err(anyhow!("error occured while selecting tables(s)").into());
+	    return Err(anyhow!("error occured while selecting tables(s)").into());
     };
     if tables.len() == limit + 1 {
         let next = &tables[limit];

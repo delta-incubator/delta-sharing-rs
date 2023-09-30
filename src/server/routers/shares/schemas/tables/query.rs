@@ -52,6 +52,9 @@ pub struct SharesSchemasTablesQueryPostParams {
 #[utoipa::path(
     post,
     path = "/shares/{share}/schemas/{schema}/tables/{table}/query",
+    tag = "official",
+    operation_id = "QueryTable",
+    params(SharesSchemasTablesQueryPostParams),
     request_body = SharesSchemasTablesQueryPostRequest,
     responses(
         (status = 200, description = "The tables were successfully returned.", body = String),
@@ -69,10 +72,8 @@ pub async fn post(
     Json(payload): Json<SharesSchemasTablesQueryPostRequest>,
 ) -> Result<Response, Error> {
     let predicate_hints = if let Some(predicate_hints) = payload.predicate_hints {
-        let predicate_hints: Result<Vec<SQLPartitionFilter>, _> = predicate_hints
-            .into_iter()
-            .map(SQLUtility::parse)
-            .collect();
+        let predicate_hints: Result<Vec<SQLPartitionFilter>, _> =
+            predicate_hints.into_iter().map(SQLUtility::parse).collect();
         if let Err(_) = predicate_hints {
             tracing::warn!("requested predicate hints are malformed");
         }
@@ -89,27 +90,28 @@ pub async fn post(
     } else {
         None
     };
-    let json_predicate_hints = json_predicate_hints.map(|predicate| JSONPartitionFilter { predicate });
+    let json_predicate_hints =
+        json_predicate_hints.map(|predicate| JSONPartitionFilter { predicate });
     let timestamp = if let Some(timestamp) = &payload.timestamp {
         let Ok(timestamp) = DeltalakeUtility::datetime_yyyy_mm_dd_hh_mm_ss(timestamp) else {
             tracing::error!("requested timestamp is malformed");
-	    return Err(Error::ValidationFailed);
-	};
+	        return Err(Error::ValidationFailed);
+	    };
         Some(timestamp)
     } else {
         None
     };
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
     let Ok(schema) = SchemaName::new(params.schema) else {
         tracing::error!("requested schema data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
     let Ok(table) = TableName::new(params.table) else {
         tracing::error!("requested table data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
     let Ok(table) = TableService::query_by_fqn(
         &share,
@@ -118,25 +120,25 @@ pub async fn post(
         &state.pg_pool,
     ).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting table");
-	return Err(anyhow!("error occured while selecting table(s)").into());
+	    return Err(anyhow!("error occured while selecting table(s)").into());
     };
     let Some(table) = table else {
         tracing::error!("requested table does not exist");
-	return Err(Error::NotFound);
+	    return Err(Error::NotFound);
     };
     let Ok(platform) = Platform::from_str(&table.location) else {
         tracing::error!("requested cloud platform is not supported");
-	return Err(anyhow!("error occured while identifying cloud platform").into());
+	    return Err(anyhow!("error occured while identifying cloud platform").into());
     };
     let Ok(mut table) = DeltalakeUtility::open_table(&table.location).await else {
         tracing::error!("request is not handled correctly due to a server error while loading delta table");
-	return Err(anyhow!("error occured while selecting table(s)").into());
+	    return Err(anyhow!("error occured while selecting table(s)").into());
     };
     let mut is_time_traveled = false;
     // NOTE: version precedes over timestamp
     if let Some(timestamp) = timestamp {
         let Ok(_) = table.load_with_datetime(timestamp).await else {
-                tracing::error!("request is not handled correctly due to a server error while time-traveling delta table");
+            tracing::error!("request is not handled correctly due to a server error while time-traveling delta table");
     	    return Err(anyhow!("error occured while selecting table(s)").into());
     	};
         is_time_traveled = true;
@@ -144,7 +146,7 @@ pub async fn post(
     // NOTE: version precedes over timestamp
     if let Some(version) = &payload.version {
         let Ok(_) = table.load_version(*version).await else {
-                tracing::error!("request is not handled correctly due to a server error while time-traveling delta table");
+            tracing::error!("request is not handled correctly due to a server error while time-traveling delta table");
     	    return Err(anyhow!("error occured while selecting table(s)").into());
     	};
         is_time_traveled = true;
@@ -153,7 +155,7 @@ pub async fn post(
         let Ok(metadata) = table.get_metadata() else {
             tracing::error!("request is not handled correctly due to a server error while loading delta table metadata");
             return Err(anyhow!("error occured while selecting table(s)").into());
-	};
+	    };
         metadata.to_owned()
     };
     let url_signer = |name: String| match &platform {
@@ -161,14 +163,14 @@ pub async fn post(
             if let Some(aws_credentials) = &state.aws_credentials {
                 let file: String = format!("{}/{}", path, name);
                 let Ok(signed) = SignedUrlUtility::sign_aws(
-		    aws_credentials,
-		    bucket,
-		    &file,
-		    &config::fetch::<u64>("signed_url_ttl")
-		) else {
-		    tracing::error!("failed to sign up AWS S3 url");
-		    return url.clone();
-		};
+		            aws_credentials,
+		            bucket,
+		            &file,
+		            &config::fetch::<u64>("signed_url_ttl")
+		        ) else {
+		            tracing::error!("failed to sign up AWS S3 url");
+		            return url.clone();
+		        };
                 return signed.into();
             }
             tracing::warn!("AWS credentials were not set");
@@ -178,14 +180,14 @@ pub async fn post(
             if let Some(gcp_service_account) = &state.gcp_service_account {
                 let file: String = format!("{}/{}", path, name);
                 let Ok(signed) = SignedUrlUtility::sign_gcp(
-		    gcp_service_account,
-		    bucket,
-		    &file,
-		    &config::fetch::<u64>("signed_url_ttl")
-		) else {
-		    tracing::error!("failed to sign up GCP GCS url");
-		    return url.clone();
-		};
+		            gcp_service_account,
+		            bucket,
+		            &file,
+		            &config::fetch::<u64>("signed_url_ttl")
+		        ) else {
+		            tracing::error!("failed to sign up GCP GCS url");
+		            return url.clone();
+		        };
                 return signed.into();
             }
             tracing::warn!("GCP service account was not set");
