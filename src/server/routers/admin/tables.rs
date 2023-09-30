@@ -36,6 +36,8 @@ pub struct AdminTablesPostResponse {
 #[utoipa::path(
     post,
     path = "/admin/tables",
+    tag = "admin",
+    operation_id = "CreateTable",
     request_body = AdminTablesPostRequest,
     responses(
         (status = 201, description = "The table was successfully registered.", body = AdminTablesPostResponse),
@@ -94,9 +96,9 @@ pub struct AdminTablesGetResponse {
 #[utoipa::path(
     get,
     path = "/admin/tables/{table}",
-    params(
-        AdminTablesGetParams,
-    ),
+    tag = "admin",
+    operation_id = "GetTable",
+    params(AdminTablesGetParams),
     responses(
         (status = 200, description = "The table's metadata was successfully returned.", body = AdminTablesGetResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -124,11 +126,7 @@ pub async fn get(
 	return Err(Error::NotFound);
     };
     tracing::info!("table's metadata was successfully returned");
-    Ok((
-        StatusCode::OK,
-        Json(AdminTablesGetResponse { table }),
-    )
-        .into_response())
+    Ok((StatusCode::OK, Json(AdminTablesGetResponse { table })).into_response())
 }
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
@@ -149,6 +147,8 @@ pub struct AdminTablesListResponse {
 #[utoipa::path(
     get,
     path = "/admin/tables",
+    tag = "admin",
+    operation_id = "ListTables",
     params(
         AdminTablesListQuery,
     ),
@@ -168,8 +168,8 @@ pub async fn list(
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
             tracing::error!("requested limit is malformed");
-	    return Err(Error::ValidationFailed);
-	};
+	        return Err(Error::ValidationFailed);
+	    };
         limit
     } else {
         DEFAULT_PAGE_RESULTS

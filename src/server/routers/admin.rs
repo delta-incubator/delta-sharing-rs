@@ -43,6 +43,7 @@ pub struct AdminLoginResponse {
 #[utoipa::path(
     post,
     path = "/admin/login",
+    tag = "admin",
     request_body = AdminLoginRequest,
     responses(
         (status = 200, description = "The profile was successfully returned.", body = AdminLoginResponse),
@@ -83,11 +84,11 @@ pub async fn login(
         return Err(anyhow!("failed to create profile").into());
     };
     let Ok(token) = TokenEntity::new(
-	None,
-	account.email().to_string(),
+	    None,
+	    account.email().to_string(),
         Role::Admin,
-	profile.bearer_token.clone(),
-	account.id().to_string(),
+	    profile.bearer_token.clone(),
+	    account.id().to_string(),
     ) else {
         tracing::error!("request is not handled correctly due to a server error while creating token");
         return Err(anyhow!("failed to create token").into());
@@ -107,11 +108,7 @@ pub async fn login(
         }
     }
     tracing::info!("profile was successfully returned");
-    Ok((
-        StatusCode::OK,
-        Json(AdminLoginResponse { profile }),
-    )
-        .into_response())
+    Ok((StatusCode::OK, Json(AdminLoginResponse { profile })).into_response())
 }
 
 #[derive(serde::Serialize, ToSchema)]
@@ -123,6 +120,7 @@ pub struct AdminProfileResponse {
 #[utoipa::path(
     get,
     path = "/admin/profile",
+    tag = "admin",
     responses(
         (status = 200, description = "The profile were successfully returned.", body = AdminProfileResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -144,9 +142,5 @@ pub async fn profile(Extension(account): Extension<AccountEntity>) -> Result<Res
         return Err(anyhow!("failed to create profile").into());
     };
     tracing::info!("profile was successfully returned");
-    Ok((
-        StatusCode::OK,
-        Json(AdminProfileResponse { profile }),
-    )
-        .into_response())
+    Ok((StatusCode::OK, Json(AdminProfileResponse { profile })).into_response())
 }

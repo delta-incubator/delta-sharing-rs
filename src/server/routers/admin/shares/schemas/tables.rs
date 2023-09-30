@@ -40,10 +40,10 @@ pub struct AdminSharesSchemasTablesPostResponse {
 
 #[utoipa::path(
     post,
-    path = "admin/shares/{share}/schemas/{schema}/tables",
-    params(
-        AdminSharesSchemasTablesPostParams,
-    ),
+    path = "/admin/shares/{share}/schemas/{schema}/tables",
+    tag = "admin",
+    operation_id = "CreateTable",
+    params(AdminSharesSchemasTablesPostParams),
     request_body = AdminSharesSchemasTablesPostRequest,
     responses(
         (status = 201, description = "The schema was successfully registered.", body = AdminSharesSchemasTablesPostResponse),
@@ -62,7 +62,7 @@ pub async fn post(
 ) -> Result<Response, Error> {
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
     let Ok(share) = ShareEntity::load(&share, &state.pg_pool).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting share");
@@ -70,11 +70,11 @@ pub async fn post(
     };
     let Some(share) = share else {
         tracing::error!("share was not found");
-	return Err(Error::BadRequest);
+	    return Err(Error::BadRequest);
     };
     let Ok(table) = TableName::new(payload.table) else {
         tracing::error!("requested table data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
     let Ok(table) = TableEntity::load(&table, &state.pg_pool).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting table");
@@ -82,7 +82,7 @@ pub async fn post(
     };
     let Some(table) = table else {
         tracing::error!("table was not found");
-	return Err(Error::BadRequest);
+	    return Err(Error::BadRequest);
     };
     let Ok(schema) = SchemaEntity::new(
         payload.id,
@@ -92,7 +92,7 @@ pub async fn post(
         account.id().to_string(),
     ) else {
         tracing::error!("requested schema data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
     match PostgresUtility::error(schema.save(&state.pg_pool).await)? {
         Ok(_) => {

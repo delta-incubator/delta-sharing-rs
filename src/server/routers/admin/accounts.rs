@@ -38,6 +38,8 @@ pub struct AdminAccountsPostResponse {
 #[utoipa::path(
     post,
     path = "/admin/accounts",
+    tag = "admin",
+    operation_id = "CreateAccount",
     request_body = AdminAccountsPostRequest,
     responses(
         (status = 201, description = "The account was successfully registered.", body = AdminAccountsPostResponse),
@@ -53,12 +55,12 @@ pub async fn post(
     Json(payload): Json<AdminAccountsPostRequest>,
 ) -> Result<Response, Error> {
     let Ok(account) = AccountEntity::new(
-	payload.id,
-	payload.name,
-	payload.email,
-	payload.password,
-	payload.namespace,
-	payload.ttl
+	    payload.id,
+	    payload.name,
+	    payload.email,
+	    payload.password,
+	    payload.namespace,
+	    payload.ttl
     ) else {
         tracing::error!("requested account data is malformed");
         return Err(Error::ValidationFailed);
@@ -102,9 +104,9 @@ pub struct AdminAccountsGetResponse {
 #[utoipa::path(
     get,
     path = "/admin/accounts/{account}",
-    params(
-        AdminAccountsGetParams,
-    ),
+    tag = "admin",
+    operation_id = "GetAccount",
+    params(AdminAccountsGetParams),
     responses(
         (status = 200, description = "The account's metadata was successfully returned.", body = AdminAccountsGetResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -121,7 +123,7 @@ pub async fn get(
 ) -> Result<Response, Error> {
     let Ok(account) = AccountName::new(params.account) else {
         tracing::error!("requested account data is malformed");
-	return Err(Error::ValidationFailed);
+	    return Err(Error::ValidationFailed);
     };
     let Ok(account) = AccountService::query_by_name(&account, &state.pg_pool).await else {
         tracing::error!("request is not handled correctly due to a server error while selecting account");
@@ -129,7 +131,7 @@ pub async fn get(
     };
     let Some(account) = account else {
         tracing::error!("requested account does not exist");
-	return Err(Error::NotFound);
+	    return Err(Error::NotFound);
     };
     tracing::info!("account's metadata was successfully returned");
     Ok((StatusCode::OK, Json(AdminAccountsGetResponse { account })).into_response())
@@ -153,9 +155,9 @@ pub struct AdminAccountsListResponse {
 #[utoipa::path(
     get,
     path = "/admin/accounts",
-    params(
-        AdminAccountsListQuery,
-    ),
+    tag = "admin",
+    operation_id = "ListAccounts",
+    params(AdminAccountsListQuery),
     responses(
         (status = 200, description = "The accounts were successfully returned.", body = AdminAccountsListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -172,8 +174,8 @@ pub async fn list(
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
             tracing::error!("requested limit is malformed");
-	    return Err(Error::ValidationFailed);
-	};
+	        return Err(Error::ValidationFailed);
+	    };
         limit
     } else {
         DEFAULT_PAGE_RESULTS
