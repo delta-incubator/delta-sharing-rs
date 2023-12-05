@@ -1,10 +1,12 @@
-use crate::server::utilities::deltalake::Stats;
-use crate::server::utilities::deltalake::ValueType;
+use std::collections::VecDeque;
+
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
 use deltalake::schema::Schema;
-use std::collections::VecDeque;
+
+use crate::server::utilities::deltalake::Stats;
+use crate::server::utilities::deltalake::ValueType;
 
 static KEYWORDS: &[char] = &[' ', '=', '\'', '\"', '>', '<'];
 

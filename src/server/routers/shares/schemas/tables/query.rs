@@ -1,3 +1,18 @@
+use anyhow::anyhow;
+use axum::extract::Extension;
+use axum::extract::Json;
+use axum::extract::Path;
+use axum::http::header;
+use axum::http::header::HeaderMap;
+use axum::http::header::HeaderValue;
+use axum::http::StatusCode;
+use axum::response::IntoResponse;
+use axum::response::Response;
+use axum_extra::json_lines::JsonLines;
+use std::str::FromStr;
+use utoipa::IntoParams;
+use utoipa::ToSchema;
+
 use crate::config;
 use crate::server::entities::schema::Name as SchemaName;
 use crate::server::entities::share::Name as ShareName;
@@ -14,20 +29,6 @@ use crate::server::utilities::signed_url::Platform;
 use crate::server::utilities::signed_url::Utility as SignedUrlUtility;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
-use anyhow::anyhow;
-use axum::extract::Extension;
-use axum::extract::Json;
-use axum::extract::Path;
-use axum::http::header;
-use axum::http::header::HeaderMap;
-use axum::http::header::HeaderValue;
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::response::Response;
-use axum_extra::json_lines::JsonLines;
-use std::str::FromStr;
-use utoipa::IntoParams;
-use utoipa::ToSchema;
 
 const HEADER_NAME: &str = "Delta-Table-Version";
 
@@ -52,7 +53,10 @@ pub struct SharesSchemasTablesQueryPostParams {
 #[utoipa::path(
     post,
     path = "/shares/{share}/schemas/{schema}/tables/{table}/query",
+    operation_id = "QueryTable",
+    tag = "official",
     request_body = SharesSchemasTablesQueryPostRequest,
+    params(SharesSchemasTablesQueryPostParams),
     responses(
         (status = 200, description = "The tables were successfully returned.", body = String),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),

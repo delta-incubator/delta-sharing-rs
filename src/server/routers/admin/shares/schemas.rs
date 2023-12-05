@@ -40,10 +40,10 @@ pub struct AdminSharesSchemasPostResponse {
 
 #[utoipa::path(
     post,
-    path = "admin/shares/{share}/schemas",
-    params(
-        AdminSharesSchemasPostParams,
-    ),
+    path = "/admin/shares/{share}/schemas",
+    operation_id = "CreateSchema",
+    tag = "admin",
+    params(AdminSharesSchemasPostParams),
     request_body = AdminSharesSchemasPostRequest,
     responses(
         (status = 201, description = "The schema was successfully registered.", body = AdminSharesSchemasPostResponse),
@@ -72,7 +72,7 @@ pub async fn post(
     };
     let Some(share) = maybe_share else {
         tracing::error!("share was not found");
-        return Err(Error::BadRequest);
+        return Err(Error::NotFound);
     };
     let Ok(schema_name) = SchemaName::new(payload.name) else {
         tracing::error!("schema name is malformed");

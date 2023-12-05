@@ -1,10 +1,11 @@
+use anyhow::anyhow;
+use anyhow::Result;
+use sqlx::PgPool;
+
 use crate::config;
 use crate::server::entities::account::Entity as Account;
 pub use crate::server::middlewares::jwt::Keys as JwtKeys;
 use crate::server::utilities::postgres::Utility as PostgresUtility;
-use anyhow::anyhow;
-use anyhow::Result;
-use sqlx::PgPool;
 
 pub struct Utility;
 

@@ -1,4 +1,8 @@
-use crate::config;
+use std::cmp::max;
+use std::cmp::min;
+use std::collections::hash_map::HashMap;
+use std::fmt;
+
 use anyhow::anyhow;
 use anyhow::Context;
 use anyhow::Result;
@@ -8,11 +12,9 @@ use chrono::Utc;
 use deltalake::delta::open_table_with_storage_options;
 use deltalake::delta::DeltaTable;
 use deltalake::schema::SchemaDataType;
-use std::cmp::max;
-use std::cmp::min;
-use std::collections::hash_map::HashMap;
-use std::fmt;
 use utoipa::ToSchema;
+
+use crate::config;
 
 pub type File = deltalake::action::Add;
 

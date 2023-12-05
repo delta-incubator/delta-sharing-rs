@@ -1,12 +1,14 @@
 pub(crate) mod aws;
 pub(crate) mod gcp;
+
 mod postgres;
-use crate::config;
 use anyhow::Context;
 use anyhow::Result;
 use rusoto_credential::ProfileProvider;
 use sqlx::PgPool;
 use tame_gcs::signing::ServiceAccount;
+
+use crate::config;
 
 pub(crate) async fn new_pg_pool() -> Result<PgPool> {
     postgres::connect(&config::fetch::<String>("db_url")).await

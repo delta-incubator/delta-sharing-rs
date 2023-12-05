@@ -1,9 +1,10 @@
-use crate::server::utilities::deltalake::Stats;
-use crate::server::utilities::deltalake::ValueType;
 use anyhow::anyhow;
 use anyhow::Result;
 use deltalake::schema::Schema;
 use utoipa::ToSchema;
+
+use crate::server::utilities::deltalake::Stats;
+use crate::server::utilities::deltalake::ValueType;
 
 #[derive(
     Debug, Copy, Clone, PartialEq, Eq, serde::Deserialize, strum_macros::EnumString, ToSchema,

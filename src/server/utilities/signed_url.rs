@@ -1,3 +1,6 @@
+use std::str::FromStr;
+use std::time::Duration;
+
 use anyhow::Context;
 use anyhow::Result;
 use rusoto_core::Region;
@@ -5,8 +8,6 @@ use rusoto_credential::AwsCredentials as AWS;
 use rusoto_s3::util::PreSignedRequest;
 use rusoto_s3::util::PreSignedRequestOption;
 use rusoto_s3::GetObjectRequest;
-use std::str::FromStr;
-use std::time::Duration;
 use tame_gcs::signed_url::SignedUrlOptional;
 use tame_gcs::signed_url::UrlSigner;
 use tame_gcs::signing::ServiceAccount as GCP;

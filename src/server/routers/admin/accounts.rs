@@ -1,10 +1,3 @@
-use crate::server::entities::account::Entity as AccountEntity;
-use crate::server::entities::account::Name as AccountName;
-use crate::server::routers::SharedState;
-use crate::server::services::account::Account;
-use crate::server::services::account::Service as AccountService;
-use crate::server::services::error::Error;
-use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -15,6 +8,14 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
+
+use crate::server::entities::account::Entity as AccountEntity;
+use crate::server::entities::account::Name as AccountName;
+use crate::server::routers::SharedState;
+use crate::server::services::account::Account;
+use crate::server::services::account::Service as AccountService;
+use crate::server::services::error::Error;
+use crate::server::utilities::postgres::Utility as PostgresUtility;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
 
@@ -38,6 +39,8 @@ pub struct AdminAccountsPostResponse {
 #[utoipa::path(
     post,
     path = "/admin/accounts",
+    operation_id = "CreateAccount",
+    tag = "admin",
     request_body = AdminAccountsPostRequest,
     responses(
         (status = 201, description = "The account was successfully registered.", body = AdminAccountsPostResponse),
@@ -102,9 +105,9 @@ pub struct AdminAccountsGetResponse {
 #[utoipa::path(
     get,
     path = "/admin/accounts/{account}",
-    params(
-        AdminAccountsGetParams,
-    ),
+    operation_id = "GetAccount",
+    tag = "admin",
+    params(AdminAccountsGetParams),
     responses(
         (status = 200, description = "The account's metadata was successfully returned.", body = AdminAccountsGetResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -155,9 +158,9 @@ pub struct AdminAccountsListResponse {
 #[utoipa::path(
     get,
     path = "/admin/accounts",
-    params(
-        AdminAccountsListQuery,
-    ),
+    operation_id = "ListAccounts",
+    tag = "admin",
+    params(AdminAccountsListQuery),
     responses(
         (status = 200, description = "The accounts were successfully returned.", body = AdminAccountsListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),

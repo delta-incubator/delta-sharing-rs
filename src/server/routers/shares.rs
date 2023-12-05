@@ -1,10 +1,3 @@
-pub mod all_tables;
-pub mod schemas;
-use crate::server::entities::share::Name as ShareName;
-use crate::server::routers::SharedState;
-use crate::server::services::error::Error;
-use crate::server::services::share::Service as ShareService;
-use crate::server::services::share::Share;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -15,6 +8,15 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
+
+use crate::server::entities::share::Name as ShareName;
+use crate::server::routers::SharedState;
+use crate::server::services::error::Error;
+use crate::server::services::share::Service as ShareService;
+use crate::server::services::share::Share;
+
+pub mod all_tables;
+pub mod schemas;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
 
@@ -33,9 +35,9 @@ pub struct SharesGetResponse {
 #[utoipa::path(
     get,
     path = "/shares/{share}",
-    params(
-        SharesGetParams,
-    ),
+    tag = "official",
+    operation_id = "GetShare",
+    params(SharesGetParams),
     responses(
         (status = 200, description = "The share's metadata was successfully returned.", body = SharesGetResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -86,9 +88,9 @@ pub struct SharesListResponse {
 #[utoipa::path(
     get,
     path = "/shares",
-    params(
-        SharesListQuery,
-    ),
+    operation_id = "ListShares",
+    tag = "official",
+    params(SharesListQuery),
     responses(
         (status = 200, description = "The shares were successfully returned.", body = SharesListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),

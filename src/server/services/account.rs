@@ -1,11 +1,12 @@
-use crate::server::entities::account::Entity as AccountEntity;
-use crate::server::entities::account::Name as AccountName;
-use crate::server::utilities::postgres::PgAcquire;
 use anyhow::Context;
 use anyhow::Result;
 use sqlx::query_builder::QueryBuilder;
 use sqlx::Execute;
 use utoipa::ToSchema;
+
+use crate::server::entities::account::Entity as AccountEntity;
+use crate::server::entities::account::Name as AccountName;
+use crate::server::utilities::postgres::PgAcquire;
 
 #[derive(Debug, Clone, serde::Serialize, sqlx::FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]

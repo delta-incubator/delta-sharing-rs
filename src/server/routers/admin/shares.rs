@@ -1,10 +1,3 @@
-pub mod schemas;
-use crate::server::entities::account::Entity as AccountEntity;
-use crate::server::entities::share::Entity as ShareEntity;
-use crate::server::routers::SharedState;
-use crate::server::services::error::Error;
-use crate::server::services::share::Share;
-use crate::server::utilities::postgres::Utility as PostgresUtility;
 use anyhow::anyhow;
 use axum::extract::Extension;
 use axum::extract::Json;
@@ -12,6 +5,15 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use utoipa::ToSchema;
+
+use crate::server::entities::account::Entity as AccountEntity;
+use crate::server::entities::share::Entity as ShareEntity;
+use crate::server::routers::SharedState;
+use crate::server::services::error::Error;
+use crate::server::services::share::Share;
+use crate::server::utilities::postgres::Utility as PostgresUtility;
+
+pub mod schemas;
 
 #[derive(Debug, serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -28,6 +30,8 @@ pub struct AdminSharesPostResponse {
 #[utoipa::path(
     post,
     path = "/admin/shares",
+    operation_id = "CreateShare",
+    tag = "admin",
     request_body = AdminSharesPostRequest,
     responses(
         (status = 201, description = "The share was successfully registered.", body = AdminSharesPostResponse),

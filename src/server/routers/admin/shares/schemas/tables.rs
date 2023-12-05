@@ -42,10 +42,10 @@ pub struct AdminSharesSchemasTablesPostResponse {
 
 #[utoipa::path(
     post,
-    path = "admin/shares/{share}/schemas/{schema}/tables",
-    params(
-        AdminSharesSchemasTablesPostParams,
-    ),
+    path = "/admin/shares/{share}/schemas/{schema}/tables",
+    operation_id = "CreateTable",
+    tag = "admin",
+    params(AdminSharesSchemasTablesPostParams),
     request_body = AdminSharesSchemasTablesPostRequest,
     responses(
         (status = 201, description = "The schema was successfully registered.", body = AdminSharesSchemasTablesPostResponse),
@@ -74,7 +74,7 @@ pub async fn post(
     };
     let Some(share) = maybe_share else {
         tracing::error!("share was not found");
-        return Err(Error::BadRequest);
+        return Err(Error::NotFound);
     };
     let Ok(schema_name) = SchemaName::new(params.schema) else {
         tracing::error!("requested share data is malformed");
@@ -89,7 +89,7 @@ pub async fn post(
     };
     let Some(schema) = maybe_schema else {
         tracing::error!("share was not found");
-        return Err(Error::BadRequest);
+        return Err(Error::NotFound);
     };
     let Ok(table_name) = TableName::new(payload.name) else {
         tracing::error!("requested table data is malformed");

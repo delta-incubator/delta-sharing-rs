@@ -5,13 +5,15 @@ mod repositories;
 mod routers;
 mod services;
 pub(crate) mod utilities;
-use crate::bootstrap;
+
 use anyhow::Context;
 use anyhow::Result;
 use rusoto_credential::AwsCredentials;
 use rusoto_credential::ProvideAwsCredentials;
 use sqlx::PgPool;
 use tame_gcs::signing::ServiceAccount;
+
+use crate::bootstrap;
 
 pub struct Server {
     pg_pool: PgPool,
