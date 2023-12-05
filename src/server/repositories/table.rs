@@ -12,6 +12,7 @@ use uuid::Uuid;
 pub struct Row {
     pub id: Uuid,
     pub name: String,
+    pub schema_id: Uuid,
     pub location: String,
     pub created_by: Uuid,
     pub created_at: DateTime<Utc>,
@@ -30,14 +31,16 @@ impl Repository {
             r#"INSERT INTO "table" (
                    id,
                    name,
+                   schema_id,
                    location,
                    created_by
-               ) VALUES ($1, $2, $3, $4)
+               ) VALUES ($1, $2, $3, $4, $5)
                ON CONFLICT(id)
                DO UPDATE
                SET name = $2,
-                   location = $3,
-                   created_by = $4"#,
+                   schema_id = $3,
+                   location = $4,
+                   created_by = $5"#,
         )
         .bind(table.id())
         .bind(table.name())
@@ -60,6 +63,7 @@ impl Repository {
             r#"SELECT
                    id,
                    name,
+                   schema_id,
                    location,
                    created_by,
                    created_at,
@@ -80,14 +84,21 @@ impl Repository {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::server::entities::account::Entity as Account;
-    use crate::server::entities::account::Id as AccountId;
-    use crate::server::repositories::account::Repository as AccountRepository;
     use anyhow::Context;
     use anyhow::Result;
     use sqlx::PgConnection;
     use sqlx::PgPool;
+
+    use super::*;
+    use crate::server::entities::account::Entity as Account;
+    use crate::server::entities::account::Id as AccountId;
+    use crate::server::entities::schema::Entity as Schema;
+    use crate::server::entities::schema::Id as SchemaId;
+    use crate::server::entities::share::Entity as Share;
+    use crate::server::entities::share::Id as ShareId;
+    use crate::server::repositories::account::Repository as AccountRepository;
+    use crate::server::repositories::schema::Repository as SchemaRepository;
+    use crate::server::repositories::share::Repository as ShareRepository;
 
     async fn create_account(tx: &mut PgConnection) -> Result<Account> {
         let account = Account::new(
@@ -105,10 +116,46 @@ mod tests {
         Ok(account)
     }
 
-    async fn create_table(account_id: &AccountId, tx: &mut PgConnection) -> Result<Entity> {
+    async fn create_share(account_id: &AccountId, tx: &mut PgConnection) -> Result<Share> {
+        let share = Share::new(
+            testutils::rand::uuid(),
+            testutils::rand::string(10),
+            account_id.to_uuid().to_string(),
+        )
+        .context("failed to validate share")?;
+        ShareRepository::upsert(&share, tx)
+            .await
+            .context("failed to create share")?;
+        Ok(share)
+    }
+
+    async fn create_schema(
+        account_id: &AccountId,
+        share_id: &ShareId,
+        tx: &mut PgConnection,
+    ) -> Result<Schema> {
+        let schema = Schema::new(
+            testutils::rand::uuid(),
+            testutils::rand::string(10),
+            share_id.to_uuid().to_string(),
+            account_id.to_uuid().to_string(),
+        )
+        .context("failed to validate schema")?;
+        SchemaRepository::upsert(&schema, tx)
+            .await
+            .context("failed to create schema")?;
+        Ok(schema)
+    }
+
+    async fn create_table(
+        account_id: &AccountId,
+        schema_id: &SchemaId,
+        tx: &mut PgConnection,
+    ) -> Result<Entity> {
         let table = Entity::new(
             testutils::rand::uuid(),
             testutils::rand::string(10),
+            schema_id.to_uuid().to_string(),
             testutils::rand::string(10),
             account_id.to_uuid().to_string(),
         )
@@ -129,10 +176,16 @@ mod tests {
         let account = create_account(&mut tx)
             .await
             .expect("new account should be created");
-        let table = create_table(account.id(), &mut tx)
+        let share = create_share(account.id(), &mut tx)
+            .await
+            .expect("new share should be created");
+        let schema = create_schema(account.id(), share.id(), &mut tx)
+            .await
+            .expect("new share should be created");
+        let table = create_table(account.id(), schema.id(), &mut tx)
             .await
             .expect("new table should be created");
-        let fetched = Repository::select_by_name(&table.name(), &mut tx)
+        let fetched = Repository::select_by_name(table.name(), &mut tx)
             .await
             .expect("created table should be found");
         if let Some(fetched) = fetched {

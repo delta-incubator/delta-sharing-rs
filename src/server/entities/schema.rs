@@ -1,9 +1,3 @@
-use crate::impl_string_property;
-use crate::impl_uuid_property;
-use crate::server::entities::account::Id as AccountId;
-use crate::server::entities::share::Id as ShareId;
-use crate::server::entities::table::Id as TableId;
-use crate::server::repositories::schema::Repository;
 use anyhow::Result;
 use getset::Getters;
 use getset::Setters;
@@ -11,6 +5,12 @@ use sqlx::postgres::PgQueryResult;
 use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
+
+use crate::impl_string_property;
+use crate::impl_uuid_property;
+use crate::server::entities::account::Id as AccountId;
+use crate::server::entities::share::Id as ShareId;
+use crate::server::repositories::schema::Repository;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Id {
@@ -34,8 +34,6 @@ pub struct Entity {
     #[getset(get = "pub", set = "pub")]
     name: Name,
     #[getset(get = "pub", set = "pub")]
-    table_id: TableId,
-    #[getset(get = "pub", set = "pub")]
     share_id: ShareId,
     #[getset(get = "pub")]
     created_by: AccountId,
@@ -45,21 +43,32 @@ impl Entity {
     pub fn new(
         id: impl Into<Option<String>>,
         name: String,
-        table_id: String,
         share_id: String,
         created_by: String,
     ) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
             name: Name::new(name)?,
-            table_id: TableId::try_from(table_id)?,
             share_id: ShareId::try_from(share_id)?,
             created_by: AccountId::try_from(created_by)?,
         })
     }
 
+    pub async fn load(share_id: &ShareId, name: &Name, pg_pool: &PgPool) -> Result<Option<Self>> {
+        match Repository::select_by_name(share_id, name, pg_pool).await? {
+            Some(row) => Ok(Self {
+                id: Id::new(row.id),
+                name: Name::new(row.name)?,
+                share_id: ShareId::new(row.share_id),
+                created_by: AccountId::new(row.created_by),
+            }
+            .into()),
+            _ => Ok(None),
+        }
+    }
+
     pub async fn save(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
-        Repository::upsert(&self, pg_pool).await
+        Repository::upsert(self, pg_pool).await
     }
 }
 
@@ -69,21 +78,21 @@ mod tests {
 
     #[test]
     fn test_valid_id() {
-        assert!(matches!(Id::try_from(testutils::rand::uuid()), Ok(_)));
+        assert!(Id::try_from(testutils::rand::uuid()).is_ok());
     }
 
     #[test]
     fn test_invalid_id() {
-        assert!(matches!(Id::try_from(testutils::rand::string(255)), Err(_)));
+        assert!(Id::try_from(testutils::rand::string(255)).is_err());
     }
 
     #[test]
     fn test_valid_name() {
-        assert!(matches!(Name::new(testutils::rand::string(255)), Ok(_)));
+        assert!(Name::new(testutils::rand::string(255)).is_ok());
     }
 
     #[test]
     fn test_invalid_name() {
-        assert!(matches!(Name::new(""), Err(_)));
+        assert!(Name::new("").is_err());
     }
 }

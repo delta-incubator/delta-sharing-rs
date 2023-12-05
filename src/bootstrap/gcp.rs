@@ -25,6 +25,6 @@ mod tests {
                     .as_str()
             )
         );
-        assert!(matches!(new(&path), Ok(_)));
+        assert!(new(&path).is_ok());
     }
 }

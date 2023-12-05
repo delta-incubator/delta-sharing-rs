@@ -39,7 +39,7 @@ impl Token {
                 },
             };
             next = None;
-            if stack.len() > 0 {
+            if !stack.is_empty() {
                 let tail: String = iter
                     .by_ref()
                     .take_while(|c| c != stack.last().unwrap())
@@ -135,70 +135,46 @@ pub struct Utility;
 impl Utility {
     fn column(tokens: &mut Tokens) -> Result<String> {
         let Some(Token::Key(column)) = tokens.pop_front() else {
-	    return Err(anyhow!("failed to parse column name"));
-	};
+            return Err(anyhow!("failed to parse column name"));
+        };
         Ok(column)
     }
 
     fn operator(tokens: &mut Tokens) -> Result<Operator> {
         match tokens.pop_front() {
-            Some(Token::EQ) => {
-                return Ok(Operator::Equal);
-            }
-            Some(Token::GT) => {
-                return Ok(Operator::GreaterThan);
-            }
-            Some(Token::LT) => {
-                return Ok(Operator::LessThan);
-            }
-            Some(Token::GE) => {
-                return Ok(Operator::GreaterEqual);
-            }
-            Some(Token::LE) => {
-                return Ok(Operator::LessEqual);
-            }
-            Some(Token::NE) => {
-                return Ok(Operator::NotEqual);
-            }
+            Some(Token::EQ) => Ok(Operator::Equal),
+            Some(Token::GT) => Ok(Operator::GreaterThan),
+            Some(Token::LT) => Ok(Operator::LessThan),
+            Some(Token::GE) => Ok(Operator::GreaterEqual),
+            Some(Token::LE) => Ok(Operator::LessEqual),
+            Some(Token::NE) => Ok(Operator::NotEqual),
             Some(Token::Key(value)) if value.to_lowercase() == "is" => match tokens.pop_front() {
-                Some(Token::Key(value)) if value.to_lowercase() == "null" => {
-                    return Ok(Operator::IsNull);
-                }
+                Some(Token::Key(value)) if value.to_lowercase() == "null" => Ok(Operator::IsNull),
                 Some(Token::Key(value)) if value.to_lowercase() == "not" => {
                     match tokens.pop_front() {
                         Some(Token::Key(value)) if value.to_lowercase() == "null" => {
-                            return Ok(Operator::IsNotNull);
+                            Ok(Operator::IsNotNull)
                         }
-                        _ => {
-                            return Err(anyhow!("failed to parse SQL operator"));
-                        }
+                        _ => Err(anyhow!("failed to parse SQL operator")),
                     }
                 }
-                _ => {
-                    return Err(anyhow!("failed to parse SQL operator"));
-                }
+                _ => Err(anyhow!("failed to parse SQL operator")),
             },
-            _ => {
-                return Err(anyhow!("failed to parse SQL operator"));
-            }
+            _ => Err(anyhow!("failed to parse SQL operator")),
         }
     }
 
     fn value(tokens: &mut Tokens) -> Result<String> {
         match tokens.pop_front() {
-            Some(Token::Key(value)) => {
-                return Ok(value);
-            }
-            _ => {
-                return Err(anyhow!("failed to parse string"));
-            }
+            Some(Token::Key(value)) => Ok(value),
+            _ => Err(anyhow!("failed to parse string")),
         }
     }
 
     fn end(tokens: &mut Tokens) -> Result<()> {
         let Some(Token::End) = tokens.pop_front() else {
-	    return Err(anyhow!("failed to parse end of SQL expression"));
-	};
+            return Err(anyhow!("failed to parse end of SQL expression"));
+        };
         Ok(())
     }
 
@@ -209,53 +185,49 @@ impl Utility {
         null_count: &i64,
     ) -> bool {
         match predicate {
-            Predicate::IsNull => {
-                return null_count > &0;
-            }
-            Predicate::IsNotNull => {
-                return null_count == &0;
-            }
+            Predicate::IsNull => null_count > &0,
+            Predicate::IsNotNull => null_count == &0,
             Predicate::Equal(value) => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return min <= value && value <= max;
+                    return true;
+                };
+                min <= value && value <= max
             }
             Predicate::GreaterThan(value) => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return value < max;
+                    return true;
+                };
+                value < max
             }
             Predicate::LessThan(value) => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return min < value;
+                    return true;
+                };
+                min < value
             }
             Predicate::GreaterEqual(value) => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return value <= max;
+                    return true;
+                };
+                value <= max
             }
             Predicate::LessEqual(value) => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return min <= value;
+                    return true;
+                };
+                min <= value
             }
             Predicate::NotEqual(value) => {
                 // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                 let Ok(ref value) = value.parse::<T>() else {
-		    return true;
-		};
-                return min != value && value != max;
+                    return true;
+                };
+                min != value && value != max
             }
         }
     }
@@ -271,13 +243,13 @@ impl Utility {
             match operator {
                 Operator::IsNull => {
                     return Ok(PartitionFilter {
-                        column: column,
+                        column,
                         predicate: Predicate::IsNull,
                     })
                 }
                 Operator::IsNotNull => {
                     return Ok(PartitionFilter {
-                        column: column,
+                        column,
                         predicate: Predicate::IsNotNull,
                     })
                 }
@@ -290,88 +262,64 @@ impl Utility {
             Self::value(&mut tokens).context("third entry of SQL expression should be value")?;
         Self::end(&mut tokens).context("invalid SQL expression")?;
         match operator {
-            Operator::Equal => {
-                return Ok(PartitionFilter {
-                    column: column,
-                    predicate: Predicate::Equal(value),
-                });
-            }
-            Operator::GreaterThan => {
-                return Ok(PartitionFilter {
-                    column: column,
-                    predicate: Predicate::GreaterThan(value),
-                })
-            }
-            Operator::LessThan => {
-                return Ok(PartitionFilter {
-                    column: column,
-                    predicate: Predicate::LessThan(value),
-                })
-            }
-            Operator::GreaterEqual => {
-                return Ok(PartitionFilter {
-                    column: column,
-                    predicate: Predicate::GreaterEqual(value),
-                })
-            }
-            Operator::LessEqual => {
-                return Ok(PartitionFilter {
-                    column: column,
-                    predicate: Predicate::LessEqual(value),
-                })
-            }
-            Operator::NotEqual => {
-                return Ok(PartitionFilter {
-                    column: column,
-                    predicate: Predicate::NotEqual(value),
-                })
-            }
-            _ => {
-                return Err(anyhow!("failed to parse SQL expression"));
-            }
+            Operator::Equal => Ok(PartitionFilter {
+                column,
+                predicate: Predicate::Equal(value),
+            }),
+            Operator::GreaterThan => Ok(PartitionFilter {
+                column,
+                predicate: Predicate::GreaterThan(value),
+            }),
+            Operator::LessThan => Ok(PartitionFilter {
+                column,
+                predicate: Predicate::LessThan(value),
+            }),
+            Operator::GreaterEqual => Ok(PartitionFilter {
+                column,
+                predicate: Predicate::GreaterEqual(value),
+            }),
+            Operator::LessEqual => Ok(PartitionFilter {
+                column,
+                predicate: Predicate::LessEqual(value),
+            }),
+            Operator::NotEqual => Ok(PartitionFilter {
+                column,
+                predicate: Predicate::NotEqual(value),
+            }),
+            _ => Err(anyhow!("failed to parse SQL expression")),
         }
     }
 
     pub fn filter(filter: &PartitionFilter, stats: &Stats, schema: &Schema) -> bool {
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
         let Some(null_count) = stats.null_count.get(&filter.column) else {
-	    return true;
-	};
+            return true;
+        };
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
         let Ok(field) = schema.get_field_with_name(&filter.column) else {
-	    return true;
-	};
+            return true;
+        };
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
         let Ok(column_type) = ValueType::try_from(field.get_type()) else {
-	    return true;
-	};
+            return true;
+        };
         match (
             stats.min_values.get(&filter.column),
             stats.max_values.get(&filter.column),
         ) {
             (Some(serde_json::Value::Bool(min)), Some(serde_json::Value::Bool(max))) => {
                 match column_type {
-                    ValueType::Boolean => {
-                        return Self::check(&filter.predicate, min, max, null_count);
-                    }
+                    ValueType::Boolean => Self::check(&filter.predicate, min, max, null_count),
                     // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                    _ => {
-                        return true;
-                    }
+                    _ => true,
                 }
             }
             (Some(serde_json::Value::String(min)), Some(serde_json::Value::String(max))) => {
                 match column_type {
-                    ValueType::String => {
-                        return Self::check(&filter.predicate, min, max, null_count);
-                    }
-                    ValueType::Date => {
-                        return Self::check(&filter.predicate, min, max, null_count);
-                    }
+                    ValueType::String => Self::check(&filter.predicate, min, max, null_count),
+                    ValueType::Date => Self::check(&filter.predicate, min, max, null_count),
                     // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                    _ => {
-                        return true;
-                    }
+                    _ => true,
                 }
             }
             (Some(serde_json::Value::Number(min)), Some(serde_json::Value::Number(max))) => {
@@ -379,33 +327,31 @@ impl Utility {
                     ValueType::Int => {
                         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                         let Some(ref min) = min.as_i64() else {
-			    return true;
-			};
+                            return true;
+                        };
                         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                         let Some(ref max) = max.as_i64() else {
-			    return true;
-			};
-                        return Self::check(&filter.predicate, min, max, null_count);
+                            return true;
+                        };
+                        Self::check(&filter.predicate, min, max, null_count)
                     }
                     ValueType::Long => {
                         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                         let Some(ref min) = min.as_i64() else {
-			    return true;
-			};
+                            return true;
+                        };
                         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
                         let Some(ref max) = max.as_i64() else {
-			    return true;
-			};
-                        return Self::check(&filter.predicate, min, max, null_count);
+                            return true;
+                        };
+                        Self::check(&filter.predicate, min, max, null_count)
                     }
                     // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-                    _ => {
-                        return true;
-                    }
+                    _ => true,
                 }
             }
             // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-            _ => return true,
+            _ => true,
         }
     }
 }
@@ -427,7 +373,7 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let tokens = Token::lex(expr.into()).expect("expression should be parsed properly");
+        let tokens = Token::lex(expr).expect("expression should be parsed properly");
         assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::EQ);
@@ -444,7 +390,7 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let tokens = Token::lex(expr.into()).expect("expression should be parsed properly");
+        let tokens = Token::lex(expr).expect("expression should be parsed properly");
         assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::GT);
@@ -461,7 +407,7 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let tokens = Token::lex(expr.into()).expect("expression should be parsed properly");
+        let tokens = Token::lex(expr).expect("expression should be parsed properly");
         assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::LT);
@@ -478,7 +424,7 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let tokens = Token::lex(expr.into()).expect("expression should be parsed properly");
+        let tokens = Token::lex(expr).expect("expression should be parsed properly");
         assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::GE);
@@ -495,7 +441,7 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let tokens = Token::lex(expr.into()).expect("expression should be parsed properly");
+        let tokens = Token::lex(expr).expect("expression should be parsed properly");
         assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::LE);
@@ -512,7 +458,7 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let tokens = Token::lex(expr.into()).expect("expression should be parsed properly");
+        let tokens = Token::lex(expr).expect("expression should be parsed properly");
         assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::NE);
@@ -525,7 +471,7 @@ mod tests {
             column,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let tokens = Token::lex(expr.into()).expect("expression should be parsed properly");
+        let tokens = Token::lex(expr).expect("expression should be parsed properly");
         assert_eq!(tokens.len(), 4);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::Key("IS".into()));
@@ -539,7 +485,7 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
             " ".repeat(testutils::rand::usize(10)),
         );
-        let tokens = Token::lex(expr.into()).expect("expression should be parsed properly");
+        let tokens = Token::lex(expr).expect("expression should be parsed properly");
         assert_eq!(tokens.len(), 5);
         assert_eq!(tokens[0], Token::Key(column));
         assert_eq!(tokens[1], Token::Key("IS".into()));
@@ -561,11 +507,11 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
+        let predicate = Utility::parse(expr).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
             PartitionFilter {
-                column: column,
+                column,
                 predicate: Predicate::Equal(value)
             }
         );
@@ -580,11 +526,11 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
+        let predicate = Utility::parse(expr).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
             PartitionFilter {
-                column: column,
+                column,
                 predicate: Predicate::GreaterThan(value)
             }
         );
@@ -599,11 +545,11 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
+        let predicate = Utility::parse(expr).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
             PartitionFilter {
-                column: column,
+                column,
                 predicate: Predicate::LessThan(value)
             }
         );
@@ -618,11 +564,11 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
+        let predicate = Utility::parse(expr).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
             PartitionFilter {
-                column: column,
+                column,
                 predicate: Predicate::GreaterEqual(value)
             }
         );
@@ -637,11 +583,11 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
+        let predicate = Utility::parse(expr).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
             PartitionFilter {
-                column: column,
+                column,
                 predicate: Predicate::LessEqual(value)
             }
         );
@@ -656,11 +602,11 @@ mod tests {
             value,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
+        let predicate = Utility::parse(expr).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
             PartitionFilter {
-                column: column,
+                column,
                 predicate: Predicate::NotEqual(value)
             }
         );
@@ -671,11 +617,11 @@ mod tests {
             column,
             " ".repeat(testutils::rand::usize(10)),
         );
-        let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
+        let predicate = Utility::parse(expr).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
             PartitionFilter {
-                column: column,
+                column,
                 predicate: Predicate::IsNull
             }
         );
@@ -687,11 +633,11 @@ mod tests {
             " ".repeat(testutils::rand::usize(10)),
             " ".repeat(testutils::rand::usize(10)),
         );
-        let predicate = Utility::parse(expr.into()).expect("expression should be parsed properly");
+        let predicate = Utility::parse(expr).expect("expression should be parsed properly");
         assert_eq!(
             predicate,
             PartitionFilter {
-                column: column,
+                column,
                 predicate: Predicate::IsNotNull
             }
         );

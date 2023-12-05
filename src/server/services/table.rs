@@ -65,7 +65,7 @@ impl Service {
             builder.push(" LIMIT ");
             builder.push_bind(limit);
         }
-        let mut query = sqlx::query_as::<_, Table>(builder.build().sql().into());
+        let mut query = sqlx::query_as::<_, Table>(builder.build().sql());
         if let Some(name) = after {
             query = query.bind(name);
         }
@@ -183,7 +183,7 @@ impl Service {
             builder.push(" LIMIT ");
             builder.push_bind(limit);
         }
-        let mut query = sqlx::query_as::<_, TableDetail>(builder.build().sql().into());
+        let mut query = sqlx::query_as::<_, TableDetail>(builder.build().sql());
         query = query.bind(share_name);
         if let Some(name) = after {
             query = query.bind(name);
@@ -245,7 +245,7 @@ impl Service {
             builder.push(" LIMIT ");
             builder.push_bind(limit);
         }
-        let mut query = sqlx::query_as::<_, TableDetail>(builder.build().sql().into());
+        let mut query = sqlx::query_as::<_, TableDetail>(builder.build().sql());
         query = query.bind(share_name);
         query = query.bind(schema_name);
         if let Some(name) = after {
@@ -264,24 +264,25 @@ impl Service {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::server::entities::account::Entity as AccountEntity;
-    use crate::server::entities::account::Id as AccountId;
-    use crate::server::entities::schema::Entity as SchemaEntity;
-    use crate::server::entities::schema::Name as SchemaName;
-    use crate::server::entities::share::Entity as ShareEntity;
-    use crate::server::entities::share::Id as ShareId;
-    use crate::server::entities::table::Entity as TableEntity;
-    use crate::server::entities::table::Id as TableId;
-    use crate::server::repositories::account::Repository as AccountRepository;
-    use crate::server::repositories::schema::Repository as SchemaRepository;
-    use crate::server::repositories::share::Repository as ShareRepository;
-    use crate::server::repositories::table::Repository as TableRepository;
     use anyhow::Context;
     use anyhow::Result;
     use sqlx::PgConnection;
     use sqlx::PgPool;
     use std::cmp::min;
+
+    use super::*;
+    use crate::server::entities::account::Entity as AccountEntity;
+    use crate::server::entities::account::Id as AccountId;
+    use crate::server::entities::schema::Entity as SchemaEntity;
+    use crate::server::entities::schema::Id as SchemaId;
+    use crate::server::entities::schema::Name as SchemaName;
+    use crate::server::entities::share::Entity as ShareEntity;
+    use crate::server::entities::share::Id as ShareId;
+    use crate::server::entities::table::Entity as TableEntity;
+    use crate::server::repositories::account::Repository as AccountRepository;
+    use crate::server::repositories::schema::Repository as SchemaRepository;
+    use crate::server::repositories::share::Repository as ShareRepository;
+    use crate::server::repositories::table::Repository as TableRepository;
 
     async fn create_account(tx: &mut PgConnection) -> Result<AccountEntity> {
         let account = AccountEntity::new(
@@ -312,23 +313,8 @@ mod tests {
         Ok(share)
     }
 
-    async fn create_table(account_id: &AccountId, tx: &mut PgConnection) -> Result<TableEntity> {
-        let table = TableEntity::new(
-            testutils::rand::uuid(),
-            testutils::rand::string(10),
-            testutils::rand::string(10),
-            account_id.to_uuid().to_string(),
-        )
-        .context("failed to validate table")?;
-        TableRepository::upsert(&table, tx)
-            .await
-            .context("failed to crate table")?;
-        Ok(table)
-    }
-
     async fn create_schema(
         schema_name: &SchemaName,
-        table_id: &TableId,
         share_id: &ShareId,
         account_id: &AccountId,
         tx: &mut PgConnection,
@@ -336,7 +322,6 @@ mod tests {
         let schema = SchemaEntity::new(
             testutils::rand::uuid(),
             schema_name.to_string(),
-            table_id.to_uuid().to_string(),
             share_id.to_uuid().to_string(),
             account_id.to_uuid().to_string(),
         )
@@ -345,6 +330,25 @@ mod tests {
             .await
             .context("failed to crate schema")?;
         Ok(schema)
+    }
+
+    async fn create_table(
+        account_id: &AccountId,
+        schema_id: &SchemaId,
+        tx: &mut PgConnection,
+    ) -> Result<TableEntity> {
+        let table = TableEntity::new(
+            testutils::rand::uuid(),
+            testutils::rand::string(10),
+            schema_id.to_uuid().to_string(),
+            testutils::rand::string(10),
+            account_id.to_uuid().to_string(),
+        )
+        .context("failed to validate table")?;
+        TableRepository::upsert(&table, tx)
+            .await
+            .context("failed to crate table")?;
+        Ok(table)
     }
 
     #[sqlx::test]
@@ -357,9 +361,17 @@ mod tests {
         let account = create_account(&mut tx)
             .await
             .expect("new account should be created");
+        let share = create_share(account.id(), &mut tx)
+            .await
+            .expect("new share should be created");
+        let schema_name = SchemaName::new(testutils::rand::string(10))
+            .expect("new schema name should be created");
+        let schema = create_schema(&schema_name, share.id(), account.id(), &mut tx)
+            .await
+            .expect("new schema should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            create_table(account.id(), &mut tx)
+            create_table(account.id(), schema.id(), &mut tx)
                 .await
                 .expect("new table should be created");
         }
@@ -383,9 +395,17 @@ mod tests {
         let account = create_account(&mut tx)
             .await
             .expect("new account should be created");
+        let share = create_share(account.id(), &mut tx)
+            .await
+            .expect("new share should be created");
+        let schema_name = SchemaName::new(testutils::rand::string(10))
+            .expect("new schema name should be created");
+        let schema = create_schema(&schema_name, share.id(), account.id(), &mut tx)
+            .await
+            .expect("new schema should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            create_table(account.id(), &mut tx)
+            create_table(account.id(), schema.id(), &mut tx)
                 .await
                 .expect("new table should be created");
         }
@@ -410,10 +430,18 @@ mod tests {
         let account = create_account(&mut tx)
             .await
             .expect("new account should be created");
-        let table = create_table(account.id(), &mut tx)
+        let share = create_share(account.id(), &mut tx)
+            .await
+            .expect("new share should be created");
+        let schema_name = SchemaName::new(testutils::rand::string(10))
+            .expect("new schema name should be created");
+        let schema = create_schema(&schema_name, share.id(), account.id(), &mut tx)
+            .await
+            .expect("new schema should be created");
+        let table = create_table(account.id(), schema.id(), &mut tx)
             .await
             .expect("new table should be created");
-        let fetched = Service::query_by_name(&table.name(), &mut tx)
+        let fetched = Service::query_by_name(table.name(), &mut tx)
             .await
             .expect("created table should be found");
         if let Some(fetched) = fetched {
@@ -443,12 +471,13 @@ mod tests {
             .expect("new share should be created");
         let schema_name = SchemaName::new(testutils::rand::string(10))
             .expect("new schema name should be created");
-        let table = create_table(account.id(), &mut tx)
-            .await
-            .expect("new table should be created");
-        create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+        let schema = create_schema(&schema_name, share.id(), account.id(), &mut tx)
             .await
             .expect("new schema should be created");
+        let table = create_table(account.id(), schema.id(), &mut tx)
+            .await
+            .expect("new table should be created");
+
         let fetched = Service::query_by_fqn(share.name(), &schema_name, table.name(), &mut tx)
             .await
             .expect("created table should be found");
@@ -483,10 +512,7 @@ mod tests {
             let schema_name = SchemaName::new(testutils::rand::string(10))
                 .expect("new schema name should be created");
             for _ in 0..num_tables {
-                let table = create_table(account.id(), &mut tx)
-                    .await
-                    .expect("new table should be created");
-                create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+                create_schema(&schema_name, share.id(), account.id(), &mut tx)
                     .await
                     .expect("new schema should be created");
             }
@@ -520,10 +546,7 @@ mod tests {
             let schema_name = SchemaName::new(testutils::rand::string(10))
                 .expect("new schema name should be created");
             for _ in 0..num_tables {
-                let table = create_table(account.id(), &mut tx)
-                    .await
-                    .expect("new table should be created");
-                create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+                create_schema(&schema_name, share.id(), account.id(), &mut tx)
                     .await
                     .expect("new schema should be created");
             }
@@ -558,10 +581,7 @@ mod tests {
             .expect("new schema name should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            let table = create_table(account.id(), &mut tx)
-                .await
-                .expect("new table should be created");
-            create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+            create_schema(&schema_name, share.id(), account.id(), &mut tx)
                 .await
                 .expect("new schema should be created");
         }
@@ -569,10 +589,7 @@ mod tests {
             let schema_name = SchemaName::new(testutils::rand::string(10))
                 .expect("new schema name should be created");
             for _ in 0..records {
-                let table = create_table(account.id(), &mut tx)
-                    .await
-                    .expect("new table should be created");
-                create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+                create_schema(&schema_name, share.id(), account.id(), &mut tx)
                     .await
                     .expect("new schema should be created");
             }
@@ -612,10 +629,7 @@ mod tests {
             .expect("new schema name should be created");
         let records = testutils::rand::i64(0, 20);
         for _ in 0..records {
-            let table = create_table(account.id(), &mut tx)
-                .await
-                .expect("new table should be created");
-            create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+            create_schema(&schema_name, share.id(), account.id(), &mut tx)
                 .await
                 .expect("new schema should be created");
         }
@@ -623,10 +637,7 @@ mod tests {
             let schema_name = SchemaName::new(testutils::rand::string(10))
                 .expect("new schema name should be created");
             for _ in 0..records {
-                let table = create_table(account.id(), &mut tx)
-                    .await
-                    .expect("new table should be created");
-                create_schema(&schema_name, table.id(), share.id(), account.id(), &mut tx)
+                create_schema(&schema_name, share.id(), account.id(), &mut tx)
                     .await
                     .expect("new schema should be created");
             }

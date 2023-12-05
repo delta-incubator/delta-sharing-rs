@@ -17,6 +17,6 @@ mod tests {
     //#[test]
     fn test_new() {
         let aws_profile = std::env::var("AWS_PROFILE").expect("AWS profile should be specified");
-        assert!(matches!(new(&aws_profile), Ok(_)));
+        assert!(new(&aws_profile).is_ok());
     }
 }

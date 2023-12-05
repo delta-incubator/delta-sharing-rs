@@ -1,6 +1,5 @@
 pub mod accounts;
 pub mod shares;
-pub mod tables;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::entities::token::Entity as TokenEntity;
@@ -61,7 +60,9 @@ pub async fn login(
         return Err(Error::ValidationFailed);
     };
     let Ok(account) = AccountEntity::load(&account, &state.pg_pool).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting account");
+        tracing::error!(
+            "request is not handled correctly due to a server error while selecting account"
+        );
         return Err(anyhow!("error occured while selecting account from database").into());
     };
     let Some(account) = account else {
@@ -79,17 +80,21 @@ pub async fn login(
         Role::Admin,
         account.ttl().to_i64(),
     ) else {
-        tracing::error!("request is not handled correctly due to a server error while creating profile");
+        tracing::error!(
+            "request is not handled correctly due to a server error while creating profile"
+        );
         return Err(anyhow!("failed to create profile").into());
     };
     let Ok(token) = TokenEntity::new(
-	None,
-	account.email().to_string(),
+        None,
+        account.email().to_string(),
         Role::Admin,
-	profile.bearer_token.clone(),
-	account.id().to_string(),
+        profile.bearer_token.clone(),
+        account.id().to_string(),
     ) else {
-        tracing::error!("request is not handled correctly due to a server error while creating token");
+        tracing::error!(
+            "request is not handled correctly due to a server error while creating token"
+        );
         return Err(anyhow!("failed to create token").into());
     };
     match PostgresUtility::error(token.save(&state.pg_pool).await)? {
@@ -107,11 +112,7 @@ pub async fn login(
         }
     }
     tracing::info!("profile was successfully returned");
-    Ok((
-        StatusCode::OK,
-        Json(AdminLoginResponse { profile: profile }),
-    )
-        .into_response())
+    Ok((StatusCode::OK, Json(AdminLoginResponse { profile })).into_response())
 }
 
 #[derive(serde::Serialize, ToSchema)]
@@ -140,13 +141,11 @@ pub async fn profile(Extension(account): Extension<AccountEntity>) -> Result<Res
         Role::Guest,
         account.ttl().to_i64(),
     ) else {
-        tracing::error!("request is not handled correctly due to a server error while creating profile");
+        tracing::error!(
+            "request is not handled correctly due to a server error while creating profile"
+        );
         return Err(anyhow!("failed to create profile").into());
     };
     tracing::info!("profile was successfully returned");
-    Ok((
-        StatusCode::OK,
-        Json(AdminProfileResponse { profile: profile }),
-    )
-        .into_response())
+    Ok((StatusCode::OK, Json(AdminProfileResponse { profile })).into_response())
 }

@@ -50,48 +50,50 @@ pub async fn get(
     Query(query): Query<SharesSchemasTablesVersionGetQuery>,
 ) -> Result<Response, Error> {
     let starting_timestamp = if let Some(starting_timestamp) = &query.starting_timestamp {
-        let Ok(starting_timestamp) = DeltalakeUtility::datetime_yyyy_mm_dd_hh_mm_ss(starting_timestamp) else {
+        let Ok(starting_timestamp) =
+            DeltalakeUtility::datetime_yyyy_mm_dd_hh_mm_ss(starting_timestamp)
+        else {
             tracing::error!("requested starting timestamp is malformed");
-	    return Err(Error::ValidationFailed);
-	};
+            return Err(Error::ValidationFailed);
+        };
         Some(starting_timestamp)
     } else {
         None
     };
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
-	return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     let Ok(schema) = SchemaName::new(params.schema) else {
         tracing::error!("requested schema data is malformed");
-	return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
     let Ok(table) = TableName::new(params.table) else {
         tracing::error!("requested table data is malformed");
-	return Err(Error::ValidationFailed);
+        return Err(Error::ValidationFailed);
     };
-    let Ok(table) = TableService::query_by_fqn(
-        &share,
-        &schema,
-        &table,
-        &state.pg_pool,
-    ).await else {
-        tracing::error!("request is not handled correctly due to a server error while selecting table");
-	return Err(anyhow!("error occured while selecting table(s)").into());
+    let Ok(table) = TableService::query_by_fqn(&share, &schema, &table, &state.pg_pool).await
+    else {
+        tracing::error!(
+            "request is not handled correctly due to a server error while selecting table"
+        );
+        return Err(anyhow!("error occured while selecting table(s)").into());
     };
     let Some(table) = table else {
         tracing::error!("requested table does not exist");
-	return Err(Error::NotFound);
+        return Err(Error::NotFound);
     };
     let Ok(mut table) = DeltalakeUtility::open_table(&table.location).await else {
-        tracing::error!("request is not handled correctly due to a server error while loading delta table");
-    	return Err(anyhow!("error occured while selecting table(s)").into());
+        tracing::error!(
+            "request is not handled correctly due to a server error while loading delta table"
+        );
+        return Err(anyhow!("error occured while selecting table(s)").into());
     };
     if let Some(starting_timestamp) = starting_timestamp {
         let Ok(_) = table.load_with_datetime(starting_timestamp).await else {
-                tracing::error!("request is not handled correctly due to a server error while time-traveling delta table");
-    	    return Err(anyhow!("error occured while selecting table(s)").into());
-    	};
+            tracing::error!("request is not handled correctly due to a server error while time-traveling delta table");
+            return Err(anyhow!("error occured while selecting table(s)").into());
+        };
     }
     let mut headers = HeaderMap::new();
     headers.insert(HEADER_NAME, table.version().into());

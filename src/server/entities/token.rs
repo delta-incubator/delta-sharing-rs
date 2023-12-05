@@ -59,14 +59,14 @@ impl Entity {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
             email: Email::new(email)?,
-            role: role,
+            role,
             value: Value::new(value)?,
             created_by: AccountId::try_from(created_by)?,
         })
     }
 
     pub async fn save(&self, pg_pool: &PgPool) -> Result<PgQueryResult> {
-        Repository::upsert(&self, pg_pool).await
+        Repository::upsert(self, pg_pool).await
     }
 }
 
@@ -76,31 +76,31 @@ mod tests {
 
     #[test]
     fn test_valid_id() {
-        assert!(matches!(Id::try_from(testutils::rand::uuid()), Ok(_)));
+        assert!(Id::try_from(testutils::rand::uuid()).is_ok());
     }
 
     #[test]
     fn test_invalid_id() {
-        assert!(matches!(Id::try_from(testutils::rand::string(255)), Err(_)));
+        assert!(Id::try_from(testutils::rand::string(255)).is_err());
     }
 
     #[test]
     fn test_valid_email() {
-        assert!(matches!(Email::new(testutils::rand::email()), Ok(_)));
+        assert!(Email::new(testutils::rand::email()).is_ok());
     }
 
     #[test]
     fn test_invalid_email() {
-        assert!(matches!(Email::new(testutils::rand::string(20)), Err(_)));
+        assert!(Email::new(testutils::rand::string(20)).is_err());
     }
 
     #[test]
     fn test_valid_value() {
-        assert!(matches!(Value::new(testutils::rand::string(255)), Ok(_)));
+        assert!(Value::new(testutils::rand::string(255)).is_ok());
     }
 
     #[test]
     fn test_invalid_value() {
-        assert!(matches!(Value::new(""), Err(_)));
+        assert!(Value::new("").is_err());
     }
 }

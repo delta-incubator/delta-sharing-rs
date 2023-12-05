@@ -49,7 +49,7 @@ impl Server {
         })
     }
 
-    pub async fn start(self: Self) -> Result<()> {
+    pub async fn start(self) -> Result<()> {
         routers::bind(self.pg_pool, self.gcp_service_account, self.aws_credentials)
             .await
             .context("failed to start API server")
