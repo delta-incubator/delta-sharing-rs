@@ -17,17 +17,17 @@ use url::Url;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Platform {
-    AWS {
+    Aws {
         url: String,
         bucket: String,
         path: String,
     },
-    GCP {
+    Gcp {
         url: String,
         bucket: String,
         path: String,
     },
-    NONE {
+    None {
         url: String,
     },
 }
@@ -38,22 +38,22 @@ impl FromStr for Platform {
     fn from_str(input: &str) -> std::result::Result<Self, Self::Err> {
         let url = Url::parse(input).context("failed to parse URL")?;
         match url.scheme() {
-            "s3" => Ok(Self::AWS {
+            "s3" => Ok(Self::Aws {
                 url: String::from(url.as_str()),
                 bucket: String::from(url.domain().unwrap_or("")),
                 path: String::from(url.path().strip_prefix('/').unwrap_or("")),
             }),
-            "s3a" => Ok(Self::AWS {
+            "s3a" => Ok(Self::Aws {
                 url: String::from(url.as_str()),
                 bucket: String::from(url.domain().unwrap_or("")),
                 path: String::from(url.path().strip_prefix('/').unwrap_or("")),
             }),
-            "gs" => Ok(Self::GCP {
+            "gs" => Ok(Self::Gcp {
                 url: String::from(url.as_str()),
                 bucket: String::from(url.domain().unwrap_or("")),
                 path: String::from(url.path().strip_prefix('/').unwrap_or("")),
             }),
-            _ => Ok(Self::NONE {
+            _ => Ok(Self::None {
                 url: String::from(url.as_str()),
             }),
         }
@@ -106,7 +106,7 @@ mod tests {
         let path = testutils::rand::string(10);
         let url = format!("s3://{}/{}", bucket, path);
         let provider = Platform::from_str(&url).expect("should parse s3 url properly");
-        if let Platform::AWS {
+        if let Platform::Aws {
             url: parsed_url,
             bucket: parsed_bucket,
             path: parsed_path,
@@ -126,7 +126,7 @@ mod tests {
         let path = testutils::rand::string(10);
         let url = format!("gs://{}/{}", bucket, path);
         let provider = Platform::from_str(&url).expect("should parse gcs url properly");
-        if let Platform::GCP {
+        if let Platform::Gcp {
             url: parsed_url,
             bucket: parsed_bucket,
             path: parsed_path,
@@ -149,7 +149,7 @@ mod tests {
             .credentials()
             .await
             .expect("AWS credentials should be acquired properly");
-        if let Ok(Platform::AWS { bucket, path, .. }) =
+        if let Ok(Platform::Aws { bucket, path, .. }) =
             Platform::from_str("s3://delta-sharing-test/covid")
         {
             if let Ok(url) = Utility::sign_aws(&creds, &bucket, &path, &300) {
@@ -173,7 +173,7 @@ mod tests {
         );
         let sa =
             bootstrap::gcp::new(&path).expect("GCP service account should be created properly");
-        if let Ok(Platform::GCP { bucket, path, .. }) =
+        if let Ok(Platform::Gcp { bucket, path, .. }) =
             Platform::from_str("gs://delta-sharing-test/covid")
         {
             if let Ok(url) = Utility::sign_gcp(&sa, &bucket, &path, &300) {
