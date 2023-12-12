@@ -21,7 +21,7 @@ const DEFAULT_PAGE_RESULTS: usize = 10;
 
 #[derive(Debug, serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminAccountsPostRequest {
+pub struct CatalogAccountsPostRequest {
     pub id: Option<String>,
     pub name: String,
     pub email: String,
@@ -32,18 +32,18 @@ pub struct AdminAccountsPostRequest {
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminAccountsPostResponse {
+pub struct CatalogAccountsPostResponse {
     pub account: Account,
 }
 
 #[utoipa::path(
     post,
-    path = "/admin/accounts",
-    operation_id = "CreateAccount",
-    tag = "admin",
-    request_body = AdminAccountsPostRequest,
+    path = "/catalog/accounts",
+    operation_id = "CatalogCreateAccount",
+    tag = "catalog",
+    request_body = CatalogAccountsPostRequest,
     responses(
-        (status = 201, description = "The account was successfully registered.", body = AdminAccountsPostResponse),
+        (status = 201, description = "The account was successfully registered.", body = CatalogAccountsPostResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 409, description = "The account was already registered.", body = ErrorMessage),
@@ -53,7 +53,7 @@ pub struct AdminAccountsPostResponse {
 #[tracing::instrument(skip(state))]
 pub async fn post(
     Extension(state): Extension<SharedState>,
-    Json(payload): Json<AdminAccountsPostRequest>,
+    Json(payload): Json<CatalogAccountsPostRequest>,
 ) -> Result<Response, Error> {
     let Ok(account) = AccountEntity::new(
         payload.id,
@@ -71,7 +71,7 @@ pub async fn post(
             tracing::info!("account was successfully registered");
             Ok((
                 StatusCode::CREATED,
-                Json(AdminAccountsPostResponse {
+                Json(CatalogAccountsPostResponse {
                     account: Account::from(account),
                 }),
             )
@@ -92,24 +92,24 @@ pub async fn post(
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminAccountsGetParams {
+pub struct CatalogAccountsGetParams {
     account: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminAccountsGetResponse {
+pub struct CatalogAccountsGetResponse {
     pub account: Account,
 }
 
 #[utoipa::path(
     get,
-    path = "/admin/accounts/{account}",
-    operation_id = "GetAccount",
-    tag = "admin",
-    params(AdminAccountsGetParams),
+    path = "/catalog/accounts/{account}",
+    operation_id = "CatalogGetAccount",
+    tag = "catalog",
+    params(CatalogAccountsGetParams),
     responses(
-        (status = 200, description = "The account's metadata was successfully returned.", body = AdminAccountsGetResponse),
+        (status = 200, description = "The account's metadata was successfully returned.", body = CatalogAccountsGetResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -120,7 +120,7 @@ pub struct AdminAccountsGetResponse {
 #[tracing::instrument(skip(state))]
 pub async fn get(
     Extension(state): Extension<SharedState>,
-    Path(params): Path<AdminAccountsGetParams>,
+    Path(params): Path<CatalogAccountsGetParams>,
 ) -> Result<Response, Error> {
     let Ok(account) = AccountName::new(params.account) else {
         tracing::error!("requested account data is malformed");
@@ -137,19 +137,19 @@ pub async fn get(
         return Err(Error::NotFound);
     };
     tracing::info!("account's metadata was successfully returned");
-    Ok((StatusCode::OK, Json(AdminAccountsGetResponse { account })).into_response())
+    Ok((StatusCode::OK, Json(CatalogAccountsGetResponse { account })).into_response())
 }
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminAccountsListQuery {
+pub struct CatalogAccountsListQuery {
     pub max_results: Option<i64>,
     pub page_token: Option<String>,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminAccountsListResponse {
+pub struct CatalogAccountsListResponse {
     pub items: Vec<Account>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_page_token: Option<String>,
@@ -157,12 +157,12 @@ pub struct AdminAccountsListResponse {
 
 #[utoipa::path(
     get,
-    path = "/admin/accounts",
-    operation_id = "ListAccounts",
-    tag = "admin",
-    params(AdminAccountsListQuery),
+    path = "/catalog/accounts",
+    operation_id = "CatalogListAccounts",
+    tag = "catalog",
+    params(CatalogAccountsListQuery),
     responses(
-        (status = 200, description = "The accounts were successfully returned.", body = AdminAccountsListResponse),
+        (status = 200, description = "The accounts were successfully returned.", body = CatalogAccountsListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -172,7 +172,7 @@ pub struct AdminAccountsListResponse {
 #[tracing::instrument(skip(state))]
 pub async fn list(
     Extension(state): Extension<SharedState>,
-    Query(query): Query<AdminAccountsListQuery>,
+    Query(query): Query<CatalogAccountsListQuery>,
 ) -> Result<Response, Error> {
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
@@ -202,7 +202,7 @@ pub async fn list(
         tracing::info!("accounts were successfully returned");
         return Ok((
             StatusCode::OK,
-            Json(AdminAccountsListResponse {
+            Json(CatalogAccountsListResponse {
                 items: accounts.to_vec(),
                 next_page_token: next.name.clone().into(),
             }),
@@ -212,7 +212,7 @@ pub async fn list(
     tracing::info!("accounts were successfully returned");
     Ok((
         StatusCode::OK,
-        Json(AdminAccountsListResponse {
+        Json(CatalogAccountsListResponse {
             items: accounts,
             next_page_token: None,
         }),

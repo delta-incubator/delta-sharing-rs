@@ -22,24 +22,24 @@ const DEFAULT_PAGE_RESULTS: usize = 10;
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesGetParams {
+pub struct SharingSharesGetParams {
     share: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesGetResponse {
+pub struct SharingSharesGetResponse {
     pub share: Share,
 }
 
 #[utoipa::path(
     get,
-    path = "/shares/{share}",
-    tag = "official",
-    operation_id = "GetShare",
-    params(SharesGetParams),
+    path = "/sharing/shares/{share}",
+    tag = "sharing",
+    operation_id = "SharingGetShare",
+    params(SharingSharesGetParams),
     responses(
-        (status = 200, description = "The share's metadata was successfully returned.", body = SharesGetResponse),
+        (status = 200, description = "The share's metadata was successfully returned.", body = SharingSharesGetResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -50,7 +50,7 @@ pub struct SharesGetResponse {
 #[tracing::instrument(skip(state))]
 pub async fn get(
     Extension(state): Extension<SharedState>,
-    Path(params): Path<SharesGetParams>,
+    Path(params): Path<SharingSharesGetParams>,
 ) -> Result<Response, Error> {
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
@@ -67,19 +67,19 @@ pub async fn get(
         return Err(Error::NotFound);
     };
     tracing::info!("share's metadata was successfully returned");
-    Ok((StatusCode::OK, Json(SharesGetResponse { share })).into_response())
+    Ok((StatusCode::OK, Json(SharingSharesGetResponse { share })).into_response())
 }
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesListQuery {
+pub struct SharingSharesListQuery {
     pub max_results: Option<i64>,
     pub page_token: Option<String>,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesListResponse {
+pub struct SharingSharesListResponse {
     pub items: Vec<Share>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_page_token: Option<String>,
@@ -87,12 +87,12 @@ pub struct SharesListResponse {
 
 #[utoipa::path(
     get,
-    path = "/shares",
-    operation_id = "ListShares",
-    tag = "official",
-    params(SharesListQuery),
+    path = "/sharing/shares",
+    operation_id = "SharingListShares",
+    tag = "sharing",
+    params(SharingSharesListQuery),
     responses(
-        (status = 200, description = "The shares were successfully returned.", body = SharesListResponse),
+        (status = 200, description = "The shares were successfully returned.", body = SharingSharesListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -102,7 +102,7 @@ pub struct SharesListResponse {
 #[tracing::instrument(skip(state))]
 pub async fn list(
     Extension(state): Extension<SharedState>,
-    Query(query): Query<SharesListQuery>,
+    Query(query): Query<SharingSharesListQuery>,
 ) -> Result<Response, Error> {
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
@@ -132,7 +132,7 @@ pub async fn list(
         tracing::info!("shares were successfully returned");
         return Ok((
             StatusCode::OK,
-            Json(SharesListResponse {
+            Json(SharingSharesListResponse {
                 items: shares.to_vec(),
                 next_page_token: next.name.clone().into(),
             }),
@@ -142,7 +142,7 @@ pub async fn list(
     tracing::info!("shares were successfully returned");
     Ok((
         StatusCode::OK,
-        Json(SharesListResponse {
+        Json(SharingSharesListResponse {
             items: shares,
             next_page_token: None,
         }),

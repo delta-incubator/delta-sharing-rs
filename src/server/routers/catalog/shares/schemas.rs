@@ -22,31 +22,31 @@ pub mod tables;
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminSharesSchemasPostParams {
+pub struct CatalogSharesSchemasPostParams {
     share: String,
 }
 
 #[derive(Debug, serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminSharesSchemasPostRequest {
+pub struct CatalogSharesSchemasPostRequest {
     pub name: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminSharesSchemasPostResponse {
+pub struct CatalogSharesSchemasPostResponse {
     pub schema: Schema,
 }
 
 #[utoipa::path(
     post,
-    path = "/admin/shares/{share}/schemas",
-    operation_id = "CreateSchema",
-    tag = "admin",
-    params(AdminSharesSchemasPostParams),
-    request_body = AdminSharesSchemasPostRequest,
+    path = "/catalog/shares/{share}/schemas",
+    operation_id = "CatalogCreateSchema",
+    tag = "catalog",
+    params(CatalogSharesSchemasPostParams),
+    request_body = CatalogSharesSchemasPostRequest,
     responses(
-        (status = 201, description = "The schema was successfully registered.", body = AdminSharesSchemasPostResponse),
+        (status = 201, description = "The schema was successfully registered.", body = CatalogSharesSchemasPostResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 409, description = "The schema was already registered.", body = ErrorMessage),
@@ -57,8 +57,8 @@ pub struct AdminSharesSchemasPostResponse {
 pub async fn post(
     Extension(account): Extension<AccountEntity>,
     Extension(state): Extension<SharedState>,
-    Path(params): Path<AdminSharesSchemasPostParams>,
-    Json(payload): Json<AdminSharesSchemasPostRequest>,
+    Path(params): Path<CatalogSharesSchemasPostParams>,
+    Json(payload): Json<CatalogSharesSchemasPostRequest>,
 ) -> Result<Response, Error> {
     let Ok(share_name) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
@@ -92,7 +92,7 @@ pub async fn post(
             tracing::info!("schema was successfully registered");
             Ok((
                 StatusCode::CREATED,
-                Json(AdminSharesSchemasPostResponse {
+                Json(CatalogSharesSchemasPostResponse {
                     schema: Schema::from(schema),
                 }),
             )

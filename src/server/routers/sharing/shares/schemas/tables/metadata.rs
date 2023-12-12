@@ -23,7 +23,7 @@ const HEADER_NAME: &str = "Delta-Table-Version";
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesSchemasTablesMetadataGetParams {
+pub struct SharingSharesSchemasTablesMetadataGetParams {
     share: String,
     schema: String,
     table: String,
@@ -31,10 +31,10 @@ pub struct SharesSchemasTablesMetadataGetParams {
 
 #[utoipa::path(
     get,
-    path = "/shares/{share}/schemas/{schema}/tables/{table}/metadata",
-    operation_id = "GetTableMetadata",
-    tag = "official",
-    params(SharesSchemasTablesMetadataGetParams),
+    path = "/sharing/shares/{share}/schemas/{schema}/tables/{table}/metadata",
+    operation_id = "SharingGetTableMetadata",
+    tag = "sharing",
+    params(SharingSharesSchemasTablesMetadataGetParams),
     responses(
         (status = 200, description = "The table metadata was successfully returned.", body = String),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -47,7 +47,7 @@ pub struct SharesSchemasTablesMetadataGetParams {
 #[tracing::instrument(skip(state))]
 pub async fn get(
     Extension(state): Extension<SharedState>,
-    Path(params): Path<SharesSchemasTablesMetadataGetParams>,
+    Path(params): Path<SharingSharesSchemasTablesMetadataGetParams>,
 ) -> Result<Response, Error> {
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");

@@ -22,33 +22,33 @@ use crate::server::utilities::postgres::Utility as PostgresUtility;
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminSharesSchemasTablesPostParams {
+pub struct CatalogSharesSchemasTablesPostParams {
     share: String,
     schema: String,
 }
 
 #[derive(Debug, serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminSharesSchemasTablesPostRequest {
+pub struct CatalogSharesSchemasTablesPostRequest {
     pub name: String,
     pub location: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminSharesSchemasTablesPostResponse {
+pub struct CatalogSharesSchemasTablesPostResponse {
     pub table: Table,
 }
 
 #[utoipa::path(
     post,
-    path = "/admin/shares/{share}/schemas/{schema}/tables",
-    operation_id = "CreateTable",
-    tag = "admin",
-    params(AdminSharesSchemasTablesPostParams),
-    request_body = AdminSharesSchemasTablesPostRequest,
+    path = "/catalog/shares/{share}/schemas/{schema}/tables",
+    operation_id = "CatalogCreateTable",
+    tag = "catalog",
+    params(CatalogSharesSchemasTablesPostParams),
+    request_body = CatalogSharesSchemasTablesPostRequest,
     responses(
-        (status = 201, description = "The schema was successfully registered.", body = AdminSharesSchemasTablesPostResponse),
+        (status = 201, description = "The schema was successfully registered.", body = CatalogSharesSchemasTablesPostResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 409, description = "The schema was already registered.", body = ErrorMessage),
@@ -59,8 +59,8 @@ pub struct AdminSharesSchemasTablesPostResponse {
 pub async fn post(
     Extension(account): Extension<AccountEntity>,
     Extension(state): Extension<SharedState>,
-    Path(params): Path<AdminSharesSchemasTablesPostParams>,
-    Json(payload): Json<AdminSharesSchemasTablesPostRequest>,
+    Path(params): Path<CatalogSharesSchemasTablesPostParams>,
+    Json(payload): Json<CatalogSharesSchemasTablesPostRequest>,
 ) -> Result<Response, Error> {
     let Ok(share_name) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
@@ -110,7 +110,7 @@ pub async fn post(
             tracing::info!("table was successfully registered");
             Ok((
                 StatusCode::CREATED,
-                Json(AdminSharesSchemasTablesPostResponse {
+                Json(CatalogSharesSchemasTablesPostResponse {
                     table: Table::from(table),
                 }),
             )

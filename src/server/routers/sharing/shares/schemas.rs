@@ -9,48 +9,50 @@ use axum::response::Response;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
 
+use crate::server::entities::schema::Name as SchemaName;
 use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::entities::share::Name as ShareName;
-use crate::server::entities::table::Name as TableName;
 use crate::server::routers::SharedState;
 use crate::server::services::error::Error;
-use crate::server::services::table::Service as TableService;
-use crate::server::services::table::TableDetail;
+use crate::server::services::schema::SchemaDetail;
+use crate::server::services::schema::Service as SchemaService;
+
+pub mod tables;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesAllTablesListParams {
+pub struct SharingSharesSchemasListParams {
     share: String,
 }
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesAllTablesListQuery {
+pub struct SharingSharesSchemasListQuery {
     pub max_results: Option<i64>,
     pub page_token: Option<String>,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesAllTablesListResponse {
-    pub items: Vec<TableDetail>,
+pub struct SharingSharesSchemasListResponse {
+    pub items: Vec<SchemaDetail>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_page_token: Option<String>,
 }
 
 #[utoipa::path(
     get,
-    path = "/shares/{share}/all-tables",
-    operation_id = "ListALLTables",
-    tag = "official",
+    path = "/sharing/shares/{share}/schemas",
+    operation_id = "SharingListSchemas",
+    tag = "sharing",
     params(
-        SharesAllTablesListParams,
-        SharesAllTablesListQuery,
+        SharingSharesSchemasListParams,
+        SharingSharesSchemasListQuery,
     ),
     responses(
-        (status = 200, description = "The tables were successfully returned.", body = SharesAllTablesListResponse),
+        (status = 200, description = "The schemas were successfully returned.", body = SharingSharesSchemasListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -61,8 +63,8 @@ pub struct SharesAllTablesListResponse {
 #[tracing::instrument(skip(state))]
 pub async fn list(
     Extension(state): Extension<SharedState>,
-    Path(params): Path<SharesAllTablesListParams>,
-    Query(query): Query<SharesAllTablesListQuery>,
+    Path(params): Path<SharingSharesSchemasListParams>,
+    Query(query): Query<SharingSharesSchemasListQuery>,
 ) -> Result<Response, Error> {
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
@@ -88,11 +90,11 @@ pub async fn list(
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &query.page_token {
-        TableName::new(name).ok()
+        SchemaName::new(name).ok()
     } else {
         None
     };
-    let Ok(tables) = TableService::query_by_share_name(
+    let Ok(schemas) = SchemaService::query_by_share_name(
         share.name(),
         Some(&((limit + 1) as i64)),
         after.as_ref(),
@@ -101,28 +103,28 @@ pub async fn list(
     .await
     else {
         tracing::error!(
-            "request is not handled correctly due to a server error while selecting tables"
+            "request is not handled correctly due to a server error while selecting schemas"
         );
-        return Err(anyhow!("error occured while selecting tables(s)").into());
+        return Err(anyhow!("error occured while selecting schema(s)").into());
     };
-    if tables.len() == limit + 1 {
-        let next = &tables[limit];
-        let tables = &tables[..limit];
-        tracing::info!("tables were successfully returned");
+    if schemas.len() == limit + 1 {
+        let next = &schemas[limit];
+        let schemas = &schemas[..limit];
+        tracing::info!("schemas were successfully returned");
         return Ok((
             StatusCode::OK,
-            Json(SharesAllTablesListResponse {
-                items: tables.to_vec(),
+            Json(SharingSharesSchemasListResponse {
+                items: schemas.to_vec(),
                 next_page_token: next.name.clone().into(),
             }),
         )
             .into_response());
     }
-    tracing::info!("tables were successfully returned");
+    tracing::info!("schemas were successfully returned");
     Ok((
         StatusCode::OK,
-        Json(SharesAllTablesListResponse {
-            items: tables,
+        Json(SharingSharesSchemasListResponse {
+            items: schemas,
             next_page_token: None,
         }),
     )

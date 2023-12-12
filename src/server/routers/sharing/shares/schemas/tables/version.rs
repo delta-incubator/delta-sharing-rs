@@ -20,7 +20,7 @@ const HEADER_NAME: &str = "Delta-Table-Version";
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesSchemasTablesVersionGetParams {
+pub struct SharingSharesSchemasTablesVersionGetParams {
     share: String,
     schema: String,
     table: String,
@@ -28,16 +28,16 @@ pub struct SharesSchemasTablesVersionGetParams {
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesSchemasTablesVersionGetQuery {
+pub struct SharingSharesSchemasTablesVersionGetQuery {
     pub starting_timestamp: Option<String>,
 }
 
 #[utoipa::path(
     get,
-    path = "/shares/{share}/schemas/{schema}/tables/{table}/version",
-    operation_id = "GetTableVersion",
-    tag = "official",
-    params(SharesSchemasTablesVersionGetParams),
+    path = "/sharing/shares/{share}/schemas/{schema}/tables/{table}/version",
+    operation_id = "SharingGetTableVersion",
+    tag = "sharing",
+    params(SharingSharesSchemasTablesVersionGetParams),
     responses(
         (status = 200, description = "The table version was successfully returned."),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -50,8 +50,8 @@ pub struct SharesSchemasTablesVersionGetQuery {
 #[tracing::instrument(skip(state))]
 pub async fn get(
     Extension(state): Extension<SharedState>,
-    Path(params): Path<SharesSchemasTablesVersionGetParams>,
-    Query(query): Query<SharesSchemasTablesVersionGetQuery>,
+    Path(params): Path<SharingSharesSchemasTablesVersionGetParams>,
+    Query(query): Query<SharingSharesSchemasTablesVersionGetQuery>,
 ) -> Result<Response, Error> {
     let starting_timestamp = if let Some(starting_timestamp) = &query.starting_timestamp {
         let Ok(starting_timestamp) =

@@ -17,24 +17,24 @@ pub mod schemas;
 
 #[derive(Debug, serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminSharesPostRequest {
+pub struct CatalogSharesPostRequest {
     pub name: String,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminSharesPostResponse {
+pub struct CatalogSharesPostResponse {
     pub share: Share,
 }
 
 #[utoipa::path(
     post,
-    path = "/admin/shares",
-    operation_id = "CreateShare",
-    tag = "admin",
-    request_body = AdminSharesPostRequest,
+    path = "/catalog/shares",
+    operation_id = "CatalogCreateShare",
+    tag = "catalog",
+    request_body = CatalogSharesPostRequest,
     responses(
-        (status = 201, description = "The share was successfully registered.", body = AdminSharesPostResponse),
+        (status = 201, description = "The share was successfully registered.", body = CatalogSharesPostResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 409, description = "The share was already registered.", body = ErrorMessage),
@@ -45,7 +45,7 @@ pub struct AdminSharesPostResponse {
 pub async fn post(
     Extension(account): Extension<AccountEntity>,
     Extension(state): Extension<SharedState>,
-    Json(payload): Json<AdminSharesPostRequest>,
+    Json(payload): Json<CatalogSharesPostRequest>,
 ) -> Result<Response, Error> {
     let Ok(share) = ShareEntity::new(None, payload.name, account.id().to_string()) else {
         tracing::error!("requested share data is malformed");
@@ -56,7 +56,7 @@ pub async fn post(
             tracing::info!("share was successfully registered");
             Ok((
                 StatusCode::CREATED,
-                Json(AdminSharesPostResponse {
+                Json(CatalogSharesPostResponse {
                     share: Share::from(share),
                 }),
             )

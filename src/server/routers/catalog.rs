@@ -21,14 +21,14 @@ pub mod shares;
 
 #[derive(serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminLoginRequest {
+pub struct CatalogLoginRequest {
     pub account: String,
     pub password: String,
 }
 
-impl std::fmt::Debug for AdminLoginRequest {
+impl std::fmt::Debug for CatalogLoginRequest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("AdminLoginRequest")
+        f.debug_struct("CatalogLoginRequest")
             .field("account", &self.account)
             .field("password", &"***")
             .finish()
@@ -37,17 +37,17 @@ impl std::fmt::Debug for AdminLoginRequest {
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminLoginResponse {
+pub struct CatalogLoginResponse {
     pub profile: Profile,
 }
 
 #[utoipa::path(
     post,
-    path = "/admin/login",
-    tag = "admin",
-    request_body = AdminLoginRequest,
+    path = "/catalog/login",
+    tag = "catalog",
+    request_body = CatalogLoginRequest,
     responses(
-        (status = 200, description = "The profile was successfully returned.", body = AdminLoginResponse),
+        (status = 200, description = "The profile was successfully returned.", body = CatalogLoginResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated.", body = ErrorMessage),
         (status = 500, description = "The request is not handled correctly due to a server error.", body = ErrorMessage),
@@ -56,7 +56,7 @@ pub struct AdminLoginResponse {
 #[tracing::instrument(skip(state))]
 pub async fn login(
     Extension(state): Extension<SharedState>,
-    Json(payload): Json<AdminLoginRequest>,
+    Json(payload): Json<CatalogLoginRequest>,
 ) -> Result<Response, Error> {
     let Ok(account) = AccountName::new(payload.account) else {
         tracing::error!("requested account data is malformed");
@@ -115,20 +115,21 @@ pub async fn login(
         }
     }
     tracing::info!("profile was successfully returned");
-    Ok((StatusCode::OK, Json(AdminLoginResponse { profile })).into_response())
+    Ok((StatusCode::OK, Json(CatalogLoginResponse { profile })).into_response())
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AdminProfileResponse {
+pub struct CatalogProfileResponse {
     pub profile: Profile,
 }
 
 #[utoipa::path(
     get,
-    path = "/admin/profile",
+    path = "/catalog/profile",
+    tag = "catalog",
     responses(
-        (status = 200, description = "The profile were successfully returned.", body = AdminProfileResponse),
+        (status = 200, description = "The profile were successfully returned.", body = CatalogProfileResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -150,5 +151,5 @@ pub async fn profile(Extension(account): Extension<AccountEntity>) -> Result<Res
         return Err(anyhow!("failed to create profile").into());
     };
     tracing::info!("profile was successfully returned");
-    Ok((StatusCode::OK, Json(AdminProfileResponse { profile })).into_response())
+    Ok((StatusCode::OK, Json(CatalogProfileResponse { profile })).into_response())
 }
