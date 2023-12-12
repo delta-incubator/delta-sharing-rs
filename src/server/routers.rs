@@ -1,5 +1,5 @@
-pub mod admin;
-pub mod shares;
+pub mod catalog;
+pub mod sharing;
 
 use std::sync::Arc;
 
@@ -47,22 +47,25 @@ async fn route(
 
     let swagger = SwaggerUi::new("/swagger-ui").url("/api-doc/openapi.json", ApiDoc::openapi());
 
-    let admin = Router::new()
-        .route("/admin/profile", get(self::admin::profile))
-        .route("/admin/accounts", post(self::admin::accounts::post))
-        .route("/admin/accounts", get(self::admin::accounts::list))
-        .route("/admin/accounts/:account", get(self::admin::accounts::get))
-        .route("/admin/shares", post(self::admin::shares::post))
+    let catalog = Router::new()
+        .route("/catalog/profile", get(self::catalog::profile))
+        .route("/catalog/accounts", post(self::catalog::accounts::post))
+        .route("/catalog/accounts", get(self::catalog::accounts::list))
         .route(
-            "/admin/shares/:share/schemas",
-            post(admin::shares::schemas::post),
+            "/catalog/accounts/:account",
+            get(self::catalog::accounts::get),
+        )
+        .route("/catalog/shares", post(self::catalog::shares::post))
+        .route(
+            "/catalog/shares/:share/schemas",
+            post(catalog::shares::schemas::post),
         )
         .route(
-            "/admin/shares/:share/schemas/:schema/tables",
-            post(admin::shares::schemas::tables::post),
+            "/catalog/shares/:share/schemas/:schema/tables",
+            post(catalog::shares::schemas::tables::post),
         )
         .route_layer(middleware::from_fn(jwt::as_admin))
-        .route("/admin/login", post(self::admin::login))
+        .route("/catalog/login", post(self::catalog::login))
         .layer(Extension(state.clone()))
         .layer(
             CorsLayer::new()
@@ -76,29 +79,32 @@ async fn route(
                 .allow_credentials(true),
         );
 
-    let guest = Router::new()
-        .route("/shares", get(self::shares::list))
-        .route("/shares/:share", get(self::shares::get))
+    let sharing = Router::new()
+        .route("/sharing/shares", get(self::sharing::shares::list))
+        .route("/sharing/shares/:share", get(self::sharing::shares::get))
         .route(
-            "/shares/:share/all-tables",
-            get(self::shares::all_tables::list),
-        )
-        .route("/shares/:share/schemas", get(self::shares::schemas::list))
-        .route(
-            "/shares/:share/schemas/:schema/tables",
-            get(self::shares::schemas::tables::list),
+            "/sharing/shares/:share/all-tables",
+            get(self::sharing::shares::all_tables::list),
         )
         .route(
-            "/shares/:share/schemas/:schema/tables/:table/version",
-            get(self::shares::schemas::tables::version::get),
+            "/sharing/shares/:share/schemas",
+            get(self::sharing::shares::schemas::list),
         )
         .route(
-            "/shares/:share/schemas/:schema/tables/:table/metadata",
-            get(self::shares::schemas::tables::metadata::get),
+            "/sharing/shares/:share/schemas/:schema/tables",
+            get(self::sharing::shares::schemas::tables::list),
         )
         .route(
-            "/shares/:share/schemas/:schema/tables/:table/query",
-            post(self::shares::schemas::tables::query::post),
+            "/sharing/shares/:share/schemas/:schema/tables/:table/version",
+            get(self::sharing::shares::schemas::tables::version::get),
+        )
+        .route(
+            "/sharing/shares/:share/schemas/:schema/tables/:table/metadata",
+            get(self::sharing::shares::schemas::tables::metadata::get),
+        )
+        .route(
+            "/sharing/shares/:share/schemas/:schema/tables/:table/query",
+            post(self::sharing::shares::schemas::tables::query::post),
         )
         .route_layer(middleware::from_fn(jwt::as_guest))
         .layer(Extension(state.clone()))
@@ -116,8 +122,8 @@ async fn route(
 
     let app = Router::new()
         .merge(swagger)
-        .merge(admin)
-        .merge(guest)
+        .merge(catalog)
+        .merge(sharing)
         .fallback(bad_request);
 
     Ok(app)

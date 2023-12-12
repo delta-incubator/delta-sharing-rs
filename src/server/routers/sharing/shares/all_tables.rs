@@ -9,7 +9,6 @@ use axum::response::Response;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
 
-use crate::server::entities::schema::Name as SchemaName;
 use crate::server::entities::share::Entity as ShareEntity;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::entities::table::Name as TableName;
@@ -18,29 +17,24 @@ use crate::server::services::error::Error;
 use crate::server::services::table::Service as TableService;
 use crate::server::services::table::TableDetail;
 
-pub mod metadata;
-pub mod query;
-pub mod version;
-
 const DEFAULT_PAGE_RESULTS: usize = 10;
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesSchemasTablesListParams {
+pub struct SharingSharesAllTablesListParams {
     share: String,
-    schema: String,
 }
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesSchemasTablesListQuery {
+pub struct SharingSharesAllTablesListQuery {
     pub max_results: Option<i64>,
     pub page_token: Option<String>,
 }
 
 #[derive(serde::Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesSchemasTablesListResponse {
+pub struct SharingSharesAllTablesListResponse {
     pub items: Vec<TableDetail>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub next_page_token: Option<String>,
@@ -48,15 +42,15 @@ pub struct SharesSchemasTablesListResponse {
 
 #[utoipa::path(
     get,
-    path = "/shares/{share}/schemas/{schema}/tables",
-    operation_id = "ListTables",
-    tag = "official",
+    path = "/sharing/shares/{share}/all-tables",
+    operation_id = "SharingListALLTables",
+    tag = "sharing",
     params(
-        SharesSchemasTablesListParams,
-        SharesSchemasTablesListQuery,
+        SharingSharesAllTablesListParams,
+        SharingSharesAllTablesListQuery,
     ),
     responses(
-        (status = 200, description = "The tables were successfully returned.", body = SharesSchemasTablesListResponse),
+        (status = 200, description = "The tables were successfully returned.", body = SharingSharesAllTablesListResponse),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
         (status = 401, description = "The request is unauthenticated. The bearer token is missing or incorrect.", body = ErrorMessage),
         (status = 403, description = "The request is forbidden from being fulfilled.", body = ErrorMessage),
@@ -67,8 +61,8 @@ pub struct SharesSchemasTablesListResponse {
 #[tracing::instrument(skip(state))]
 pub async fn list(
     Extension(state): Extension<SharedState>,
-    Path(params): Path<SharesSchemasTablesListParams>,
-    Query(query): Query<SharesSchemasTablesListQuery>,
+    Path(params): Path<SharingSharesAllTablesListParams>,
+    Query(query): Query<SharingSharesAllTablesListQuery>,
 ) -> Result<Response, Error> {
     let Ok(share) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
@@ -84,10 +78,6 @@ pub async fn list(
         tracing::error!("requested share does not exist");
         return Err(Error::NotFound);
     };
-    let Ok(schema) = SchemaName::new(params.schema) else {
-        tracing::error!("requested schema data is malformed");
-        return Err(Error::ValidationFailed);
-    };
     let limit = if let Some(limit) = &query.max_results {
         let Ok(limit) = usize::try_from(*limit) else {
             tracing::error!("requested limit is malformed");
@@ -102,9 +92,8 @@ pub async fn list(
     } else {
         None
     };
-    let Ok(tables) = TableService::query_by_share_and_schema_name(
+    let Ok(tables) = TableService::query_by_share_name(
         share.name(),
-        &schema,
         Some(&((limit + 1) as i64)),
         after.as_ref(),
         &state.pg_pool,
@@ -122,7 +111,7 @@ pub async fn list(
         tracing::info!("tables were successfully returned");
         return Ok((
             StatusCode::OK,
-            Json(SharesSchemasTablesListResponse {
+            Json(SharingSharesAllTablesListResponse {
                 items: tables.to_vec(),
                 next_page_token: next.name.clone().into(),
             }),
@@ -132,7 +121,7 @@ pub async fn list(
     tracing::info!("tables were successfully returned");
     Ok((
         StatusCode::OK,
-        Json(SharesSchemasTablesListResponse {
+        Json(SharingSharesAllTablesListResponse {
             items: tables,
             next_page_token: None,
         }),

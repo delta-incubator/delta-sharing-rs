@@ -34,7 +34,7 @@ const HEADER_NAME: &str = "Delta-Table-Version";
 
 #[derive(Debug, serde::Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesSchemasTablesQueryPostRequest {
+pub struct SharingSharesSchemasTablesQueryPostRequest {
     pub predicate_hints: Option<Vec<String>>,
     pub json_predicate_hints: Option<PredicateJson>,
     pub limit_hint: Option<i32>,
@@ -44,7 +44,7 @@ pub struct SharesSchemasTablesQueryPostRequest {
 
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct SharesSchemasTablesQueryPostParams {
+pub struct SharingSharesSchemasTablesQueryPostParams {
     share: String,
     schema: String,
     table: String,
@@ -52,11 +52,11 @@ pub struct SharesSchemasTablesQueryPostParams {
 
 #[utoipa::path(
     post,
-    path = "/shares/{share}/schemas/{schema}/tables/{table}/query",
-    operation_id = "QueryTable",
-    tag = "official",
-    request_body = SharesSchemasTablesQueryPostRequest,
-    params(SharesSchemasTablesQueryPostParams),
+    path = "/sharing/shares/{share}/schemas/{schema}/tables/{table}/query",
+    operation_id = "SharingQueryTable",
+    tag = "sharing",
+    request_body = SharingSharesSchemasTablesQueryPostRequest,
+    params(SharingSharesSchemasTablesQueryPostParams),
     responses(
         (status = 200, description = "The tables were successfully returned.", body = String),
         (status = 400, description = "The request is malformed.", body = ErrorMessage),
@@ -69,8 +69,8 @@ pub struct SharesSchemasTablesQueryPostParams {
 #[tracing::instrument(skip(state))]
 pub async fn post(
     Extension(state): Extension<SharedState>,
-    Path(params): Path<SharesSchemasTablesQueryPostParams>,
-    Json(payload): Json<SharesSchemasTablesQueryPostRequest>,
+    Path(params): Path<SharingSharesSchemasTablesQueryPostParams>,
+    Json(payload): Json<SharingSharesSchemasTablesQueryPostRequest>,
 ) -> Result<Response, Error> {
     let predicate_hints = if let Some(predicate_hints) = payload.predicate_hints {
         let predicate_hints: Result<Vec<SQLPartitionFilter>, _> = predicate_hints
