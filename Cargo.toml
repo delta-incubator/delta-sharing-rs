@@ -12,6 +12,9 @@ async-session = "3.0.0"
 async-trait = "0.1.64"
 axum = { version = "0.6.20", features = ["headers"] }
 axum-extra = { version = "0.8", features = ["json-lines"] }
+azure_core = "0.17.0"
+azure_storage = "0.17.0"
+azure_storage_blobs = "0.17.0"
 clap = "4.1.4"
 deltalake = { version = "0.15.0", features = ["s3", "azure", "gcs"] }
 futures = "0.3.28"
@@ -47,6 +50,7 @@ sqlx = { version = "0.7", features = [
 strum = { version = "0.25", features = ["derive"] }
 strum_macros = "0.25"
 tame-gcs = { version = "0.12.0", features = ["signing"] }
+time = { version = "0.3.30", features = ["local-offset"] }
 tracing = "0.1.37"
 tracing-log = "0.1.3"
 tracing-subscriber = { version = "0.3.16", features = ["env-filter", "json"] }

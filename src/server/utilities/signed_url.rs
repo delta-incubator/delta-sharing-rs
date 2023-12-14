@@ -3,6 +3,9 @@ use std::time::Duration;
 
 use anyhow::Context;
 use anyhow::Result;
+use azure_storage::shared_access_signature::service_sas::BlobSasPermissions;
+use azure_storage::StorageCredentials;
+use azure_storage_blobs::prelude::ClientBuilder;
 use rusoto_core::Region;
 use rusoto_credential::AwsCredentials as AWS;
 use rusoto_s3::util::PreSignedRequest;
@@ -27,6 +30,12 @@ pub enum Platform {
         bucket: String,
         path: String,
     },
+    Azure {
+        url: String,
+        storage_account: String,
+        container: String,
+        blob_name: String,
+    },
     None {
         url: String,
     },
@@ -48,6 +57,22 @@ impl FromStr for Platform {
                 bucket: String::from(url.domain().unwrap_or("")),
                 path: String::from(url.path().strip_prefix('/').unwrap_or("")),
             }),
+            "abfss" | "abfs" => {
+                let storage_account = url
+                    .domain()
+                    .and_then(|d| d.split_once("."))
+                    .map(|m| m.0)
+                    .unwrap_or("");
+                let container = url.username();
+                let blob = url.path().strip_prefix("/").unwrap_or("");
+
+                Ok(Self::Azure {
+                    url: String::from(url.as_str()),
+                    storage_account: String::from(storage_account),
+                    container: String::from(container),
+                    blob_name: String::from(blob),
+                })
+            }
             "gs" => Ok(Self::Gcp {
                 url: String::from(url.as_str()),
                 bucket: String::from(url.domain().unwrap_or("")),
@@ -57,6 +82,117 @@ impl FromStr for Platform {
                 url: String::from(url.as_str()),
             }),
         }
+    }
+}
+
+#[async_trait::async_trait]
+pub trait Signer: Send + Sync {
+    async fn sign(&self, path: &str) -> Result<String>;
+}
+
+#[async_trait::async_trait]
+impl<S: Signer + ?Sized> Signer for Box<S> {
+    async fn sign(&self, path: &str) -> Result<String> {
+        (**self).sign(path).await
+    }
+}
+
+pub struct NoopSigner;
+
+#[async_trait::async_trait]
+impl Signer for NoopSigner {
+    async fn sign(&self, path: &str) -> Result<String> {
+        Ok(path.to_string())
+    }
+}
+
+pub struct AwsSigner {
+    pub aws: AWS,
+    pub expiration: Duration,
+}
+
+#[async_trait::async_trait]
+impl Signer for AwsSigner {
+    async fn sign(&self, path: &str) -> Result<String> {
+        let url = Url::parse(path).context("failed to parse URL")?;
+        let bucket = String::from(url.domain().unwrap_or(""));
+        let path = String::from(url.path().strip_prefix('/').unwrap_or(""));
+
+        let region = Region::default();
+        let options = PreSignedRequestOption {
+            expires_in: self.expiration,
+        };
+        let request = GetObjectRequest {
+            bucket: bucket.to_string(),
+            key: path.to_string(),
+            ..Default::default()
+        };
+        let url = request.get_presigned_url(&region, &self.aws, &options);
+        let url = Url::parse(&url).context("failed to parse AWS signed URL")?;
+        Ok(url.into())
+    }
+}
+
+pub struct AzureSigner {
+    pub azure: StorageCredentials,
+    pub expiration: Duration,
+}
+
+#[async_trait::async_trait]
+impl Signer for AzureSigner {
+    async fn sign(&self, path: &str) -> Result<String> {
+        let url = Url::parse(path).context("failed to parse URL")?;
+
+        let storage_account = url
+            .domain()
+            .and_then(|d| d.split_once("."))
+            .map(|m| m.0)
+            .unwrap_or("");
+        let container = url.username();
+        let blob = url.path().strip_prefix("/").unwrap_or("");
+
+        // build azure blob client
+        let cb = ClientBuilder::new(storage_account.to_string(), self.azure.clone());
+        let blob_client = cb.blob_client(container, blob);
+
+        // generate SAS token for signing URLs
+        let mut permissions = BlobSasPermissions::default();
+        permissions.read = true;
+        let dt = time::OffsetDateTime::now_utc() + self.expiration;
+        let sas_token = blob_client
+            .shared_access_signature(permissions, dt)
+            .await
+            .unwrap();
+
+        // sign blobs with SAS token
+        let url = blob_client.generate_signed_blob_url(&sas_token)?;
+        Ok(url.into())
+    }
+}
+
+pub struct GcpSigner {
+    pub gcp: GCP,
+    pub expiration: Duration,
+}
+
+#[async_trait::async_trait]
+impl Signer for GcpSigner {
+    async fn sign(&self, path: &str) -> Result<String> {
+        let url = Url::parse(path).context("failed to parse URL")?;
+        let bucket = String::from(url.domain().unwrap_or(""));
+        let path = String::from(url.path().strip_prefix('/').unwrap_or(""));
+
+        let bucket = BucketName::try_from(bucket).context("failed to parse bucket name")?;
+        let object = ObjectName::try_from(path).context("failed to parse object name")?;
+        let options = SignedUrlOptional {
+            duration: self.expiration,
+            ..Default::default()
+        };
+        let signer = UrlSigner::with_ring();
+        let url = signer
+            .generate(&self.gcp, &(&bucket, &object), options)
+            .context("failed to generate signed url")?;
+        Ok(url.into())
     }
 }
 
@@ -75,6 +211,31 @@ impl Utility {
         };
         let url = request.get_presigned_url(&region, aws, &options);
         let url = Url::parse(&url).context("failed to parse AWS signed URL")?;
+        Ok(url)
+    }
+
+    pub async fn sign_azure(
+        azure: &StorageCredentials,
+        storage_account: &str,
+        container: &str,
+        blob: &str,
+        duration: u64,
+    ) -> Result<Url> {
+        // build azure blob client
+        let cb = ClientBuilder::new(storage_account.to_string(), azure.clone());
+        let blob_client = cb.blob_client(container, blob);
+
+        // generate SAS token for signing URLs
+        let mut permissions = BlobSasPermissions::default();
+        permissions.read = true;
+        let dt = time::OffsetDateTime::now_utc() + time::Duration::seconds(duration as i64);
+        let sas_token = blob_client
+            .shared_access_signature(permissions, dt)
+            .await
+            .unwrap();
+
+        // sign blobs with SAS token
+        let url = blob_client.generate_signed_blob_url(&sas_token)?;
         Ok(url)
     }
 
@@ -117,6 +278,30 @@ mod tests {
             assert_eq!(parsed_path, path);
         } else {
             panic!("should be parsed as S3 url");
+        }
+    }
+
+    #[test]
+    fn test_abfss_url() {
+        let adls_url =
+            "abfss://my_container@my_storage_account.dfs.core.windows.net/my_prefix/my_file";
+        let provider = Platform::from_str(adls_url).expect("should correctly parse ADLS url");
+        if let Platform::Azure {
+            url,
+            storage_account,
+            container,
+            blob_name,
+        } = provider
+        {
+            assert_eq!(
+                &url,
+                "abfss://my_container@my_storage_account.dfs.core.windows.net/my_prefix/my_file"
+            );
+            assert_eq!(&storage_account, "my_storage_account");
+            assert_eq!(&container, "my_container");
+            assert_eq!(&blob_name, "my_prefix/my_file");
+        } else {
+            panic!("expected Azure platform")
         }
     }
 
