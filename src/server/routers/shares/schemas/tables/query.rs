@@ -33,7 +33,6 @@ use crate::server::utilities::signed_url::GcpSigner;
 use crate::server::utilities::signed_url::NoopSigner;
 use crate::server::utilities::signed_url::Platform;
 use crate::server::utilities::signed_url::Signer;
-use crate::server::utilities::signed_url::Utility as SignedUrlUtility;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 
@@ -206,68 +205,6 @@ pub async fn post(
         _ => Box::new(NoopSigner {}),
     };
 
-    // let url_signer = |name: String| match &platform {
-    //     Platform::Aws { url, bucket, path } => {
-    //         if let Some(aws_credentials) = &state.aws_credentials {
-    //             let file: String = format!("{}/{}", path, name);
-    //             let Ok(signed) = SignedUrlUtility::sign_aws(
-    //                 aws_credentials,
-    //                 bucket,
-    //                 &file,
-    //                 &config::fetch::<u64>("signed_url_ttl"),
-    //             ) else {
-    //                 tracing::error!("failed to sign up AWS S3 url");
-    //                 return url.clone();
-    //             };
-    //             return signed.into();
-    //         }
-    //         tracing::warn!("AWS credentials were not set");
-    //         url.clone()
-    //     }
-    //     Platform::Gcp { url, bucket, path } => {
-    //         if let Some(gcp_service_account) = &state.gcp_service_account {
-    //             let file: String = format!("{}/{}", path, name);
-    //             let Ok(signed) = SignedUrlUtility::sign_gcp(
-    //                 gcp_service_account,
-    //                 bucket,
-    //                 &file,
-    //                 &config::fetch::<u64>("signed_url_ttl"),
-    //             ) else {
-    //                 tracing::error!("failed to sign up GCP GCS url");
-    //                 return url.clone();
-    //             };
-    //             return signed.into();
-    //         }
-    //         tracing::warn!("GCP service account was not set");
-    //         url.clone()
-    //     }
-    //     Platform::Azure {
-    //         url,
-    //         storage_account,
-    //         container,
-    //         blob_name,
-    //     } => {
-    //         if let Some(azure_storage_credentials) = &state.azure_storage_credentials {
-    //             let Ok(signed) = SignedUrlUtility::sign_azure(
-    //                 azure_storage_credentials,
-    //                 storage_account,
-    //                 container,
-    //                 blob_name,
-    //                 &config::fetch::<u64>("signed_url_ttl"),
-    //             ) else {
-    //                 tracing::error!("failed to sign up Azure Storage url");
-    //                 return url.clone();
-    //             };
-    //             return signed.into();
-    //         }
-    //         tracing::warn!("Azure Storage credentials were not set");
-    //         url.clone()
-    //     }
-    //     Platform::None { url } => {
-    //         tracing::warn!("no supported platforms");
-    //         url.clone()
-    //     }
-    // };
     let mut headers = HeaderMap::new();
     headers.insert(HEADER_NAME, table.version().into());
     headers.insert(
