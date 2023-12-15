@@ -1,5 +1,4 @@
 use anyhow::anyhow;
-use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::extract::Path;
@@ -10,16 +9,13 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
 use axum_extra::json_lines::JsonLines;
-use azure_storage::StorageCredentials;
-use cloud_file_signer::aws::S3FileSigner;
-use cloud_file_signer::azure::AbfsFileSigner;
-use cloud_file_signer::gcp::GcpFileSigner;
-use cloud_file_signer::CloudFileSigner;
 use std::str::FromStr;
-use url::Url;
+use std::time::Duration;
+use tame_gcs::signing::ServiceAccount;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
 
+use crate::config;
 use crate::server::entities::schema::Name as SchemaName;
 use crate::server::entities::share::Name as ShareName;
 use crate::server::entities::table::Name as TableName;
@@ -31,6 +27,12 @@ use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
 use crate::server::utilities::json::PartitionFilter as JSONPartitionFilter;
 use crate::server::utilities::json::PredicateJson;
 use crate::server::utilities::json::Utility as JSONUtility;
+use crate::server::utilities::signed_url::AwsSigner;
+use crate::server::utilities::signed_url::AzureSigner;
+use crate::server::utilities::signed_url::GcpSigner;
+use crate::server::utilities::signed_url::NoopSigner;
+use crate::server::utilities::signed_url::Platform;
+use crate::server::utilities::signed_url::Signer;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 
@@ -132,10 +134,9 @@ pub async fn post(
         return Err(Error::NotFound);
     };
     let Ok(platform) = Platform::from_str(&table.location) else {
-        tracing::error!("table location could not be parsed");
+        tracing::error!("requested cloud platform is not supported");
         return Err(anyhow!("error occured while identifying cloud platform").into());
     };
-
     let Ok(mut table) = DeltalakeUtility::open_table(&table.location).await else {
         tracing::error!(
             "request is not handled correctly due to a server error while loading delta table"
@@ -166,21 +167,42 @@ pub async fn post(
         };
         metadata.to_owned()
     };
-
-    // TODO: properly pass credentials to the signer
-    let url_signer: Box<dyn CloudFileSigner + Send + Sync> = match platform {
-        Platform::Aws => Box::new(S3FileSigner::from_env().await),
-        Platform::Gcp => Box::new(GcpFileSigner::from_env().await),
-        Platform::Azure => {
-            let account = std::env::var("AZURE_STORAGE_ACCOUNT_NAME").unwrap();
-            let key = std::env::var("AZURE_STORAGE_ACCOUNT_KEY").unwrap();
-            let creds = StorageCredentials::access_key(account.as_str(), key);
-            Box::new(AbfsFileSigner::new(account, creds))
+    let url_signer: Box<dyn Signer> = match &platform {
+        Platform::Aws { .. } => {
+            if let Some(creds) = &state.aws_credentials {
+                Box::new(AwsSigner {
+                    aws: creds.clone(),
+                    expiration: Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
+                })
+            } else {
+                Box::new(NoopSigner {})
+            }
         }
-        Platform::Unknown => {
-            tracing::error!("requested cloud platform is not supported");
-            return Err(anyhow!("error occured while identifying cloud platform").into());
+        Platform::Azure { .. } => {
+            if let Some(creds) = &state.azure_credentials {
+                Box::new(AzureSigner {
+                    azure: creds.clone(),
+                    expiration: Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
+                })
+            } else {
+                Box::new(NoopSigner {})
+            }
         }
+        Platform::Gcp { .. } => {
+            if let Some(_) = &state.gcp_service_account {
+                let creds = ServiceAccount::load_json_file(
+                    std::env::var("GOOGLE_APPLICATION_CREDENTIALS").unwrap(),
+                )
+                .unwrap();
+                Box::new(GcpSigner {
+                    gcp: creds,
+                    expiration: Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
+                })
+            } else {
+                Box::new(NoopSigner {})
+            }
+        }
+        _ => Box::new(NoopSigner {}),
     };
 
     let mut headers = HeaderMap::new();
@@ -201,32 +223,10 @@ pub async fn post(
                 json_predicate_hints,
                 payload.limit_hint,
                 is_time_traveled,
-                &*url_signer,
+                &url_signer,
             )
             .await,
         ),
     )
         .into_response())
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Platform {
-    Aws,
-    Azure,
-    Gcp,
-    Unknown,
-}
-
-impl FromStr for Platform {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let url = Url::parse(s).context("failed to parse URL")?;
-        match url.scheme() {
-            "s3" | "s3a" => Ok(Self::Aws),
-            "abfs" | "abfss" => Ok(Self::Azure),
-            "gs" => Ok(Self::Gcp),
-            _ => Ok(Self::Unknown),
-        }
-    }
 }
