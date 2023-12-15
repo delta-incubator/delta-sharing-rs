@@ -1,7 +1,9 @@
 use std::collections::HashMap;
+use std::time::Duration;
 
 use anyhow::Result;
 use axum::BoxError;
+use cloud_file_signer::CloudFileSigner;
 use deltalake::action::Add;
 use deltalake::delta::DeltaTable;
 use deltalake::delta::DeltaTableMetaData;
@@ -11,10 +13,10 @@ use md5;
 use serde_json::json;
 use utoipa::ToSchema;
 
+use crate::config::fetch;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
 use crate::server::utilities::json::PartitionFilter as JSONPartitionFilter;
 use crate::server::utilities::json::Utility as JSONUtility;
-use crate::server::utilities::signed_url::Signer;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 
@@ -137,8 +139,17 @@ impl File {
         }
     }
 
-    async fn sign<S: Signer>(&mut self, url_signer: &S) {
-        self.file.url = url_signer.sign(&self.file.url).await.unwrap();
+    async fn sign<S: CloudFileSigner + Send + Sync + ?Sized>(
+        &mut self,
+        url_signer: &S,
+        expires_in: Duration,
+    ) {
+        self.file.url = url_signer
+            .sign_read_only_starting_now(&self.file.url, expires_in)
+            .await
+            .unwrap()
+            .url()
+            .to_string();
     }
 }
 
@@ -220,7 +231,7 @@ impl Service {
         files
     }
 
-    pub async fn files_from<S: Signer>(
+    pub async fn files_from<S: CloudFileSigner + Send + Sync + ?Sized>(
         table: DeltaTable,
         metadata: DeltaTableMetaData,
         predicate_hints: Option<Vec<SQLPartitionFilter>>,
@@ -251,7 +262,11 @@ impl Service {
             .into_iter()
             .map(|f| async {
                 let mut file = File::from(f, version, timestamp);
-                file.sign(url_signer).await;
+                file.sign(
+                    url_signer,
+                    Duration::from_secs(fetch::<u64>("signed_url_ttl")),
+                )
+                .await;
                 Ok::<serde_json::Value, BoxError>(json!(file))
             })
             .collect::<Vec<_>>();
