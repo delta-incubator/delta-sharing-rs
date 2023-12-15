@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::extract::Path;
@@ -27,12 +28,9 @@ use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
 use crate::server::utilities::json::PartitionFilter as JSONPartitionFilter;
 use crate::server::utilities::json::PredicateJson;
 use crate::server::utilities::json::Utility as JSONUtility;
-use crate::server::utilities::signed_url::AwsSigner;
-use crate::server::utilities::signed_url::AzureSigner;
-use crate::server::utilities::signed_url::GcpSigner;
-use crate::server::utilities::signed_url::NoopSigner;
 use crate::server::utilities::signed_url::Platform;
 use crate::server::utilities::signed_url::Signer;
+use crate::server::utilities::signed_url::Utility as SignedUrlUtility;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 
@@ -168,41 +166,48 @@ pub async fn post(
         metadata.to_owned()
     };
     let url_signer: Box<dyn Signer> = match &platform {
-        Platform::Aws { .. } => {
+        Platform::Aws => {
             if let Some(creds) = &state.aws_credentials {
-                Box::new(AwsSigner {
-                    aws: creds.clone(),
-                    expiration: Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
-                })
+                Box::new(SignedUrlUtility::aws_signer(
+                    creds.clone(),
+                    Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
+                ))
             } else {
-                Box::new(NoopSigner {})
+                tracing::error!("No credentials found for AWS S3");
+                return Err(anyhow!("Error occurred while signing URLs").into());
             }
         }
-        Platform::Azure { .. } => {
+        Platform::Azure => {
             if let Some(creds) = &state.azure_credentials {
-                Box::new(AzureSigner {
-                    azure: creds.clone(),
-                    expiration: Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
-                })
+                Box::new(SignedUrlUtility::azure_signer(
+                    creds.clone(),
+                    Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
+                ))
             } else {
-                Box::new(NoopSigner {})
+                tracing::error!("No credentials found for Azure Blob Storage");
+                return Err(anyhow!("Error occurred while signing URLs").into());
             }
         }
-        Platform::Gcp { .. } => {
+        Platform::Gcp => {
             if let Some(_) = &state.gcp_service_account {
                 let creds = ServiceAccount::load_json_file(
-                    std::env::var("GOOGLE_APPLICATION_CREDENTIALS").unwrap(),
+                    std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
+                        .context("failed to load GCP credentials")?,
                 )
-                .unwrap();
-                Box::new(GcpSigner {
-                    gcp: creds,
-                    expiration: Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
-                })
+                .context("failed to load GCP credentials")?;
+                Box::new(SignedUrlUtility::gcp_signer(
+                    creds,
+                    Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
+                ))
             } else {
-                Box::new(NoopSigner {})
+                tracing::error!("No credentials found for GCP GCS");
+                return Err(anyhow!("Error occurred while signing URLs").into());
             }
         }
-        _ => Box::new(NoopSigner {}),
+        _ => {
+            tracing::error!("requested cloud platform is not supported");
+            return Err(anyhow!("Error occurred while signing URLs").into());
+        }
     };
 
     let mut headers = HeaderMap::new();

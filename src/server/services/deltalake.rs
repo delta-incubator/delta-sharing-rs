@@ -220,14 +220,14 @@ impl Service {
         files
     }
 
-    pub async fn files_from<S: Signer>(
+    pub async fn files_from<'a, S: Signer>(
         table: DeltaTable,
         metadata: DeltaTableMetaData,
         predicate_hints: Option<Vec<SQLPartitionFilter>>,
         json_predicate_hints: Option<JSONPartitionFilter>,
         limit_hint: Option<i32>,
         is_time_traveled: bool,
-        url_signer: &S,
+        url_signer: &'a S,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
         let version = if is_time_traveled {
             Some(table.version())
