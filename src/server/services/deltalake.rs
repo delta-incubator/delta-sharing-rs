@@ -14,6 +14,7 @@ use utoipa::ToSchema;
 use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
 use crate::server::utilities::json::PartitionFilter as JSONPartitionFilter;
 use crate::server::utilities::json::Utility as JSONUtility;
+use crate::server::utilities::signed_url::Signer;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 
@@ -116,12 +117,7 @@ pub struct File {
 }
 
 impl File {
-    fn from(
-        add: Add,
-        version: Option<i64>,
-        timestamp: Option<i64>,
-        url_signer: &dyn Fn(String) -> String,
-    ) -> Self {
+    fn from(add: Add, version: Option<i64>, timestamp: Option<i64>) -> Self {
         let mut partition_values: HashMap<String, String> = HashMap::new();
         for (k, v) in add.partition_values.into_iter() {
             if let Some(v) = v {
@@ -131,7 +127,7 @@ impl File {
         Self {
             file: FileDetail {
                 id: format!("{:x}", md5::compute(add.path.as_bytes())),
-                url: url_signer(add.path),
+                url: add.path,
                 partition_values,
                 size: add.size,
                 stats: add.stats,
@@ -139,6 +135,10 @@ impl File {
                 timestamp,
             },
         }
+    }
+
+    async fn sign<S: Signer>(&mut self, url_signer: &S) {
+        self.file.url = url_signer.sign(&self.file.url).await.unwrap();
     }
 }
 
@@ -220,14 +220,14 @@ impl Service {
         files
     }
 
-    pub fn files_from(
+    pub async fn files_from<S: Signer>(
         table: DeltaTable,
         metadata: DeltaTableMetaData,
         predicate_hints: Option<Vec<SQLPartitionFilter>>,
         json_predicate_hints: Option<JSONPartitionFilter>,
         limit_hint: Option<i32>,
         is_time_traveled: bool,
-        url_signer: &dyn Fn(String) -> String,
+        url_signer: &S,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
         let version = if is_time_traveled {
             Some(table.version())
@@ -247,14 +247,16 @@ impl Service {
         let files =
             Self::filter_with_json_hints(files, table.schema().cloned(), json_predicate_hints);
         let files = Self::filter_with_limit_hint(files, limit_hint);
-        let mut files = files
+        let futures = files
             .into_iter()
-            .map(|f| {
-                Ok::<serde_json::Value, BoxError>(json!(File::from(
-                    f, version, timestamp, url_signer
-                )))
+            .map(|f| async {
+                let mut file = File::from(f, version, timestamp);
+                file.sign(url_signer).await;
+                Ok::<serde_json::Value, BoxError>(json!(file))
             })
-            .collect::<Vec<Result<serde_json::Value, BoxError>>>();
+            .collect::<Vec<_>>();
+        let mut files = futures::future::join_all(futures).await;
+
         let mut ret = vec![
             Ok(json!(Protocol::new())),
             Ok(json!(Metadata::from(metadata))),

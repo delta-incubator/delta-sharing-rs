@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use anyhow::Context;
 use axum::extract::Extension;
 use axum::extract::Json;
 use axum::extract::Path;
@@ -10,6 +11,8 @@ use axum::response::IntoResponse;
 use axum::response::Response;
 use axum_extra::json_lines::JsonLines;
 use std::str::FromStr;
+use std::time::Duration;
+use tame_gcs::signing::ServiceAccount;
 use utoipa::IntoParams;
 use utoipa::ToSchema;
 
@@ -26,6 +29,7 @@ use crate::server::utilities::json::PartitionFilter as JSONPartitionFilter;
 use crate::server::utilities::json::PredicateJson;
 use crate::server::utilities::json::Utility as JSONUtility;
 use crate::server::utilities::signed_url::Platform;
+use crate::server::utilities::signed_url::Signer;
 use crate::server::utilities::signed_url::Utility as SignedUrlUtility;
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
@@ -161,46 +165,51 @@ pub async fn post(
         };
         metadata.to_owned()
     };
-    let url_signer = |name: String| match &platform {
-        Platform::Aws { url, bucket, path } => {
-            if let Some(aws_credentials) = &state.aws_credentials {
-                let file: String = format!("{}/{}", path, name);
-                let Ok(signed) = SignedUrlUtility::sign_aws(
-                    aws_credentials,
-                    bucket,
-                    &file,
-                    &config::fetch::<u64>("signed_url_ttl"),
-                ) else {
-                    tracing::error!("failed to sign up AWS S3 url");
-                    return url.clone();
-                };
-                return signed.into();
+    let url_signer: Box<dyn Signer> = match &platform {
+        Platform::Aws => {
+            if let Some(creds) = &state.aws_credentials {
+                Box::new(SignedUrlUtility::aws_signer(
+                    creds.clone(),
+                    Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
+                ))
+            } else {
+                tracing::error!("No credentials found for AWS S3");
+                return Err(anyhow!("Error occurred while signing URLs").into());
             }
-            tracing::warn!("AWS credentials were not set");
-            url.clone()
         }
-        Platform::Gcp { url, bucket, path } => {
-            if let Some(gcp_service_account) = &state.gcp_service_account {
-                let file: String = format!("{}/{}", path, name);
-                let Ok(signed) = SignedUrlUtility::sign_gcp(
-                    gcp_service_account,
-                    bucket,
-                    &file,
-                    &config::fetch::<u64>("signed_url_ttl"),
-                ) else {
-                    tracing::error!("failed to sign up GCP GCS url");
-                    return url.clone();
-                };
-                return signed.into();
+        Platform::Azure => {
+            if let Some(creds) = &state.azure_credentials {
+                Box::new(SignedUrlUtility::azure_signer(
+                    creds.clone(),
+                    Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
+                ))
+            } else {
+                tracing::error!("No credentials found for Azure Blob Storage");
+                return Err(anyhow!("Error occurred while signing URLs").into());
             }
-            tracing::warn!("GCP service account was not set");
-            url.clone()
         }
-        Platform::None { url } => {
-            tracing::warn!("no supported platforms");
-            url.clone()
+        Platform::Gcp => {
+            if let Some(_) = &state.gcp_service_account {
+                let creds = ServiceAccount::load_json_file(
+                    std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
+                        .context("failed to load GCP credentials")?,
+                )
+                .context("failed to load GCP credentials")?;
+                Box::new(SignedUrlUtility::gcp_signer(
+                    creds,
+                    Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
+                ))
+            } else {
+                tracing::error!("No credentials found for GCP GCS");
+                return Err(anyhow!("Error occurred while signing URLs").into());
+            }
+        }
+        _ => {
+            tracing::error!("requested cloud platform is not supported");
+            return Err(anyhow!("Error occurred while signing URLs").into());
         }
     };
+
     let mut headers = HeaderMap::new();
     headers.insert(HEADER_NAME, table.version().into());
     headers.insert(
@@ -211,15 +220,18 @@ pub async fn post(
     Ok((
         StatusCode::OK,
         headers,
-        JsonLines::new(DeltalakeService::files_from(
-            table,
-            metadata,
-            predicate_hints,
-            json_predicate_hints,
-            payload.limit_hint,
-            is_time_traveled,
-            &url_signer,
-        )),
+        JsonLines::new(
+            DeltalakeService::files_from(
+                table,
+                metadata,
+                predicate_hints,
+                json_predicate_hints,
+                payload.limit_hint,
+                is_time_traveled,
+                &url_signer,
+            )
+            .await,
+        ),
     )
         .into_response())
 }

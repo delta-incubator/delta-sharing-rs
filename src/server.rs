@@ -8,6 +8,7 @@ pub(crate) mod utilities;
 
 use anyhow::Context;
 use anyhow::Result;
+use azure_storage::StorageCredentials;
 use rusoto_credential::AwsCredentials;
 use rusoto_credential::ProvideAwsCredentials;
 use sqlx::PgPool;
@@ -35,6 +36,7 @@ pub struct Server {
     pg_pool: PgPool,
     gcp_service_account: Option<ServiceAccount>,
     aws_credentials: Option<AwsCredentials>,
+    azure_storage_credentials: Option<StorageCredentials>,
 }
 
 impl Server {
@@ -60,16 +62,28 @@ impl Server {
         if aws_credentials.is_none() {
             tracing::warn!("failed to load AWS credentials");
         }
+
+        let azure_storage_credentials = bootstrap::new_azure_storage_account().ok();
+        if azure_storage_credentials.is_none() {
+            tracing::warn!("failed to load Azure Storage credentials");
+        }
+
         Ok(Server {
             pg_pool,
             gcp_service_account,
             aws_credentials,
+            azure_storage_credentials,
         })
     }
 
     pub async fn start(self) -> Result<()> {
-        routers::bind(self.pg_pool, self.gcp_service_account, self.aws_credentials)
-            .await
-            .context("failed to start API server")
+        routers::bind(
+            self.pg_pool,
+            self.gcp_service_account,
+            self.aws_credentials,
+            self.azure_storage_credentials,
+        )
+        .await
+        .context("failed to start API server")
     }
 }

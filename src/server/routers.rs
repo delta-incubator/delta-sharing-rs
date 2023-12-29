@@ -10,6 +10,7 @@ use axum::middleware;
 use axum::response::Response;
 use axum::routing::{get, post};
 use axum::Router;
+use azure_storage::StorageCredentials;
 use rusoto_credential::AwsCredentials;
 use sqlx::PgPool;
 use tame_gcs::signing::ServiceAccount;
@@ -26,6 +27,7 @@ pub struct State {
     pub pg_pool: PgPool,
     pub gcp_service_account: Option<ServiceAccount>,
     pub aws_credentials: Option<AwsCredentials>,
+    pub azure_credentials: Option<StorageCredentials>,
 }
 
 pub type SharedState = Arc<State>;
@@ -38,11 +40,13 @@ async fn route(
     pg_pool: PgPool,
     gcp_service_account: Option<ServiceAccount>,
     aws_credentials: Option<AwsCredentials>,
+    azure_credentials: Option<StorageCredentials>,
 ) -> Result<Router> {
     let state = Arc::new(State {
         pg_pool,
         gcp_service_account,
         aws_credentials,
+        azure_credentials,
     });
 
     let swagger = SwaggerUi::new("/swagger-ui").url("/api-doc/openapi.json", ApiDoc::openapi());
@@ -127,10 +131,16 @@ pub async fn bind(
     pg_pool: PgPool,
     gcp_service_account: Option<ServiceAccount>,
     aws_credentials: Option<AwsCredentials>,
+    azure_credentials: Option<StorageCredentials>,
 ) -> Result<()> {
-    let app = route(pg_pool, gcp_service_account, aws_credentials)
-        .await
-        .context("failed to create axum router")?;
+    let app = route(
+        pg_pool,
+        gcp_service_account,
+        aws_credentials,
+        azure_credentials,
+    )
+    .await
+    .context("failed to create axum router")?;
     let server_bind = config::fetch::<String>("server_bind");
     let addr = server_bind.as_str().parse().context(format!(
         r#"failed to parse "{}" to SocketAddr"#,

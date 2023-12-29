@@ -3,6 +3,9 @@ use std::time::Duration;
 
 use anyhow::Context;
 use anyhow::Result;
+use azure_storage::shared_access_signature::service_sas::BlobSasPermissions;
+use azure_storage::StorageCredentials as Azure;
+use azure_storage_blobs::prelude::ClientBuilder;
 use rusoto_core::Region;
 use rusoto_credential::AwsCredentials as AWS;
 use rusoto_s3::util::PreSignedRequest;
@@ -17,19 +20,10 @@ use url::Url;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Platform {
-    Aws {
-        url: String,
-        bucket: String,
-        path: String,
-    },
-    Gcp {
-        url: String,
-        bucket: String,
-        path: String,
-    },
-    None {
-        url: String,
-    },
+    Aws,
+    Gcp,
+    Azure,
+    None,
 }
 
 impl FromStr for Platform {
@@ -38,146 +32,200 @@ impl FromStr for Platform {
     fn from_str(input: &str) -> std::result::Result<Self, Self::Err> {
         let url = Url::parse(input).context("failed to parse URL")?;
         match url.scheme() {
-            "s3" => Ok(Self::Aws {
-                url: String::from(url.as_str()),
-                bucket: String::from(url.domain().unwrap_or("")),
-                path: String::from(url.path().strip_prefix('/').unwrap_or("")),
-            }),
-            "s3a" => Ok(Self::Aws {
-                url: String::from(url.as_str()),
-                bucket: String::from(url.domain().unwrap_or("")),
-                path: String::from(url.path().strip_prefix('/').unwrap_or("")),
-            }),
-            "gs" => Ok(Self::Gcp {
-                url: String::from(url.as_str()),
-                bucket: String::from(url.domain().unwrap_or("")),
-                path: String::from(url.path().strip_prefix('/').unwrap_or("")),
-            }),
-            _ => Ok(Self::None {
-                url: String::from(url.as_str()),
-            }),
+            "s3" | "s3a" => Ok(Self::Aws),
+            "abfss" | "abfs" => Ok(Self::Azure),
+            "gs" => Ok(Self::Gcp),
+            _ => Ok(Self::None),
         }
     }
 }
 
-pub struct Utility;
+#[async_trait::async_trait]
+pub trait Signer: Send + Sync {
+    async fn sign(&self, path: &str) -> Result<String>;
+}
 
-impl Utility {
-    pub fn sign_aws(aws: &AWS, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
+#[async_trait::async_trait]
+impl<S: Signer + ?Sized> Signer for Box<S> {
+    async fn sign(&self, path: &str) -> Result<String> {
+        (**self).sign(path).await
+    }
+}
+
+pub struct AwsSigner {
+    pub aws: AWS,
+    pub expiration: Duration,
+}
+
+#[async_trait::async_trait]
+impl Signer for AwsSigner {
+    async fn sign(&self, path: &str) -> Result<String> {
+        let url = Url::parse(path).context("failed to parse URL")?;
+        let bucket = String::from(url.domain().unwrap_or(""));
+        let path = String::from(url.path().strip_prefix('/').unwrap_or(""));
+
         let region = Region::default();
         let options = PreSignedRequestOption {
-            expires_in: Duration::from_secs(*duration),
+            expires_in: self.expiration,
         };
         let request = GetObjectRequest {
             bucket: bucket.to_string(),
             key: path.to_string(),
             ..Default::default()
         };
-        let url = request.get_presigned_url(&region, aws, &options);
+        let url = request.get_presigned_url(&region, &self.aws, &options);
         let url = Url::parse(&url).context("failed to parse AWS signed URL")?;
-        Ok(url)
+        Ok(url.into())
     }
+}
 
-    pub fn sign_gcp(gcp: &GCP, bucket: &str, path: &str, duration: &u64) -> Result<Url> {
+pub struct AzureSigner {
+    pub azure: Azure,
+    pub expiration: Duration,
+}
+
+#[async_trait::async_trait]
+impl Signer for AzureSigner {
+    async fn sign(&self, path: &str) -> Result<String> {
+        let url = Url::parse(path).context("failed to parse URL")?;
+
+        let storage_account = url
+            .domain()
+            .and_then(|d| d.split_once("."))
+            .map(|m| m.0)
+            .unwrap_or("");
+        let container = url.username();
+        let blob = url.path().strip_prefix("/").unwrap_or("");
+
+        // build azure blob client
+        let cb = ClientBuilder::new(storage_account.to_string(), self.azure.clone());
+        let blob_client = cb.blob_client(container, blob);
+
+        // generate SAS token for signing URLs
+        let mut permissions = BlobSasPermissions::default();
+        permissions.read = true;
+        let dt = time::OffsetDateTime::now_utc() + self.expiration;
+        let sas_token = blob_client
+            .shared_access_signature(permissions, dt)
+            .await
+            .unwrap();
+
+        // sign blobs with SAS token
+        let url = blob_client.generate_signed_blob_url(&sas_token)?;
+        Ok(url.into())
+    }
+}
+
+pub struct GcpSigner {
+    pub gcp: GCP,
+    pub expiration: Duration,
+}
+
+#[async_trait::async_trait]
+impl Signer for GcpSigner {
+    async fn sign(&self, path: &str) -> Result<String> {
+        let url = Url::parse(path).context("failed to parse URL")?;
+        let bucket = String::from(url.domain().unwrap_or(""));
+        let path = String::from(url.path().strip_prefix('/').unwrap_or(""));
+
         let bucket = BucketName::try_from(bucket).context("failed to parse bucket name")?;
         let object = ObjectName::try_from(path).context("failed to parse object name")?;
         let options = SignedUrlOptional {
-            duration: Duration::from_secs(*duration),
+            duration: self.expiration,
             ..Default::default()
         };
         let signer = UrlSigner::with_ring();
         let url = signer
-            .generate(gcp, &(&bucket, &object), options)
+            .generate(&self.gcp, &(&bucket, &object), options)
             .context("failed to generate signed url")?;
-        Ok(url)
+        Ok(url.into())
+    }
+}
+
+pub struct Utility;
+
+impl Utility {
+    pub fn aws_signer(aws: AWS, expiration: Duration) -> AwsSigner {
+        AwsSigner { aws, expiration }
+    }
+
+    pub fn azure_signer(azure: Azure, expiration: Duration) -> AzureSigner {
+        AzureSigner { azure, expiration }
+    }
+
+    pub fn gcp_signer(gcp: GCP, expiration: Duration) -> GcpSigner {
+        GcpSigner { gcp, expiration }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bootstrap;
-    use rusoto_credential::ProvideAwsCredentials;
+
+    use rusoto_credential::AwsCredentials;
+    use serde_json::json;
     use std::str::FromStr;
+    use tame_gcs::signing::ServiceAccount;
 
-    #[test]
-    fn test_aws_url() {
-        let bucket = testutils::rand::string(10);
-        let path = testutils::rand::string(10);
-        let url = format!("s3://{}/{}", bucket, path);
-        let provider = Platform::from_str(&url).expect("should parse s3 url properly");
-        if let Platform::Aws {
-            url: parsed_url,
-            bucket: parsed_bucket,
-            path: parsed_path,
-        } = provider
-        {
-            assert_eq!(parsed_url, url);
-            assert_eq!(parsed_bucket, bucket);
-            assert_eq!(parsed_path, path);
-        } else {
-            panic!("should be parsed as S3 url");
-        }
-    }
-
-    #[test]
-    fn test_gcp_url() {
-        let bucket = testutils::rand::string(10);
-        let path = testutils::rand::string(10);
-        let url = format!("gs://{}/{}", bucket, path);
-        let provider = Platform::from_str(&url).expect("should parse gcs url properly");
-        if let Platform::Gcp {
-            url: parsed_url,
-            bucket: parsed_bucket,
-            path: parsed_path,
-        } = provider
-        {
-            assert_eq!(parsed_url, url);
-            assert_eq!(parsed_bucket, bucket);
-            assert_eq!(parsed_path, path);
-        } else {
-            panic!("should be parsed as GS url");
-        }
-    }
-
-    //#[tokio::test]
+    #[tokio::test]
     async fn test_aws_sign_local() {
-        let aws_profile = std::env::var("AWS_PROFILE").expect("AWS profile should be specified");
-        let pp = bootstrap::aws::new(&aws_profile)
-            .expect("AWS profile provider should be created properly");
-        let creds = pp
-            .credentials()
-            .await
-            .expect("AWS credentials should be acquired properly");
-        if let Ok(Platform::Aws { bucket, path, .. }) =
-            Platform::from_str("s3://delta-sharing-test/covid")
-        {
-            if let Ok(url) = Utility::sign_aws(&creds, &bucket, &path, &300) {
+        let creds = AwsCredentials::new("test", "test", None, None);
+        if let Ok(Platform::Aws) = Platform::from_str("s3://delta-sharing-test/covid") {
+            let signer = AwsSigner {
+                aws: creds,
+                expiration: Duration::from_secs(300),
+            };
+            if let Ok(url) = signer.sign("s3://delta-sharing-test/covid").await {
                 println!("{:?}", url);
+            } else {
+                panic!("failed to sign S3 url")
             }
         } else {
             panic!("failed to parse S3 url");
         };
     }
 
-    //#[tokio::test]
-    async fn test_gcp_sign_local() {
-        let path = format!(
-            "{}",
-            shellexpand::tilde(
-                std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
-                    .ok()
-                    .unwrap_or("~/.gcp/service-account-file.json".into())
-                    .as_str()
-            )
-        );
-        let sa =
-            bootstrap::gcp::new(&path).expect("GCP service account should be created properly");
-        if let Ok(Platform::Gcp { bucket, path, .. }) =
-            Platform::from_str("gs://delta-sharing-test/covid")
+    #[tokio::test]
+    async fn test_azure_sign_local() {
+        let creds = Azure::access_key("mystorageaccount", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==");
+        if let Ok(Platform::Azure) =
+            Platform::from_str("abfss://mycontainer@mystorageaccount.dfs.core.windows.net/myblob")
         {
-            if let Ok(url) = Utility::sign_gcp(&sa, &bucket, &path, &300) {
+            let signer = AzureSigner {
+                azure: creds,
+                expiration: Duration::from_secs(300),
+            };
+            if let Ok(url) = signer
+                .sign("abfss://mycontainer@mystorageaccount.dfs.core.windows.net/myblob")
+                .await
+            {
                 println!("{:?}", url);
+            } else {
+                panic!("failed to sign Azure url")
+            }
+        } else {
+            panic!("failed to parse Azure url");
+        };
+    }
+
+    #[tokio::test]
+    async fn test_gcp_sign_local() {
+        let creds = json!({
+            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCestzikbw/l1ga\ntLSJYoiQCtX5EM+Dfh3Xn4lefol5uhX0anmrTWIidZ1CSn512tQc6WUKQOHJhDUW\naxDFEr0bwmN+vvguVHXHIRV4ilVbNykt21g3eWGHBOnY0cCjLbSICEQGcqqSCDHe\nhVkKXH4vkpahtX8P0+DiAMZ1Ou+4AaOK6BTUWDIR63+LRGd3wrx8VhzDPJHK2R/q\nO23bM0E8ktNl0Rs0Q/a2krniFwx7f7e/RZrkJ+kq+f6hZrgYwufij1P87XmNKl1T\nz+7xJXsPc72wQkeqr7AGqJe8KsiX9Ajlms7rWQRvx0sJrJYWnT+t++MqOzSXcwB0\nS1tsCOnjAgMBAAECggEAAcwTE0pvitAlx8ZPGxUvaGOEW880bQ/zD5DiHIdV+uJq\nwuX9Hb2rxFR3pPC0sOn6/Ul+rZiMK1zgwFxoXWBNHZuHG+rWuFOYMoVDOdEQjrli\nW9TAPCnsOvwJF+hRhFI4A/2v+NtjPMcfUB6gzQISIxYdDZTBbRugUCmOax/GkjCx\n+GtlxszPfhqgQCsDTXaoceJZlLGg6aZwW7gyHkXOt1P+DDom0cS6GBxR5aIf13Fr\n+I3/318IVCz7JATLvSMETQD2KMt7KAvC6sdLsHqgPBCNJ3u1WSeXwnwxHdCfTkPn\nWLiRCznz4CeVCiY18z+DopmBYPXUMJKap8SaCNsFNQKBgQDf84Yvu6flUBdhIjVL\nfQd1d/TtXa0D0IpnqqkeX51P5cFfjNCzzwHfIv8NWvoQ2LdVeLE0eiNxgHJYj1M+\nv5/FgmLMZGJVysCNI/g+nkjxr7dVtLtpMI55Vm5/cIlsOk85qGPefmaqrHxO8ryh\niN1Hb6QCsccG+Dh3ZoAgwyi1pwKBgQC1aM3Zh8kXfne54AdNBqU7rVqkt6QKoiuI\niPd9fC+sTh9zbVARa0dQQm55x+V0+PvAZNRLueci6ZqRjAhnm3MCLLAfvTsS594D\nDRpjMXdljMQ064jhvmPQ2Q+h+uPzBtH1I5q08CN4BdKXsN1oz7PSfcNU9KyUu/yn\n2tO/iEKpZQKBgQCijg8ugpXB2zq9JKlum9hYKbQ8vywggrSTvsp244w6PFj6VCoA\n+hcvsiVTul+c7tFUVwC5SJaFgmh9Y7tW5pzALn4sQgkmoL7XM+6y9Q2ZcKQwr7kB\nB1/DLzuRgUwepMxw24tyKmm3JPAuFf9ZeRC1E5IG6qe+pVnHQT1rinz4LQKBgFHb\nTKePgcm8I0IYOLMlAIIBIxmYU8kIjCQ7yZEx7EEPr1liRfLWOYOZtkf1TzCM+OxD\nkxfodsdmKXzrdw9pMWgVyhNIS9OoFKHD09hWhc2oyxAmB8n1Iw0mJMuubhVHSo4W\n1sQ2Z4rM9c3E3ONidX3RicZX8Vfby5HiSBHw5kORAoGAaLRFJmgLq092NNtf5O1u\n+9hs/xVxIlUk4yHq7stpHipiUsy4qPHNr2KNP74Y3Ki3jVqULf0oiq72W/1dssTR\n0HmFe832OfH0gjMJyFtH9t0Wi6WyZpRYYvPA8Hl2tTBuSLsQY3p5A3E5okT8TbId\nx1Ee1vUKIFIVfK+pb/l6/lg=\n-----END PRIVATE KEY-----\n",
+            "client_email": "real-address@very-good-project-id.iam.gserviceaccount.com",
+        });
+        let sa = ServiceAccount::load_json(creds.to_string().as_bytes())
+            .expect("GCP service account should be created properly");
+
+        if let Ok(Platform::Gcp) = Platform::from_str("gs://delta-sharing-test/covid") {
+            let signer = GcpSigner {
+                gcp: sa,
+                expiration: Duration::from_secs(300),
+            };
+            if let Ok(url) = signer.sign("gs://delta-sharing-test/covid").await {
+                println!("{:?}", url);
+            } else {
+                panic!("failed to sign GCS url")
             }
         } else {
             panic!("failed to parse GS url");
