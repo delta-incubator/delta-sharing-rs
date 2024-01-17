@@ -17,7 +17,7 @@ Supported Platforms
 |:---------------:|:----------------:|:---------------:|
 | :green_square:  | :green_square:   | :red_square:    |
 
-Cofigure Credentials for Cloud Storage Backends
+Configure Credentials for Cloud Storage Backends
 ==============================
  1. **Amazon AWS**
 
@@ -255,3 +255,10 @@ If the preceding *riverbank* project had not existed, the road of development wo
 2. [delta-rs](https://github.com/delta-io/delta-rs)
 
  Needless to say, this great Rust crate allowed me low level access to Delta tables in Rust.
+
+## Contributing
+
+We encourage you to reach out, and are [committed](CODE_OF_CONDUCT.md) to provide a welcoming community.
+
+- [Join us in our Slack workspace](https://go.delta.io/slack), channel `#delta-sharing-rs`
+- Looking to contribute? Raise an issue [here](https://github.com/delta-incubator/delta-sharing-rs/issues) and check out our [contributing guide](CONTRIBUTING.md).
