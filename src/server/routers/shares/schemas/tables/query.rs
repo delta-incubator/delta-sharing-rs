@@ -189,7 +189,7 @@ pub async fn post(
             }
         }
         Platform::Gcp => {
-            if let Some(_) = &state.gcp_service_account {
+            if state.gcp_service_account.is_some() {
                 let creds = ServiceAccount::load_json_file(
                     std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
                         .context("failed to load GCP credentials")?,

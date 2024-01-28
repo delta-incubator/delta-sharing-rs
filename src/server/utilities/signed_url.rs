@@ -91,11 +91,11 @@ impl Signer for AzureSigner {
 
         let storage_account = url
             .domain()
-            .and_then(|d| d.split_once("."))
+            .and_then(|d| d.split_once('.'))
             .map(|m| m.0)
             .unwrap_or("");
         let container = url.username();
-        let blob = url.path().strip_prefix("/").unwrap_or("");
+        let blob = url.path().strip_prefix('/').unwrap_or("");
 
         // build azure blob client
         let cb = ClientBuilder::new(storage_account.to_string(), self.azure.clone());
