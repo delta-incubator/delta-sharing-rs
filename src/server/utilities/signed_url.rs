@@ -120,7 +120,7 @@ impl Signer for AzureSigner {
         let path = Path::parse(url.path().strip_prefix('/').unwrap_or(""))
             .context("failed to parse blob path")?;
         let signed = store
-            .signed_url(Method::GET, &path, self.expiration.clone())
+            .signed_url(Method::GET, &path, self.expiration)
             .await
             .context("failed to sign URL")?;
 

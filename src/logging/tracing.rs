@@ -1,21 +1,13 @@
+use std::fmt::{Debug, Display, Result as FmtResult};
+
 use chrono::SecondsFormat;
 use colored::Colorize;
-use std::fmt::Debug;
-use std::fmt::Display;
-use std::fmt::Result as FmtResult;
-use tracing::field::Field;
-use tracing::field::Visit;
-use tracing::Event;
-use tracing::Level;
-use tracing::Subscriber;
+use tracing::field::{Field, Visit};
+use tracing::{Event, Level, Subscriber};
 use tracing_log::NormalizeEvent;
 use tracing_subscriber::field::RecordFields;
-use tracing_subscriber::fmt;
 use tracing_subscriber::fmt::format::Writer;
-use tracing_subscriber::fmt::FmtContext;
-use tracing_subscriber::fmt::FormatEvent;
-use tracing_subscriber::fmt::FormatFields;
-use tracing_subscriber::fmt::FormattedFields;
+use tracing_subscriber::fmt::{self, FmtContext, FormatEvent, FormatFields, FormattedFields};
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::EnvFilter;

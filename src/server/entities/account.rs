@@ -1,22 +1,15 @@
-use anyhow::anyhow;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use argon2::password_hash::rand_core::OsRng;
-use argon2::password_hash::PasswordHash;
-use argon2::password_hash::PasswordHasher;
-use argon2::password_hash::PasswordVerifier;
-use argon2::password_hash::SaltString;
+use argon2::password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString};
 use argon2::Argon2;
-use getset::Getters;
-use getset::Setters;
+use getset::{Getters, Setters};
 use sqlx::postgres::PgQueryResult;
 use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::impl_i64_property;
-use crate::impl_string_property;
-use crate::impl_uuid_property;
 use crate::server::repositories::account::Repository;
+use crate::{impl_i64_property, impl_string_property, impl_uuid_property};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Id {

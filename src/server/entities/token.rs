@@ -1,16 +1,14 @@
 use anyhow::Result;
-use getset::Getters;
-use getset::Setters;
+use getset::{Getters, Setters};
 use sqlx::postgres::PgQueryResult;
 use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::impl_string_property;
-use crate::impl_uuid_property;
 use crate::server::entities::account::Id as AccountId;
 use crate::server::middlewares::jwt::Role;
 use crate::server::repositories::token::Repository;
+use crate::{impl_string_property, impl_uuid_property};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Id {

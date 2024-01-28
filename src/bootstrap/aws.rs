@@ -1,5 +1,4 @@
-use anyhow::Context;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use rusoto_credential::ProfileProvider;
 
 pub fn new(profile: &str) -> Result<ProfileProvider> {

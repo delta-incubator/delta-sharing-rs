@@ -1,12 +1,9 @@
 use anyhow::anyhow;
-use axum::extract::Extension;
-use axum::extract::Path;
+use axum::extract::{Extension, Path};
 use axum::http::header;
-use axum::http::header::HeaderMap;
-use axum::http::header::HeaderValue;
+use axum::http::header::{HeaderMap, HeaderValue};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::response::Response;
+use axum::response::{IntoResponse, Response};
 use axum_extra::json_lines::JsonLines;
 use utoipa::IntoParams;
 

@@ -1,6 +1,4 @@
-use config::Config;
-use config::Environment;
-use config::File;
+use config::{Config, Environment, File};
 use glob::glob;
 use once_cell::sync::Lazy;
 

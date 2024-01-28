@@ -1,19 +1,16 @@
+use anyhow::anyhow;
+use axum::headers::authorization::Bearer;
+use axum::headers::{Authorization, HeaderMapExt};
+use axum::http::Request;
+use axum::middleware::Next;
+use axum::response::Response;
+use jsonwebtoken::{decode, DecodingKey, EncodingKey, Validation};
+
 use crate::config::JWT_SECRET;
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::account::Name as AccountName;
 use crate::server::routers::SharedState;
 use crate::server::services::error::Error;
-use anyhow::anyhow;
-use axum::headers::authorization::Bearer;
-use axum::headers::Authorization;
-use axum::headers::HeaderMapExt;
-use axum::http::Request;
-use axum::middleware::Next;
-use axum::response::Response;
-use jsonwebtoken::decode;
-use jsonwebtoken::DecodingKey;
-use jsonwebtoken::EncodingKey;
-use jsonwebtoken::Validation;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
