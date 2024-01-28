@@ -1,8 +1,6 @@
-use anyhow::anyhow;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use sqlx::postgres::PgDatabaseError;
-use sqlx::Acquire;
-use sqlx::Postgres;
+use sqlx::{Acquire, Postgres};
 
 const INTEGRITY_ERROR: &str = "23";
 

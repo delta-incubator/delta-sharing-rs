@@ -1,9 +1,7 @@
 use anyhow::anyhow;
-use axum::extract::Extension;
-use axum::extract::Json;
+use axum::extract::{Extension, Json};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::response::Response;
+use axum::response::{IntoResponse, Response};
 use utoipa::ToSchema;
 
 use crate::server::entities::account::Entity as AccountEntity;
@@ -58,7 +56,7 @@ pub async fn login(
     Extension(state): Extension<SharedState>,
     Json(payload): Json<AdminLoginRequest>,
 ) -> Result<Response, Error> {
-    let Ok(account) = AccountName::new(payload.account) else {
+    let Ok(account) = AccountName::try_new(payload.account) else {
         tracing::error!("requested account data is malformed");
         return Err(Error::ValidationFailed);
     };

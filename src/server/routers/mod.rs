@@ -10,10 +10,10 @@ use axum::middleware;
 use axum::response::Response;
 use axum::routing::{get, post};
 use axum::Router;
-use azure_storage::StorageCredentials;
 use rusoto_credential::AwsCredentials;
 use sqlx::PgPool;
 use tame_gcs::signing::ServiceAccount;
+use tokio::net::TcpListener;
 use tower_http::cors::CorsLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
@@ -23,11 +23,22 @@ use crate::server::api_doc::ApiDoc;
 use crate::server::middlewares::jwt;
 use crate::server::services::error::Error;
 
+#[derive(Clone)]
+pub enum AzureCredential {
+    AccessKey(String),
+}
+
+#[derive(Clone)]
+pub struct AzureLocation {
+    pub(crate) account: String,
+    pub(crate) credential: AzureCredential,
+}
+
 pub struct State {
     pub pg_pool: PgPool,
     pub gcp_service_account: Option<ServiceAccount>,
     pub aws_credentials: Option<AwsCredentials>,
-    pub azure_credentials: Option<StorageCredentials>,
+    pub azure_credentials: Option<AzureLocation>,
 }
 
 pub type SharedState = Arc<State>;
@@ -40,7 +51,7 @@ async fn route(
     pg_pool: PgPool,
     gcp_service_account: Option<ServiceAccount>,
     aws_credentials: Option<AwsCredentials>,
-    azure_credentials: Option<StorageCredentials>,
+    azure_credentials: Option<AzureLocation>,
 ) -> Result<Router> {
     let state = Arc::new(State {
         pg_pool,
@@ -131,7 +142,7 @@ pub async fn bind(
     pg_pool: PgPool,
     gcp_service_account: Option<ServiceAccount>,
     aws_credentials: Option<AwsCredentials>,
-    azure_credentials: Option<StorageCredentials>,
+    azure_credentials: Option<AzureLocation>,
 ) -> Result<()> {
     let app = route(
         pg_pool,
@@ -141,18 +152,11 @@ pub async fn bind(
     )
     .await
     .context("failed to create axum router")?;
-    let server_bind = config::fetch::<String>("server_bind");
-    let addr = server_bind.as_str().parse().context(format!(
-        r#"failed to parse "{}" to SocketAddr"#,
-        server_bind
-    ))?;
+    let addr = config::fetch::<String>("server_bind");
     tracing::info!("delta sharing server listening on {}", addr);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
+    let listener = TcpListener::bind(&addr).await?;
+    axum::serve(listener, app.into_make_service())
         .await
-        .context(format!(
-            r#"failed to bind "{}" to hyper::Server"#,
-            server_bind,
-        ))?;
+        .context(format!(r#"failed to bind "{}" to hyper::Server"#, addr))?;
     Ok(())
 }

@@ -1,16 +1,14 @@
 use anyhow::Result;
-use getset::Getters;
-use getset::Setters;
+use getset::{Getters, Setters};
 use sqlx::postgres::PgQueryResult;
 use sqlx::PgPool;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::impl_string_property;
-use crate::impl_uuid_property;
 use crate::server::entities::account::Id as AccountId;
 use crate::server::middlewares::jwt::Role;
 use crate::server::repositories::token::Repository;
+use crate::{impl_string_property, impl_uuid_property};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Id {
@@ -57,9 +55,9 @@ impl Entity {
     ) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
-            email: Email::new(email)?,
+            email: Email::try_new(email)?,
             role,
-            value: Value::new(value)?,
+            value: Value::try_new(value)?,
             created_by: AccountId::try_from(created_by)?,
         })
     }
@@ -85,21 +83,21 @@ mod tests {
 
     #[test]
     fn test_valid_email() {
-        assert!(Email::new(testutils::rand::email()).is_ok());
+        assert!(Email::try_new(testutils::rand::email()).is_ok());
     }
 
     #[test]
     fn test_invalid_email() {
-        assert!(Email::new(testutils::rand::string(20)).is_err());
+        assert!(Email::try_new(testutils::rand::string(20)).is_err());
     }
 
     #[test]
     fn test_valid_value() {
-        assert!(Value::new(testutils::rand::string(255)).is_ok());
+        assert!(Value::try_new(testutils::rand::string(255)).is_ok());
     }
 
     #[test]
     fn test_invalid_value() {
-        assert!(Value::new("").is_err());
+        assert!(Value::try_new("").is_err());
     }
 }

@@ -1,12 +1,9 @@
-use anyhow::Context;
-use anyhow::Result;
-use chrono::DateTime;
-use chrono::Utc;
+use anyhow::{Context, Result};
+use chrono::{DateTime, Utc};
 use sqlx::postgres::PgQueryResult;
 use uuid::Uuid;
 
-use crate::server::entities::share::Entity;
-use crate::server::entities::share::Name;
+use crate::server::entities::share::{Entity, Name};
 use crate::server::utilities::postgres::PgAcquire;
 
 #[derive(Debug, Clone, serde::Serialize, sqlx::FromRow)]

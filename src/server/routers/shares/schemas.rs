@@ -1,13 +1,8 @@
 use anyhow::anyhow;
-use axum::extract::Extension;
-use axum::extract::Json;
-use axum::extract::Path;
-use axum::extract::Query;
+use axum::extract::{Extension, Json, Path, Query};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::response::Response;
-use utoipa::IntoParams;
-use utoipa::ToSchema;
+use axum::response::{IntoResponse, Response};
+use utoipa::{IntoParams, ToSchema};
 
 use crate::server::entities::schema::Name as SchemaName;
 use crate::server::entities::share::Entity as ShareEntity;
@@ -66,7 +61,7 @@ pub async fn list(
     Path(params): Path<SharesSchemasListParams>,
     Query(query): Query<SharesSchemasListQuery>,
 ) -> Result<Response, Error> {
-    let Ok(share) = ShareName::new(params.share) else {
+    let Ok(share) = ShareName::try_new(params.share) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
@@ -90,7 +85,7 @@ pub async fn list(
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &query.page_token {
-        SchemaName::new(name).ok()
+        SchemaName::try_new(name).ok()
     } else {
         None
     };

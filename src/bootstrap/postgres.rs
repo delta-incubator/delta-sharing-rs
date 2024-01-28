@@ -1,7 +1,7 @@
-use crate::server::utilities::bootstrap::Utility as BootstrapUtility;
-use anyhow::Context;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use sqlx::PgPool;
+
+use crate::server::utilities::bootstrap::Utility as BootstrapUtility;
 
 pub async fn connect(url: &str) -> Result<PgPool> {
     tracing::info!("connecting to database");
@@ -57,7 +57,7 @@ mod tests {
             sqlx::query_as::<_, Table>(
                 "SELECT *
                  FROM pg_catalog.pg_tables
-                 WHERE schemaname != 'pg_catalog' AND 
+                 WHERE schemaname != 'pg_catalog' AND
                        schemaname != 'information_schema' AND
                        tablename != '_sqlx_migrations'",
             )

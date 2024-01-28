@@ -1,7 +1,5 @@
-use anyhow::Context;
-use anyhow::Result;
-use chrono::DateTime;
-use chrono::Utc;
+use anyhow::{Context, Result};
+use chrono::{DateTime, Utc};
 use sqlx::postgres::PgQueryResult;
 use uuid::Uuid;
 

@@ -1,12 +1,8 @@
 use anyhow::anyhow;
-use axum::extract::Extension;
-use axum::extract::Json;
-use axum::extract::Path;
+use axum::extract::{Extension, Json, Path};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::response::Response;
-use utoipa::IntoParams;
-use utoipa::ToSchema;
+use axum::response::{IntoResponse, Response};
+use utoipa::{IntoParams, ToSchema};
 
 use crate::server::entities::account::Entity as AccountEntity;
 use crate::server::entities::schema::Entity as SchemaEntity;
@@ -60,7 +56,7 @@ pub async fn post(
     Path(params): Path<AdminSharesSchemasPostParams>,
     Json(payload): Json<AdminSharesSchemasPostRequest>,
 ) -> Result<Response, Error> {
-    let Ok(share_name) = ShareName::new(params.share) else {
+    let Ok(share_name) = ShareName::try_new(params.share) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
@@ -74,7 +70,7 @@ pub async fn post(
         tracing::error!("share was not found");
         return Err(Error::NotFound);
     };
-    let Ok(schema_name) = SchemaName::new(payload.name) else {
+    let Ok(schema_name) = SchemaName::try_new(payload.name) else {
         tracing::error!("schema name is malformed");
         return Err(Error::ValidationFailed);
     };
