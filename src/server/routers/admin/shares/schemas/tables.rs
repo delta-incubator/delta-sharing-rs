@@ -62,7 +62,7 @@ pub async fn post(
     Path(params): Path<AdminSharesSchemasTablesPostParams>,
     Json(payload): Json<AdminSharesSchemasTablesPostRequest>,
 ) -> Result<Response, Error> {
-    let Ok(share_name) = ShareName::new(params.share) else {
+    let Ok(share_name) = ShareName::try_new(params.share) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
@@ -76,7 +76,7 @@ pub async fn post(
         tracing::error!("share was not found");
         return Err(Error::NotFound);
     };
-    let Ok(schema_name) = SchemaName::new(params.schema) else {
+    let Ok(schema_name) = SchemaName::try_new(params.schema) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
@@ -91,7 +91,7 @@ pub async fn post(
         tracing::error!("share was not found");
         return Err(Error::NotFound);
     };
-    let Ok(table_name) = TableName::new(payload.name) else {
+    let Ok(table_name) = TableName::try_new(payload.name) else {
         tracing::error!("requested table data is malformed");
         return Err(Error::ValidationFailed);
     };

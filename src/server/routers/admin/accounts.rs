@@ -122,7 +122,7 @@ pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(params): Path<AdminAccountsGetParams>,
 ) -> Result<Response, Error> {
-    let Ok(account) = AccountName::new(params.account) else {
+    let Ok(account) = AccountName::try_new(params.account) else {
         tracing::error!("requested account data is malformed");
         return Err(Error::ValidationFailed);
     };
@@ -184,7 +184,7 @@ pub async fn list(
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &query.page_token {
-        AccountName::new(name).ok()
+        AccountName::try_new(name).ok()
     } else {
         None
     };

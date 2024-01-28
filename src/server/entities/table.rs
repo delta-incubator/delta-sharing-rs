@@ -57,9 +57,9 @@ impl Entity {
     ) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
-            name: Name::new(name)?,
+            name: Name::try_new(name)?,
             schema_id: SchemaId::try_from(schema_id)?,
-            location: Location::new(location)?,
+            location: Location::try_new(location)?,
             created_by: AccountId::try_from(created_by)?,
         })
     }
@@ -68,9 +68,9 @@ impl Entity {
         match Repository::select_by_name(schema_id, name, pg_pool).await? {
             Some(row) => Ok(Self {
                 id: Id::new(row.id),
-                name: Name::new(row.name)?,
+                name: Name::try_new(row.name)?,
                 schema_id: SchemaId::new(row.schema_id),
-                location: Location::new(row.location)?,
+                location: Location::try_new(row.location)?,
                 created_by: AccountId::new(row.created_by),
             }
             .into()),
@@ -99,21 +99,21 @@ mod tests {
 
     #[test]
     fn test_valid_name() {
-        assert!(Name::new(testutils::rand::string(255)).is_ok());
+        assert!(Name::try_new(testutils::rand::string(255)).is_ok());
     }
 
     #[test]
     fn test_invalid_name() {
-        assert!(Name::new("").is_err());
+        assert!(Name::try_new("").is_err());
     }
 
     #[test]
     fn test_valid_location() {
-        assert!(Location::new(testutils::rand::string(255)).is_ok());
+        assert!(Location::try_new(testutils::rand::string(255)).is_ok());
     }
 
     #[test]
     fn test_invalid_location() {
-        assert!(Location::new("").is_err());
+        assert!(Location::try_new("").is_err());
     }
 }

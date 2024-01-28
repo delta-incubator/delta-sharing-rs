@@ -49,15 +49,15 @@ pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(params): Path<SharesSchemasTablesMetadataGetParams>,
 ) -> Result<Response, Error> {
-    let Ok(share) = ShareName::new(params.share) else {
+    let Ok(share) = ShareName::try_new(params.share) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
-    let Ok(schema) = SchemaName::new(params.schema) else {
+    let Ok(schema) = SchemaName::try_new(params.schema) else {
         tracing::error!("requested schema data is malformed");
         return Err(Error::ValidationFailed);
     };
-    let Ok(table) = TableName::new(params.table) else {
+    let Ok(table) = TableName::try_new(params.table) else {
         tracing::error!("requested table data is malformed");
         return Err(Error::ValidationFailed);
     };

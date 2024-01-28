@@ -58,7 +58,7 @@ pub async fn login(
     Extension(state): Extension<SharedState>,
     Json(payload): Json<AdminLoginRequest>,
 ) -> Result<Response, Error> {
-    let Ok(account) = AccountName::new(payload.account) else {
+    let Ok(account) = AccountName::try_new(payload.account) else {
         tracing::error!("requested account data is malformed");
         return Err(Error::ValidationFailed);
     };

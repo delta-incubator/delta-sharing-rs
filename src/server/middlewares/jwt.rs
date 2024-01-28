@@ -98,7 +98,7 @@ where
         );
         return Err(anyhow!("failed to acquire shared state").into());
     };
-    let Ok(name) = AccountName::new(jwt.claims.name.clone()) else {
+    let Ok(name) = AccountName::try_new(jwt.claims.name.clone()) else {
         tracing::error!("JWT claims' account name is malformed");
         return Err(Error::ValidationFailed);
     };

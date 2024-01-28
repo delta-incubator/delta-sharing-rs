@@ -103,10 +103,10 @@ impl Entity {
     ) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
-            name: Name::new(name)?,
-            email: Email::new(email)?,
-            password: Password::new(self::hash(password.as_bytes()).unwrap())?,
-            namespace: Namespace::new(namespace)?,
+            name: Name::try_new(name)?,
+            email: Email::try_new(email)?,
+            password: Password::try_new(self::hash(password.as_bytes()).unwrap())?,
+            namespace: Namespace::try_new(namespace)?,
             ttl: Ttl::new(ttl)?,
         })
     }
@@ -115,10 +115,10 @@ impl Entity {
         match Repository::select_by_name(name, pg_pool).await? {
             Some(row) => Ok(Self {
                 id: Id::new(row.id),
-                name: Name::new(row.name)?,
-                email: Email::new(row.email)?,
-                password: Password::new(row.password)?,
-                namespace: Namespace::new(row.namespace)?,
+                name: Name::try_new(row.name)?,
+                email: Email::try_new(row.email)?,
+                password: Password::try_new(row.password)?,
+                namespace: Namespace::try_new(row.namespace)?,
                 ttl: Ttl::new(row.ttl)?,
             }
             .into()),
@@ -151,42 +151,42 @@ mod tests {
 
     #[test]
     fn test_valid_name() {
-        assert!(Name::new(testutils::rand::string(255)).is_ok());
+        assert!(Name::try_new(testutils::rand::string(255)).is_ok());
     }
 
     #[test]
     fn test_invalid_name() {
-        assert!(Name::new("").is_err());
+        assert!(Name::try_new("").is_err());
     }
 
     #[test]
     fn test_valid_email() {
-        assert!(Email::new(testutils::rand::email()).is_ok());
+        assert!(Email::try_new(testutils::rand::email()).is_ok());
     }
 
     #[test]
     fn test_invalid_email() {
-        assert!(Email::new(testutils::rand::string(20)).is_err());
+        assert!(Email::try_new(testutils::rand::string(20)).is_err());
     }
 
     #[test]
     fn test_valid_password() {
-        assert!(Password::new(testutils::rand::string(255)).is_ok());
+        assert!(Password::try_new(testutils::rand::string(255)).is_ok());
     }
 
     #[test]
     fn test_invalid_password() {
-        assert!(Password::new("").is_err());
+        assert!(Password::try_new("").is_err());
     }
 
     #[test]
     fn test_valid_namespace() {
-        assert!(Namespace::new(testutils::rand::string(255)).is_ok());
+        assert!(Namespace::try_new(testutils::rand::string(255)).is_ok());
     }
 
     #[test]
     fn test_invalid_namespace() {
-        assert!(Namespace::new("").is_err());
+        assert!(Namespace::try_new("").is_err());
     }
 
     #[test]

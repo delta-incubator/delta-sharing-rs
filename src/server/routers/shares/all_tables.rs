@@ -64,7 +64,7 @@ pub async fn list(
     Path(params): Path<SharesAllTablesListParams>,
     Query(query): Query<SharesAllTablesListQuery>,
 ) -> Result<Response, Error> {
-    let Ok(share) = ShareName::new(params.share) else {
+    let Ok(share) = ShareName::try_new(params.share) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
@@ -88,7 +88,7 @@ pub async fn list(
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &query.page_token {
-        TableName::new(name).ok()
+        TableName::try_new(name).ok()
     } else {
         None
     };

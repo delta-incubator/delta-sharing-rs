@@ -52,7 +52,7 @@ pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(params): Path<SharesGetParams>,
 ) -> Result<Response, Error> {
-    let Ok(share) = ShareName::new(params.share) else {
+    let Ok(share) = ShareName::try_new(params.share) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
@@ -114,7 +114,7 @@ pub async fn list(
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &query.page_token {
-        ShareName::new(name).ok()
+        ShareName::try_new(name).ok()
     } else {
         None
     };

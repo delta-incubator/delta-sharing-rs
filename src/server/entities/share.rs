@@ -39,7 +39,7 @@ impl Entity {
     pub fn new(id: impl Into<Option<String>>, name: String, created_by: String) -> Result<Self> {
         Ok(Self {
             id: Id::try_from(id.into().unwrap_or(uuid::Uuid::new_v4().to_string()))?,
-            name: Name::new(name)?,
+            name: Name::try_new(name)?,
             created_by: AccountId::try_from(created_by)?,
         })
     }
@@ -48,7 +48,7 @@ impl Entity {
         match Repository::select_by_name(name, pg_pool).await? {
             Some(row) => Ok(Self {
                 id: Id::new(row.id),
-                name: Name::new(row.name)?,
+                name: Name::try_new(row.name)?,
                 created_by: AccountId::new(row.created_by),
             }
             .into()),
@@ -77,11 +77,11 @@ mod tests {
 
     #[test]
     fn test_valid_name() {
-        assert!(Name::new(testutils::rand::string(255)).is_ok());
+        assert!(Name::try_new(testutils::rand::string(255)).is_ok());
     }
 
     #[test]
     fn test_invalid_name() {
-        assert!(Name::new("").is_err());
+        assert!(Name::try_new("").is_err());
     }
 }

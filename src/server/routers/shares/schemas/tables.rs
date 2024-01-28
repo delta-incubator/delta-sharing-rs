@@ -70,7 +70,7 @@ pub async fn list(
     Path(params): Path<SharesSchemasTablesListParams>,
     Query(query): Query<SharesSchemasTablesListQuery>,
 ) -> Result<Response, Error> {
-    let Ok(share) = ShareName::new(params.share) else {
+    let Ok(share) = ShareName::try_new(params.share) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
@@ -84,7 +84,7 @@ pub async fn list(
         tracing::error!("requested share does not exist");
         return Err(Error::NotFound);
     };
-    let Ok(schema) = SchemaName::new(params.schema) else {
+    let Ok(schema) = SchemaName::try_new(params.schema) else {
         tracing::error!("requested schema data is malformed");
         return Err(Error::ValidationFailed);
     };
@@ -98,7 +98,7 @@ pub async fn list(
         DEFAULT_PAGE_RESULTS
     };
     let after = if let Some(name) = &query.page_token {
-        TableName::new(name).ok()
+        TableName::try_new(name).ok()
     } else {
         None
     };
