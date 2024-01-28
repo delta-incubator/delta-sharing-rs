@@ -1,6 +1,5 @@
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::response::Response;
+use axum::response::{IntoResponse, Response};
 use axum::Json;
 use utoipa::ToSchema;
 

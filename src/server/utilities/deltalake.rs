@@ -1,22 +1,16 @@
-use std::cmp::max;
-use std::cmp::min;
-use std::collections::hash_map::HashMap;
+use std::cmp::{max, min};
+use std::collections::HashMap;
 use std::fmt;
 
-use anyhow::anyhow;
-use anyhow::Context;
-use anyhow::Result;
-use chrono::DateTime;
-use chrono::TimeZone;
-use chrono::Utc;
-use deltalake::delta::open_table_with_storage_options;
-use deltalake::delta::DeltaTable;
+use anyhow::{anyhow, Context, Result};
+use chrono::{DateTime, TimeZone, Utc};
 use deltalake::schema::SchemaDataType;
+use deltalake::{open_table_with_storage_options, DeltaTable};
 use utoipa::ToSchema;
 
 use crate::config;
 
-pub type File = deltalake::action::Add;
+pub type File = deltalake::protocol::Add;
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Interval<T>

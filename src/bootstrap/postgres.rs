@@ -57,7 +57,7 @@ mod tests {
             sqlx::query_as::<_, Table>(
                 "SELECT *
                  FROM pg_catalog.pg_tables
-                 WHERE schemaname != 'pg_catalog' AND 
+                 WHERE schemaname != 'pg_catalog' AND
                        schemaname != 'information_schema' AND
                        tablename != '_sqlx_migrations'",
             )
