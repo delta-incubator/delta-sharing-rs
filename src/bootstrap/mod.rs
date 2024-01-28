@@ -4,12 +4,12 @@ pub(crate) mod gcp;
 mod postgres;
 use anyhow::Context;
 use anyhow::Result;
-use azure_storage::StorageCredentials;
 use rusoto_credential::ProfileProvider;
 use sqlx::PgPool;
 use tame_gcs::signing::ServiceAccount;
 
 use crate::config;
+use crate::server::routers::{AzureCredential, AzureLocation};
 
 pub(crate) async fn new_pg_pool() -> Result<PgPool> {
     postgres::connect(&config::fetch::<String>("db_url")).await
@@ -34,14 +34,14 @@ pub(crate) fn new_aws_profile_provider() -> Result<ProfileProvider> {
     aws::new(&aws_profile)
 }
 
-pub(crate) fn new_azure_storage_account() -> Result<StorageCredentials> {
+pub(crate) fn new_azure_storage_account() -> Result<AzureLocation> {
     let azure_storage_account_name = std::env::var("AZURE_STORAGE_ACCOUNT_NAME")
         .context("failed to get `AZURE_STORAGE_ACCOUNT_NAME` environment variable")?;
     let azure_storage_account_key = std::env::var("AZURE_STORAGE_ACCOUNT_KEY")
         .context("failed to get `AZURE_STORAGE_ACCOUNT_KEY` environment variable")?;
 
-    Ok(StorageCredentials::access_key(
-        azure_storage_account_name,
-        azure_storage_account_key,
-    ))
+    Ok(AzureLocation {
+        account: azure_storage_account_name,
+        credential: AzureCredential::AccessKey(azure_storage_account_key),
+    })
 }
