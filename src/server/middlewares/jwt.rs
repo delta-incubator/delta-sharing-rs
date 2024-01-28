@@ -1,6 +1,5 @@
-use anyhow::anyhow;
-use axum::headers::authorization::Bearer;
-use axum::headers::{Authorization, HeaderMapExt};
+use anyhow::{anyhow, Context};
+use axum::body::Body;
 use axum::http::Request;
 use axum::middleware::Next;
 use axum::response::Response;
@@ -72,19 +71,29 @@ impl Keys {
     }
 }
 
-#[tracing::instrument(skip(next))]
-pub async fn as_admin<T>(
-    mut request: Request<T>,
-    next: Next<T>,
-) -> std::result::Result<Response, Error>
-where
-    T: std::fmt::Debug,
-{
-    let Some(auth) = request.headers().typed_get::<Authorization<Bearer>>() else {
+fn extract_auth(request: &Request<Body>) -> Result<String, Error> {
+    let Some(auth) = request.headers().get("authorization") else {
         tracing::error!("bearer token is missing");
         return Err(Error::BadRequest);
     };
-    let token = auth.token().to_owned();
+    let token = auth
+        .to_str()
+        .context("failed to read bearer token")?
+        .splitn(2, ' ')
+        .collect::<Vec<_>>()[1]
+        .to_owned();
+    Ok(token)
+}
+
+#[tracing::instrument(skip(next))]
+pub async fn as_admin(
+    mut request: Request<Body>,
+    next: Next,
+) -> std::result::Result<Response, Error> {
+    let Ok(token) = extract_auth(&request) else {
+        tracing::error!("bearer token is missing");
+        return Err(Error::BadRequest);
+    };
     let Ok(jwt) = decode::<Claims>(&token, &JWT_SECRET.decoding, &Validation::default()) else {
         tracing::error!("bearer token cannot be decoded");
         return Err(Error::Unauthorized);
@@ -118,15 +127,11 @@ where
 }
 
 #[tracing::instrument(skip(next))]
-pub async fn as_guest<T>(request: Request<T>, next: Next<T>) -> std::result::Result<Response, Error>
-where
-    T: std::fmt::Debug,
-{
-    let Some(auth) = request.headers().typed_get::<Authorization<Bearer>>() else {
+pub async fn as_guest(request: Request<Body>, next: Next) -> std::result::Result<Response, Error> {
+    let Ok(token) = extract_auth(&request) else {
         tracing::error!("bearer token is missing");
         return Err(Error::BadRequest);
     };
-    let token = auth.token().to_owned();
     let Ok(_) = decode::<Claims>(&token, &JWT_SECRET.decoding, &Validation::default()) else {
         tracing::error!("bearer token cannot be decoded");
         return Err(Error::Unauthorized)?;

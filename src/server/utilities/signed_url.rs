@@ -2,7 +2,6 @@ use std::str::FromStr;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
-use axum::http::Method;
 use object_store::azure::MicrosoftAzureBuilder;
 use object_store::path::Path;
 use object_store::signer::Signer as ObjectStoreSigner;
@@ -85,7 +84,7 @@ impl Signer for dyn ObjectStoreSigner {
         let path = Path::from(url.path());
         let expires_in = Duration::from_secs(crate::config::fetch::<u64>("signed_url_ttl"));
         let signed = self
-            .signed_url(Method::GET, &path, expires_in)
+            .signed_url(hyper::http::Method::GET, &path, expires_in)
             .await
             .context("failed to sign URL")?;
         Ok(signed.to_string())
@@ -120,7 +119,7 @@ impl Signer for AzureSigner {
         let path = Path::parse(url.path().strip_prefix('/').unwrap_or(""))
             .context("failed to parse blob path")?;
         let signed = store
-            .signed_url(Method::GET, &path, self.expiration)
+            .signed_url(hyper::http::Method::GET, &path, self.expiration)
             .await
             .context("failed to sign URL")?;
 
