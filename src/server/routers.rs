@@ -23,8 +23,33 @@ use crate::server::api_doc::ApiDoc;
 use crate::server::middlewares::jwt;
 use crate::server::services::error::Error;
 
+use super::services::share::Share;
+
+pub struct Pagination {
+    max_results: Option<u32>,
+    page_token: Option<String>,
+}
+
+pub struct Page<T> {
+    items: Vec<T>,
+    next_page_token: Option<String>,
+}
+
+pub trait ShareStore: Send + Sync {
+    fn list(&self, pagination: &Pagination) -> Result<Page<Share>>;
+}
+
+pub struct DefaultShareStore;
+
+impl ShareStore for DefaultShareStore {
+    fn list(&self, pagination: &Pagination) -> Result<Page<Share>> {
+        unimplemented!()
+    }
+}
+
 pub struct State {
     pub pg_pool: PgPool,
+    pub state_store: Arc<dyn ShareStore>,
     pub gcp_service_account: Option<ServiceAccount>,
     pub aws_credentials: Option<AwsCredentials>,
     pub azure_credentials: Option<StorageCredentials>,
@@ -44,6 +69,7 @@ async fn route(
 ) -> Result<Router> {
     let state = Arc::new(State {
         pg_pool,
+        state_store: Arc::new(DefaultShareStore),
         gcp_service_account,
         aws_credentials,
         azure_credentials,

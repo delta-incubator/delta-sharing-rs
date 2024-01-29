@@ -10,6 +10,7 @@ use utoipa::IntoParams;
 use utoipa::ToSchema;
 
 use crate::server::entities::share::Name as ShareName;
+use crate::server::routers::Pagination;
 use crate::server::routers::SharedState;
 use crate::server::services::error::Error;
 use crate::server::services::share::Service as ShareService;
@@ -73,7 +74,7 @@ pub async fn get(
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct SharesListQuery {
-    pub max_results: Option<i64>,
+    pub max_results: Option<u32>,
     pub page_token: Option<String>,
 }
 
@@ -104,48 +105,16 @@ pub async fn list(
     Extension(state): Extension<SharedState>,
     Query(query): Query<SharesListQuery>,
 ) -> Result<Response, Error> {
-    let limit = if let Some(limit) = &query.max_results {
-        let Ok(limit) = usize::try_from(*limit) else {
-            tracing::error!("requested limit is malformed");
-            return Err(Error::ValidationFailed);
-        };
-        limit
-    } else {
-        DEFAULT_PAGE_RESULTS
+    let pagination = Pagination {
+        max_results: query.max_results,
+        page_token: query.page_token,
     };
-    let after = if let Some(name) = &query.page_token {
-        ShareName::new(name).ok()
-    } else {
-        None
+    let shares = state.state_store.list(&pagination)?;
+
+    let res = SharesListResponse {
+        items: shares.items,
+        next_page_token: shares.next_page_token,
     };
-    let Ok(shares) =
-        ShareService::query(Some(&((limit + 1) as i64)), after.as_ref(), &state.pg_pool).await
-    else {
-        tracing::error!(
-            "request is not handled correctly due to a server error while selecting shares"
-        );
-        return Err(anyhow!("error occured while selecting share(s)").into());
-    };
-    if shares.len() == limit + 1 {
-        let next = &shares[limit];
-        let shares = &shares[..limit];
-        tracing::info!("shares were successfully returned");
-        return Ok((
-            StatusCode::OK,
-            Json(SharesListResponse {
-                items: shares.to_vec(),
-                next_page_token: next.name.clone().into(),
-            }),
-        )
-            .into_response());
-    }
     tracing::info!("shares were successfully returned");
-    Ok((
-        StatusCode::OK,
-        Json(SharesListResponse {
-            items: shares,
-            next_page_token: None,
-        }),
-    )
-        .into_response())
+    Ok((StatusCode::OK, Json(res)).into_response())
 }

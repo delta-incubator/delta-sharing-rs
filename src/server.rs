@@ -1,4 +1,5 @@
 mod api_doc;
+mod catalog;
 mod entities;
 mod middlewares;
 mod repositories;
