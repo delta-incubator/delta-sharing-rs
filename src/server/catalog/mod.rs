@@ -3,7 +3,7 @@ use super::services::{error::Error, schema::Schema, share::Share, table::Table};
 pub mod file;
 pub mod postgres;
 
-/// The `ShareStore` trait defines the interface for fetching metadata about 
+/// The `ShareStore` trait defines the interface for fetching metadata about
 /// shares, schemas and tables.
 #[async_trait::async_trait]
 pub trait ShareStore: Send + Sync {
