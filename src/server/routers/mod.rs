@@ -23,10 +23,10 @@ use crate::server::api_doc::ApiDoc;
 use crate::server::middlewares::jwt;
 use crate::server::services::error::Error;
 
-use super::catalog::{Page, Pagination, ShareStore};
-use super::services::schema::Schema;
-use super::services::share::Share;
-use super::services::table::Table;
+use super::catalog::{Pagination, ShareStore};
+
+
+
 
 #[derive(Clone)]
 pub enum AzureCredential {

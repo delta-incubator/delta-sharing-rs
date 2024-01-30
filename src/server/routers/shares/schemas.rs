@@ -1,4 +1,4 @@
-use anyhow::anyhow;
+
 use axum::extract::{Extension, Json, Path, Query};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -67,7 +67,7 @@ pub async fn list(
     let pagination = Pagination::new(query.max_results, query.page_token);
     let schemas = state
         .share_store
-        .list_schemas(&share.as_str(), &pagination)
+        .list_schemas(share.as_str(), &pagination)
         .await?;
 
     let res = SharesSchemasListResponse {

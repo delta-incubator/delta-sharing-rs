@@ -51,7 +51,7 @@ pub async fn get(
         return Err(Error::ValidationFailed);
     };
 
-    let Some(share) = state.share_store.get_share(&share_name.as_str()).await? else {
+    let Some(share) = state.share_store.get_share(share_name.as_str()).await? else {
         tracing::error!("requested share does not exist");
         return Err(Error::NotFound);
     };
