@@ -3,21 +3,16 @@ mod catalog;
 mod entities;
 mod middlewares;
 mod repositories;
-mod routers;
+pub(crate) mod routers;
 mod services;
 pub(crate) mod utilities;
 
-use anyhow::Context;
-use anyhow::Result;
-use azure_storage::StorageCredentials;
+use anyhow::{Context, Result};
 use rusoto_credential::AwsCredentials;
 use rusoto_credential::ProvideAwsCredentials;
 use sqlx::PgPool;
 use tame_gcs::signing::ServiceAccount;
 
-use crate::bootstrap;
-
-pub use crate::server::middlewares::jwt::Role;
 pub use entities::account::{Entity as AccountEntity, Id as AccountId};
 pub use entities::schema::{Entity as SchemaEntity, Id as SchemaId};
 pub use entities::share::{Entity as ShareEntity, Id as ShareId};
@@ -33,11 +28,15 @@ pub use services::schema::Service as SchemaService;
 pub use services::share::Service as ShareService;
 pub use services::table::Service as TableService;
 
+use crate::bootstrap;
+pub use crate::server::middlewares::jwt::Role;
+use crate::server::routers::AzureLocation;
+
 pub struct Server {
     pg_pool: PgPool,
     gcp_service_account: Option<ServiceAccount>,
     aws_credentials: Option<AwsCredentials>,
-    azure_storage_credentials: Option<StorageCredentials>,
+    azure_storage_credentials: Option<AzureLocation>,
 }
 
 impl Server {

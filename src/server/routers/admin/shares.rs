@@ -1,9 +1,7 @@
 use anyhow::anyhow;
-use axum::extract::Extension;
-use axum::extract::Json;
+use axum::extract::{Extension, Json};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::response::Response;
+use axum::response::{IntoResponse, Response};
 use utoipa::ToSchema;
 
 use crate::server::entities::account::Entity as AccountEntity;

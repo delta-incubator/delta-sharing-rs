@@ -232,7 +232,7 @@ macro_rules! impl_i64_property {
 macro_rules! impl_string_property {
     ( $type:tt ) => {
         impl $type {
-            pub fn new<S>(value: S) -> anyhow::Result<Self>
+            pub fn try_new<S>(value: S) -> anyhow::Result<Self>
             where
                 S: Into<String>,
             {

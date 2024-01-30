@@ -1,14 +1,8 @@
-use crate::server::routers::admin;
-use crate::server::routers::shares;
-use crate::server::services::account;
-use crate::server::services::error;
-use crate::server::services::profile;
-use crate::server::services::schema;
-use crate::server::services::share;
-use crate::server::services::table;
-use crate::server::utilities::deltalake;
-use crate::server::utilities::json;
 use utoipa::OpenApi;
+
+use crate::server::routers::{admin, shares};
+use crate::server::services::{account, error, profile, schema, share, table};
+use crate::server::utilities::{deltalake, json};
 
 #[derive(OpenApi)]
 #[openapi(

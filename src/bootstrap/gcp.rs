@@ -1,5 +1,4 @@
-use anyhow::Context;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use tame_gcs::signing::ServiceAccount;
 
 pub fn new(path: &str) -> Result<ServiceAccount> {

@@ -1,13 +1,8 @@
 use anyhow::anyhow;
-use axum::extract::Extension;
-use axum::extract::Json;
-use axum::extract::Path;
-use axum::extract::Query;
+use axum::extract::{Extension, Json, Path, Query};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::response::Response;
-use utoipa::IntoParams;
-use utoipa::ToSchema;
+use axum::response::{IntoResponse, Response};
+use utoipa::{IntoParams, ToSchema};
 
 use crate::server::entities::share::Name as ShareName;
 use crate::server::routers::Pagination;
@@ -52,7 +47,7 @@ pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(params): Path<SharesGetParams>,
 ) -> Result<Response, Error> {
-    let Ok(share_name) = ShareName::new(params.share) else {
+    let Ok(share) = ShareName::try_new(params.share) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };

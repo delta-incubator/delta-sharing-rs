@@ -1,22 +1,20 @@
 use std::str::FromStr;
 use std::time::Duration;
 
-use anyhow::Context;
-use anyhow::Result;
-use azure_storage::shared_access_signature::service_sas::BlobSasPermissions;
-use azure_storage::StorageCredentials as Azure;
-use azure_storage_blobs::prelude::ClientBuilder;
+use anyhow::{Context, Result};
+use object_store::azure::MicrosoftAzureBuilder;
+use object_store::path::Path;
+use object_store::signer::Signer as ObjectStoreSigner;
 use rusoto_core::Region;
 use rusoto_credential::AwsCredentials as AWS;
-use rusoto_s3::util::PreSignedRequest;
-use rusoto_s3::util::PreSignedRequestOption;
+use rusoto_s3::util::{PreSignedRequest, PreSignedRequestOption};
 use rusoto_s3::GetObjectRequest;
-use tame_gcs::signed_url::SignedUrlOptional;
-use tame_gcs::signed_url::UrlSigner;
+use tame_gcs::signed_url::{SignedUrlOptional, UrlSigner};
 use tame_gcs::signing::ServiceAccount as GCP;
-use tame_gcs::BucketName;
-use tame_gcs::ObjectName;
+use tame_gcs::{BucketName, ObjectName};
 use url::Url;
+
+use crate::server::{routers::AzureCredential, AzureLocation};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Platform {
@@ -48,7 +46,7 @@ pub trait Signer: Send + Sync {
 #[async_trait::async_trait]
 impl<S: Signer + ?Sized> Signer for Box<S> {
     async fn sign(&self, path: &str) -> Result<String> {
-        (**self).sign(path).await
+        self.as_ref().sign(path).await
     }
 }
 
@@ -79,8 +77,22 @@ impl Signer for AwsSigner {
     }
 }
 
+#[async_trait::async_trait]
+impl Signer for dyn ObjectStoreSigner {
+    async fn sign(&self, path: &str) -> Result<String> {
+        let url = Url::parse(path).context("failed to parse URL")?;
+        let path = Path::from(url.path());
+        let expires_in = Duration::from_secs(crate::config::fetch::<u64>("signed_url_ttl"));
+        let signed = self
+            .signed_url(hyper::http::Method::GET, &path, expires_in)
+            .await
+            .context("failed to sign URL")?;
+        Ok(signed.to_string())
+    }
+}
+
 pub struct AzureSigner {
-    pub azure: Azure,
+    pub azure: AzureLocation,
     pub expiration: Duration,
 }
 
@@ -91,28 +103,27 @@ impl Signer for AzureSigner {
 
         let storage_account = url
             .domain()
-            .and_then(|d| d.split_once("."))
+            .and_then(|d| d.split_once('.'))
             .map(|m| m.0)
             .unwrap_or("");
         let container = url.username();
-        let blob = url.path().strip_prefix("/").unwrap_or("");
+        let AzureCredential::AccessKey(access_key) = &self.azure.credential;
 
-        // build azure blob client
-        let cb = ClientBuilder::new(storage_account.to_string(), self.azure.clone());
-        let blob_client = cb.blob_client(container, blob);
+        let store = MicrosoftAzureBuilder::new()
+            .with_account(storage_account)
+            .with_container_name(container)
+            .with_access_key(access_key)
+            .build()
+            .context("failed to build Azure blob store")?;
 
-        // generate SAS token for signing URLs
-        let mut permissions = BlobSasPermissions::default();
-        permissions.read = true;
-        let dt = time::OffsetDateTime::now_utc() + self.expiration;
-        let sas_token = blob_client
-            .shared_access_signature(permissions, dt)
+        let path = Path::parse(url.path().strip_prefix('/').unwrap_or(""))
+            .context("failed to parse blob path")?;
+        let signed = store
+            .signed_url(hyper::http::Method::GET, &path, self.expiration)
             .await
-            .unwrap();
+            .context("failed to sign URL")?;
 
-        // sign blobs with SAS token
-        let url = blob_client.generate_signed_blob_url(&sas_token)?;
-        Ok(url.into())
+        Ok(signed.into())
     }
 }
 
@@ -145,16 +156,16 @@ impl Signer for GcpSigner {
 pub struct Utility;
 
 impl Utility {
-    pub fn aws_signer(aws: AWS, expiration: Duration) -> AwsSigner {
-        AwsSigner { aws, expiration }
+    pub fn aws_signer(aws: AWS, expiration: Duration) -> Box<dyn Signer> {
+        Box::new(AwsSigner { aws, expiration })
     }
 
-    pub fn azure_signer(azure: Azure, expiration: Duration) -> AzureSigner {
-        AzureSigner { azure, expiration }
+    pub fn azure_signer(azure: AzureLocation, expiration: Duration) -> Box<dyn Signer> {
+        Box::new(AzureSigner { azure, expiration })
     }
 
-    pub fn gcp_signer(gcp: GCP, expiration: Duration) -> GcpSigner {
-        GcpSigner { gcp, expiration }
+    pub fn gcp_signer(gcp: GCP, expiration: Duration) -> Box<dyn Signer> {
+        Box::new(GcpSigner { gcp, expiration })
     }
 }
 
@@ -187,7 +198,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_azure_sign_local() {
-        let creds = Azure::access_key("mystorageaccount", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==");
+        let creds = AzureLocation {
+            account: "mystorageaccount".into(),
+            credential: AzureCredential::AccessKey("Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==".into())
+        };
         if let Ok(Platform::Azure) =
             Platform::from_str("abfss://mycontainer@mystorageaccount.dfs.core.windows.net/myblob")
         {

@@ -1,5 +1,4 @@
-use anyhow::Context;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use sqlx::query_builder::QueryBuilder;
 use sqlx::Execute;
 use utoipa::ToSchema;

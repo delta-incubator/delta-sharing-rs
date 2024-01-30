@@ -1,20 +1,14 @@
-use anyhow::anyhow;
-use anyhow::Context;
-use axum::extract::Extension;
-use axum::extract::Json;
-use axum::extract::Path;
-use axum::http::header;
-use axum::http::header::HeaderMap;
-use axum::http::header::HeaderValue;
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::response::Response;
-use axum_extra::json_lines::JsonLines;
 use std::str::FromStr;
 use std::time::Duration;
+
+use anyhow::{anyhow, Context};
+use axum::extract::{Extension, Json, Path};
+use axum::http::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
+use axum_extra::json_lines::JsonLines;
 use tame_gcs::signing::ServiceAccount;
-use utoipa::IntoParams;
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::config;
 use crate::server::entities::schema::Name as SchemaName;
@@ -28,9 +22,7 @@ use crate::server::utilities::deltalake::Utility as DeltalakeUtility;
 use crate::server::utilities::json::PartitionFilter as JSONPartitionFilter;
 use crate::server::utilities::json::PredicateJson;
 use crate::server::utilities::json::Utility as JSONUtility;
-use crate::server::utilities::signed_url::Platform;
-use crate::server::utilities::signed_url::Signer;
-use crate::server::utilities::signed_url::Utility as SignedUrlUtility;
+use crate::server::utilities::signed_url::{Platform, Signer, Utility as SignedUrlUtility};
 use crate::server::utilities::sql::PartitionFilter as SQLPartitionFilter;
 use crate::server::utilities::sql::Utility as SQLUtility;
 
@@ -108,15 +100,15 @@ pub async fn post(
     } else {
         None
     };
-    let Ok(share) = ShareName::new(params.share) else {
+    let Ok(share) = ShareName::try_new(params.share) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
-    let Ok(schema) = SchemaName::new(params.schema) else {
+    let Ok(schema) = SchemaName::try_new(params.schema) else {
         tracing::error!("requested schema data is malformed");
         return Err(Error::ValidationFailed);
     };
-    let Ok(table) = TableName::new(params.table) else {
+    let Ok(table) = TableName::try_new(params.table) else {
         tracing::error!("requested table data is malformed");
         return Err(Error::ValidationFailed);
     };
@@ -168,10 +160,10 @@ pub async fn post(
     let url_signer: Box<dyn Signer> = match &platform {
         Platform::Aws => {
             if let Some(creds) = &state.aws_credentials {
-                Box::new(SignedUrlUtility::aws_signer(
+                SignedUrlUtility::aws_signer(
                     creds.clone(),
                     Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
-                ))
+                )
             } else {
                 tracing::error!("No credentials found for AWS S3");
                 return Err(anyhow!("Error occurred while signing URLs").into());
@@ -179,26 +171,26 @@ pub async fn post(
         }
         Platform::Azure => {
             if let Some(creds) = &state.azure_credentials {
-                Box::new(SignedUrlUtility::azure_signer(
+                SignedUrlUtility::azure_signer(
                     creds.clone(),
                     Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
-                ))
+                )
             } else {
                 tracing::error!("No credentials found for Azure Blob Storage");
                 return Err(anyhow!("Error occurred while signing URLs").into());
             }
         }
         Platform::Gcp => {
-            if let Some(_) = &state.gcp_service_account {
+            if state.gcp_service_account.is_some() {
                 let creds = ServiceAccount::load_json_file(
                     std::env::var("GOOGLE_APPLICATION_CREDENTIALS")
                         .context("failed to load GCP credentials")?,
                 )
                 .context("failed to load GCP credentials")?;
-                Box::new(SignedUrlUtility::gcp_signer(
+                SignedUrlUtility::gcp_signer(
                     creds,
                     Duration::from_secs(config::fetch::<u64>("signed_url_ttl")),
-                ))
+                )
             } else {
                 tracing::error!("No credentials found for GCP GCS");
                 return Err(anyhow!("Error occurred while signing URLs").into());
@@ -213,7 +205,7 @@ pub async fn post(
     let mut headers = HeaderMap::new();
     headers.insert(HEADER_NAME, table.version().into());
     headers.insert(
-        header::CONTENT_TYPE,
+        CONTENT_TYPE,
         HeaderValue::from_static("application/x-ndjson"),
     );
     tracing::info!("delta table was successfully returned");

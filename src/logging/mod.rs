@@ -1,4 +1,5 @@
 mod tracing;
+
 use crate::config;
 
 pub fn setup() {

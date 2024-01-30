@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use axum::BoxError;
-use deltalake::action::Add;
-use deltalake::delta::DeltaTable;
-use deltalake::delta::DeltaTableMetaData;
+use deltalake::protocol::Add;
 use deltalake::schema::Schema;
+use deltalake::table::DeltaTableMetaData;
+use deltalake::DeltaTable;
 use futures_util::stream::Stream;
 use md5;
 use serde_json::json;
