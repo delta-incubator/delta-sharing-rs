@@ -13,7 +13,6 @@ use crate::server::entities::share::Name as ShareName;
 use crate::server::routers::Pagination;
 use crate::server::routers::SharedState;
 use crate::server::services::error::Error;
-use crate::server::services::share::Service as ShareService;
 use crate::server::services::share::Share;
 
 pub mod all_tables;
@@ -53,20 +52,16 @@ pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(params): Path<SharesGetParams>,
 ) -> Result<Response, Error> {
-    let Ok(share) = ShareName::new(params.share) else {
+    let Ok(share_name) = ShareName::new(params.share) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
-    let Ok(share) = ShareService::query_by_name(&share, &state.pg_pool).await else {
-        tracing::error!(
-            "request is not handled correctly due to a server error while selecting share"
-        );
-        return Err(anyhow!("error occured while selecting share").into());
-    };
-    let Some(share) = share else {
+
+    let Some(share) = state.state_store.get_share(&share_name.as_str()).await? else {
         tracing::error!("requested share does not exist");
         return Err(Error::NotFound);
     };
+
     tracing::info!("share's metadata was successfully returned");
     Ok((StatusCode::OK, Json(SharesGetResponse { share })).into_response())
 }
@@ -105,15 +100,12 @@ pub async fn list(
     Extension(state): Extension<SharedState>,
     Query(query): Query<SharesListQuery>,
 ) -> Result<Response, Error> {
-    let pagination = Pagination {
-        max_results: query.max_results,
-        page_token: query.page_token,
-    };
-    let shares = state.state_store.list(&pagination)?;
+    let pagination = Pagination::new(query.max_results, query.page_token);
+    let shares = state.state_store.list_shares(&pagination).await?;
 
     let res = SharesListResponse {
-        items: shares.items,
-        next_page_token: shares.next_page_token,
+        items: shares.items().to_vec(),
+        next_page_token: shares.next_page_token().map(ToOwned::to_owned),
     };
     tracing::info!("shares were successfully returned");
     Ok((StatusCode::OK, Json(res)).into_response())

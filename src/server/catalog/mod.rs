@@ -38,6 +38,13 @@ pub struct Pagination {
 }
 
 impl Pagination {
+    pub fn new(max_results: Option<u32>, page_token: Option<String>) -> Self {
+        Self {
+            max_results,
+            page_token,
+        }
+    }
+
     pub fn max_results(&self) -> Option<u32> {
         self.max_results
     }

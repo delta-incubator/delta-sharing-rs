@@ -23,26 +23,49 @@ use crate::server::api_doc::ApiDoc;
 use crate::server::middlewares::jwt;
 use crate::server::services::error::Error;
 
+use super::catalog::{Page, Pagination, ShareStore};
+use super::services::schema::Schema;
 use super::services::share::Share;
+use super::services::table::Table;
 
-pub struct Pagination {
-    max_results: Option<u32>,
-    page_token: Option<String>,
-}
+struct DefaultShareStore;
 
-pub struct Page<T> {
-    items: Vec<T>,
-    next_page_token: Option<String>,
-}
-
-pub trait ShareStore: Send + Sync {
-    fn list(&self, pagination: &Pagination) -> Result<Page<Share>>;
-}
-
-pub struct DefaultShareStore;
-
+#[async_trait::async_trait]
 impl ShareStore for DefaultShareStore {
-    fn list(&self, pagination: &Pagination) -> Result<Page<Share>> {
+    async fn list_shares(&self, pagination: &Pagination) -> Result<Page<Share>, Error> {
+        unimplemented!()
+    }
+
+    async fn get_share(&self, name: &str) -> Result<Option<Share>, Error> {
+        unimplemented!()
+    }
+
+    async fn list_schemas(
+        &self,
+        share: &str,
+        pagination: &Pagination,
+    ) -> Result<Page<Schema>, Error> {
+        unimplemented!()
+    }
+
+    async fn list_tables_in_share(
+        &self,
+        share: &str,
+        pagination: &Pagination,
+    ) -> Result<Page<Table>, Error> {
+        unimplemented!()
+    }
+
+    async fn list_tables_in_schema(
+        &self,
+        share: &str,
+        schema: &str,
+        pagination: &Pagination,
+    ) -> Result<Page<Table>, Error> {
+        unimplemented!()
+    }
+
+    async fn get_table(&self, share: &str, schema: &str, table: &str) -> Result<Table, Error> {
         unimplemented!()
     }
 }
