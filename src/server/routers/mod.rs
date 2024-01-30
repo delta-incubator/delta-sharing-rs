@@ -25,9 +25,6 @@ use crate::server::services::error::Error;
 
 use super::catalog::{Pagination, ShareStore};
 
-
-
-
 #[derive(Clone)]
 pub enum AzureCredential {
     AccessKey(String),
