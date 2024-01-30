@@ -64,7 +64,7 @@ pub async fn list(
 
     let pagination = Pagination::new(query.max_results, query.page_token);
     let tables = state
-        .state_store
+        .share_store
         .list_tables_in_share(share.as_str(), &pagination)
         .await?;
 

@@ -1,4 +1,3 @@
-use anyhow::anyhow;
 use axum::extract::{Extension, Json, Path, Query};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -47,12 +46,12 @@ pub async fn get(
     Extension(state): Extension<SharedState>,
     Path(params): Path<SharesGetParams>,
 ) -> Result<Response, Error> {
-    let Ok(share) = ShareName::try_new(params.share) else {
+    let Ok(share_name) = ShareName::try_new(params.share) else {
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
 
-    let Some(share) = state.state_store.get_share(&share_name.as_str()).await? else {
+    let Some(share) = state.share_store.get_share(&share_name.as_str()).await? else {
         tracing::error!("requested share does not exist");
         return Err(Error::NotFound);
     };
@@ -96,7 +95,7 @@ pub async fn list(
     Query(query): Query<SharesListQuery>,
 ) -> Result<Response, Error> {
     let pagination = Pagination::new(query.max_results, query.page_token);
-    let shares = state.state_store.list_shares(&pagination).await?;
+    let shares = state.share_store.list_shares(&pagination).await?;
 
     let res = SharesListResponse {
         items: shares.items().to_vec(),

@@ -28,48 +28,6 @@ use super::services::schema::Schema;
 use super::services::share::Share;
 use super::services::table::Table;
 
-struct DefaultShareStore;
-
-#[async_trait::async_trait]
-impl ShareStore for DefaultShareStore {
-    async fn list_shares(&self, pagination: &Pagination) -> Result<Page<Share>, Error> {
-        unimplemented!()
-    }
-
-    async fn get_share(&self, name: &str) -> Result<Option<Share>, Error> {
-        unimplemented!()
-    }
-
-    async fn list_schemas(
-        &self,
-        share: &str,
-        pagination: &Pagination,
-    ) -> Result<Page<Schema>, Error> {
-        unimplemented!()
-    }
-
-    async fn list_tables_in_share(
-        &self,
-        share: &str,
-        pagination: &Pagination,
-    ) -> Result<Page<Table>, Error> {
-        unimplemented!()
-    }
-
-    async fn list_tables_in_schema(
-        &self,
-        share: &str,
-        schema: &str,
-        pagination: &Pagination,
-    ) -> Result<Page<Table>, Error> {
-        unimplemented!()
-    }
-
-    async fn get_table(&self, share: &str, schema: &str, table: &str) -> Result<Table, Error> {
-        unimplemented!()
-    }
-} 
-
 #[derive(Clone)]
 pub enum AzureCredential {
     AccessKey(String),
@@ -83,7 +41,7 @@ pub struct AzureLocation {
 
 pub struct State {
     pub pg_pool: PgPool,
-    pub state_store: Arc<dyn ShareStore>,
+    pub share_store: Arc<dyn ShareStore>,
     pub gcp_service_account: Option<ServiceAccount>,
     pub aws_credentials: Option<AwsCredentials>,
     pub azure_credentials: Option<AzureLocation>,
@@ -97,13 +55,14 @@ async fn bad_request(_: Uri) -> std::result::Result<Response, Error> {
 
 async fn route(
     pg_pool: PgPool,
+    share_store: Arc<dyn ShareStore>,
     gcp_service_account: Option<ServiceAccount>,
     aws_credentials: Option<AwsCredentials>,
     azure_credentials: Option<AzureLocation>,
 ) -> Result<Router> {
     let state = Arc::new(State {
         pg_pool,
-        state_store: Arc::new(DefaultShareStore),
+        share_store,
         gcp_service_account,
         aws_credentials,
         azure_credentials,
@@ -189,12 +148,14 @@ async fn route(
 
 pub async fn bind(
     pg_pool: PgPool,
+    share_store: Arc<dyn ShareStore>,
     gcp_service_account: Option<ServiceAccount>,
     aws_credentials: Option<AwsCredentials>,
     azure_credentials: Option<AzureLocation>,
 ) -> Result<()> {
     let app = route(
         pg_pool,
+        share_store,
         gcp_service_account,
         aws_credentials,
         azure_credentials,

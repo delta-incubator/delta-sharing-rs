@@ -7,6 +7,8 @@ pub(crate) mod routers;
 mod services;
 pub(crate) mod utilities;
 
+use std::sync::Arc;
+
 use anyhow::{Context, Result};
 use rusoto_credential::AwsCredentials;
 use rusoto_credential::ProvideAwsCredentials;
@@ -32,8 +34,11 @@ use crate::bootstrap;
 pub use crate::server::middlewares::jwt::Role;
 use crate::server::routers::AzureLocation;
 
+use self::catalog::ShareStore;
+
 pub struct Server {
     pg_pool: PgPool,
+    share_store: Arc<dyn ShareStore>,
     gcp_service_account: Option<ServiceAccount>,
     aws_credentials: Option<AwsCredentials>,
     azure_storage_credentials: Option<AzureLocation>,
@@ -44,6 +49,9 @@ impl Server {
         let pg_pool = bootstrap::new_pg_pool()
             .await
             .context("failed to create postgres connection pool")?;
+
+        let share_store = Arc::new(catalog::postgres::PostgresShareStore::new(pg_pool.clone()));
+
         let gcp_service_account = bootstrap::new_gcp_service_account().ok();
         if gcp_service_account.is_none() {
             tracing::warn!("failed to load GCP service account");
@@ -70,6 +78,7 @@ impl Server {
 
         Ok(Server {
             pg_pool,
+            share_store,
             gcp_service_account,
             aws_credentials,
             azure_storage_credentials,
@@ -79,6 +88,7 @@ impl Server {
     pub async fn start(self) -> Result<()> {
         routers::bind(
             self.pg_pool,
+            self.share_store,
             self.gcp_service_account,
             self.aws_credentials,
             self.azure_storage_credentials,

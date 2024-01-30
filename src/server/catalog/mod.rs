@@ -1,26 +1,33 @@
 use super::services::{error::Error, schema::Schema, share::Share, table::Table};
 
-mod file;
-mod postgres;
+pub mod file;
+pub mod postgres;
 
+/// The `ShareStore` trait defines the interface for fetching metadata about 
+/// shares, schemas and tables.
 #[async_trait::async_trait]
 pub trait ShareStore: Send + Sync {
+    /// List all shares.
     async fn list_shares(&self, pagination: &Pagination) -> Result<Page<Share>, Error>;
 
+    /// Get a share by name.
     async fn get_share(&self, name: &str) -> Result<Option<Share>, Error>;
 
+    /// List all schemas in a share.
     async fn list_schemas(
         &self,
         share: &str,
         pagination: &Pagination,
     ) -> Result<Page<Schema>, Error>;
 
+    /// List all tables in a share.
     async fn list_tables_in_share(
         &self,
         share: &str,
         pagination: &Pagination,
     ) -> Result<Page<Table>, Error>;
 
+    /// List all tables in a schema.
     async fn list_tables_in_schema(
         &self,
         share: &str,
@@ -28,9 +35,11 @@ pub trait ShareStore: Send + Sync {
         pagination: &Pagination,
     ) -> Result<Page<Table>, Error>;
 
+    /// Get a table by name.
     async fn get_table(&self, share: &str, schema: &str, table: &str) -> Result<Table, Error>;
 }
 
+/// A set of parameters for paginating a list query.
 #[derive(Debug, Clone, Default)]
 pub struct Pagination {
     max_results: Option<u32>,
@@ -54,6 +63,8 @@ impl Pagination {
     }
 }
 
+/// A page of results from a list query.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Page<T> {
     items: Vec<T>,
     next_page_token: Option<String>,
