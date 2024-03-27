@@ -26,7 +26,7 @@ mod tests {
     use super::*;
     use std::collections::HashSet;
     use testcontainers::clients;
-    use testcontainers::images::postgres;
+    use testcontainers_modules::postgres::Postgres;
 
     #[derive(sqlx::FromRow)]
     struct Table {
@@ -38,7 +38,7 @@ mod tests {
     async fn test_connect() {
         dotenv::dotenv().ok();
         let docker = clients::Cli::default();
-        docker.run(postgres::Postgres::default());
+        docker.run(Postgres::default());
         let url = "postgres://postgres:secret@127.0.0.1:5432";
         let expected: HashSet<_> = [
             String::from("account"),
