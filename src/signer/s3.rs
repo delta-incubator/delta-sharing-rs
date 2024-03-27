@@ -55,11 +55,7 @@ impl Signer for S3Signer {
             .await
             .map_err(|e| SignerError::other(format!("Failed to sign URL: {e}")))?;
 
-        Ok(SignedUrl::new(
-            req.uri().to_string(),
-            start_time.into(),
-            expires,
-        ))
+        Ok(SignedUrl::new(req.uri().to_string(), start_time, expires))
     }
 }
 

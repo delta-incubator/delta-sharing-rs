@@ -5,7 +5,6 @@ use std::time::UNIX_EPOCH;
 use anyhow::Context;
 use anyhow::Result;
 use chrono::DateTime;
-use chrono::NaiveDateTime;
 use chrono::Utc;
 use jsonwebtoken::encode;
 use jsonwebtoken::Header;
@@ -57,9 +56,8 @@ fn new_expiration(ttl: i64) -> Result<(i64, DateTime<Utc>)> {
     let expiration_secs = expiration_secs.as_secs();
     let expiration_secs = i64::try_from(expiration_secs)
         .context("failed to convert u128 expiration seconds to i64")?;
-    let expiration_time = NaiveDateTime::from_timestamp_opt(expiration_secs, 0)
-        .context("faield to parse expiration seconds to datetime")?;
-    let expiration_time = DateTime::<Utc>::from_utc(expiration_time, Utc);
+    let expiration_time = DateTime::from_timestamp(expiration_secs, 0)
+        .context("failed to parse expiration seconds to datetime")?;
     Ok((expiration_secs, expiration_time))
 }
 
