@@ -2,7 +2,6 @@ use std::str::FromStr;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
-use http::Method;
 use object_store::azure::MicrosoftAzureBuilder;
 use object_store::path::Path;
 use object_store::signer::Signer as ObjectStoreSigner;
@@ -84,12 +83,11 @@ impl Signer for dyn ObjectStoreSigner {
         let url = Url::parse(path).context("failed to parse URL")?;
         let path = Path::from(url.path());
         let expires_in = Duration::from_secs(crate::config::fetch::<u64>("signed_url_ttl"));
-        // let signed = self
-        //     .signed_url(Method::GET, &path, expires_in)
-        //     .await
-        //     .context("failed to sign URL")?;
-        // Ok(signed.to_string())
-        todo!()
+        let signed = self
+            .signed_url(hyper::http::Method::GET, &path, expires_in)
+            .await
+            .context("failed to sign URL")?;
+        Ok(signed.to_string())
     }
 }
 
@@ -118,15 +116,14 @@ impl Signer for AzureSigner {
             .build()
             .context("failed to build Azure blob store")?;
 
-        // let path = Path::parse(url.path().strip_prefix('/').unwrap_or(""))
-        //     .context("failed to parse blob path")?;
-        // let signed = store
-        //     .signed_url(http::Method::GET, &path, self.expiration)
-        //     .await
-        //     .context("failed to sign URL")?;
+        let path = Path::parse(url.path().strip_prefix('/').unwrap_or(""))
+            .context("failed to parse blob path")?;
+        let signed = store
+            .signed_url(hyper::http::Method::GET, &path, self.expiration)
+            .await
+            .context("failed to sign URL")?;
 
-        // Ok(signed.into())
-        todo!()
+        Ok(signed.into())
     }
 }
 

@@ -16,7 +16,7 @@ use std::{fmt, time::SystemTime};
 
 use async_trait::async_trait;
 
-mod s3;
+pub mod s3;
 
 /// Interface for creating signed URLs from object store specific URIs.
 #[async_trait]
@@ -27,6 +27,7 @@ pub trait Signer: Send + Sync {
 }
 
 /// A signed URL.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SignedUrl {
     url: String,
     valid_from: SystemTime,
@@ -231,6 +232,11 @@ impl SignerError {
     }
 
     /// Create a new `SignerError` with the `ExpirationTooLong` kind.
+    pub fn expiration_too_long(message: impl Into<String>) -> Self {
+        Self::new(SignerErrorKind::ExpirationTooLong, message)
+    }
+
+    /// Create a new `SignerError` with the `Other` kind.
     pub fn other(message: impl Into<String>) -> Self {
         Self::new(SignerErrorKind::Other, message)
     }

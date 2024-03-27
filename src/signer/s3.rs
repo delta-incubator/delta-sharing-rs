@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use aws_config::SdkConfig;
-use aws_sdk_s3::{presigning::PresigningConfig, Client};
+use aws_sdk_s3::{presigning::PresigningConfig, Client, Config};
 
 use http::Uri;
 use std::str::FromStr;
@@ -12,22 +12,34 @@ use std::str::FromStr;
 use super::{SignedUrl, Signer, SignerError};
 
 /// Signing configuration for the S3 object store.
-pub struct S3UrlSigner {
+#[derive(Debug, Clone)]
+pub struct S3Signer {
     /// The configuration for the S3 signer.
     client: Client,
 }
 
-impl S3UrlSigner {
-    /// Create a new `S3UrlSigner` from the provided S3 SDK client.
-    pub fn new(config: &SdkConfig) -> Self {
-        let client = Client::new(config);
+impl S3Signer {
+    /// Create a new `S3Signer` from the provided AWS SDK configuration.
+    pub fn new(cfg: &SdkConfig) -> Self {
+        Self::from_conf(cfg.into())
+    }
+
+    /// Create a new `S3Signer` from the provided AWS S3 configuration.
+    pub fn from_conf(cfg: Config) -> Self {
+        let client = Client::from_conf(cfg);
         Self { client }
     }
 }
 
 #[async_trait]
-impl Signer for S3UrlSigner {
+impl Signer for S3Signer {
     async fn sign(&self, uri: &str, expires_in: Duration) -> Result<SignedUrl, SignerError> {
+        if expires_in > Duration::from_secs(7 * 24 * 3600) {
+            return Err(SignerError::expiration_too_long(
+                "The maximum expiration time is 7 days.",
+            ));
+        }
+
         let s3_uri = S3Uri::from_str(uri)?;
         let presign_config = PresigningConfig::expires_in(expires_in)
             .map_err(|e| SignerError::other(e.to_string()))?;
@@ -52,7 +64,7 @@ impl Signer for S3UrlSigner {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct S3Uri {
+struct S3Uri {
     bucket: String,
     key: String,
 }
@@ -107,10 +119,9 @@ impl FromStr for S3Uri {
             Some(unsupported_scheme) => Err(
                 SignerError::parse_uri_error(
                 format!("The URI scheme should be `S3`, `S3a` or `S3n`. Received URI scheme: `{unsupported_scheme}`.")
-            )),     
+            )),
             None => Err(SignerError::parse_uri_error(
                 format!("The URI scheme shoud be `S3`, `S3a` or `S3n`. Received URI: `{s}`.")
-                
             ))
         }
     }
@@ -118,9 +129,47 @@ impl FromStr for S3Uri {
 
 #[cfg(test)]
 mod test {
+    use aws_config::BehaviorVersion;
+    use aws_sdk_s3::config::Credentials;
+
     use crate::signer::SignerErrorKind;
 
     use super::*;
+
+    #[tokio::test]
+    async fn sign_url() {
+        let cfg = aws_sdk_s3::Config::builder()
+            .behavior_version(BehaviorVersion::latest())
+            .credentials_provider(Credentials::for_tests())
+            .region(aws_sdk_s3::config::Region::new("eu-west-1"))
+            .build();
+
+        let signer = S3Signer::from_conf(cfg);
+        let uri = "s3://bucket/key";
+
+        let signed_url = signer.sign(uri, Duration::from_secs(60)).await.unwrap();
+        assert!(signed_url
+            .url()
+            .starts_with("https://bucket.s3.eu-west-1.amazonaws.com/key?"));
+    }
+
+    #[tokio::test]
+    async fn sign_url_with_invalid_expiration() {
+        let cfg = aws_sdk_s3::Config::builder()
+            .behavior_version(BehaviorVersion::latest())
+            .credentials_provider(Credentials::for_tests())
+            .region(aws_sdk_s3::config::Region::new("eu-west-1"))
+            .build();
+
+        let signer = S3Signer::from_conf(cfg);
+        let uri = "s3://bucket/key";
+
+        let signed_url = signer
+            .sign(uri, Duration::from_secs(7 * 24 * 3600 + 1))
+            .await
+            .unwrap_err();
+        assert_eq!(signed_url.kind(), SignerErrorKind::ExpirationTooLong);
+    }
 
     #[test]
     fn parse_s3_scheme() {
