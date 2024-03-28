@@ -2,3 +2,5 @@
 /creds/aws
 /creds/gcp
 .vscode
+
+/docs/book
