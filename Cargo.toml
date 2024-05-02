@@ -16,7 +16,6 @@ clap = "4.1.4"
 deltalake = { version = "0.16", features = ["s3", "azure", "gcs"] }
 futures = "0.3.28"
 futures-util = "0.3.28"
-hyper = { version = "0.14.13" }
 tokio = { version = "1.25.0", features = ["full", "rt-multi-thread"] }
 tower = { version = "0.4.13", features = ["limit", "filter", "util"] }
 config = "0.13.3"
@@ -59,11 +58,19 @@ utoipa = { version = "4", features = ["axum_extras"] }
 utoipa-swagger-ui = { version = "6", features = ["axum"] }
 uuid = { version = "1.3.0", features = ["v4", "serde"] }
 validator = { version = "0.16.0", features = ["derive"] }
+http = "1.1.0"
+aws-sdk-s3 = "1.20.0"
+aws-config = { version = "1.1.8", features = ["behavior-version-latest"] }
+regex = "1.10.4"
+hyper = "0.14.0"
+
 
 [dev-dependencies]
+testcontainers = "0.15"
+testcontainers-modules = { version = "0.3.6", features = ["localstack", "postgres"] }
 async-std = { version = "1.12.0", features = ["attributes"] }
 dotenv = "0.15.0"
 futures = "0.3.26"
 serial_test = "3"
 testutils = { path = "testutils" }
-testcontainers = "0.14"
+reqwest = "0.12.2"

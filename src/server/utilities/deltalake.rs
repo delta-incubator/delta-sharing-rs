@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fmt;
 
 use anyhow::{anyhow, Context, Result};
-use chrono::{DateTime, TimeZone, Utc};
+use chrono::{DateTime, Utc};
 use deltalake::schema::SchemaDataType;
 use deltalake::{open_table_with_storage_options, DeltaTable};
 use utoipa::ToSchema;
@@ -205,13 +205,15 @@ impl Utility {
     }
 
     pub fn datetime_yyyy_mm_dd(datetime: &str) -> Result<DateTime<Utc>> {
-        Utc.datetime_from_str(datetime, "%Y-%m-%d")
+        DateTime::parse_from_str(datetime, "%Y-%m-%d")
             .context("failed to parse deltalake datetime")
+            .map(|dt| dt.with_timezone(&Utc))
     }
 
     pub fn datetime_yyyy_mm_dd_hh_mm_ss(datetime: &str) -> Result<DateTime<Utc>> {
-        Utc.datetime_from_str(datetime, "%Y/%m/%d %H:%M:%S")
+        DateTime::parse_from_str(datetime, "%Y/%m/%d %H:%M:%S")
             .context("failed to parse deltalake datetime")
+            .map(|dt| dt.with_timezone(&Utc))
     }
 }
 
