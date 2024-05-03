@@ -1,0 +1,22 @@
+[package]
+name = "delta-sharing-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# workspace dependencies
+delta-sharing-core = { path = "../core" }
+serde.workspace = true
+async-trait.workspace = true
+
+# server dependencies
+axum = "0.7.5"
+axum-extra = { version = "0.9.2", features = ["typed-header"] }
+clap = { version = "4.5.4", features = ["derive"] }
+tokio = { version = "1.10.0", features = ["full"] }
+
+[dev-dependencies]
+tower = "*"
+http = "*"
+http-body-util = "*"
+serde_json = "*"

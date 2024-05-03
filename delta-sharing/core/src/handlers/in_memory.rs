@@ -11,29 +11,29 @@ use crate::types as t;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TableConfig {
-    name: String,
-    location: String,
+    pub name: String,
+    pub location: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SchemaConfig {
-    name: String,
-    table_refs: Vec<String>,
+    pub name: String,
+    pub table_refs: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ShareConfig {
-    name: String,
-    schema_refs: Vec<String>,
+    pub name: String,
+    pub schema_refs: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
-    shares: Vec<ShareConfig>,
-    schemas: Vec<SchemaConfig>,
-    tables: Vec<TableConfig>,
+    pub shares: Vec<ShareConfig>,
+    pub schemas: Vec<SchemaConfig>,
+    pub tables: Vec<TableConfig>,
 }
 
 pub struct InMemoryHandler {

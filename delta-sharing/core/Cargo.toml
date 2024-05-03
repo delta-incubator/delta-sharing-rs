@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-
+# workspace dependencies
 serde.workspace = true
+async-trait.workspace = true
 
-async-trait = "0.1"
+# core dependencies
 pbjson = { version = "0.6" }
 prost = { version = "0.12" }
 thiserror = "1"
