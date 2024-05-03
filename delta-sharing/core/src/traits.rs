@@ -4,7 +4,7 @@ use crate::error::Result;
 use crate::types as t;
 
 #[async_trait::async_trait]
-pub trait DiscoveryHandler {
+pub trait DiscoveryHandler: Send + Sync {
     type Recipient: Send;
 
     /// List all shares that the recipient is allowed to read.
@@ -86,4 +86,12 @@ impl<T: DiscoveryHandler + Send + Sync> DiscoveryHandler for Arc<T> {
     ) -> Result<t::ListShareTablesResponse> {
         self.as_ref().list_share_tables(request, recipient).await
     }
+}
+
+#[async_trait::async_trait]
+pub trait RecipientHandler: Send + Sync {
+    type Recipient: Send;
+
+    /// Get the recipient of the request.
+    async fn get_recipient(&self, authorization: Option<String>) -> Result<Self::Recipient>;
 }
