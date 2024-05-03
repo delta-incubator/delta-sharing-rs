@@ -17,6 +17,9 @@ object_store = { version = "0.9", optional = true }
 serde_yml = { version = "0.0.5", optional = true }
 uuid = { version = "1.8", optional = true, features = ["v5"] }
 
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+
 [features]
 default = ["memory"]
 memory = ["dashmap", "object_store", "serde_yml", "uuid"]
