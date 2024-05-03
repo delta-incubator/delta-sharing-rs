@@ -7,7 +7,16 @@ edition = "2021"
 
 serde.workspace = true
 
-async-trait = "0.1.80"
-pbjson = { version = "0.6.0" }
-prost = { version = "0.12.4" }
+async-trait = "0.1"
+pbjson = { version = "0.6" }
+prost = { version = "0.12" }
 thiserror = "1"
+
+dashmap = { version = "5", optional = true }
+object_store = { version = "0.9", optional = true }
+serde_yml = { version = "0.0.5", optional = true }
+uuid = { version = "1.8", optional = true, features = ["v5"] }
+
+[features]
+default = ["memory"]
+memory = ["dashmap", "object_store", "serde_yml", "uuid"]
