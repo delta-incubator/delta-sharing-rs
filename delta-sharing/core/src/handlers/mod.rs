@@ -1,2 +1,5 @@
 #[cfg(feature = "memory")]
-pub mod in_memory;
+mod in_memory;
+
+#[cfg(feature = "memory")]
+pub use in_memory::*;

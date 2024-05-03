@@ -43,3 +43,6 @@ package:
 
 generate:
     @buf generate proto
+
+run:
+    @RUST_BACKTRACE=1 cargo run -p delta-sharing-server -- --config ./config/dev.yaml

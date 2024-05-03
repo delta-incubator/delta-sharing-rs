@@ -8,12 +8,4 @@ pub enum Error {
 
     #[error("Recipient is not allowed to read the entity.")]
     NotAllowed,
-
-    #[cfg(feature = "memory")]
-    #[error("IO error: {0}")]
-    Io(#[from] std::io::Error),
-
-    #[cfg(feature = "memory")]
-    #[error("Invalid config file: {0}")]
-    SerdeYaml(#[from] serde_yml::Error),
 }

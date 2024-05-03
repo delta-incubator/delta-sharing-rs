@@ -1,16 +1,17 @@
 use std::sync::Arc;
 
 use clap::Parser;
+use delta_sharing_core::handlers::{Config, InMemoryHandler, VoidRecipientHandler};
 use tokio::net::TcpListener;
 
-use crate::server::DeltaSharingState;
+use self::server::{get_router, DeltaSharingState};
 
 mod server;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
-    #[arg(short, long, default_value = "0.0.0.0")]
+    #[arg(long, default_value = "0.0.0.0")]
     host: String,
 
     #[arg(short, long, default_value_t = 8000)]
@@ -21,15 +22,25 @@ struct Cli {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::parse();
 
-    println!("Hello, world!");
+    let config = std::fs::read_to_string(args.config)?;
+    let config = serde_yml::from_str::<Config>(&config)?;
+    let state = DeltaSharingState {
+        discovery: Arc::new(InMemoryHandler::new(config)),
+        auth: Arc::new(VoidRecipientHandler {}),
+    };
+
+    let listener = TcpListener::bind(format!("{}:{}", args.host, args.port)).await?;
+    axum::serve(listener, get_router(state)).await?;
+
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use delta_sharing_core::handlers::in_memory::{
+    use delta_sharing_core::handlers::{
         Config, InMemoryHandler, SchemaConfig, ShareConfig, TableConfig,
     };
 
