@@ -6,6 +6,7 @@ use tokio::net::TcpListener;
 
 use self::server::{get_router, DeltaSharingState};
 
+mod error;
 mod server;
 
 #[derive(Parser)]
