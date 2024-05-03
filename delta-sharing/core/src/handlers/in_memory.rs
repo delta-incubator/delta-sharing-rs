@@ -1,4 +1,3 @@
-use std::path::Path;
 use std::sync::Arc;
 
 use dashmap::DashMap;
@@ -6,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::error::{Error, Result};
-use crate::traits::DiscoveryHandler;
+use crate::traits::{DiscoveryHandler, RecipientHandler};
 use crate::types as t;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -66,11 +65,6 @@ impl InMemoryHandler {
             schemas,
             tables,
         }
-    }
-
-    pub fn try_new_from_path(config_path: impl AsRef<Path>) -> Result<Self> {
-        let data = std::fs::read_to_string(config_path)?;
-        Ok(Self::new(serde_yml::from_str(&data)?))
     }
 }
 
@@ -210,6 +204,18 @@ impl DiscoveryHandler for InMemoryHandler {
             }
             None => Err(Error::NotFound),
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct VoidRecipientHandler {}
+
+#[async_trait::async_trait]
+impl RecipientHandler for VoidRecipientHandler {
+    type Recipient = ();
+
+    async fn get_recipient(&self, _authorization: Option<String>) -> Result<(), Error> {
+        Ok(())
     }
 }
 
