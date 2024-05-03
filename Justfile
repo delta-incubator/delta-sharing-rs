@@ -40,3 +40,6 @@ server:
 # Build delta-sharing-rs into a docker image for local use
 package:
     DOCKER_BUILDKIT=0 docker build . -t delta-sharing:local -f devops/docker/Dockerfile
+
+generate:
+    @buf generate proto
