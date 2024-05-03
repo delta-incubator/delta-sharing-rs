@@ -1,6 +1,7 @@
 set dotenv-load := true
-# Show this help
-help:
+
+# list all availabe commands
+default:
     @just --list
 
 # Conduct a rust checking
@@ -41,8 +42,10 @@ server:
 package:
     DOCKER_BUILDKIT=0 docker build . -t delta-sharing:local -f devops/docker/Dockerfile
 
+# generate delta-sharing types from proto files
 generate:
     @buf generate proto
 
+# run the delta-sharing server with the dev config
 run:
     @RUST_BACKTRACE=1 cargo run -p delta-sharing-server -- --config ./config/dev.yaml

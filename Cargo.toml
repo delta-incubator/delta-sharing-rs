@@ -5,6 +5,7 @@ members = ["delta-sharing/*"]
 [workspace.dependencies]
 serde = { version = "1.0.152", features = ["derive"] }
 async-trait = "0.1.64"
+thiserror = "1"
 
 [package]
 name = "delta-sharing"

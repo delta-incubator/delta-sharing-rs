@@ -9,6 +9,8 @@ use delta_sharing_core::{
 };
 use serde::Deserialize;
 
+use crate::error::Result;
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Pagination {
@@ -26,7 +28,7 @@ async fn list_shares<T: Send>(
     State(state): State<DeltaSharingState<T>>,
     autorization: Option<TypedHeader<headers::Authorization<Bearer>>>,
     pagination: Query<Pagination>,
-) -> Json<ListSharesResponse> {
+) -> Result<Json<ListSharesResponse>> {
     let request = ListSharesRequest {
         max_results: pagination.0.max_results,
         page_token: pagination.0.page_token,
@@ -35,23 +37,18 @@ async fn list_shares<T: Send>(
     let recipient = state
         .auth
         .get_recipient(autorization.map(|a| a.0.token().to_string()))
-        .await
-        .unwrap();
+        .await?;
 
-    let response = state
-        .discovery
-        .list_shares(request, recipient)
-        .await
-        .unwrap();
+    let response = state.discovery.list_shares(request, recipient).await?;
 
-    Json(response)
+    Ok(Json(response))
 }
 
 async fn get_share<T: Send>(
     State(state): State<DeltaSharingState<T>>,
     autorization: Option<TypedHeader<headers::Authorization<Bearer>>>,
     Path(share): Path<String>,
-) -> Json<GetShareResponse> {
+) -> Result<Json<GetShareResponse>> {
     let request = GetShareRequest {
         share: share.to_ascii_lowercase(),
     };
@@ -59,12 +56,11 @@ async fn get_share<T: Send>(
     let recipient = state
         .auth
         .get_recipient(autorization.map(|a| a.0.token().to_string()))
-        .await
-        .unwrap();
+        .await?;
 
-    let response = state.discovery.get_share(request, recipient).await.unwrap();
+    let response = state.discovery.get_share(request, recipient).await?;
 
-    Json(response)
+    Ok(Json(response))
 }
 
 pub fn get_router<T: Send + Clone + 'static>(state: DeltaSharingState<T>) -> Router {
@@ -79,6 +75,7 @@ mod tests {
     use axum::body::Body;
     use axum::http::{header, HeaderValue, Request};
     use delta_sharing_core::handlers::VoidRecipientHandler;
+    use http::StatusCode;
     use http_body_util::BodyExt;
     use tower::ServiceExt;
 
@@ -133,5 +130,26 @@ mod tests {
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let result = serde_json::from_slice::<GetShareResponse>(&body).unwrap();
         assert!(matches!(result, GetShareResponse { share: Some(_) }));
+    }
+
+    #[tokio::test]
+    async fn test_get_share_not_found() {
+        let state = DeltaSharingState {
+            discovery: Arc::new(test_handler()),
+            auth: Arc::new(VoidRecipientHandler {}),
+        };
+        let app = get_router(state);
+
+        let request: Request<Body> = Request::builder()
+            .uri("/shares/nonexistent")
+            .header(
+                header::AUTHORIZATION,
+                HeaderValue::from_str("Bearer token").unwrap(),
+            )
+            .body(Body::empty())
+            .unwrap();
+
+        let response = app.oneshot(request).await.unwrap();
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
 }
