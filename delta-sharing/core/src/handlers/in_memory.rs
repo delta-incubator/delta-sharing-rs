@@ -10,37 +10,30 @@ use crate::traits::DiscoveryHandler;
 use crate::types as t;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct TableConfig {
+pub struct TableConfig {
     name: String,
     location: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct SchemaConfig {
+pub struct SchemaConfig {
     name: String,
     table_refs: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct ShareConfig {
+pub struct ShareConfig {
     name: String,
     schema_refs: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Config {
+pub struct Config {
     shares: Vec<ShareConfig>,
     schemas: Vec<SchemaConfig>,
     tables: Vec<TableConfig>,
-}
-
-impl Config {
-    pub fn read(path: impl AsRef<Path>) -> Result<Self> {
-        let config = std::fs::read_to_string(path)?;
-        Ok(serde_yml::from_str(&config)?)
-    }
 }
 
 pub struct InMemoryHandler {
@@ -51,8 +44,7 @@ pub struct InMemoryHandler {
 }
 
 impl InMemoryHandler {
-    pub fn try_new(config_path: impl AsRef<Path>) -> Result<Self> {
-        let config = Config::read(config_path)?;
+    pub fn new(config: Config) -> Self {
         let shares = Arc::new(DashMap::new());
         let schemas = Arc::new(DashMap::new());
         let tables = Arc::new(DashMap::new());
@@ -69,11 +61,16 @@ impl InMemoryHandler {
             tables.insert(table.name.clone(), table);
         }
 
-        Ok(Self {
+        Self {
             shares,
             schemas,
             tables,
-        })
+        }
+    }
+
+    pub fn try_new_from_path(config_path: impl AsRef<Path>) -> Result<Self> {
+        let data = std::fs::read_to_string(config_path)?;
+        Ok(Self::new(serde_yml::from_str(&data)?))
     }
 }
 
@@ -213,5 +210,90 @@ impl DiscoveryHandler for InMemoryHandler {
             }
             None => Err(Error::NotFound),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_in_memory_handler() {
+        let config = Config {
+            shares: vec![ShareConfig {
+                name: "share1".to_string(),
+                schema_refs: vec!["schema1".to_string()],
+            }],
+            schemas: vec![SchemaConfig {
+                name: "schema1".to_string(),
+                table_refs: vec!["table1".to_string()],
+            }],
+            tables: vec![TableConfig {
+                name: "table1".to_string(),
+                location: "file:///tmp".to_string(),
+            }],
+        };
+        let handler = InMemoryHandler::new(config);
+
+        let shares = handler
+            .list_shares(t::ListSharesRequest::default(), ())
+            .await
+            .unwrap();
+        assert_eq!(shares.items.len(), 1);
+        assert_eq!(shares.items[0].name, "share1");
+
+        let share = handler
+            .get_share(
+                t::GetShareRequest {
+                    share: "share1".to_string(),
+                },
+                (),
+            )
+            .await
+            .unwrap();
+        assert_eq!(share.share.unwrap().name, "share1");
+
+        let schemas = handler
+            .list_schemas(
+                t::ListSchemasRequest {
+                    share: "share1".to_string(),
+                    max_results: None,
+                    page_token: None,
+                },
+                (),
+            )
+            .await
+            .unwrap();
+        assert_eq!(schemas.items.len(), 1);
+        assert_eq!(schemas.items[0].name, "schema1");
+
+        let tables = handler
+            .list_schema_tables(
+                t::ListSchemaTablesRequest {
+                    share: "share1".to_string(),
+                    schema: "schema1".to_string(),
+                    max_results: None,
+                    page_token: None,
+                },
+                (),
+            )
+            .await
+            .unwrap();
+        assert_eq!(tables.items.len(), 1);
+        assert_eq!(tables.items[0].name, "table1");
+
+        let tables = handler
+            .list_share_tables(
+                t::ListShareTablesRequest {
+                    share: "share1".to_string(),
+                    max_results: None,
+                    page_token: None,
+                },
+                (),
+            )
+            .await
+            .unwrap();
+        assert_eq!(tables.items.len(), 1);
+        assert_eq!(tables.items[0].name, "table1");
     }
 }
