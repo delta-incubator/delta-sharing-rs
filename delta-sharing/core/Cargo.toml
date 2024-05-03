@@ -7,5 +7,7 @@ edition = "2021"
 
 serde.workspace = true
 
+async-trait = "0.1.80"
 pbjson = { version = "0.6.0" }
 prost = { version = "0.12.4" }
+thiserror = "1"
