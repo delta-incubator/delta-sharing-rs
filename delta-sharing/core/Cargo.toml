@@ -1,0 +1,11 @@
+[package]
+name = "delta-sharing-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+serde.workspace = true
+
+pbjson = { version = "0.6.0" }
+prost = { version = "0.12.4" }

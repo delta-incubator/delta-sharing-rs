@@ -1,0 +1,4 @@
+version: v1
+name: buf.build/delta/delta
+deps:
+  - buf.build/bufbuild/protovalidate
