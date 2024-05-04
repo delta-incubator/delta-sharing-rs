@@ -3,6 +3,12 @@ use std::sync::Arc;
 use crate::error::Result;
 use crate::types as t;
 
+#[cfg(feature = "memory")]
+pub use in_memory::*;
+
+#[cfg(feature = "memory")]
+pub(crate) mod in_memory;
+
 #[async_trait::async_trait]
 pub trait DiscoveryHandler: Send + Sync {
     type Recipient: Send;

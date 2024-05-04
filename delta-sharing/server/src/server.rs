@@ -3,12 +3,8 @@ use std::sync::Arc;
 use axum::extract::{Extension, Path, Query, State};
 use axum::{routing::get, Json, Router};
 use delta_sharing_core::policies::{Decision, Permission, Policy, Resource};
-use delta_sharing_core::Error as CoreError;
-use delta_sharing_core::{
-    DiscoveryHandler, GetShareRequest, GetShareResponse, ListSchemaTablesRequest,
-    ListSchemaTablesResponse, ListSchemasRequest, ListSchemasResponse, ListShareTablesRequest,
-    ListShareTablesResponse, ListSharesRequest, ListSharesResponse,
-};
+use delta_sharing_core::types as t;
+use delta_sharing_core::{DiscoveryHandler, Error as CoreError};
 use serde::Deserialize;
 
 use crate::error::Result;
@@ -30,8 +26,8 @@ async fn list_shares<T: Send + Sync>(
     State(state): State<DeltaSharingState<T>>,
     Extension(recipient): Extension<T>,
     pagination: Query<Pagination>,
-) -> Result<Json<ListSharesResponse>> {
-    let request = ListSharesRequest {
+) -> Result<Json<t::ListSharesResponse>> {
+    let request = t::ListSharesRequest {
         max_results: pagination.0.max_results,
         page_token: pagination.0.page_token,
     };
@@ -43,8 +39,8 @@ async fn get_share<T: Send + Sync>(
     State(state): State<DeltaSharingState<T>>,
     Extension(recipient): Extension<T>,
     Path(share): Path<String>,
-) -> Result<Json<GetShareResponse>> {
-    let request = GetShareRequest {
+) -> Result<Json<t::GetShareResponse>> {
+    let request = t::GetShareRequest {
         share: share.to_ascii_lowercase(),
     };
     check_read_share_permission(state.policy.as_ref(), share, &recipient).await?;
@@ -56,8 +52,8 @@ async fn list_schemas<T: Send + Sync>(
     Extension(recipient): Extension<T>,
     pagination: Query<Pagination>,
     Path(share): Path<String>,
-) -> Result<Json<ListSchemasResponse>> {
-    let request = ListSchemasRequest {
+) -> Result<Json<t::ListSchemasResponse>> {
+    let request = t::ListSchemasRequest {
         max_results: pagination.0.max_results,
         page_token: pagination.0.page_token,
         share: share.to_ascii_lowercase(),
@@ -71,8 +67,8 @@ async fn list_share_tables<T: Send + Sync>(
     Extension(recipient): Extension<T>,
     pagination: Query<Pagination>,
     Path(share): Path<String>,
-) -> Result<Json<ListShareTablesResponse>> {
-    let request = ListShareTablesRequest {
+) -> Result<Json<t::ListShareTablesResponse>> {
+    let request = t::ListShareTablesRequest {
         max_results: pagination.0.max_results,
         page_token: pagination.0.page_token,
         share: share.to_ascii_lowercase(),
@@ -86,8 +82,8 @@ async fn list_schema_tables<T: Send + Sync>(
     Extension(recipient): Extension<T>,
     pagination: Query<Pagination>,
     Path((share, schema)): Path<(String, String)>,
-) -> Result<Json<ListSchemaTablesResponse>> {
-    let request = ListSchemaTablesRequest {
+) -> Result<Json<t::ListSchemaTablesResponse>> {
+    let request = t::ListSchemaTablesRequest {
         max_results: pagination.0.max_results,
         page_token: pagination.0.page_token,
         share: share.to_ascii_lowercase(),
@@ -164,7 +160,7 @@ mod tests {
         assert!(response.status().is_success());
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let result = serde_json::from_slice::<ListSharesResponse>(&body).unwrap();
+        let result = serde_json::from_slice::<t::ListSharesResponse>(&body).unwrap();
         assert_eq!(result.items.len(), 1);
     }
 
@@ -185,8 +181,8 @@ mod tests {
         assert!(response.status().is_success());
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let result = serde_json::from_slice::<GetShareResponse>(&body).unwrap();
-        assert!(matches!(result, GetShareResponse { share: Some(_) }));
+        let result = serde_json::from_slice::<t::GetShareResponse>(&body).unwrap();
+        assert!(matches!(result, t::GetShareResponse { share: Some(_) }));
     }
 
     #[tokio::test]
@@ -223,7 +219,7 @@ mod tests {
         assert!(response.status().is_success());
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let result = serde_json::from_slice::<ListSchemasResponse>(&body).unwrap();
+        let result = serde_json::from_slice::<t::ListSchemasResponse>(&body).unwrap();
         assert_eq!(result.items.len(), 1);
     }
 
@@ -261,7 +257,7 @@ mod tests {
         assert!(response.status().is_success());
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let result = serde_json::from_slice::<ListShareTablesResponse>(&body).unwrap();
+        let result = serde_json::from_slice::<t::ListShareTablesResponse>(&body).unwrap();
         assert_eq!(result.items.len(), 1);
     }
 
@@ -299,7 +295,7 @@ mod tests {
         assert!(response.status().is_success());
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let result = serde_json::from_slice::<ListSchemaTablesResponse>(&body).unwrap();
+        let result = serde_json::from_slice::<t::ListSchemaTablesResponse>(&body).unwrap();
         assert_eq!(result.items.len(), 1);
     }
 

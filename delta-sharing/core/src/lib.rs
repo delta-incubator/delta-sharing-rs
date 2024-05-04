@@ -1,6 +1,5 @@
-mod traits;
 #[allow(dead_code)]
-mod types {
+pub mod types {
     use serde::Serialize;
 
     #[derive(Serialize)]
@@ -12,10 +11,10 @@ mod types {
 
     include!("gen/delta_sharing.v1.rs");
 }
-mod error;
-pub mod handlers;
+pub mod discovery;
+pub mod error;
 pub mod policies;
 
+pub use discovery::*;
 pub use error::*;
-pub use traits::*;
 pub use types::*;

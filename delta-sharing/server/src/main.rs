@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use clap::Parser;
-use delta_sharing_core::handlers::{Config, InMemoryHandler};
+use delta_sharing_core::discovery::{Config, InMemoryHandler};
 use delta_sharing_core::policies::{AlwaysAllowPolicy, RecipientId};
 use tokio::net::TcpListener;
 
@@ -45,10 +45,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(test)]
 mod tests {
-    use delta_sharing_core::{
-        handlers::{Config, InMemoryHandler, SchemaConfig, ShareConfig, TableConfig},
-        policies::RecipientId,
+    use delta_sharing_core::discovery::{
+        Config, InMemoryHandler, SchemaConfig, ShareConfig, TableConfig,
     };
+    use delta_sharing_core::policies::RecipientId;
 
     pub(crate) fn test_config() -> Config {
         Config {
