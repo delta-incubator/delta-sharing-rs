@@ -1,11 +1,11 @@
 use axum::extract::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use delta_sharing_core::Error as CoreError;
-use serde::Serialize;
+use delta_sharing_core::{Error as CoreError, ErrorResponse};
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
+#[derive(Debug)]
 pub enum Error {
     Core(CoreError),
 }
@@ -18,14 +18,6 @@ impl From<CoreError> for Error {
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
-        // How we want errors responses to be serialized
-        #[derive(Serialize)]
-        #[serde(rename_all = "camelCase")]
-        struct ErrorResponse {
-            error_code: String,
-            message: String,
-        }
-
         let (status, message) = match self {
             Error::Core(CoreError::NotFound) => (
                 StatusCode::NOT_FOUND,
