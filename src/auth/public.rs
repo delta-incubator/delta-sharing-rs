@@ -48,6 +48,12 @@ use crate::auth::RecipientId;
 #[derive(Debug, Clone)]
 pub struct PublicAccessAuthLayer;
 
+impl Default for PublicAccessAuthLayer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PublicAccessAuthLayer {
     /// Create a new [`PublicAccessAuthLayer`].
     pub fn new() -> Self {
@@ -99,8 +105,8 @@ mod tests {
     use super::*;
 
     use axum::body::Body;
+    use axum::http::{header, Request, StatusCode};
     use axum::response::Response;
-    use http::{header, Request, StatusCode};
     use tower::BoxError;
     use tower::ServiceBuilder;
     use tower::ServiceExt;
