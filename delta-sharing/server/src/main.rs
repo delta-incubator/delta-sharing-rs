@@ -4,6 +4,8 @@ use clap::Parser;
 use delta_sharing_core::discovery::{Config, InMemoryHandler};
 use delta_sharing_core::policies::{AlwaysAllowPolicy, RecipientId};
 use tokio::net::TcpListener;
+use tokio::signal;
+use tower_http::trace::TraceLayer;
 
 use self::auth::{AnonymousAuthenticator, AuthorizationLayer};
 use self::server::{get_router, DeltaSharingState};
@@ -35,12 +37,40 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         discovery: Arc::new(InMemoryHandler::new(config)),
         policy: Arc::new(AlwaysAllowPolicy::<RecipientId>::new()),
     };
-    let server = get_router(state).layer(AuthorizationLayer::new(Arc::new(AnonymousAuthenticator)));
+    let server = get_router(state)
+        .layer(AuthorizationLayer::new(Arc::new(AnonymousAuthenticator)))
+        .layer(TraceLayer::new_for_http());
     let listener = TcpListener::bind(format!("{}:{}", args.host, args.port)).await?;
 
-    axum::serve(listener, server).await?;
+    axum::serve(listener, server)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
 
     Ok(())
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
 }
 
 #[cfg(test)]

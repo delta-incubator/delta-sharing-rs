@@ -2,6 +2,7 @@ use axum::extract::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use delta_sharing_core::{Error as CoreError, ErrorResponse};
+use tracing::error;
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
@@ -27,6 +28,14 @@ impl IntoResponse for Error {
                 StatusCode::FORBIDDEN,
                 "The request is forbidden from being fulfilled.",
             ),
+            Error::Core(CoreError::Kernel(error)) => {
+                let message = format!("Kernel error: {}", error);
+                error!("delta-kernel error: {}", message);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "The request is not handled correctly due to a server error.",
+                )
+            }
         };
 
         (

@@ -3,6 +3,9 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("kernel error: {0}")]
+    Kernel(#[from] delta_kernel::Error),
+
     #[error("Entity not found.")]
     NotFound,
 

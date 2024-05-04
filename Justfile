@@ -49,3 +49,7 @@ generate:
 # run the delta-sharing server with the dev config
 run:
     @RUST_BACKTRACE=1 cargo run -p delta-sharing-server -- --config ./config/dev.yaml
+
+# the the documentation (requires mdbook)
+doc:
+    cd docs && mdbook serve --open
