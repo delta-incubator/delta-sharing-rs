@@ -6,6 +6,7 @@ members = ["delta-sharing/*"]
 serde = { version = "1.0.152", features = ["derive"] }
 async-trait = "0.1.64"
 thiserror = "1"
+tower = { version = "0.4.13", features = ["limit", "filter", "util"] }
 
 [package]
 name = "delta-sharing"
@@ -15,8 +16,9 @@ edition = "2021"
 rust-version = "1.67"
 
 [dependencies]
-serde.workspace = true
 async-trait.workspace = true
+serde.workspace = true
+tower.workspace = true
 
 argon2 = "0.5.0"
 anyhow = { version = "1.0.69", features = ["backtrace"] }
@@ -29,7 +31,6 @@ futures = "0.3.28"
 futures-util = "0.3.28"
 hyper = { version = "0.14.13" }
 tokio = { version = "1.25.0", features = ["full", "rt-multi-thread"] }
-tower = { version = "0.4.13", features = ["limit", "filter", "util"] }
 config = "0.13.3"
 chrono = { version = "0.4.23", features = ["serde"] }
 colored = "2.0.0"

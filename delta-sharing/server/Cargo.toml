@@ -9,11 +9,13 @@ delta-sharing-core = { path = "../core" }
 # workspace dependencies (in alphabetical order)
 async-trait.workspace = true
 serde.workspace = true
+tower.workspace = true
 
 # server dependencies (in alphabetical order)
 axum = "0.7.5"
 axum-extra = { version = "0.9.2", features = ["typed-header"] }
 clap = { version = "4.5.4", features = ["derive"] }
+futures-util = "0.3.28"
 serde_yml = { version = "0.0.5" }
 tokio = { version = "1.10.0", features = ["full"] }
 

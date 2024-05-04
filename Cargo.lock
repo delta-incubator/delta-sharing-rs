@@ -1280,6 +1280,7 @@ dependencies = [
  "axum-extra",
  "clap",
  "delta-sharing-core",
+ "futures-util",
  "http 0.2.9",
  "http-body-util",
  "serde",
