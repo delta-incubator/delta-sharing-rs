@@ -153,9 +153,8 @@ pub fn get_router<T: Send + Clone + 'static>(state: DeltaSharingState<T>) -> Rou
 #[cfg(test)]
 mod tests {
     use axum::body::Body;
-    use axum::http::{header, HeaderValue, Request};
+    use axum::http::{header, HeaderValue, Request, StatusCode};
     use delta_sharing_core::handlers::VoidRecipientHandler;
-    use http::StatusCode;
     use http_body_util::BodyExt;
     use tower::ServiceExt;
 
