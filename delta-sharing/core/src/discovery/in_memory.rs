@@ -4,8 +4,8 @@ use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::DiscoveryHandler;
 use crate::error::{Error, Result};
-use crate::traits::DiscoveryHandler;
 use crate::types as t;
 
 #[derive(Debug, Serialize, Deserialize)]
