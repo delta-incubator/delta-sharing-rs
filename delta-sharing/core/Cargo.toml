@@ -5,21 +5,18 @@ edition = "2021"
 authors = ["Robert Pack <robstar.pack@gmail.com>"]
 
 [dependencies]
-# workspace dependencies
-serde.workspace = true
+# workspace dependencies (in alphabetical order)
 async-trait.workspace = true
+delta_kernel.workspace = true
+serde.workspace = true
 thiserror.workspace = true
 url.workspace = true
 
-# core dependencies
-delta_kernel = { git = "https://github.com/roeap/delta-kernel-rs", rev = "9c8f7f50fb7dca7d94d58cda101ff1eb6e0456bb", features = [
-    "tokio",
-    "developer-visibility",
-    "default-engine",
-] }
+# server dependencies (in alphabetical order)
 object_store = { version = "0.9" }
 pbjson = { version = "0.6" }
 prost = { version = "0.12" }
+tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
 
 dashmap = { version = "5", optional = true }
 uuid = { version = "1.8", optional = true, features = ["v5"] }

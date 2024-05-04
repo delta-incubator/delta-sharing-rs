@@ -24,4 +24,5 @@ pub mod query;
 
 pub use discovery::*;
 pub use error::*;
+pub use query::*;
 pub use types::*;

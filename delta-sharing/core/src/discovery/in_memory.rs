@@ -4,7 +4,7 @@ use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::DiscoveryHandler;
+use super::{DiscoveryHandler, TableLocationResover};
 use crate::error::{Error, Result};
 use crate::types as t;
 
@@ -196,6 +196,27 @@ impl<T: Send + Sync> DiscoveryHandler for InMemoryHandler<T> {
             }
             None => Err(Error::NotFound),
         }
+    }
+}
+
+#[async_trait::async_trait]
+impl<T: Send + Sync> TableLocationResover for InMemoryHandler<T> {
+    async fn resolve(&self, table_ref: &t::TableRef) -> Result<url::Url> {
+        let Some(schemas) = self.shares.get(&table_ref.share) else {
+            return Err(Error::NotFound);
+        };
+        if !schemas.contains(&table_ref.schema) {
+            return Err(Error::NotFound);
+        }
+        let Some(tables) = self.schemas.get(&table_ref.schema) else {
+            return Err(Error::NotFound);
+        };
+        if !tables.contains(&table_ref.table) {
+            return Err(Error::NotFound);
+        }
+        let table = self.tables.get(&table_ref.table).ok_or(Error::NotFound)?;
+        Ok(url::Url::parse(&table.location)
+            .map_err(|_| Error::InvalidTableLocation(table.location.clone()))?)
     }
 }
 

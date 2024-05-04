@@ -9,6 +9,7 @@ delta-sharing-core = { path = "../core" }
 
 # workspace dependencies (in alphabetical order)
 async-trait.workspace = true
+delta_kernel.workspace = true
 serde.workspace = true
 tower.workspace = true
 tracing.workspace = true

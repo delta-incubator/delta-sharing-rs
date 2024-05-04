@@ -17,6 +17,11 @@ impl From<CoreError> for Error {
     }
 }
 
+const INTERNAL_ERROR: (StatusCode, &'static str) = (
+    StatusCode::INTERNAL_SERVER_ERROR,
+    "The request is not handled correctly due to a server error.",
+);
+
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let (status, message) = match self {
@@ -31,10 +36,12 @@ impl IntoResponse for Error {
             Error::Core(CoreError::Kernel(error)) => {
                 let message = format!("Kernel error: {}", error);
                 error!("delta-kernel error: {}", message);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "The request is not handled correctly due to a server error.",
-                )
+                INTERNAL_ERROR
+            }
+            Error::Core(CoreError::InvalidTableLocation(location)) => {
+                let message = format!("Invalid table location: {}", location);
+                error!("{}", message);
+                INTERNAL_ERROR
             }
         };
 

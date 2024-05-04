@@ -11,4 +11,7 @@ pub enum Error {
 
     #[error("Recipient is not allowed to read the entity.")]
     NotAllowed,
+
+    #[error("Invalid table location: {0}")]
+    InvalidTableLocation(String),
 }

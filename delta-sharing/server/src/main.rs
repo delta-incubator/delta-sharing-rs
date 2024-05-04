@@ -3,6 +3,7 @@ use std::sync::Arc;
 use clap::Parser;
 use delta_sharing_core::discovery::{Config, InMemoryHandler};
 use delta_sharing_core::policies::{AlwaysAllowPolicy, RecipientId};
+use delta_sharing_core::query::KernelQueryHandler;
 use tokio::net::TcpListener;
 use tokio::signal;
 use tower_http::trace::TraceLayer;
@@ -27,21 +28,23 @@ struct Cli {
     config: String,
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread", worker_threads = 4)]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::parse();
 
     let config = std::fs::read_to_string(args.config)?;
     let config = serde_yml::from_str::<Config>(&config)?;
+    let discovery = Arc::new(InMemoryHandler::new(config));
     let state = DeltaSharingState {
-        discovery: Arc::new(InMemoryHandler::new(config)),
+        query: KernelQueryHandler::new_multi_thread(discovery.clone(), Default::default()),
+        discovery,
         policy: Arc::new(AlwaysAllowPolicy::<RecipientId>::new()),
     };
+
+    let listener = TcpListener::bind(format!("{}:{}", args.host, args.port)).await?;
     let server = get_router(state)
         .layer(AuthorizationLayer::new(Arc::new(AnonymousAuthenticator)))
         .layer(TraceLayer::new_for_http());
-    let listener = TcpListener::bind(format!("{}:{}", args.host, args.port)).await?;
-
     axum::serve(listener, server)
         .with_graceful_shutdown(shutdown_signal())
         .await?;

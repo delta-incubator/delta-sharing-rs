@@ -2,8 +2,13 @@
 members = ["delta-sharing/*"]
 
 [workspace.dependencies]
-serde = { version = "1.0.152", features = ["derive"] }
 async-trait = "0.1.64"
+delta_kernel = { git = "https://github.com/roeap/delta-kernel-rs", rev = "9c8f7f50fb7dca7d94d58cda101ff1eb6e0456bb", features = [
+    "tokio",
+    "developer-visibility",
+    "default-engine",
+] }
+serde = { version = "1.0.152", features = ["derive"] }
 thiserror = "1"
 tower = { version = "0.4.13", features = ["limit", "filter", "util"] }
 tracing = { version = "0.1.37", features = ["log"] }

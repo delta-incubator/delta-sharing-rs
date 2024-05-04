@@ -1435,6 +1435,7 @@ dependencies = [
  "axum",
  "clap",
  "delta-sharing-core",
+ "delta_kernel",
  "futures-util",
  "http 1.1.0",
  "http-body-util",
