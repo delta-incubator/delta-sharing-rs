@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::error::{Error, Result};
-use crate::traits::{DiscoveryHandler, RecipientHandler};
+use crate::traits::DiscoveryHandler;
 use crate::types as t;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,14 +35,15 @@ pub struct Config {
     pub tables: Vec<TableConfig>,
 }
 
-pub struct InMemoryHandler {
+pub struct InMemoryHandler<T: Send + Sync> {
     // The data in memory
     shares: Arc<DashMap<String, Vec<String>>>,
     schemas: Arc<DashMap<String, Vec<String>>>,
     tables: Arc<DashMap<String, TableConfig>>,
+    _phantom: std::marker::PhantomData<T>,
 }
 
-impl InMemoryHandler {
+impl<T: Send + Sync> InMemoryHandler<T> {
     pub fn new(config: Config) -> Self {
         let shares = Arc::new(DashMap::new());
         let schemas = Arc::new(DashMap::new());
@@ -64,13 +65,14 @@ impl InMemoryHandler {
             shares,
             schemas,
             tables,
+            _phantom: std::marker::PhantomData,
         }
     }
 }
 
 #[async_trait::async_trait]
-impl DiscoveryHandler for InMemoryHandler {
-    type Recipient = ();
+impl<T: Send + Sync> DiscoveryHandler for InMemoryHandler<T> {
+    type Recipient = T;
 
     async fn list_shares(
         &self,
@@ -94,11 +96,7 @@ impl DiscoveryHandler for InMemoryHandler {
         })
     }
 
-    async fn get_share(
-        &self,
-        request: t::GetShareRequest,
-        _recipient: Self::Recipient,
-    ) -> Result<t::GetShareResponse> {
+    async fn get_share(&self, request: t::GetShareRequest) -> Result<t::GetShareResponse> {
         if self.shares.contains_key(&request.share) {
             let id = Uuid::new_v5(&Uuid::NAMESPACE_OID, request.share.as_bytes());
             Ok(t::GetShareResponse {
@@ -112,11 +110,7 @@ impl DiscoveryHandler for InMemoryHandler {
         }
     }
 
-    async fn list_schemas(
-        &self,
-        request: t::ListSchemasRequest,
-        _recipient: Self::Recipient,
-    ) -> Result<t::ListSchemasResponse> {
+    async fn list_schemas(&self, request: t::ListSchemasRequest) -> Result<t::ListSchemasResponse> {
         match self.shares.get(&request.share) {
             Some(schema_refs) => {
                 let schemas = schema_refs
@@ -138,7 +132,6 @@ impl DiscoveryHandler for InMemoryHandler {
     async fn list_schema_tables(
         &self,
         request: t::ListSchemaTablesRequest,
-        _recipient: Self::Recipient,
     ) -> Result<t::ListSchemaTablesResponse> {
         let schema_refs = self.shares.get(&request.share).ok_or(Error::NotFound)?;
         if !schema_refs.contains(&request.schema) {
@@ -171,7 +164,6 @@ impl DiscoveryHandler for InMemoryHandler {
     async fn list_share_tables(
         &self,
         request: t::ListShareTablesRequest,
-        _recipient: Self::Recipient,
     ) -> Result<t::ListShareTablesResponse> {
         let share_id = Uuid::new_v5(&Uuid::NAMESPACE_OID, request.share.as_bytes());
         match self.shares.get(&request.share) {
@@ -207,21 +199,10 @@ impl DiscoveryHandler for InMemoryHandler {
     }
 }
 
-#[derive(Clone)]
-pub struct VoidRecipientHandler {}
-
-#[async_trait::async_trait]
-impl RecipientHandler for VoidRecipientHandler {
-    type Recipient = ();
-
-    async fn get_recipient(&self, _authorization: Option<String>) -> Result<(), Error> {
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::policies::RecipientId;
 
     #[tokio::test]
     async fn test_in_memory_handler() {
@@ -242,61 +223,49 @@ mod tests {
         let handler = InMemoryHandler::new(config);
 
         let shares = handler
-            .list_shares(t::ListSharesRequest::default(), ())
+            .list_shares(t::ListSharesRequest::default(), RecipientId::Anonymous)
             .await
             .unwrap();
         assert_eq!(shares.items.len(), 1);
         assert_eq!(shares.items[0].name, "share1");
 
         let share = handler
-            .get_share(
-                t::GetShareRequest {
-                    share: "share1".to_string(),
-                },
-                (),
-            )
+            .get_share(t::GetShareRequest {
+                share: "share1".to_string(),
+            })
             .await
             .unwrap();
         assert_eq!(share.share.unwrap().name, "share1");
 
         let schemas = handler
-            .list_schemas(
-                t::ListSchemasRequest {
-                    share: "share1".to_string(),
-                    max_results: None,
-                    page_token: None,
-                },
-                (),
-            )
+            .list_schemas(t::ListSchemasRequest {
+                share: "share1".to_string(),
+                max_results: None,
+                page_token: None,
+            })
             .await
             .unwrap();
         assert_eq!(schemas.items.len(), 1);
         assert_eq!(schemas.items[0].name, "schema1");
 
         let tables = handler
-            .list_schema_tables(
-                t::ListSchemaTablesRequest {
-                    share: "share1".to_string(),
-                    schema: "schema1".to_string(),
-                    max_results: None,
-                    page_token: None,
-                },
-                (),
-            )
+            .list_schema_tables(t::ListSchemaTablesRequest {
+                share: "share1".to_string(),
+                schema: "schema1".to_string(),
+                max_results: None,
+                page_token: None,
+            })
             .await
             .unwrap();
         assert_eq!(tables.items.len(), 1);
         assert_eq!(tables.items[0].name, "table1");
 
         let tables = handler
-            .list_share_tables(
-                t::ListShareTablesRequest {
-                    share: "share1".to_string(),
-                    max_results: None,
-                    page_token: None,
-                },
-                (),
-            )
+            .list_share_tables(t::ListShareTablesRequest {
+                share: "share1".to_string(),
+                max_results: None,
+                page_token: None,
+            })
             .await
             .unwrap();
         assert_eq!(tables.items.len(), 1);

@@ -1,9 +1,11 @@
 use std::sync::Arc;
 
 use clap::Parser;
-use delta_sharing_core::handlers::{Config, InMemoryHandler, VoidRecipientHandler};
+use delta_sharing_core::handlers::{Config, InMemoryHandler};
+use delta_sharing_core::policies::{AlwaysAllowPolicy, RecipientId};
 use tokio::net::TcpListener;
 
+use self::auth::{AnonymousAuthenticator, AuthorizationLayer};
 use self::server::{get_router, DeltaSharingState};
 
 mod auth;
@@ -31,19 +33,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = serde_yml::from_str::<Config>(&config)?;
     let state = DeltaSharingState {
         discovery: Arc::new(InMemoryHandler::new(config)),
-        auth: Arc::new(VoidRecipientHandler {}),
+        policy: Arc::new(AlwaysAllowPolicy::<RecipientId>::new()),
     };
-
+    let server = get_router(state).layer(AuthorizationLayer::new(Arc::new(AnonymousAuthenticator)));
     let listener = TcpListener::bind(format!("{}:{}", args.host, args.port)).await?;
-    axum::serve(listener, get_router(state)).await?;
+
+    axum::serve(listener, server).await?;
 
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use delta_sharing_core::handlers::{
-        Config, InMemoryHandler, SchemaConfig, ShareConfig, TableConfig,
+    use delta_sharing_core::{
+        handlers::{Config, InMemoryHandler, SchemaConfig, ShareConfig, TableConfig},
+        policies::RecipientId,
     };
 
     pub(crate) fn test_config() -> Config {
@@ -63,7 +67,7 @@ mod tests {
         }
     }
 
-    pub(crate) fn test_handler() -> InMemoryHandler {
+    pub(crate) fn test_handler() -> InMemoryHandler<RecipientId> {
         InMemoryHandler::new(test_config())
     }
 }
