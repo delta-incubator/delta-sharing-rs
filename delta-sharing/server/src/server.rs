@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
-use axum::extract::{Path, Query, State};
+use axum::extract::{Extension, Path, Query, State};
 use axum::{routing::get, Json, Router};
-use axum_extra::{headers, headers::authorization::Bearer, TypedHeader};
+use delta_sharing_core::policies::{Decision, Permission, Policy, Resource};
+use delta_sharing_core::Error as CoreError;
 use delta_sharing_core::{
     DiscoveryHandler, GetShareRequest, GetShareResponse, ListSchemaTablesRequest,
     ListSchemaTablesResponse, ListSchemasRequest, ListSchemasResponse, ListShareTablesRequest,
-    ListShareTablesResponse, ListSharesRequest, ListSharesResponse, RecipientHandler,
+    ListShareTablesResponse, ListSharesRequest, ListSharesResponse,
 };
 use serde::Deserialize;
 
@@ -20,53 +21,39 @@ struct Pagination {
 }
 
 #[derive(Clone)]
-pub struct DeltaSharingState<T: Send> {
+pub struct DeltaSharingState<T: Send + Sync> {
     pub discovery: Arc<dyn DiscoveryHandler<Recipient = T>>,
-    pub auth: Arc<dyn RecipientHandler<Recipient = T>>,
+    pub policy: Arc<dyn Policy<Recipient = T>>,
 }
 
-async fn list_shares<T: Send>(
+async fn list_shares<T: Send + Sync>(
     State(state): State<DeltaSharingState<T>>,
-    autorization: Option<TypedHeader<headers::Authorization<Bearer>>>,
+    Extension(recipient): Extension<T>,
     pagination: Query<Pagination>,
 ) -> Result<Json<ListSharesResponse>> {
     let request = ListSharesRequest {
         max_results: pagination.0.max_results,
         page_token: pagination.0.page_token,
     };
-
-    let recipient = state
-        .auth
-        .get_recipient(autorization.map(|a| a.0.token().to_string()))
-        .await?;
-
-    let response = state.discovery.list_shares(request, recipient).await?;
-
-    Ok(Json(response))
+    // TODO: should we check the permission for all returned shares?
+    Ok(Json(state.discovery.list_shares(request, recipient).await?))
 }
 
-async fn get_share<T: Send>(
+async fn get_share<T: Send + Sync>(
     State(state): State<DeltaSharingState<T>>,
-    autorization: Option<TypedHeader<headers::Authorization<Bearer>>>,
+    Extension(recipient): Extension<T>,
     Path(share): Path<String>,
 ) -> Result<Json<GetShareResponse>> {
     let request = GetShareRequest {
         share: share.to_ascii_lowercase(),
     };
-
-    let recipient = state
-        .auth
-        .get_recipient(autorization.map(|a| a.0.token().to_string()))
-        .await?;
-
-    let response = state.discovery.get_share(request, recipient).await?;
-
-    Ok(Json(response))
+    check_read_share_permission(state.policy.as_ref(), share, &recipient).await?;
+    Ok(Json(state.discovery.get_share(request).await?))
 }
 
-async fn list_schemas<T: Send>(
+async fn list_schemas<T: Send + Sync>(
     State(state): State<DeltaSharingState<T>>,
-    autorization: Option<TypedHeader<headers::Authorization<Bearer>>>,
+    Extension(recipient): Extension<T>,
     pagination: Query<Pagination>,
     Path(share): Path<String>,
 ) -> Result<Json<ListSchemasResponse>> {
@@ -75,20 +62,13 @@ async fn list_schemas<T: Send>(
         page_token: pagination.0.page_token,
         share: share.to_ascii_lowercase(),
     };
-
-    let recipient = state
-        .auth
-        .get_recipient(autorization.map(|a| a.0.token().to_string()))
-        .await?;
-
-    let response = state.discovery.list_schemas(request, recipient).await?;
-
-    Ok(Json(response))
+    check_read_share_permission(state.policy.as_ref(), share, &recipient).await?;
+    Ok(Json(state.discovery.list_schemas(request).await?))
 }
 
-async fn list_share_tables<T: Send>(
+async fn list_share_tables<T: Send + Sync>(
     State(state): State<DeltaSharingState<T>>,
-    autorization: Option<TypedHeader<headers::Authorization<Bearer>>>,
+    Extension(recipient): Extension<T>,
     pagination: Query<Pagination>,
     Path(share): Path<String>,
 ) -> Result<Json<ListShareTablesResponse>> {
@@ -97,23 +77,13 @@ async fn list_share_tables<T: Send>(
         page_token: pagination.0.page_token,
         share: share.to_ascii_lowercase(),
     };
-
-    let recipient = state
-        .auth
-        .get_recipient(autorization.map(|a| a.0.token().to_string()))
-        .await?;
-
-    let response = state
-        .discovery
-        .list_share_tables(request, recipient)
-        .await?;
-
-    Ok(Json(response))
+    check_read_share_permission(state.policy.as_ref(), share, &recipient).await?;
+    Ok(Json(state.discovery.list_share_tables(request).await?))
 }
 
-async fn list_schema_tables<T: Send>(
+async fn list_schema_tables<T: Send + Sync>(
     State(state): State<DeltaSharingState<T>>,
-    autorization: Option<TypedHeader<headers::Authorization<Bearer>>>,
+    Extension(recipient): Extension<T>,
     pagination: Query<Pagination>,
     Path((share, schema)): Path<(String, String)>,
 ) -> Result<Json<ListSchemaTablesResponse>> {
@@ -123,21 +93,25 @@ async fn list_schema_tables<T: Send>(
         share: share.to_ascii_lowercase(),
         schema: schema.to_ascii_lowercase(),
     };
-
-    let recipient = state
-        .auth
-        .get_recipient(autorization.map(|a| a.0.token().to_string()))
-        .await?;
-
-    let response = state
-        .discovery
-        .list_schema_tables(request, recipient)
-        .await?;
-
-    Ok(Json(response))
+    check_read_share_permission(state.policy.as_ref(), share, &recipient).await?;
+    Ok(Json(state.discovery.list_schema_tables(request).await?))
 }
 
-pub fn get_router<T: Send + Clone + 'static>(state: DeltaSharingState<T>) -> Router {
+async fn check_read_share_permission<T: Send + Sync>(
+    policy: &dyn Policy<Recipient = T>,
+    share: String,
+    recipient: &T,
+) -> Result<()> {
+    let decision = policy
+        .authorize(Resource::Share(share), Permission::Read, recipient)
+        .await?;
+    if decision == Decision::Deny {
+        return Err(CoreError::NotAllowed.into());
+    }
+    Ok(())
+}
+
+pub fn get_router<T: Send + Sync + Clone + 'static>(state: DeltaSharingState<T>) -> Router {
     Router::new()
         .route("/shares", get(list_shares))
         .route("/shares/:share", get(get_share))
@@ -154,23 +128,28 @@ pub fn get_router<T: Send + Clone + 'static>(state: DeltaSharingState<T>) -> Rou
 mod tests {
     use axum::body::Body;
     use axum::http::{header, HeaderValue, Request, StatusCode};
-    use delta_sharing_core::handlers::VoidRecipientHandler;
+    use delta_sharing_core::policies::{AlwaysAllowPolicy, RecipientId};
     use http_body_util::BodyExt;
     use tower::ServiceExt;
 
     use super::*;
+    use crate::auth::{AnonymousAuthenticator, AuthorizationLayer};
     use crate::tests::test_handler;
 
-    fn get_state() -> DeltaSharingState<()> {
+    fn get_state() -> DeltaSharingState<RecipientId> {
         DeltaSharingState {
             discovery: Arc::new(test_handler()),
-            auth: Arc::new(VoidRecipientHandler {}),
+            policy: Arc::new(AlwaysAllowPolicy::<RecipientId>::new()),
         }
+    }
+
+    fn get_anoymous_router() -> Router {
+        get_router(get_state()).layer(AuthorizationLayer::new(Arc::new(AnonymousAuthenticator)))
     }
 
     #[tokio::test]
     async fn test_list_shares() {
-        let app = get_router(get_state());
+        let app = get_anoymous_router();
 
         let request = Request::builder()
             .uri("/shares")
@@ -191,7 +170,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_share() {
-        let app = get_router(get_state());
+        let app = get_anoymous_router();
 
         let request = Request::builder()
             .uri("/shares/share1")
@@ -212,7 +191,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_share_not_found() {
-        let app = get_router(get_state());
+        let app = get_anoymous_router();
 
         let request: Request<Body> = Request::builder()
             .uri("/shares/nonexistent")
@@ -229,7 +208,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_schemas() {
-        let app = get_router(get_state());
+        let app = get_anoymous_router();
 
         let request = Request::builder()
             .uri("/shares/share1/schemas")
@@ -250,7 +229,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_schemas_not_found() {
-        let app = get_router(get_state());
+        let app = get_anoymous_router();
 
         let request: Request<Body> = Request::builder()
             .uri("/shares/nonexistent/schemas")
@@ -267,7 +246,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_share_tables() {
-        let app = get_router(get_state());
+        let app = get_anoymous_router();
 
         let request = Request::builder()
             .uri("/shares/share1/all-tables")
@@ -288,7 +267,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_share_tables_not_found() {
-        let app = get_router(get_state());
+        let app = get_anoymous_router();
 
         let request: Request<Body> = Request::builder()
             .uri("/shares/nonexistent/all-tables")
@@ -305,7 +284,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_schema_tables() {
-        let app = get_router(get_state());
+        let app = get_anoymous_router();
 
         let request = Request::builder()
             .uri("/shares/share1/schemas/schema1/tables")
@@ -326,7 +305,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_schema_tables_not_found() {
-        let app = get_router(get_state());
+        let app = get_anoymous_router();
 
         let request: Request<Body> = Request::builder()
             .uri("/shares/share1/schemas/nonexistent/tables")

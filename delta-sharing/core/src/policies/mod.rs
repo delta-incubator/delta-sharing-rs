@@ -9,7 +9,7 @@ pub enum Permission {
 }
 
 /// Resource that a policy can authorize.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Resource {
     Share(String),
     Schema(String),
@@ -18,7 +18,7 @@ pub enum Resource {
 }
 
 /// Decision made by a policy.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Decision {
     Allow,
     Deny,
@@ -43,7 +43,7 @@ pub trait Policy: Send + Sync {
         &self,
         resource: Resource,
         permission: Permission,
-        recipient: Self::Recipient,
+        recipient: &Self::Recipient,
     ) -> Result<Decision>;
 }
 
@@ -52,4 +52,30 @@ pub trait Policy: Send + Sync {
 pub enum RecipientId {
     Anonymous,
     User(String),
+}
+
+pub struct AlwaysAllowPolicy<T: Send + Sync> {
+    _phantom: std::marker::PhantomData<T>,
+}
+
+impl<T: Send + Sync> AlwaysAllowPolicy<T> {
+    pub fn new() -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl<T: Send + Sync> Policy for AlwaysAllowPolicy<T> {
+    type Recipient = T;
+
+    async fn authorize(
+        &self,
+        _resource: Resource,
+        _permission: Permission,
+        _recipient: &Self::Recipient,
+    ) -> Result<Decision> {
+        Ok(Decision::Allow)
+    }
 }

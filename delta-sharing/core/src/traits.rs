@@ -15,31 +15,21 @@ pub trait DiscoveryHandler: Send + Sync {
     ) -> Result<t::ListSharesResponse>;
 
     /// Get a share by name.
-    async fn get_share(
-        &self,
-        request: t::GetShareRequest,
-        recipient: Self::Recipient,
-    ) -> Result<t::GetShareResponse>;
+    async fn get_share(&self, request: t::GetShareRequest) -> Result<t::GetShareResponse>;
 
     /// List all schemas in a share.
-    async fn list_schemas(
-        &self,
-        request: t::ListSchemasRequest,
-        recipient: Self::Recipient,
-    ) -> Result<t::ListSchemasResponse>;
+    async fn list_schemas(&self, request: t::ListSchemasRequest) -> Result<t::ListSchemasResponse>;
 
     /// List all tables in a schema.
     async fn list_schema_tables(
         &self,
         request: t::ListSchemaTablesRequest,
-        recipient: Self::Recipient,
     ) -> Result<t::ListSchemaTablesResponse>;
 
     /// List all tables in a share.
     async fn list_share_tables(
         &self,
         request: t::ListShareTablesRequest,
-        recipient: Self::Recipient,
     ) -> Result<t::ListShareTablesResponse>;
 }
 
@@ -55,43 +45,25 @@ impl<T: DiscoveryHandler + Send + Sync> DiscoveryHandler for Arc<T> {
         self.as_ref().list_shares(request, recipient).await
     }
 
-    async fn get_share(
-        &self,
-        request: t::GetShareRequest,
-        recipient: Self::Recipient,
-    ) -> Result<t::GetShareResponse> {
-        self.as_ref().get_share(request, recipient).await
+    async fn get_share(&self, request: t::GetShareRequest) -> Result<t::GetShareResponse> {
+        self.as_ref().get_share(request).await
     }
 
-    async fn list_schemas(
-        &self,
-        request: t::ListSchemasRequest,
-        recipient: Self::Recipient,
-    ) -> Result<t::ListSchemasResponse> {
-        self.as_ref().list_schemas(request, recipient).await
+    async fn list_schemas(&self, request: t::ListSchemasRequest) -> Result<t::ListSchemasResponse> {
+        self.as_ref().list_schemas(request).await
     }
 
     async fn list_schema_tables(
         &self,
         request: t::ListSchemaTablesRequest,
-        recipient: Self::Recipient,
     ) -> Result<t::ListSchemaTablesResponse> {
-        self.as_ref().list_schema_tables(request, recipient).await
+        self.as_ref().list_schema_tables(request).await
     }
 
     async fn list_share_tables(
         &self,
         request: t::ListShareTablesRequest,
-        recipient: Self::Recipient,
     ) -> Result<t::ListShareTablesResponse> {
-        self.as_ref().list_share_tables(request, recipient).await
+        self.as_ref().list_share_tables(request).await
     }
-}
-
-#[async_trait::async_trait]
-pub trait RecipientHandler: Send + Sync {
-    type Recipient: Send;
-
-    /// Get the recipient of the request.
-    async fn get_recipient(&self, authorization: Option<String>) -> Result<Self::Recipient>;
 }
