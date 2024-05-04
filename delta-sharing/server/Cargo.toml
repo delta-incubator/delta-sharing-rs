@@ -2,6 +2,7 @@
 name = "delta-sharing-server"
 version = "0.1.0"
 edition = "2021"
+authors = ["Robert Pack <robstar.pack@gmail.com>"]
 
 [dependencies]
 delta-sharing-core = { path = "../core" }
