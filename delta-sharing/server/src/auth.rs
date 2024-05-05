@@ -3,7 +3,7 @@ use std::task::{Context, Poll};
 
 use axum::extract::Request;
 use axum::response::{IntoResponse, Response};
-use delta_sharing_core::policies::{Authenticator, RecipientId};
+use delta_sharing_core::policies::{Authenticator, DeltaRecipient};
 use delta_sharing_core::Error as CoreError;
 use futures_util::{future::BoxFuture, FutureExt};
 use tower::{Layer, Service};
@@ -14,10 +14,10 @@ pub struct AnonymousAuthenticator;
 
 impl Authenticator for AnonymousAuthenticator {
     type Request = Request;
-    type Recipient = RecipientId;
+    type Recipient = DeltaRecipient;
 
     fn authenticate(&self, _: &Self::Request) -> Result<Self::Recipient, CoreError> {
-        Ok(RecipientId::Anonymous)
+        Ok(DeltaRecipient::Anonymous)
     }
 }
 
@@ -90,8 +90,8 @@ mod tests {
 
     async fn check_recipient(req: Request) -> Result<Response<Body>> {
         assert_eq!(
-            req.extensions().get::<RecipientId>(),
-            Some(&RecipientId::Anonymous)
+            req.extensions().get::<DeltaRecipient>(),
+            Some(&DeltaRecipient::Anonymous)
         );
         Ok(Response::new(req.into_body()))
     }

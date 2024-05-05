@@ -125,7 +125,7 @@ pub fn get_router<T: Send + Sync + Clone + 'static>(state: DeltaSharingState<T>)
 mod tests {
     use axum::body::Body;
     use axum::http::{header, HeaderValue, Request, StatusCode};
-    use delta_sharing_core::policies::{ConstantPolicy, RecipientId};
+    use delta_sharing_core::policies::{ConstantPolicy, DeltaRecipient};
     use delta_sharing_core::query::KernelQueryHandler;
     use http_body_util::BodyExt;
     use tower::ServiceExt;
@@ -134,12 +134,12 @@ mod tests {
     use crate::auth::{AnonymousAuthenticator, AuthorizationLayer};
     use crate::tests::test_handler;
 
-    fn get_state() -> DeltaSharingState<RecipientId> {
+    fn get_state() -> DeltaSharingState<DeltaRecipient> {
         let discovery = Arc::new(test_handler());
         DeltaSharingState {
             query: KernelQueryHandler::new_background(discovery.clone(), Default::default()),
             discovery,
-            policy: Arc::new(ConstantPolicy::<RecipientId>::default()),
+            policy: Arc::new(ConstantPolicy::<DeltaRecipient>::default()),
         }
     }
 

@@ -1,6 +1,14 @@
-use crate::error::Result;
+use serde::{de::DeserializeOwned, Serialize};
 
+use crate::error::Result;
+use crate::types as t;
+pub use profile::*;
+pub use tokens::*;
+
+mod profile;
 mod tokens;
+
+pub type DeltaRecipient<C = DefaultClaims> = DefaultRecipient<C>;
 
 /// Permission that a policy can authorize.
 #[derive(Debug, Clone)]
@@ -22,7 +30,9 @@ pub enum Resource {
 /// Decision made by a policy.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Decision {
+    /// Allow the action.
     Allow,
+    /// Deny the action.
     Deny,
 }
 
@@ -32,6 +42,9 @@ pub trait Authenticator: Send + Sync {
     type Recipient: Send;
 
     /// Authenticate a request.
+    ///
+    /// This method should return the recipient of the request, or an error if the request
+    /// is not authenticated or the recipient cannot be determined from the request.
     fn authenticate(&self, request: &Self::Request) -> Result<Self::Recipient>;
 }
 
@@ -41,6 +54,9 @@ pub trait Policy: Send + Sync {
     type Recipient: Send;
 
     /// Check if the policy allows the action.
+    ///
+    /// Specifically, this method should return [`Decision::Allow`] if the recipient
+    /// is granted the requested permission on the resource, and [`Decision::Deny`] otherwise.
     async fn authorize(
         &self,
         resource: Resource,
@@ -49,11 +65,24 @@ pub trait Policy: Send + Sync {
     ) -> Result<Decision>;
 }
 
-/// Default recipient for delta sharing.
-#[derive(Debug, Clone, PartialEq)]
-pub enum RecipientId {
-    Anonymous,
-    User(String),
+/// Claims that are encoded in a profile.
+pub trait ProfileClaims: Serialize + DeserializeOwned + Send + Sync {
+    /// Get the profile fingerprint from the claims.
+    fn fingerprint(&self) -> String;
+}
+
+#[async_trait::async_trait]
+pub trait ProfileManager: Send + Sync {
+    /// Claims that are encoded in the profile.
+    type Claims: ProfileClaims;
+
+    /// Issue a profile for a set of claims that can be shared with a recipient.
+    async fn issue_profile(&self, claims: &Self::Claims) -> Result<t::Profile>;
+
+    /// Revoke a profile by its fingerprint.
+    ///
+    /// This should invalidate the profile and prevent it from being used.
+    async fn revoke_profile(&self, fingerprint: String) -> Result<()>;
 }
 
 /// Policy that always returns a constant decision.

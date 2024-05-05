@@ -1417,10 +1417,12 @@ dependencies = [
  "async-trait",
  "dashmap",
  "delta_kernel",
+ "hex",
  "jsonwebtoken",
  "object_store 0.9.0",
  "pbjson",
  "prost",
+ "ring 0.17.8",
  "serde",
  "thiserror",
  "tokio",
@@ -2565,7 +2567,7 @@ dependencies = [
  "base64 0.21.7",
  "js-sys",
  "pem",
- "ring 0.17.7",
+ "ring 0.17.8",
  "serde",
  "serde_json",
  "simple_asn1",
@@ -3067,7 +3069,7 @@ dependencies = [
  "quick-xml 0.31.0",
  "rand",
  "reqwest",
- "ring 0.17.7",
+ "ring 0.17.8",
  "rustls-pemfile 2.0.0",
  "serde",
  "serde_json",
@@ -3709,16 +3711,17 @@ dependencies = [
 
 [[package]]
 name = "ring"
-version = "0.17.7"
+version = "0.17.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "688c63d65483050968b2a8937f7995f443e27041a0f7700aa59b0822aedebb74"
+checksum = "c17fa4cb658e3583423e915b9f3acc01cceaee1860e33d59ebae66adc3a2dc0d"
 dependencies = [
  "cc",
+ "cfg-if 1.0.0",
  "getrandom",
  "libc",
  "spin 0.9.8",
  "untrusted 0.9.0",
- "windows-sys 0.48.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]

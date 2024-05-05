@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use clap::Parser;
 use delta_sharing_core::discovery::{Config, InMemoryHandler};
-use delta_sharing_core::policies::{ConstantPolicy, RecipientId};
+use delta_sharing_core::policies::{ConstantPolicy, DeltaRecipient};
 use delta_sharing_core::query::KernelQueryHandler;
 use tokio::net::TcpListener;
 use tokio::signal;
@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state = DeltaSharingState {
         query: KernelQueryHandler::new_multi_thread(discovery.clone(), Default::default()),
         discovery,
-        policy: Arc::new(ConstantPolicy::<RecipientId>::default()),
+        policy: Arc::new(ConstantPolicy::<DeltaRecipient>::default()),
     };
 
     let listener = TcpListener::bind(format!("{}:{}", args.host, args.port)).await?;
@@ -79,9 +79,8 @@ async fn shutdown_signal() {
 #[cfg(test)]
 mod tests {
     use delta_sharing_core::discovery::{
-        Config, InMemoryHandler, SchemaConfig, ShareConfig, TableConfig,
+        Config, DefaultInMemoryHandler, SchemaConfig, ShareConfig, TableConfig,
     };
-    use delta_sharing_core::policies::RecipientId;
 
     pub(crate) fn test_config() -> Config {
         Config {
@@ -100,7 +99,7 @@ mod tests {
         }
     }
 
-    pub(crate) fn test_handler() -> InMemoryHandler<RecipientId> {
-        InMemoryHandler::new(test_config())
+    pub(crate) fn test_handler() -> DefaultInMemoryHandler {
+        DefaultInMemoryHandler::new(test_config())
     }
 }

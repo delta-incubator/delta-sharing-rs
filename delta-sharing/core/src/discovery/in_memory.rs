@@ -6,7 +6,10 @@ use uuid::Uuid;
 
 use super::{DiscoveryHandler, TableLocationResover};
 use crate::error::{Error, Result};
+use crate::policies::DeltaRecipient;
 use crate::types as t;
+
+pub type DefaultInMemoryHandler = InMemoryHandler<DeltaRecipient>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TableConfig {
@@ -223,7 +226,7 @@ impl<T: Send + Sync> TableLocationResover for InMemoryHandler<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::policies::RecipientId;
+    use crate::policies::DeltaRecipient;
 
     #[tokio::test]
     async fn test_in_memory_handler() {
@@ -241,10 +244,10 @@ mod tests {
                 location: "file:///tmp".to_string(),
             }],
         };
-        let handler = InMemoryHandler::new(config);
+        let handler = DefaultInMemoryHandler::new(config);
 
         let shares = handler
-            .list_shares(t::ListSharesRequest::default(), RecipientId::Anonymous)
+            .list_shares(t::ListSharesRequest::default(), DeltaRecipient::Anonymous)
             .await
             .unwrap();
         assert_eq!(shares.items.len(), 1);
