@@ -18,12 +18,19 @@ pbjson = { version = "0.6" }
 prost = { version = "0.12" }
 tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
 
+# in-memory handler dependencies (in alphabetical order)
 dashmap = { version = "5", optional = true }
 uuid = { version = "1.8", optional = true, features = ["v5"] }
+
+# profile management dependencies (in alphabetical order)
+hex = { version = "0.4.3", optional = true }
+jsonwebtoken = { version = "9.3", optional = true }
+ring = { version = "0.17.8", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
 
 [features]
-default = ["memory"]
+default = ["memory", "profiles"]
 memory = ["dashmap", "uuid"]
+profiles = ["jsonwebtoken", "hex", "ring"]
