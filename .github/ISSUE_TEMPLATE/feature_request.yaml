@@ -1,37 +1,43 @@
 name: Request a new feature
 description: File a feature request
-title: "[Tool, Solution, or Feature Name]: "
+title: "[Feature]: "
 labels: ["enhancement"]
-assignees:
-  - octocat
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this feature request!
+        Thanks for taking the time to help us improve!
   - type: textarea
     id: problem
     attributes:
-      label: Is your feature request related to a problem? Please describe.
-      description: A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
-      placeholder: Tell us what happened!
-      value: "A problem occured!"
+      label: Problem description
+      description: Is your feature request related to a problem or challenge? Please describe what you are trying to do.
+      placeholder: |
+        A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+        (This section helps developers understand the context and *why* for this feature, in addition to  the *what*)
     validations:
-      required: false
+      required: true
   - type: textarea
     id: solution
     attributes:
-      label: Describe the solution you'd like.
-      description: A clear and concise description of what you want to happen.
-      placeholder: Tell us what you expect!
-      value: "I want this feature!"
+      label: Solution
+      description: Tell us what you expect to happen.
+      placeholder: A clear and concise description of what you want to happen.
     validations:
       required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative solutions
+      description: Describe alternatives you've considered.
+      placeholder: A clear and concise description of any alternative solutions or features you've considered.
+    validations:
+      required: false
   - type: checkboxes
     id: terms
     attributes:
       label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com)
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/delta-incubator/delta-sharing-rs#coc-ov-file)
       options:
         - label: I agree to follow this project's Code of Conduct
           required: true
