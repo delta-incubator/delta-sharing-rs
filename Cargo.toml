@@ -3,6 +3,7 @@ members = ["delta-sharing/*"]
 
 [workspace.dependencies]
 async-trait = "0.1.64"
+clap = { version = "4.5.4", features = ["derive"] }
 delta_kernel = { git = "https://github.com/roeap/delta-kernel-rs", rev = "9c8f7f50fb7dca7d94d58cda101ff1eb6e0456bb", features = [
     "tokio",
     "developer-visibility",
@@ -24,6 +25,7 @@ rust-version = "1.67"
 
 [dependencies]
 async-trait.workspace = true
+clap.workspace = true
 serde.workspace = true
 tower.workspace = true
 tracing.workspace = true
@@ -34,7 +36,6 @@ anyhow = { version = "1.0.69", features = ["backtrace"] }
 async-session = "3.0.0"
 axum = "0.7.5"
 axum-extra = { version = "0.9.2", features = ["json-lines"] }
-clap = "4.1.4"
 deltalake = { version = "0.16", features = ["s3", "azure", "gcs"] }
 futures = "0.3.28"
 futures-util = "0.3.28"
