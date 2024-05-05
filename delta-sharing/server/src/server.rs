@@ -4,7 +4,7 @@ use axum::extract::{Extension, Path, Query, State};
 use axum::{routing::get, Json, Router};
 use delta_sharing_core::policies::{Decision, Permission, Policy, Resource};
 use delta_sharing_core::types as t;
-use delta_sharing_core::{DiscoveryHandler, Error as CoreError};
+use delta_sharing_core::{DiscoveryHandler, Error as CoreError, TableQueryHandler};
 use serde::Deserialize;
 
 use crate::error::Result;
@@ -19,6 +19,7 @@ struct Pagination {
 #[derive(Clone)]
 pub struct DeltaSharingState<T: Send + Sync> {
     pub discovery: Arc<dyn DiscoveryHandler<Recipient = T>>,
+    pub query: Arc<dyn TableQueryHandler>,
     pub policy: Arc<dyn Policy<Recipient = T>>,
 }
 
@@ -125,6 +126,7 @@ mod tests {
     use axum::body::Body;
     use axum::http::{header, HeaderValue, Request, StatusCode};
     use delta_sharing_core::policies::{AlwaysAllowPolicy, RecipientId};
+    use delta_sharing_core::query::KernelQueryHandler;
     use http_body_util::BodyExt;
     use tower::ServiceExt;
 
@@ -133,8 +135,10 @@ mod tests {
     use crate::tests::test_handler;
 
     fn get_state() -> DeltaSharingState<RecipientId> {
+        let discovery = Arc::new(test_handler());
         DeltaSharingState {
-            discovery: Arc::new(test_handler()),
+            query: KernelQueryHandler::new_background(discovery.clone(), Default::default()),
+            discovery,
             policy: Arc::new(AlwaysAllowPolicy::<RecipientId>::new()),
         }
     }

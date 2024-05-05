@@ -2,19 +2,23 @@
 name = "delta-sharing-core"
 version = "0.1.0"
 edition = "2021"
+authors = ["Robert Pack <robstar.pack@gmail.com>"]
 
 [dependencies]
-# workspace dependencies
-serde.workspace = true
+# workspace dependencies (in alphabetical order)
 async-trait.workspace = true
+delta_kernel.workspace = true
+serde.workspace = true
 thiserror.workspace = true
+url.workspace = true
 
-# core dependencies
+# server dependencies (in alphabetical order)
+object_store = { version = "0.9" }
 pbjson = { version = "0.6" }
 prost = { version = "0.12" }
+tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
 
 dashmap = { version = "5", optional = true }
-object_store = { version = "0.9", optional = true }
 uuid = { version = "1.8", optional = true, features = ["v5"] }
 
 [dev-dependencies]
@@ -22,4 +26,4 @@ tokio = { version = "1", features = ["full"] }
 
 [features]
 default = ["memory"]
-memory = ["dashmap", "object_store", "uuid"]
+memory = ["dashmap", "uuid"]

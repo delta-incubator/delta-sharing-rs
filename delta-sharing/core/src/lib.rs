@@ -9,12 +9,20 @@ pub mod types {
         pub message: String,
     }
 
+    pub struct TableRef {
+        pub share: String,
+        pub schema: String,
+        pub table: String,
+    }
+
     include!("gen/delta_sharing.v1.rs");
 }
 pub mod discovery;
 pub mod error;
 pub mod policies;
+pub mod query;
 
 pub use discovery::*;
 pub use error::*;
+pub use query::*;
 pub use types::*;

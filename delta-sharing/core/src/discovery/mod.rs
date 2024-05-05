@@ -73,3 +73,8 @@ impl<T: DiscoveryHandler + Send + Sync> DiscoveryHandler for Arc<T> {
         self.as_ref().list_share_tables(request).await
     }
 }
+
+#[async_trait::async_trait]
+pub trait TableLocationResover: Send + Sync {
+    async fn resolve(&self, table: &t::TableRef) -> Result<url::Url>;
+}

@@ -1,5 +1,9 @@
 set dotenv-load := true
 
+dat_version := "0.0.3"
+dat_dir := "dat"
+local_config := "config/local.yaml"
+
 # list all availabe commands
 default:
     @just --list
@@ -47,5 +51,23 @@ generate:
     @buf generate proto
 
 # run the delta-sharing server with the dev config
-run:
-    @RUST_BACKTRACE=1 cargo run -p delta-sharing-server -- --config ./config/dev.yaml
+do-it:
+    @RUST_BACKTRACE=1 cargo run -p delta-sharing-server -- --config {{ local_config }}
+
+# the the documentation (requires mdbook)
+doc:
+    cd docs && mdbook serve --open
+
+# load delta acceptance testing (dat) data from the release
+load-dat:
+    rm -rf {{ dat_dir }}
+    curl -OL https://github.com/delta-incubator/dat/releases/download/v{{ dat_version }}/deltalake-dat-v{{ dat_version }}.tar.gz
+    mkdir -p {{ dat_dir }}
+    tar  --no-same-permissions -xzf deltalake-dat-v{{ dat_version }}.tar.gz --directory {{ dat_dir }}
+    rm deltalake-dat-v{{ dat_version }}.tar.gz
+
+render-config:
+    DIRECTORY={{ justfile_directory() }} DAT={{ dat_dir }} envsubst < config/local.yaml.tpl > {{ local_config }}
+
+# local setup
+local-setup: load-dat render-config
