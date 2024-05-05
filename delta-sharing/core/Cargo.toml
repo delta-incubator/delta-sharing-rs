@@ -13,6 +13,7 @@ thiserror.workspace = true
 url.workspace = true
 
 # server dependencies (in alphabetical order)
+jsonwebtoken = "9.3"
 object_store = { version = "0.9" }
 pbjson = { version = "0.6" }
 prost = { version = "0.12" }

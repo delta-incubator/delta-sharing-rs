@@ -20,6 +20,7 @@ pub mod types {
 pub mod discovery;
 pub mod error;
 pub mod policies;
+pub mod profiles;
 pub mod query;
 
 pub use discovery::*;

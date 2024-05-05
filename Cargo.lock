@@ -1417,6 +1417,7 @@ dependencies = [
  "async-trait",
  "dashmap",
  "delta_kernel",
+ "jsonwebtoken",
  "object_store 0.9.0",
  "pbjson",
  "prost",
