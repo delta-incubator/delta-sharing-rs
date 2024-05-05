@@ -1,5 +1,7 @@
 use crate::error::Result;
 
+mod tokens;
+
 /// Permission that a policy can authorize.
 #[derive(Debug, Clone)]
 pub enum Permission {

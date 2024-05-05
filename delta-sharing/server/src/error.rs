@@ -33,6 +33,10 @@ impl IntoResponse for Error {
                 StatusCode::FORBIDDEN,
                 "The request is forbidden from being fulfilled.",
             ),
+            Error::Core(CoreError::Unauthenticated) => (
+                StatusCode::UNAUTHORIZED,
+                "The request is unauthenticated. The bearer token is missing or incorrect.",
+            ),
             Error::Core(CoreError::Kernel(error)) => {
                 let message = format!("Kernel error: {}", error);
                 error!("delta-kernel error: {}", message);
@@ -41,6 +45,10 @@ impl IntoResponse for Error {
             Error::Core(CoreError::InvalidTableLocation(location)) => {
                 let message = format!("Invalid table location: {}", location);
                 error!("{}", message);
+                INTERNAL_ERROR
+            }
+            Error::Core(CoreError::Generic(message)) => {
+                error!("Generic error: {}", message);
                 INTERNAL_ERROR
             }
         };
