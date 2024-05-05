@@ -1,7 +1,11 @@
 use ring::digest;
 use serde::{Deserialize, Serialize};
 
-use super::ProfileClaims;
+use crate::ProfileClaims;
+
+mod tokens;
+
+pub type DeltaRecipient<C = DefaultClaims> = DefaultRecipient<C>;
 
 /// Default recipient for delta sharing.
 #[derive(Debug, Clone, PartialEq)]
@@ -11,8 +15,8 @@ pub enum DefaultRecipient<C: ProfileClaims> {
 }
 
 impl<C: ProfileClaims> DefaultRecipient<C> {
-    /// Get the profile id from the recipient.
-    pub fn profile_id(&self) -> Option<String> {
+    /// Get the profile fingerprint for the recipient.
+    pub fn fingerprint(&self) -> Option<String> {
         match self {
             DefaultRecipient::Anonymous => None,
             DefaultRecipient::Profile(profile) => Some(profile.fingerprint()),

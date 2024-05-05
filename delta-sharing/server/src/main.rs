@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
 use clap::Parser;
-use delta_sharing_core::discovery::{Config, InMemoryHandler};
-use delta_sharing_core::policies::{ConstantPolicy, DeltaRecipient};
-use delta_sharing_core::query::KernelQueryHandler;
+use delta_sharing_core::policies::ConstantPolicy;
+use delta_sharing_core::{DeltaRecipient, InMemoryConfig, InMemoryHandler, KernelQueryHandler};
 use tokio::net::TcpListener;
 use tokio::signal;
 use tower_http::trace::TraceLayer;
@@ -33,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::parse();
 
     let config = std::fs::read_to_string(args.config)?;
-    let config = serde_yml::from_str::<Config>(&config)?;
+    let config = serde_yml::from_str::<InMemoryConfig>(&config)?;
     let discovery = Arc::new(InMemoryHandler::new(config));
     let state = DeltaSharingState {
         query: KernelQueryHandler::new_multi_thread(discovery.clone(), Default::default()),
@@ -78,12 +77,12 @@ async fn shutdown_signal() {
 
 #[cfg(test)]
 mod tests {
-    use delta_sharing_core::discovery::{
-        Config, DefaultInMemoryHandler, SchemaConfig, ShareConfig, TableConfig,
+    use delta_sharing_core::{
+        DefaultInMemoryHandler, InMemoryConfig, SchemaConfig, ShareConfig, TableConfig,
     };
 
-    pub(crate) fn test_config() -> Config {
-        Config {
+    pub(crate) fn test_config() -> InMemoryConfig {
+        InMemoryConfig {
             shares: vec![ShareConfig {
                 name: "share1".to_string(),
                 schema_refs: vec!["schema1".to_string()],

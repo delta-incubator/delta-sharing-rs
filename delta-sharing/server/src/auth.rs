@@ -3,8 +3,8 @@ use std::task::{Context, Poll};
 
 use axum::extract::Request;
 use axum::response::{IntoResponse, Response};
-use delta_sharing_core::policies::{Authenticator, DeltaRecipient};
-use delta_sharing_core::Error as CoreError;
+use delta_sharing_core::DeltaRecipient;
+use delta_sharing_core::{Authenticator, Error as CoreError};
 use futures_util::{future::BoxFuture, FutureExt};
 use tower::{Layer, Service};
 

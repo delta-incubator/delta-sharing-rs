@@ -5,11 +5,15 @@ use delta_kernel::engine::default::executor::tokio::{
     TokioBackgroundExecutor, TokioMultiThreadExecutor,
 };
 use delta_kernel::engine::default::{executor::TaskExecutor, DefaultEngine};
-use delta_kernel::Table;
+use delta_kernel::{Engine, Table};
 
-use super::{KernelEngineFactroy, TableQueryHandler};
 use crate::types as t;
-use crate::{Result, TableLocationResover, TableRef};
+use crate::{Result, TableLocationResover, TableQueryHandler, TableRef};
+
+#[async_trait::async_trait]
+pub trait KernelEngineFactroy: Send + Sync {
+    async fn create(&self, table: &Table) -> Result<Arc<dyn Engine>>;
+}
 
 pub struct DefaultKernelEngineFactroy<E: TaskExecutor> {
     task_executor: Arc<E>,

@@ -2,9 +2,10 @@ use std::sync::Arc;
 
 use axum::extract::{Extension, Path, Query, State};
 use axum::{routing::get, Json, Router};
-use delta_sharing_core::policies::{Decision, Permission, Policy, Resource};
 use delta_sharing_core::types as t;
-use delta_sharing_core::{DiscoveryHandler, Error as CoreError, TableQueryHandler};
+use delta_sharing_core::{
+    Decision, DiscoveryHandler, Error as CoreError, Permission, Policy, Resource, TableQueryHandler,
+};
 use serde::Deserialize;
 
 use crate::error::Result;
@@ -125,8 +126,8 @@ pub fn get_router<T: Send + Sync + Clone + 'static>(state: DeltaSharingState<T>)
 mod tests {
     use axum::body::Body;
     use axum::http::{header, HeaderValue, Request, StatusCode};
-    use delta_sharing_core::policies::{ConstantPolicy, DeltaRecipient};
-    use delta_sharing_core::query::KernelQueryHandler;
+    use delta_sharing_core::policies::ConstantPolicy;
+    use delta_sharing_core::{DeltaRecipient, KernelQueryHandler};
     use http_body_util::BodyExt;
     use tower::ServiceExt;
 

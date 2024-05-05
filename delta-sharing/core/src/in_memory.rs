@@ -4,12 +4,16 @@ use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{DiscoveryHandler, TableLocationResover};
 use crate::error::{Error, Result};
-use crate::policies::DeltaRecipient;
 use crate::types as t;
+use crate::{DiscoveryHandler, TableLocationResover};
 
+#[cfg(feature = "profiles")]
+use crate::profiles::DeltaRecipient;
+#[cfg(feature = "profiles")]
 pub type DefaultInMemoryHandler = InMemoryHandler<DeltaRecipient>;
+#[cfg(not(feature = "profiles"))]
+pub type DefaultInMemoryHandler = InMemoryHandler<()>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TableConfig {
@@ -32,7 +36,7 @@ pub struct ShareConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Config {
+pub struct InMemoryConfig {
     pub shares: Vec<ShareConfig>,
     pub schemas: Vec<SchemaConfig>,
     pub tables: Vec<TableConfig>,
@@ -47,7 +51,7 @@ pub struct InMemoryHandler<T: Send + Sync> {
 }
 
 impl<T: Send + Sync> InMemoryHandler<T> {
-    pub fn new(config: Config) -> Self {
+    pub fn new(config: InMemoryConfig) -> Self {
         let shares = Arc::new(DashMap::new());
         let schemas = Arc::new(DashMap::new());
         let tables = Arc::new(DashMap::new());
@@ -226,11 +230,11 @@ impl<T: Send + Sync> TableLocationResover for InMemoryHandler<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::policies::DeltaRecipient;
+    use crate::profiles::DeltaRecipient;
 
     #[tokio::test]
     async fn test_in_memory_handler() {
-        let config = Config {
+        let config = InMemoryConfig {
             shares: vec![ShareConfig {
                 name: "share1".to_string(),
                 schema_refs: vec!["schema1".to_string()],
