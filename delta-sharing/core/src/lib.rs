@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::{de::DeserializeOwned, Serialize};
 
 #[allow(dead_code)]

@@ -145,7 +145,7 @@ mod tests {
     }
 
     fn get_anoymous_router() -> Router {
-        get_router(get_state()).layer(AuthorizationLayer::new(Arc::new(AnonymousAuthenticator)))
+        get_router(get_state()).layer(AuthorizationLayer::new(AnonymousAuthenticator))
     }
 
     #[tokio::test]

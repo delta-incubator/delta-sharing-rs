@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let listener = TcpListener::bind(format!("{}:{}", args.host, args.port)).await?;
     let server = get_router(state)
-        .layer(AuthorizationLayer::new(Arc::new(AnonymousAuthenticator)))
+        .layer(AuthorizationLayer::new(AnonymousAuthenticator))
         .layer(TraceLayer::new_for_http());
     axum::serve(listener, server)
         .with_graceful_shutdown(shutdown_signal())
