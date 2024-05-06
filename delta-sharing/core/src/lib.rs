@@ -26,6 +26,7 @@ mod kernel;
 pub mod policies;
 #[cfg(feature = "profiles")]
 mod profiles;
+pub mod capabilities;
 
 pub use error::*;
 #[cfg(feature = "memory")]
@@ -156,3 +157,5 @@ pub trait ProfileManager: Send + Sync {
     /// This should invalidate the profile and prevent it from being used.
     async fn revoke_profile(&self, fingerprint: String) -> Result<()>;
 }
+
+

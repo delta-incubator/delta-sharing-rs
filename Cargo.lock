@@ -1418,6 +1418,7 @@ dependencies = [
  "dashmap",
  "delta_kernel",
  "hex",
+ "http 1.1.0",
  "jsonwebtoken",
  "object_store 0.9.0",
  "pbjson",
@@ -1426,6 +1427,7 @@ dependencies = [
  "serde",
  "thiserror",
  "tokio",
+ "tracing",
  "url",
  "uuid",
 ]
