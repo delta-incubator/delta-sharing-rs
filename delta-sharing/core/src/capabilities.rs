@@ -1,27 +1,37 @@
+//! Capabilities of the client.
+//!
+//! The capabilities are communicated between the client and the server using the `delta-sharing-capabilities` header.
+
 use std::str::FromStr;
 
 use http::header::HeaderMap;
 
+use crate::Error;
+
 const DELTA_SHARING_CAPABILITIES: &str = "delta-sharing-capabilities";
 
+/// The format of the response that the client can accept.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ResponseFormat {
+    /// API response in Parquet format.
     Parquet,
+    /// Api response in Delta format.
     Delta,
 }
 
 impl FromStr for ResponseFormat {
-    type Err = Box<dyn std::error::Error>;
+    type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "parquet" => Ok(Self::Parquet),
             "delta" => Ok(Self::Delta),
-            _ => Err("Invalid response format".into()),
+            _ => Err(Error::Generic(format!("Unknown response format: {}", s))),
         }
     }
 }
 
+/// Capabilities of the client.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Capabilities {
     response_formats: Vec<ResponseFormat>,
@@ -29,19 +39,57 @@ pub struct Capabilities {
 }
 
 impl Capabilities {
+    /// Create a new [`Capabilities`] instance.
+    ///
+    /// # Example
+    /// ```
+    /// use delta_sharing_core::capabilities::{Capabilities, ResponseFormat};
+    ///
+    /// let capabilities = Capabilities::new(
+    ///   vec![ResponseFormat::Delta],
+    ///   vec!["deletionVectors".to_string()],
+    /// );
+    /// assert_eq!(capabilities.response_formats(), &[ResponseFormat::Delta]);
+    /// ```
     pub fn new(response_formats: Vec<ResponseFormat>, reader_features: Vec<String>) -> Self {
         Self {
             response_formats,
-            reader_features,
+            reader_features: reader_features
+                .into_iter()
+                .map(|s| s.to_lowercase())
+                .collect(),
         }
     }
 
+    /// Returns the response formats that the client can accept.
+    ///
+    /// # Example
+    /// ```
+    /// use delta_sharing_core::capabilities::{Capabilities, ResponseFormat};
+    ///
+    /// let capabilities = Capabilities::new(
+    ///   vec![ResponseFormat::Delta],
+    ///   vec!["deletionVectors".to_string()],
+    /// );
+    /// assert_eq!(capabilities.response_formats(), &[ResponseFormat::Delta]);
+    /// ```
     pub fn response_formats(&self) -> &[ResponseFormat] {
         &self.response_formats
     }
 
+    /// Returns the reader features that the client can accept.
+    ///
+    /// # Example
+    /// ```
+    /// use delta_sharing_core::capabilities::{Capabilities, ResponseFormat};
+    ///
+    /// let capabilities = Capabilities::new(
+    ///   vec![ResponseFormat::Delta],
+    ///   vec!["deletionVectors".to_string()],
+    /// );
+    /// assert_eq!(capabilities.reader_features(), &["deletionvectors"]);
     pub fn reader_features(&self) -> &[String] {
-        &self.reader_features
+        self.reader_features.as_slice()
     }
 }
 
@@ -55,14 +103,18 @@ impl Default for Capabilities {
 }
 
 impl TryFrom<&HeaderMap> for Capabilities {
-    type Error = Box<dyn std::error::Error>;
+    type Error = Error;
 
     fn try_from(headers: &HeaderMap) -> Result<Self, Self::Error> {
         let mut capabilities = Capabilities::default();
         if let Some(header) = headers.get(DELTA_SHARING_CAPABILITIES) {
-            let capability_headers = header.to_str()?;
-            for capability in capability_headers.split(';') {
-                let (capability_key, capability_value) = capability.split_once('=').unwrap();
+            let capability_header = header.to_str().map_err(|e| {
+                Error::Generic(format!("Failed to parse capabilities header: {}", e))
+            })?;
+            for capability in capability_header.split(';') {
+                let (capability_key, capability_value) = capability.split_once('=').ok_or(
+                    Error::Generic(format!("Failed to parse capability: {}", capability)),
+                )?;
                 match capability_key {
                     "responseformat" => {
                         capabilities.response_formats = capability_value
@@ -97,8 +149,11 @@ mod test {
     #[test]
     fn test_default_capabilities() {
         let capabilities = Capabilities::default();
-        assert_eq!(capabilities.response_formats, vec![ResponseFormat::Parquet]);
-        assert_eq!(capabilities.reader_features, Vec::<String>::new());
+        assert_eq!(
+            capabilities.response_formats(),
+            vec![ResponseFormat::Parquet]
+        );
+        assert_eq!(capabilities.reader_features(), Vec::<String>::new());
     }
 
     #[test]
