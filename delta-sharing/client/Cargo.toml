@@ -13,6 +13,7 @@ delta_kernel.workspace = true
 clap.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+url.workspace = true
 
 # client dependencies
 futures = "0.3"

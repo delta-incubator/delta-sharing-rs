@@ -11,18 +11,19 @@ pub mod pagination;
 pub mod retry;
 pub mod token;
 
-use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 
 use async_trait::async_trait;
 use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::{Client, ClientBuilder, NoProxy, Proxy, RequestBuilder};
+use reqwest::{Client, ClientBuilder, NoProxy, Proxy};
 use serde::{Deserialize, Serialize};
 
+use crate::client::token::{TemporaryToken, TokenCache};
 use crate::config::{fmt_duration, ConfigValue};
 use crate::Result;
+use crate::RetryConfig;
 
 fn map_client_error(e: reqwest::Error) -> super::Error {
     super::Error::Generic {
@@ -50,8 +51,6 @@ pub enum ClientConfigKey {
     AllowInvalidCertificates,
     /// Timeout for only the connect phase of a Client
     ConnectTimeout,
-    /// default CONTENT_TYPE for uploads
-    DefaultContentType,
     /// Only use http1 connections
     Http1Only,
     /// Interval for HTTP2 Ping frames should be sent to keep a connection alive.
@@ -89,7 +88,6 @@ impl AsRef<str> for ClientConfigKey {
             Self::AllowHttp => "allow_http",
             Self::AllowInvalidCertificates => "allow_invalid_certificates",
             Self::ConnectTimeout => "connect_timeout",
-            Self::DefaultContentType => "default_content_type",
             Self::Http1Only => "http1_only",
             Self::Http2Only => "http2_only",
             Self::Http2KeepAliveInterval => "http2_keep_alive_interval",
@@ -114,7 +112,6 @@ impl FromStr for ClientConfigKey {
             "allow_http" => Ok(Self::AllowHttp),
             "allow_invalid_certificates" => Ok(Self::AllowInvalidCertificates),
             "connect_timeout" => Ok(Self::ConnectTimeout),
-            "default_content_type" => Ok(Self::DefaultContentType),
             "http1_only" => Ok(Self::Http1Only),
             "http2_only" => Ok(Self::Http2Only),
             "http2_keep_alive_interval" => Ok(Self::Http2KeepAliveInterval),
@@ -134,8 +131,6 @@ impl FromStr for ClientConfigKey {
 #[derive(Debug, Clone)]
 pub struct ClientOptions {
     user_agent: Option<ConfigValue<HeaderValue>>,
-    content_type_map: HashMap<String, String>,
-    default_content_type: Option<String>,
     default_headers: Option<HeaderMap>,
     proxy_url: Option<String>,
     proxy_ca_certificate: Option<String>,
@@ -164,8 +159,6 @@ impl Default for ClientOptions {
         // we opt for a slightly higher default timeout of 30 seconds
         Self {
             user_agent: None,
-            content_type_map: Default::default(),
-            default_content_type: None,
             default_headers: None,
             proxy_url: None,
             proxy_ca_certificate: None,
@@ -202,7 +195,6 @@ impl ClientOptions {
             ClientConfigKey::ConnectTimeout => {
                 self.connect_timeout = Some(ConfigValue::Deferred(value.into()))
             }
-            ClientConfigKey::DefaultContentType => self.default_content_type = Some(value.into()),
             ClientConfigKey::Http1Only => self.http1_only.parse(value),
             ClientConfigKey::Http2Only => self.http2_only.parse(value),
             ClientConfigKey::Http2KeepAliveInterval => {
@@ -237,7 +229,6 @@ impl ClientOptions {
             ClientConfigKey::AllowHttp => Some(self.allow_http.to_string()),
             ClientConfigKey::AllowInvalidCertificates => Some(self.allow_insecure.to_string()),
             ClientConfigKey::ConnectTimeout => self.connect_timeout.as_ref().map(fmt_duration),
-            ClientConfigKey::DefaultContentType => self.default_content_type.clone(),
             ClientConfigKey::Http1Only => Some(self.http1_only.to_string()),
             ClientConfigKey::Http2KeepAliveInterval => {
                 self.http2_keep_alive_interval.as_ref().map(fmt_duration)
@@ -270,22 +261,6 @@ impl ClientOptions {
     /// Default is based on the version of this crate
     pub fn with_user_agent(mut self, agent: HeaderValue) -> Self {
         self.user_agent = Some(agent.into());
-        self
-    }
-
-    /// Set the default CONTENT_TYPE for uploads
-    pub fn with_default_content_type(mut self, mime: impl Into<String>) -> Self {
-        self.default_content_type = Some(mime.into());
-        self
-    }
-
-    /// Set the CONTENT_TYPE for a given file extension
-    pub fn with_content_type_for_suffix(
-        mut self,
-        extension: impl Into<String>,
-        mime: impl Into<String>,
-    ) -> Self {
-        self.content_type_map.insert(extension.into(), mime.into());
         self
     }
 
@@ -455,7 +430,7 @@ impl ClientOptions {
             .client()
     }
 
-    pub(crate) fn client(&self) -> Result<Client> {
+    pub fn client(&self) -> Result<Client> {
         let mut builder = ClientBuilder::new();
 
         match &self.user_agent {
@@ -570,64 +545,54 @@ where
     }
 }
 
-#[cfg(any(feature = "aws", feature = "azure", feature = "gcp"))]
-mod cloud {
-    use super::*;
-    use crate::client::token::{TemporaryToken, TokenCache};
-    use crate::RetryConfig;
+/// A [`CredentialProvider`] that uses [`Client`] to fetch temporary tokens
+#[derive(Debug)]
+pub struct TokenCredentialProvider<T: TokenProvider> {
+    inner: T,
+    client: Client,
+    retry: RetryConfig,
+    cache: TokenCache<Arc<T::Credential>>,
+}
 
-    /// A [`CredentialProvider`] that uses [`Client`] to fetch temporary tokens
-    #[derive(Debug)]
-    pub struct TokenCredentialProvider<T: TokenProvider> {
-        inner: T,
-        client: Client,
-        retry: RetryConfig,
-        cache: TokenCache<Arc<T::Credential>>,
-    }
-
-    impl<T: TokenProvider> TokenCredentialProvider<T> {
-        pub fn new(inner: T, client: Client, retry: RetryConfig) -> Self {
-            Self {
-                inner,
-                client,
-                retry,
-                cache: Default::default(),
-            }
-        }
-
-        /// Override the minimum remaining TTL for a cached token to be used
-        #[cfg(feature = "aws")]
-        pub fn with_min_ttl(mut self, min_ttl: Duration) -> Self {
-            self.cache = self.cache.with_min_ttl(min_ttl);
-            self
+impl<T: TokenProvider> TokenCredentialProvider<T> {
+    pub fn new(inner: T, client: Client, retry: RetryConfig) -> Self {
+        Self {
+            inner,
+            client,
+            retry,
+            cache: Default::default(),
         }
     }
 
-    #[async_trait]
-    impl<T: TokenProvider> CredentialProvider for TokenCredentialProvider<T> {
-        type Credential = T::Credential;
-
-        async fn get_credential(&self) -> Result<Arc<Self::Credential>> {
-            self.cache
-                .get_or_insert_with(|| self.inner.fetch_token(&self.client, &self.retry))
-                .await
-        }
-    }
-
-    #[async_trait]
-    pub trait TokenProvider: std::fmt::Debug + Send + Sync {
-        type Credential: std::fmt::Debug + Send + Sync;
-
-        async fn fetch_token(
-            &self,
-            client: &Client,
-            retry: &RetryConfig,
-        ) -> Result<TemporaryToken<Arc<Self::Credential>>>;
+    /// Override the minimum remaining TTL for a cached token to be used
+    #[cfg(feature = "aws")]
+    pub fn with_min_ttl(mut self, min_ttl: Duration) -> Self {
+        self.cache = self.cache.with_min_ttl(min_ttl);
+        self
     }
 }
 
-#[cfg(any(feature = "aws", feature = "azure", feature = "gcp"))]
-pub use cloud::*;
+#[async_trait]
+impl<T: TokenProvider> CredentialProvider for TokenCredentialProvider<T> {
+    type Credential = T::Credential;
+
+    async fn get_credential(&self) -> Result<Arc<Self::Credential>> {
+        self.cache
+            .get_or_insert_with(|| self.inner.fetch_token(&self.client, &self.retry))
+            .await
+    }
+}
+
+#[async_trait]
+pub trait TokenProvider: std::fmt::Debug + Send + Sync {
+    type Credential: std::fmt::Debug + Send + Sync;
+
+    async fn fetch_token(
+        &self,
+        client: &Client,
+        retry: &RetryConfig,
+    ) -> Result<TemporaryToken<Arc<Self::Credential>>>;
+}
 
 #[cfg(test)]
 mod tests {
@@ -700,12 +665,6 @@ mod tests {
                 .get_config_value(&ClientConfigKey::ConnectTimeout)
                 .unwrap(),
             connect_timeout
-        );
-        assert_eq!(
-            builder
-                .get_config_value(&ClientConfigKey::DefaultContentType)
-                .unwrap(),
-            default_content_type
         );
         assert_eq!(
             builder

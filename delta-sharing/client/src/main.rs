@@ -1,7 +1,5 @@
 use clap::Parser;
 
-use delta_sharing_client::ClientConfigKey;
-
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {

@@ -1,4 +1,6 @@
-// A convenience type for declaring Results in the Delta Sharing libraries.
+use url::ParseError;
+
+/// A convenience type for declaring Results in the Delta Sharing libraries.
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Debug, thiserror::Error)]
@@ -38,6 +40,15 @@ pub enum Error {
     #[error("Invalid table location: {0}")]
     InvalidTableLocation(String),
 
+    #[error("Invalid url: {0}")]
+    InvalidUrl(String),
+
     #[error("Configuration key: '{}' is not valid.", key)]
     UnknownConfigurationKey { key: String },
+}
+
+impl From<ParseError> for Error {
+    fn from(e: ParseError) -> Self {
+        Self::InvalidUrl(e.to_string())
+    }
 }
