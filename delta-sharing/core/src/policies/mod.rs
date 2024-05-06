@@ -1,5 +1,5 @@
 //! Authorization policies.
-//! 
+//!
 //! Policies are used to determine whether a recipient is allowed to perform a specific action on a
 //! resource. The action is represented by a [`Permission`] and the resource is represented by a
 //! [`Resource`]. The [`Decision`] represents whether the action is allowed or denied for the given
@@ -12,12 +12,12 @@ use crate::{Decision, Permission, Policy, Resource};
 ///
 /// This policy is mainly useful for testing and development, or servers that do not require
 /// authorization checks - e.g. when deployed in a trusted environment.
-pub struct ConstantPolicy<T: Send + Sync> {
+pub struct ConstantPolicy<T> {
     decision: Decision,
     _phantom: std::marker::PhantomData<T>,
 }
 
-impl<T: Send + Sync> Default for ConstantPolicy<T> {
+impl<T> Default for ConstantPolicy<T> {
     fn default() -> Self {
         Self {
             decision: Decision::Allow,
@@ -26,7 +26,7 @@ impl<T: Send + Sync> Default for ConstantPolicy<T> {
     }
 }
 
-impl<T: Send + Sync> ConstantPolicy<T> {
+impl<T> ConstantPolicy<T> {
     /// Create a new instance of [`ConstantPolicy`].
     ///
     /// The [`ConstantPolicy`] will always return the same decision for all authorization requests.
@@ -67,6 +67,12 @@ impl<T: Send + Sync> Policy for ConstantPolicy<T> {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn assert_send_sync() {
+        fn assert_send_sync<T: Send + Sync>() {}
+        assert_send_sync::<ConstantPolicy<()>>();
+    }
 
     #[tokio::test]
     async fn allow_by_default() {
