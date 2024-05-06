@@ -18,7 +18,7 @@ impl Authenticator for AnonymousAuthenticator {
     type Request = Request;
     type Recipient = DeltaRecipient;
 
-    fn authenticate(&self, _request: &Self::Request) -> Result<Self::Recipient, CoreError> {
+    fn authenticate(&self, _: &Self::Request) -> Result<Self::Recipient, CoreError> {
         Ok(DeltaRecipient::Anonymous)
     }
 }
