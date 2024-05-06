@@ -40,7 +40,7 @@ impl<S, T> AuthenticationMiddleware<S, T> {
     }
 
     /// Create a new [`AuthorizationLayer`] with the given [`Authenticator`].
-    /// 
+    ///
     /// This is a convenience method that is equivalent to calling [`AuthorizationLayer::new`].
     pub fn layer(authenticator: T) -> AuthorizationLayer<T> {
         AuthorizationLayer::new(authenticator)
