@@ -99,8 +99,26 @@ pub enum Resource {
     File(String),
 }
 
+impl Resource {
+    pub fn share(name: impl Into<String>) -> Self {
+        Self::Share(name.into())
+    }
+
+    pub fn schema(name: impl Into<String>) -> Self {
+        Self::Schema(name.into())
+    }
+
+    pub fn table(name: impl Into<String>) -> Self {
+        Self::Table(name.into())
+    }
+
+    pub fn file(name: impl Into<String>) -> Self {
+        Self::File(name.into())
+    }
+}
+
 /// Decision made by a policy.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Decision {
     /// Allow the action.
     Allow,
