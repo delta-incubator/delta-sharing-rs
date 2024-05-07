@@ -23,7 +23,7 @@ impl FromStr for ResponseFormat {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
+        match s.to_lowercase().as_str() {
             "parquet" => Ok(Self::Parquet),
             "delta" => Ok(Self::Delta),
             _ => Err(Error::Generic(format!("Unknown response format: {}", s))),
@@ -119,7 +119,7 @@ impl TryFrom<&HeaderMap> for Capabilities {
                     "responseformat" => {
                         capabilities.response_formats = capability_value
                             .split(',')
-                            .flat_map(|s| s.trim().to_lowercase().parse::<ResponseFormat>().ok())
+                            .flat_map(|s| s.trim().parse().ok())
                             .collect();
                     }
                     "readerfeatures" => {
@@ -161,7 +161,7 @@ mod test {
         let mut headers = HeaderMap::new();
         headers.insert(
             DELTA_SHARING_CAPABILITIES,
-            "responseformat=delta,parquet;readerfeatures=feature1,feature2"
+            "responseformat=delta,Parquet;readerfeatures=feature1,feature2"
                 .parse()
                 .unwrap(),
         );
