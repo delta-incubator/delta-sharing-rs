@@ -45,8 +45,13 @@ let listener = TcpListener::bind("127.0.0.1:0")
 axum::serve(listener, app).await.expect("server error");
 ```
 
+// TODO: explain policy module
+
+
 ## What's in the box?
 
 The Delta Sharing library comes with a pre-built authentication middleware that can be used out of the box.
 
 // TODO: write about pre-built middleware
+
+
