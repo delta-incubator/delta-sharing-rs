@@ -92,7 +92,7 @@ impl<T: Send + Sync> DiscoveryHandler for InMemoryHandler<T> {
             .map(|share| {
                 let id = Uuid::new_v5(&Uuid::NAMESPACE_OID, share.key().as_bytes());
                 t::Share {
-                    id: Some(id.to_string()),
+                    id: Some(id.into()),
                     name: share.key().clone(),
                 }
             })

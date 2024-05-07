@@ -144,13 +144,13 @@ mod tests {
         }
     }
 
-    fn get_anoymous_router() -> Router {
-        get_router(get_state()).layer(AuthorizationLayer::new(Arc::new(AnonymousAuthenticator)))
+    fn get_anonymous_router() -> Router {
+        get_router(get_state()).layer(AuthorizationLayer::new(AnonymousAuthenticator))
     }
 
     #[tokio::test]
     async fn test_list_shares() {
-        let app = get_anoymous_router();
+        let app = get_anonymous_router();
 
         let request = Request::builder()
             .uri("/shares")
@@ -171,7 +171,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_share() {
-        let app = get_anoymous_router();
+        let app = get_anonymous_router();
 
         let request = Request::builder()
             .uri("/shares/share1")
@@ -192,7 +192,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_share_not_found() {
-        let app = get_anoymous_router();
+        let app = get_anonymous_router();
 
         let request: Request<Body> = Request::builder()
             .uri("/shares/nonexistent")
@@ -209,7 +209,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_schemas() {
-        let app = get_anoymous_router();
+        let app = get_anonymous_router();
 
         let request = Request::builder()
             .uri("/shares/share1/schemas")
@@ -230,7 +230,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_schemas_not_found() {
-        let app = get_anoymous_router();
+        let app = get_anonymous_router();
 
         let request: Request<Body> = Request::builder()
             .uri("/shares/nonexistent/schemas")
@@ -247,7 +247,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_share_tables() {
-        let app = get_anoymous_router();
+        let app = get_anonymous_router();
 
         let request = Request::builder()
             .uri("/shares/share1/all-tables")
@@ -268,7 +268,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_share_tables_not_found() {
-        let app = get_anoymous_router();
+        let app = get_anonymous_router();
 
         let request: Request<Body> = Request::builder()
             .uri("/shares/nonexistent/all-tables")
@@ -285,7 +285,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_schema_tables() {
-        let app = get_anoymous_router();
+        let app = get_anonymous_router();
 
         let request = Request::builder()
             .uri("/shares/share1/schemas/schema1/tables")
@@ -306,7 +306,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_schema_tables_not_found() {
-        let app = get_anoymous_router();
+        let app = get_anonymous_router();
 
         let request: Request<Body> = Request::builder()
             .uri("/shares/share1/schemas/nonexistent/tables")
