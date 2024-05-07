@@ -21,6 +21,7 @@ pub mod types {
 
     include!("gen/delta_sharing.v1.rs");
 }
+pub mod capabilities;
 pub mod error;
 #[cfg(feature = "memory")]
 mod in_memory;

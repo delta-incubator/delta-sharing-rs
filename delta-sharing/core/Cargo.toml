@@ -11,6 +11,8 @@ delta_kernel.workspace = true
 serde.workspace = true
 thiserror.workspace = true
 url.workspace = true
+http.workspace = true
+tracing.workspace = true
 
 # server dependencies (in alphabetical order)
 object_store = { version = "0.9" }
