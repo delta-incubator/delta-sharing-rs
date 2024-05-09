@@ -1,7 +1,8 @@
-use delta_sharing_core::types as t;
+use delta_sharing_core::{types as t, ListSharesRequest, Share};
+use futures::{Stream, TryStreamExt};
 use reqwest::{header, Client, Method};
 
-use crate::client::retry::RetryExt;
+use crate::client::{pagination::stream_paginated, retry::RetryExt};
 use crate::{ClientOptions, CredentialProvider, Error, Result, RetryConfig};
 
 pub struct DeltaSharingClient {
@@ -26,7 +27,7 @@ impl DeltaSharingClient {
         })
     }
 
-    pub async fn list_shares(
+    async fn list_shares_inner(
         &self,
         request: t::ListSharesRequest,
     ) -> Result<t::ListSharesResponse> {
@@ -60,5 +61,28 @@ impl DeltaSharingClient {
         serde_json::from_slice(&body).map_err(|e| Error::Generic {
             source: Box::new(e),
         })
+    }
+
+    pub async fn list_shares(
+        &self,
+        max_results: Option<i32>,
+    ) -> impl Stream<Item = Result<Share>> + '_ {
+        stream_paginated(max_results, move |max_results, page_token| async move {
+            let request = ListSharesRequest {
+                max_results,
+                page_token,
+            };
+            self.list_shares_inner(request).await.map(|mut resp| {
+                let max_results = max_results
+                    .map(|m| m - resp.items.len() as i32)
+                    .filter(|m| *m > 0);
+                // NOTE checking if the next page token should be set to None should not be necessary
+                // as the server should return None if there are no more pages to fetch to get max_results.
+                let page_token = resp.next_page_token.take();
+                (resp, max_results, page_token)
+            })
+        })
+        .map_ok(|resp| futures::stream::iter(resp.items.into_iter().map(Ok)))
+        .try_flatten()
     }
 }

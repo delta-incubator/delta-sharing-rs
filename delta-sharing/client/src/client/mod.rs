@@ -3,8 +3,6 @@
 //! Implementaions are adopted from the [object_store](https://docs.rs/object_store) crate.
 
 pub mod backoff;
-#[cfg(any(feature = "aws", feature = "gcp", feature = "azure"))]
-pub mod list;
 #[cfg(test)]
 pub mod mock_server;
 pub mod pagination;
