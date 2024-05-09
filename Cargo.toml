@@ -3,7 +3,8 @@ members = ["delta-sharing/*"]
 
 [workspace.dependencies]
 async-trait = "0.1.64"
-delta_kernel = { git = "https://github.com/roeap/delta-kernel-rs", rev = "9c8f7f50fb7dca7d94d58cda101ff1eb6e0456bb", features = [
+clap = { version = "4.5.4", features = ["derive"] }
+delta_kernel = { git = "https://github.com/roeap/delta-kernel-rs", rev = "e10d01108484f2324d6918ee0724996868ca9d95", features = [
     "tokio",
     "developer-visibility",
     "default-engine",
@@ -24,6 +25,7 @@ rust-version = "1.67"
 
 [dependencies]
 async-trait.workspace = true
+clap.workspace = true
 serde.workspace = true
 tower.workspace = true
 tracing.workspace = true
@@ -34,13 +36,12 @@ anyhow = { version = "1.0.69", features = ["backtrace"] }
 async-session = "3.0.0"
 axum = "0.7.5"
 axum-extra = { version = "0.9.2", features = ["json-lines"] }
-clap = "4.1.4"
 deltalake = { version = "0.16", features = ["s3", "azure", "gcs"] }
 futures = "0.3.28"
 futures-util = "0.3.28"
 hyper = { version = "0.14.13" }
 tokio = { version = "1.25.0", features = ["full", "rt-multi-thread"] }
-config = "0.13.3"
+config = "0.14.0"
 chrono = { version = "0.4.38", features = ["serde"] }
 colored = "2.0.0"
 cookie = "0.18"
