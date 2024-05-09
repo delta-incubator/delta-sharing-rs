@@ -10,3 +10,4 @@ pub use self::client::{
 };
 pub use self::error::*;
 pub use self::sharing::DeltaSharingClient;
+pub use service::{RestServiceClient, ServiceClient};

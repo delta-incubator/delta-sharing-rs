@@ -10,7 +10,6 @@ delta-sharing-core = { path = "../core", default-features = false }
 # workspace dependencies
 async-trait.workspace = true
 delta_kernel.workspace = true
-clap.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 url.workspace = true
