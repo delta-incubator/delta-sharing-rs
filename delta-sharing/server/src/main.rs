@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use clap::Parser;
-use delta_sharing_core::policies::ConstantPolicy;
-use delta_sharing_core::{DeltaRecipient, InMemoryConfig, InMemoryHandler, KernelQueryHandler};
+use delta_sharing_common::policies::ConstantPolicy;
+use delta_sharing_common::{DeltaRecipient, InMemoryConfig, InMemoryHandler, KernelQueryHandler};
 use tokio::net::TcpListener;
 use tokio::signal;
 use tower_http::trace::TraceLayer;
@@ -77,7 +77,7 @@ async fn shutdown_signal() {
 
 #[cfg(test)]
 mod tests {
-    use delta_sharing_core::{
+    use delta_sharing_common::{
         DefaultInMemoryHandler, InMemoryConfig, SchemaConfig, ShareConfig, TableConfig,
     };
 

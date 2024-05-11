@@ -1425,7 +1425,7 @@ name = "delta-sharing-client"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "delta-sharing-core",
+ "delta-sharing-common",
  "delta_kernel",
  "futures",
  "humantime",
@@ -1444,10 +1444,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "delta-sharing-core"
+name = "delta-sharing-common"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "chrono",
  "dashmap",
  "delta_kernel",
  "hex",
@@ -1466,13 +1467,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "delta-sharing-core"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "tokio",
+]
+
+[[package]]
 name = "delta-sharing-server"
 version = "0.1.0"
 dependencies = [
  "async-trait",
  "axum",
  "clap",
- "delta-sharing-core",
+ "delta-sharing-common",
  "delta_kernel",
  "futures-util",
  "http 1.1.0",

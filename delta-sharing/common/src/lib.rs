@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use serde::{de::DeserializeOwned, Serialize};
 
 #[allow(dead_code)]
@@ -93,6 +91,22 @@ pub enum Permission {
     Manage,
 }
 
+impl AsRef<str> for Permission {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Read => "read",
+            Self::Write => "write",
+            Self::Manage => "manage",
+        }
+    }
+}
+
+impl Into<String> for Permission {
+    fn into(self) -> String {
+        self.as_ref().to_string()
+    }
+}
+
 /// Resource that a policy can authorize.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Resource {
@@ -100,6 +114,7 @@ pub enum Resource {
     Schema(String),
     Table(String),
     File(String),
+    Profiles,
 }
 
 impl Resource {
@@ -117,6 +132,18 @@ impl Resource {
 
     pub fn file(name: impl Into<String>) -> Self {
         Self::File(name.into())
+    }
+}
+
+impl Into<String> for &Resource {
+    fn into(self) -> String {
+        match self {
+            Resource::Share(s) => format!("share::{s}"),
+            Resource::Schema(s) => format!("schema::{s}"),
+            Resource::Table(t) => format!("table::{t}"),
+            Resource::File(f) => format!("file::{f}"),
+            Resource::Profiles => "profiles".to_string(),
+        }
     }
 }
 
