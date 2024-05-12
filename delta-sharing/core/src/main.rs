@@ -30,7 +30,7 @@ struct ServerArgs {
 #[derive(Parser)]
 struct ClientArgs {
     #[clap(help = "Sets the server address")]
-    server_address: String,
+    endpoint: String,
 }
 
 fn main() {
@@ -47,9 +47,9 @@ fn main() {
         }
         Subcommand::Client(client_args) => {
             // Access the client arguments
-            let server_address = client_args.server_address;
+            let endpoint = client_args.endpoint;
             // Start the client logic
-            println!("Connecting to server at {}", server_address);
+            println!("Connecting to server at {}", endpoint);
             // Your client logic goes here
         }
     }

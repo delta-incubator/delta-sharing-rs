@@ -5,10 +5,10 @@ mod common;
 use anyhow::Result;
 use sqlx::PgPool;
 
-use delta_sharing::server::AccountRepository;
-use delta_sharing::server::SchemaRepository;
-use delta_sharing::server::ShareRepository;
-use delta_sharing::server::TableRepository;
+use delta_sharing_legacy::server::AccountRepository;
+use delta_sharing_legacy::server::SchemaRepository;
+use delta_sharing_legacy::server::ShareRepository;
+use delta_sharing_legacy::server::TableRepository;
 
 use common::{create_account, create_schema, create_share, create_table, create_token};
 

@@ -1365,6 +1365,64 @@ dependencies = [
 
 [[package]]
 name = "delta-sharing"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "delta-sharing-client",
+ "delta-sharing-common",
+ "delta-sharing-server",
+ "serde",
+ "tokio",
+]
+
+[[package]]
+name = "delta-sharing-client"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "delta-sharing-common",
+ "delta_kernel",
+ "futures",
+ "humantime",
+ "hyper 1.3.1",
+ "hyper-util",
+ "parking_lot",
+ "rand",
+ "reqwest 0.12.4",
+ "ring 0.17.8",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "delta-sharing-common"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "dashmap",
+ "delta_kernel",
+ "hex",
+ "http 1.1.0",
+ "jsonwebtoken",
+ "object_store 0.9.0",
+ "pbjson",
+ "prost",
+ "ring 0.17.8",
+ "serde",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
+name = "delta-sharing-legacy"
 version = "0.1.3"
 dependencies = [
  "anyhow",
@@ -1418,60 +1476,6 @@ dependencies = [
  "utoipa-swagger-ui",
  "uuid",
  "validator",
-]
-
-[[package]]
-name = "delta-sharing-client"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "delta-sharing-common",
- "delta_kernel",
- "futures",
- "humantime",
- "hyper 1.3.1",
- "hyper-util",
- "parking_lot",
- "rand",
- "reqwest 0.12.4",
- "ring 0.17.8",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "delta-sharing-common"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "chrono",
- "dashmap",
- "delta_kernel",
- "hex",
- "http 1.1.0",
- "jsonwebtoken",
- "object_store 0.9.0",
- "pbjson",
- "prost",
- "ring 0.17.8",
- "serde",
- "thiserror",
- "tokio",
- "tracing",
- "url",
- "uuid",
-]
-
-[[package]]
-name = "delta-sharing-core"
-version = "0.1.0"
-dependencies = [
- "clap",
- "tokio",
 ]
 
 [[package]]
