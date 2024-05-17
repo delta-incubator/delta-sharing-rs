@@ -7,7 +7,8 @@ use delta_kernel::engine::default::executor::tokio::{
 use delta_kernel::engine::default::{executor::TaskExecutor, DefaultEngine};
 use delta_kernel::{Engine, Table};
 
-use crate::types as t;
+use crate::capabilities::ResponseFormat;
+use crate::{types as t, ParquetWrappedMetadata, ParquetWrappedProtocol};
 use crate::{Result, TableLocationResover, TableQueryHandler, TableRef};
 
 #[async_trait::async_trait]
@@ -112,6 +113,119 @@ impl TableQueryHandler for KernelQueryHandler {
         let version = snapshot.version();
         Ok(t::GetTableVersionResponse {
             version: version as i64,
+        })
+    }
+
+    async fn get_table_metadata(
+        &self,
+        request: t::GetTableMetadataRequest,
+    ) -> Result<t::GetTableMetadataResponse> {
+        let location = self
+            .location_resolver
+            .resolve(&TableRef {
+                share: request.share,
+                schema: request.schema,
+                table: request.table,
+            })
+            .await?;
+
+        let table = Table::new(location);
+        let engine = self.engine_factory.create(&table).await?;
+        let snapshot = table.snapshot(engine.as_ref(), None)?;
+
+        let protocol = snapshot.protocol();
+        let metadata = snapshot.metadata();
+        let response_format = request
+            .response_format
+            .first()
+            .and_then(|format| format.parse::<ResponseFormat>().ok())
+            .unwrap_or(ResponseFormat::Parquet);
+
+        let response = match response_format {
+            ResponseFormat::Parquet => {
+                let parquet_protocol_action = t::ParquetWrappedAction {
+                    action: Some(t::parquet_wrapped_action::Action::ParquetProtocol(
+                        ParquetWrappedProtocol {
+                            min_reader_version: protocol.min_reader_version,
+                        },
+                    )),
+                };
+                let parquet_metadata_action = t::ParquetWrappedAction {
+                    action: Some(t::parquet_wrapped_action::Action::ParquetMetadata(
+                        ParquetWrappedMetadata {
+                            id: metadata.id.clone(),
+                            name: metadata.name.clone(),
+                            description: metadata.description.clone(),
+                            schema_string: metadata.schema_string.clone(),
+                            partition_columns: metadata.partition_columns.clone(),
+                            configuration: metadata.configuration.clone(),
+                            format: Some(t::ParquetFormat {
+                                provider: metadata.format.provider.clone(),
+                            }),
+                            version: None,
+                            size: None,
+                            num_files: None,
+                        },
+                    )),
+                };
+
+                let actions = t::ParquetWrappedResponse {
+                    actions: vec![parquet_protocol_action, parquet_metadata_action],
+                };
+                t::get_table_metadata_response::Response::Parquet(actions)
+            }
+            ResponseFormat::Delta => {
+                let delta_protocol_action = t::DeltaWrappedAction {
+                    action: Some(t::delta_wrapped_action::Action::DeltaProtocol(
+                        t::DeltaWrappedProtocol {
+                            delta_protocol: Some(t::DeltaProtocol {
+                                min_reader_version: protocol.min_reader_version,
+                                min_writer_version: protocol.min_writer_version,
+                                reader_features: protocol
+                                    .reader_features
+                                    .clone()
+                                    .unwrap_or_default(),
+                                writer_features: protocol
+                                    .writer_features
+                                    .clone()
+                                    .unwrap_or_default(),
+                            }),
+                        },
+                    )),
+                };
+                let delta_metadata_action = t::DeltaWrappedAction {
+                    action: Some(t::delta_wrapped_action::Action::DeltaMetadata(
+                        t::DeltaWrappedMetadata {
+                            delta_metadata: Some(t::DeltaMetadata {
+                                id: metadata.id.clone(),
+                                name: metadata.name.clone(),
+                                description: metadata.description.clone(),
+                                schema_string: metadata.schema_string.clone(),
+                                partition_columns: metadata.partition_columns.clone(),
+                                configuration: metadata.configuration.clone(),
+                                format: Some(t::DeltaFormat {
+                                    provider: metadata.format.provider.clone(),
+                                    options: metadata.format.options.clone(),
+                                }),
+                                created_time: None,
+                            }),
+                            version: None,
+                            size: None,
+                            num_files: None,
+                        },
+                    )),
+                };
+
+                let actions = t::DeltaWrappedResponse {
+                    actions: vec![delta_protocol_action, delta_metadata_action],
+                };
+                t::get_table_metadata_response::Response::Delta(actions)
+            }
+        };
+
+        Ok(t::GetTableMetadataResponse {
+            version: snapshot.version(),
+            response: Some(response),
         })
     }
 }
