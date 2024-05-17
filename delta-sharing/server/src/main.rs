@@ -12,6 +12,7 @@ use self::server::{get_router, DeltaSharingState};
 
 mod auth;
 mod error;
+pub mod extractors;
 mod server;
 
 #[derive(Parser)]
