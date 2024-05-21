@@ -2,6 +2,10 @@ use chrono::Days;
 use clap::{Parser, Subcommand};
 use delta_sharing_common::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
 
+use crate::error::Result;
+
+mod error;
+
 #[derive(Parser)]
 #[command(name = "delta-sharing", version, about = "CLI to manage delta.sharing services.", long_about = None)]
 struct Cli {
@@ -44,17 +48,29 @@ struct ClientArgs {
 
 #[derive(Parser)]
 struct ProfileArgs {
-    #[clap(long, short, help = "secret used to encode the profile token")]
+    #[clap(long, help = "secret used to encode the profile token")]
     secret: String,
 
     #[clap(long, short, help = "server endpoint")]
     endpoint: String,
 
-    #[clap(long, short, help = "file containing profile claims")]
-    claims: String,
+    #[clap(
+        long,
+        help = "subject the profile is issued to - often an email address"
+    )]
+    subject: String,
 
     #[clap(long, short, help = "validity period in days")]
     validity: Option<u64>,
+
+    #[clap(
+        long,
+        help = "comma separated list of shares the profile has access to"
+    )]
+    shares: String,
+
+    #[clap(long, help = "admin flag")]
+    admin: Option<bool>,
 }
 
 #[tokio::main]
@@ -77,24 +93,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("Connecting to server at {}", endpoint);
             // Your client logic goes here
         }
-        Commands::Profile(args) => {
-            let token_manager = TokenManager::new_from_secret(args.secret.as_bytes(), None);
-            let profile_manager = DeltaProfileManager::new(args.endpoint, 1, token_manager);
-            // Access the profile arguments
-            let exp = chrono::Utc::now()
-                .checked_add_days(Days::new(args.validity.unwrap_or(30)))
-                .unwrap();
-            let claims = DefaultClaims {
-                sub: args.claims,
-                exp: Some(exp.timestamp_millis() as u64),
-                issued_at: chrono::Utc::now().timestamp(),
-                shares: vec![],
-                admin: None,
-            };
-            let profile = profile_manager.issue_profile(&claims, Some(exp)).await?;
-            std::fs::write("profile.json", serde_json::to_string_pretty(&profile)?)?;
-        }
+        Commands::Profile(args) => handle_profile(args).await?,
     };
 
+    Ok(())
+}
+
+async fn handle_profile(args: ProfileArgs) -> Result<()> {
+    let token_manager = TokenManager::new_from_secret(args.secret.as_bytes(), None);
+    let profile_manager = DeltaProfileManager::new(args.endpoint, 1, token_manager);
+
+    let exp = args
+        .validity
+        .and_then(|days| chrono::Utc::now().checked_add_days(Days::new(days)));
+    let shares = args
+        .shares
+        .split(',')
+        .map(|s| s.trim().to_ascii_lowercase())
+        .collect();
+    let claims = DefaultClaims {
+        sub: args.subject,
+        issued_at: chrono::Utc::now().timestamp(),
+        admin: args.admin,
+        exp: exp.as_ref().map(|dt| dt.timestamp() as u64),
+        shares,
+    };
+    let profile = profile_manager.issue_profile(&claims, exp).await?;
+    std::fs::write("profile.json", serde_json::to_string_pretty(&profile)?)?;
     Ok(())
 }

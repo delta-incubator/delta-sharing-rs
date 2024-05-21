@@ -1374,6 +1374,7 @@ dependencies = [
  "delta-sharing-server",
  "serde",
  "serde_json",
+ "thiserror",
  "tokio",
 ]
 
