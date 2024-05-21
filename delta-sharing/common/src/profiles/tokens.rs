@@ -19,7 +19,6 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, SecondsFormat, Utc};
-use http::{HeaderMap, Method};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
@@ -60,18 +59,23 @@ impl From<&[u8]> for Keys {
 /// This struct provides simple token management capabilties that can be used to
 /// build a profile management system for delta-sharing servers.
 pub struct TokenManager {
+    validation: Validation,
     keys: Keys,
 }
 
 impl TokenManager {
     /// Create a new instance of [`TokenManager`].
-    pub fn new(keys: Keys) -> Self {
-        Self { keys }
+    pub fn new(keys: Keys, validation: Option<Validation>) -> Self {
+        Self {
+            validation: validation.unwrap_or_default(),
+            keys,
+        }
     }
 
     /// Create a new instance of [`TokenManager`] from a secret.
-    pub fn new_from_secret(secret: &[u8]) -> Self {
+    pub fn new_from_secret(secret: &[u8], validation: Option<Validation>) -> Self {
         Self {
+            validation: validation.unwrap_or_default(),
             keys: Keys::new_from_secret(secret),
         }
     }
@@ -83,7 +87,7 @@ impl TokenManager {
 
     /// Decode a token into a set of claims.
     pub fn decode<C: DeserializeOwned>(&self, token: impl AsRef<str>) -> Result<C> {
-        decode::<C>(token.as_ref(), &self.keys.decoding, &Validation::default())
+        decode::<C>(token.as_ref(), &self.keys.decoding, &self.validation)
             .map(|data| data.claims)
             .map_err(Error::from)
     }

@@ -10,8 +10,10 @@ delta-sharing-client = { path = "../client", optional = true }
 delta-sharing-server = { path = "../server", optional = true }
 
 # workspace dependencies (in alphabetical order)
+chrono.workspace = true
 clap.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 
 tokio = { version = "1", features = ["full"] }
 
