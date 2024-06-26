@@ -5,7 +5,7 @@ members = ["delta-sharing/*"]
 async-trait = "0.1.64"
 chrono = { version = "0.4.38", features = ["serde"] }
 clap = { version = "4.5.4", features = ["derive"] }
-delta_kernel = { git = "https://github.com/roeap/delta-kernel-rs", rev = "e10d01108484f2324d6918ee0724996868ca9d95", features = [
+delta_kernel = { version = "0.1", features = [
     "tokio",
     "developer-visibility",
     "default-engine",
