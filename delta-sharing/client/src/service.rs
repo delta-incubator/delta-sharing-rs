@@ -1,4 +1,4 @@
-use delta_sharing_core::types as t;
+use delta_sharing_common::types as t;
 use reqwest::{header, Client, Method};
 
 use crate::client::retry::RetryExt;

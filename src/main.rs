@@ -1,14 +1,14 @@
 use anyhow::Context;
 use anyhow::Result;
-use delta_sharing::config;
-use delta_sharing::logging;
-use delta_sharing::server::Server;
+use delta_sharing_legacy::config;
+use delta_sharing_legacy::logging;
+use delta_sharing_legacy::server::Server;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let app = clap::Command::new("delta-sharing")
         .author("Shingo OKAWA <shingo.okawa.g.h.c@gmail.com>")
-        .version(delta_sharing::VERSION)
+        .version(delta_sharing_legacy::VERSION)
         .subcommand_required(true)
         .arg_required_else_help(true)
         .subcommand(

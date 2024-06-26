@@ -7,10 +7,10 @@ use std::cmp::min;
 use anyhow::Result;
 use sqlx::PgPool;
 
-use delta_sharing::server::AccountService;
-use delta_sharing::server::SchemaService;
-use delta_sharing::server::ShareService;
-use delta_sharing::server::TableService;
+use delta_sharing_legacy::server::AccountService;
+use delta_sharing_legacy::server::SchemaService;
+use delta_sharing_legacy::server::ShareService;
+use delta_sharing_legacy::server::TableService;
 
 use common::{create_account, create_schema, create_share, create_table};
 

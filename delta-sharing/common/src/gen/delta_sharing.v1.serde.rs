@@ -1387,7 +1387,7 @@ impl serde::Serialize for Profile {
         if !self.bearer_token.is_empty() {
             len += 1;
         }
-        if !self.expiration_time.is_empty() {
+        if self.expiration_time.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.v1.Profile", len)?;
@@ -1400,8 +1400,8 @@ impl serde::Serialize for Profile {
         if !self.bearer_token.is_empty() {
             struct_ser.serialize_field("bearerToken", &self.bearer_token)?;
         }
-        if !self.expiration_time.is_empty() {
-            struct_ser.serialize_field("expirationTime", &self.expiration_time)?;
+        if let Some(v) = self.expiration_time.as_ref() {
+            struct_ser.serialize_field("expirationTime", v)?;
         }
         struct_ser.end()
     }
@@ -1502,7 +1502,7 @@ impl<'de> serde::Deserialize<'de> for Profile {
                             if expiration_time__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("expirationTime"));
                             }
-                            expiration_time__ = Some(map_.next_value()?);
+                            expiration_time__ = map_.next_value()?;
                         }
                     }
                 }
@@ -1510,7 +1510,7 @@ impl<'de> serde::Deserialize<'de> for Profile {
                     share_credentials_version: share_credentials_version__.unwrap_or_default(),
                     endpoint: endpoint__.unwrap_or_default(),
                     bearer_token: bearer_token__.unwrap_or_default(),
-                    expiration_time: expiration_time__.unwrap_or_default(),
+                    expiration_time: expiration_time__,
                 })
             }
         }

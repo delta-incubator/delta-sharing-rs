@@ -1,7 +1,7 @@
 use axum::extract::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use delta_sharing_core::{Error as CoreError, ErrorResponse};
+use delta_sharing_common::{Error as CoreError, ErrorResponse};
 use tracing::error;
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

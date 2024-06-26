@@ -1,5 +1,5 @@
-use std::sync::Arc;
-
+use chrono::{DateTime, Utc};
+use jsonwebtoken::Validation;
 use serde::{de::DeserializeOwned, Serialize};
 
 #[allow(dead_code)]
@@ -93,6 +93,22 @@ pub enum Permission {
     Manage,
 }
 
+impl AsRef<str> for Permission {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Read => "read",
+            Self::Write => "write",
+            Self::Manage => "manage",
+        }
+    }
+}
+
+impl Into<String> for Permission {
+    fn into(self) -> String {
+        self.as_ref().to_string()
+    }
+}
+
 /// Resource that a policy can authorize.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Resource {
@@ -100,6 +116,7 @@ pub enum Resource {
     Schema(String),
     Table(String),
     File(String),
+    Profiles,
 }
 
 impl Resource {
@@ -117,6 +134,18 @@ impl Resource {
 
     pub fn file(name: impl Into<String>) -> Self {
         Self::File(name.into())
+    }
+}
+
+impl Into<String> for &Resource {
+    fn into(self) -> String {
+        match self {
+            Resource::Share(s) => format!("share::{s}"),
+            Resource::Schema(s) => format!("schema::{s}"),
+            Resource::Table(t) => format!("table::{t}"),
+            Resource::File(f) => format!("file::{f}"),
+            Resource::Profiles => "profiles".to_string(),
+        }
     }
 }
 
@@ -162,6 +191,10 @@ pub trait Policy: Send + Sync {
 pub trait ProfileClaims: Serialize + DeserializeOwned + Send + Sync {
     /// Get the profile fingerprint from the claims.
     fn fingerprint(&self) -> String;
+
+    fn validation() -> Validation {
+        Validation::default()
+    }
 }
 
 #[async_trait::async_trait]
@@ -170,10 +203,18 @@ pub trait ProfileManager: Send + Sync {
     type Claims: ProfileClaims;
 
     /// Issue a profile for a set of claims that can be shared with a recipient.
-    async fn issue_profile(&self, claims: &Self::Claims) -> Result<Profile>;
+    async fn issue_profile(
+        &self,
+        claims: &Self::Claims,
+        expiration_time: Option<DateTime<Utc>>,
+    ) -> Result<Profile>;
 
     /// Revoke a profile by its fingerprint.
     ///
     /// This should invalidate the profile and prevent it from being used.
-    async fn revoke_profile(&self, fingerprint: String) -> Result<()>;
+    async fn revoke_profile(&self, fingerprint: &str) -> Result<()>;
+
+    /// Validate a profile token and return the claims.
+    /// This should return an error if the profile is invalid or has been revoked.
+    async fn validate_profile(&self, token: &str) -> Result<Self::Claims>;
 }

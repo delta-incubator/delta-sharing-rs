@@ -4,12 +4,12 @@ use anyhow::Context;
 use anyhow::Result;
 use sqlx::PgConnection;
 
-use delta_sharing::server::Role;
-use delta_sharing::server::{AccountEntity, AccountId, AccountRepository};
-use delta_sharing::server::{SchemaEntity, SchemaId, SchemaRepository};
-use delta_sharing::server::{ShareEntity, ShareId, ShareRepository};
-use delta_sharing::server::{TableEntity, TableRepository};
-use delta_sharing::server::{TokenEntity, TokenRepository};
+use delta_sharing_legacy::server::Role;
+use delta_sharing_legacy::server::{AccountEntity, AccountId, AccountRepository};
+use delta_sharing_legacy::server::{SchemaEntity, SchemaId, SchemaRepository};
+use delta_sharing_legacy::server::{ShareEntity, ShareId, ShareRepository};
+use delta_sharing_legacy::server::{TableEntity, TableRepository};
+use delta_sharing_legacy::server::{TokenEntity, TokenRepository};
 
 pub async fn create_account(tx: &mut PgConnection) -> Result<AccountEntity> {
     let account = AccountEntity::new(

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use delta_sharing_core::{types as t, ListSharesRequest, Share};
+use delta_sharing_common::{types as t, ListSharesRequest, Share};
 use futures::{Stream, TryStreamExt};
 
 use crate::client::pagination::stream_paginated;
