@@ -71,3 +71,11 @@ render-config:
 
 # local setup
 local-setup: load-dat render-config
+
+profile:
+    @cargo run -p delta-sharing -- profile \
+        -e https://localhost:8080 \
+        --subject someone@email.com \
+        --validity 90 \
+        --shares asdf \
+        --secret secret

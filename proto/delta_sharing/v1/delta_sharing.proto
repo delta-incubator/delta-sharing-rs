@@ -189,5 +189,5 @@ message Profile {
 
   // The expiration time of the bearer token in ISO 8601 format. This field is optional
   // and if it is not provided, the bearer token can be seen as never expire.
-  string expiration_time = 4;
+  optional string expiration_time = 4;
 }

@@ -3,21 +3,23 @@ members = ["delta-sharing/*"]
 
 [workspace.dependencies]
 async-trait = "0.1.64"
+chrono = { version = "0.4.38", features = ["serde"] }
 clap = { version = "4.5.4", features = ["derive"] }
-delta_kernel = { git = "https://github.com/roeap/delta-kernel-rs", rev = "e10d01108484f2324d6918ee0724996868ca9d95", features = [
+delta_kernel = { version = "0.1", features = [
     "tokio",
     "developer-visibility",
     "default-engine",
 ] }
 http = { version = "1.1.0" }
 serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.92"
 thiserror = "1"
 tower = { version = "0.4.13", features = ["limit", "filter", "util"] }
 tracing = { version = "0.1.37", features = ["log"] }
 url = { version = "2.5.0", features = ["serde"] }
 
 [package]
-name = "delta-sharing"
+name = "delta-sharing-legacy"
 version = "0.1.3"
 authors = ["Shingo OKAWA <shingo.okawa.g.h.c@gmail.com>"]
 edition = "2021"
@@ -25,8 +27,10 @@ rust-version = "1.67"
 
 [dependencies]
 async-trait.workspace = true
+chrono.workspace = true
 clap.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 tower.workspace = true
 tracing.workspace = true
 url.workspace = true
@@ -42,7 +46,6 @@ futures-util = "0.3.28"
 hyper = { version = "0.14.13" }
 tokio = { version = "1.25.0", features = ["full", "rt-multi-thread"] }
 config = "0.14.0"
-chrono = { version = "0.4.38", features = ["serde"] }
 colored = "2.0.0"
 cookie = "0.18"
 getset = "0.1.2"
@@ -56,7 +59,6 @@ rand = "0.8.5"
 rusoto_core = "0.48.0"
 rusoto_credential = "0.48.0"
 rusoto_s3 = "0.48.0"
-serde_json = "1.0.92"
 serde_yaml = "0.9.17"
 shellexpand = "3.1.0"
 sqlx = { version = "0.7", features = [

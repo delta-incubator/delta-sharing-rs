@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Robert Pack <robstar.pack@gmail.com>"]
 
 [dependencies]
-delta-sharing-core = { path = "../core" }
+delta-sharing-common = { path = "../common" }
 
 # workspace dependencies (in alphabetical order)
 async-trait.workspace = true

@@ -55,6 +55,7 @@ pub struct KernelQueryHandler {
 }
 
 impl KernelQueryHandler {
+    /// Create a new instance of [`KernelQueryHandler`].
     pub fn new(
         engine_factory: Arc<dyn KernelEngineFactroy>,
         location_resolver: Arc<dyn TableLocationResover>,
@@ -65,6 +66,7 @@ impl KernelQueryHandler {
         }
     }
 
+    /// Create a new instance of [`KernelQueryHandler`] with a background executor.
     pub fn new_background(
         location_resolver: Arc<dyn TableLocationResover>,
         storage_configs: HashMap<(String, String), HashMap<String, String>>,
@@ -76,6 +78,7 @@ impl KernelQueryHandler {
         Arc::new(Self::new(engine_factory, location_resolver))
     }
 
+    /// Create a new instance of [`KernelQueryHandler`] with a multi-threaded executor.
     pub fn new_multi_thread(
         location_resolver: Arc<dyn TableLocationResover>,
         storage_configs: HashMap<(String, String), HashMap<String, String>>,
