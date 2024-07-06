@@ -74,31 +74,3 @@ async fn shutdown_signal() {
         _ = terminate => {},
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use delta_sharing_common::{
-        DefaultInMemoryHandler, InMemoryConfig, SchemaConfig, ShareConfig, TableConfig,
-    };
-
-    pub(crate) fn test_config() -> InMemoryConfig {
-        InMemoryConfig {
-            shares: vec![ShareConfig {
-                name: "share1".to_string(),
-                schema_refs: vec!["schema1".to_string()],
-            }],
-            schemas: vec![SchemaConfig {
-                name: "schema1".to_string(),
-                table_refs: vec!["table1".to_string()],
-            }],
-            tables: vec![TableConfig {
-                name: "table1".to_string(),
-                location: "file:///tmp".to_string(),
-            }],
-        }
-    }
-
-    pub(crate) fn test_handler() -> DefaultInMemoryHandler {
-        DefaultInMemoryHandler::new(test_config())
-    }
-}

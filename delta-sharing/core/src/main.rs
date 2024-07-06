@@ -1,8 +1,9 @@
 use chrono::Days;
 use clap::{Parser, Subcommand};
 use delta_sharing_common::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
+use delta_sharing_server::run_server;
 
-use crate::error::Result;
+use crate::error::{Error, Result};
 
 mod error;
 
@@ -15,7 +16,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    #[clap(arg_required_else_help = true, about = "start a sharing server")]
+    #[clap(about = "start a sharing server")]
     Server(ServerArgs),
 
     #[clap(
@@ -36,8 +37,11 @@ struct ServerArgs {
     #[clap(long, default_value = "0.0.0.0")]
     host: String,
 
-    #[clap(long, short, default_value = "8080")]
+    #[clap(long, short, default_value_t = 8080)]
     port: u16,
+
+    #[arg(short, long, default_value = "config.yaml")]
+    config: String,
 }
 
 #[derive(Parser)]
@@ -79,13 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::parse();
 
     match args.command {
-        Commands::Server(server_args) => {
-            // Access the server arguments
-            let port = server_args.port;
-            // Start the server logic
-            println!("Starting server on port {}", port);
-            // Your server logic goes here
-        }
+        Commands::Server(server_args) => handle_server(server_args).await?,
         Commands::Client(client_args) => {
             // Access the client arguments
             let endpoint = client_args.endpoint;
@@ -99,6 +97,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+/// Handle the server command.
+///
+/// This function starts a delta-sharing server.
+async fn handle_server(args: ServerArgs) -> Result<()> {
+    run_server(args.config, args.host, args.port)
+        .await
+        .map_err(|_| Error::Generic("Server failed".to_string()))
+}
+
+/// Handle the profile command.
 async fn handle_profile(args: ProfileArgs) -> Result<()> {
     let token_manager = TokenManager::new_from_secret(args.secret.as_bytes(), None);
     let profile_manager = DeltaProfileManager::new(args.endpoint, 1, token_manager);

@@ -1395,6 +1395,7 @@ dependencies = [
  "delta-sharing-server",
  "serde",
  "serde_json",
+ "serde_yml",
  "thiserror",
  "tokio",
 ]
