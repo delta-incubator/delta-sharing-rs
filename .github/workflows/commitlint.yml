@@ -1,0 +1,34 @@
+name: validate_pr
+
+on:
+  workflow_call:
+
+jobs:
+  commitlint:
+    name: PR title / description conforms to semantic-release
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/setup-node@v4
+
+      - run: npm install -g @commitlint/cli @commitlint/config-conventional
+
+      # Checkout to get the commitlint configuration.
+      - uses: actions/checkout@v4
+
+      - run: npx commitlint --verbose <<< $COMMIT_MSG
+        env:
+          COMMIT_MSG: >
+            ${{ github.event.pull_request.title }}
+
+
+            ${{ github.event.pull_request.body }}
+
+      - uses: actions/github-script@v7
+        if: failure()
+        with:
+          sscript: |
+            const script = require('./commitlint.js')
+            await script({ core, context, github })
