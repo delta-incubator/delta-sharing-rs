@@ -1,7 +1,8 @@
 name: Assign the issue to self
 on:
   issue_comment:
-    types: created
+    types:
+      - created
 
 permissions:
   issues: write
