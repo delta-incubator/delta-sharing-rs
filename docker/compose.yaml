@@ -1,0 +1,10 @@
+services:
+  app:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    command: [server, "--config", "/etc/delta/config.yaml"]
+    ports:
+      - 8080:8080
+    volumes:
+      - ../config/empty.yaml:/etc/delta/config.yaml:ro

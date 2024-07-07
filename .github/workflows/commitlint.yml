@@ -1,7 +1,9 @@
 name: validate_pr
 
 on:
-  workflow_call:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   commitlint:
@@ -29,6 +31,6 @@ jobs:
       - uses: actions/github-script@v7
         if: failure()
         with:
-          sscript: |
+          script: |
             const script = require('./commitlint.js')
             await script({ core, context, github })
