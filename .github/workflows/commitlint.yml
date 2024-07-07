@@ -1,7 +1,9 @@
 name: validate_pr
 
 on:
-  workflow_call:
+  pull_request:
+    branches:
+      - main
 
 jobs:
   commitlint:

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package delta_sharing.profiles.v1;
+
+/// Register a new table in the Delta Sharing service.
+message CreateTableRequest {
+  string name = 1;
+  string location = 2;
+}
+
+/// Response to CreateTableRequest.
+message CreateTableResponse {
+  string table_uri = 1;
+}
+
+message CreateSchemaRequest {
+  string name = 1;
+}
