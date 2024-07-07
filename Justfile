@@ -36,7 +36,7 @@ alias testdb := test-integration
 
 # Run local docker emvironment
 docker:
-    @docker compose -f devops/local/docker-compose.yaml up -d
+    docker-compose -f docker/compose.yaml up -d
 
 # Run server locally
 server:
@@ -44,7 +44,7 @@ server:
 
 # Build delta-sharing-rs into a docker image for local use
 package:
-    DOCKER_BUILDKIT=0 docker build . -t delta-sharing:local -f devops/docker/Dockerfile
+    DOCKER_BUILDKIT=0 docker build . -t delta-sharing:dev -f docker/Dockerfile
 
 # generate delta-sharing types from proto files
 generate:
