@@ -8,3 +8,8 @@ services:
       - 8080:8080
     volumes:
       - ../config/empty.yaml:/etc/delta/config.yaml:ro
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - 10000:10000

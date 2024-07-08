@@ -10,7 +10,13 @@ delta_kernel = { version = "0.1", features = [
     "developer-visibility",
     "default-engine",
 ] }
+futures = { version = "0.3.28" }
 http = { version = "1.1.0" }
+object_store = { version = "0.9" }
+reqwest = { version = "0.12", default-features = false, features = [
+    "rustls-tls-native-roots",
+    "http2",
+] }
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.92"
 thiserror = "1"
@@ -26,14 +32,15 @@ edition = "2021"
 rust-version = "1.67"
 
 [dependencies]
-async-trait.workspace = true
-chrono.workspace = true
-clap.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-tower.workspace = true
-tracing.workspace = true
-url.workspace = true
+async-trait = { workspace = true }
+chrono = { workspace = true }
+clap = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tower = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }
 
 argon2 = "0.5.0"
 anyhow = { version = "1.0.69", features = ["backtrace"] }
@@ -41,7 +48,6 @@ async-session = "3.0.0"
 axum = "0.7.5"
 axum-extra = { version = "0.9.2", features = ["json-lines"] }
 deltalake = { version = "0.16", features = ["s3", "azure", "gcs"] }
-futures = "0.3.28"
 futures-util = "0.3.28"
 hyper = { version = "0.14.13" }
 tokio = { version = "1.25.0", features = ["full", "rt-multi-thread"] }
