@@ -2,6 +2,7 @@ use std::path::Path;
 use std::process::Command;
 
 use clap::{Parser, Subcommand};
+use object_store::azure::MicrosoftAzureBuilder;
 use object_store::local::LocalFileSystem;
 use object_store::ObjectStore;
 
@@ -20,8 +21,9 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    #[clap(about = "Manage delta acceptace data.")]
+    #[clap(about = "Load delta acceptance test tabeles.")]
     LoadDat(DatArgs),
+    SyncAzurite(SyncAzArgs),
 }
 
 #[derive(Parser)]
@@ -33,13 +35,32 @@ struct DatArgs {
     output: String,
 }
 
+#[derive(Parser)]
+struct SyncAzArgs {
+    #[clap(long, default_value = "dat")]
+    dat_source: String,
+
+    #[clap(long, short, default_value = "dat")]
+    container: String,
+}
+
 #[tokio::main]
 pub async fn main() -> TestResult {
     let args = Cli::parse();
 
     match args.command {
         Commands::LoadDat(args) => load_dat(args).await?,
+        Commands::SyncAzurite(args) => load_azurite(args).await?,
     }
+
+    Ok(())
+}
+
+async fn load_azurite(args: SyncAzArgs) -> TestResult {
+    let azurite = MicrosoftAzureBuilder::new()
+        .with_use_emulator(true)
+        .with_container_name(args.container)
+        .build()?;
 
     Ok(())
 }
