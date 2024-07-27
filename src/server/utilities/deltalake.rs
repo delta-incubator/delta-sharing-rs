@@ -4,13 +4,13 @@ use std::fmt;
 
 use anyhow::{anyhow, Context, Result};
 use chrono::{DateTime, TimeZone, Utc};
-use deltalake::schema::SchemaDataType;
+use deltalake::kernel::{DataType, PrimitiveType};
 use deltalake::{open_table_with_storage_options, DeltaTable};
 use utoipa::ToSchema;
 
 use crate::config;
 
-pub type File = deltalake::protocol::Add;
+pub type File = deltalake::kernel::Add;
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub struct Interval<T>
@@ -116,43 +116,24 @@ impl std::fmt::Display for ValueType {
     }
 }
 
-impl TryFrom<SchemaDataType> for ValueType {
+impl TryFrom<DataType> for ValueType {
     type Error = anyhow::Error;
 
-    fn try_from(schema_data_type: SchemaDataType) -> std::result::Result<Self, Self::Error> {
-        match schema_data_type {
-            SchemaDataType::primitive(name) if name.to_lowercase() == "boolean" => {
-                Ok(ValueType::Boolean)
-            }
-            SchemaDataType::primitive(name) if name.to_lowercase() == "integer" => {
-                Ok(ValueType::Int)
-            }
-            SchemaDataType::primitive(name) if name.to_lowercase() == "long" => Ok(ValueType::Long),
-            SchemaDataType::primitive(name) if name.to_lowercase() == "string" => {
-                Ok(ValueType::String)
-            }
-            SchemaDataType::primitive(name) if name.to_lowercase() == "date" => Ok(ValueType::Date),
-            _ => Err(anyhow!("failed to parse column type")),
-        }
+    fn try_from(schema_data_type: DataType) -> std::result::Result<Self, Self::Error> {
+        (&schema_data_type).try_into()
     }
 }
 
-impl TryFrom<&SchemaDataType> for ValueType {
+impl TryFrom<&DataType> for ValueType {
     type Error = anyhow::Error;
 
-    fn try_from(schema_data_type: &SchemaDataType) -> std::result::Result<Self, Self::Error> {
+    fn try_from(schema_data_type: &DataType) -> std::result::Result<Self, Self::Error> {
         match schema_data_type {
-            SchemaDataType::primitive(name) if name.to_lowercase() == "boolean" => {
-                Ok(ValueType::Boolean)
-            }
-            SchemaDataType::primitive(name) if name.to_lowercase() == "integer" => {
-                Ok(ValueType::Int)
-            }
-            SchemaDataType::primitive(name) if name.to_lowercase() == "long" => Ok(ValueType::Long),
-            SchemaDataType::primitive(name) if name.to_lowercase() == "string" => {
-                Ok(ValueType::String)
-            }
-            SchemaDataType::primitive(name) if name.to_lowercase() == "date" => Ok(ValueType::Date),
+            DataType::Primitive(PrimitiveType::Boolean) => Ok(ValueType::Boolean),
+            DataType::Primitive(PrimitiveType::Integer) => Ok(ValueType::Int),
+            DataType::Primitive(PrimitiveType::Long) => Ok(ValueType::Long),
+            DataType::Primitive(PrimitiveType::String) => Ok(ValueType::String),
+            DataType::Primitive(PrimitiveType::Date) => Ok(ValueType::Date),
             _ => Err(anyhow!("failed to parse column type")),
         }
     }
