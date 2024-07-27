@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use axum::BoxError;
-use deltalake::protocol::Add;
-use deltalake::schema::Schema;
-use deltalake::table::DeltaTableMetaData;
+use deltalake::kernel::Add;
+use deltalake::kernel::Metadata as DeltaMetadata;
+use deltalake::kernel::Schema;
 use deltalake::DeltaTable;
 use futures_util::stream::Stream;
 use md5;
@@ -75,7 +75,8 @@ pub struct Metadata {
 }
 
 impl Metadata {
-    fn from(metadata: DeltaTableMetaData) -> Self {
+    fn from(metadata: DeltaMetadata) -> Self {
+        let schema = metadata.schema().unwrap();
         Self {
             meta_data: MetadataDetail {
                 id: metadata.id,
@@ -84,7 +85,7 @@ impl Metadata {
                 format: Format {
                     provider: metadata.format.get_provider(),
                 },
-                schema_string: json!(metadata.schema).to_string(),
+                schema_string: json!(schema).to_string(),
                 partition_columns: metadata.partition_columns,
                 configuration: metadata.configuration,
                 version: None,
@@ -222,7 +223,7 @@ impl Service {
 
     pub async fn files_from<S: Signer>(
         table: DeltaTable,
-        metadata: DeltaTableMetaData,
+        metadata: DeltaMetadata,
         predicate_hints: Option<Vec<SQLPartitionFilter>>,
         json_predicate_hints: Option<JSONPartitionFilter>,
         limit_hint: Option<i32>,
@@ -240,7 +241,7 @@ impl Service {
             None
         };
         let files = Self::filter_with_sql_hints(
-            table.get_state().files().to_owned(),
+            table.snapshot().unwrap().file_actions().unwrap(),
             table.schema().cloned(),
             predicate_hints,
         );
@@ -266,7 +267,7 @@ impl Service {
     }
 
     pub fn metadata_from(
-        metadata: DeltaTableMetaData,
+        metadata: DeltaMetadata,
     ) -> impl Stream<Item = Result<serde_json::Value, BoxError>> {
         let ret = vec![
             Ok(json!(Protocol::new())),

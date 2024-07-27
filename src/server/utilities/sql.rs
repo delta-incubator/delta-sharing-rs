@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use anyhow::{anyhow, Context, Result};
-use deltalake::schema::Schema;
+use deltalake::kernel::Schema;
 
 use crate::server::utilities::deltalake::{Stats, ValueType};
 
@@ -295,11 +295,11 @@ impl Utility {
             return true;
         };
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-        let Ok(field) = schema.get_field_with_name(&filter.column) else {
+        let Some(field) = schema.field(&filter.column) else {
             return true;
         };
         // NOTE: The server may try its best to filter files in a BEST EFFORT mode.
-        let Ok(column_type) = ValueType::try_from(field.get_type()) else {
+        let Ok(column_type) = ValueType::try_from(field.data_type()) else {
             return true;
         };
         match (

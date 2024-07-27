@@ -151,7 +151,7 @@ pub async fn post(
         is_time_traveled = true;
     }
     let metadata = {
-        let Ok(metadata) = table.get_metadata() else {
+        let Ok(metadata) = table.metadata() else {
             tracing::error!("request is not handled correctly due to a server error while loading delta table metadata");
             return Err(anyhow!("error occured while selecting table(s)").into());
         };
