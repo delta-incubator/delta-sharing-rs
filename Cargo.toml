@@ -47,7 +47,7 @@ anyhow = { version = "1.0.69", features = ["backtrace"] }
 async-session = "3.0.0"
 axum = "0.7.5"
 axum-extra = { version = "0.9.2", features = ["json-lines"] }
-deltalake = { version = "0.16", features = ["s3", "azure", "gcs"] }
+deltalake = { version = "0.18", features = ["s3", "azure", "gcs"] }
 futures-util = "0.3.28"
 hyper = { version = "0.14.13" }
 tokio = { version = "1.25.0", features = ["full", "rt-multi-thread"] }
