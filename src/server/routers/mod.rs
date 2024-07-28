@@ -23,6 +23,8 @@ use crate::server::api_doc::ApiDoc;
 use crate::server::middlewares::jwt;
 use crate::server::services::error::Error;
 
+use super::catalog::{Pagination, ShareStore};
+
 #[derive(Clone)]
 pub enum AzureCredential {
     AccessKey(String),
@@ -36,6 +38,7 @@ pub struct AzureLocation {
 
 pub struct State {
     pub pg_pool: PgPool,
+    pub share_store: Arc<dyn ShareStore>,
     pub gcp_service_account: Option<ServiceAccount>,
     pub aws_credentials: Option<AwsCredentials>,
     pub azure_credentials: Option<AzureLocation>,
@@ -49,12 +52,14 @@ async fn bad_request(_: Uri) -> std::result::Result<Response, Error> {
 
 async fn route(
     pg_pool: PgPool,
+    share_store: Arc<dyn ShareStore>,
     gcp_service_account: Option<ServiceAccount>,
     aws_credentials: Option<AwsCredentials>,
     azure_credentials: Option<AzureLocation>,
 ) -> Result<Router> {
     let state = Arc::new(State {
         pg_pool,
+        share_store,
         gcp_service_account,
         aws_credentials,
         azure_credentials,
@@ -140,12 +145,14 @@ async fn route(
 
 pub async fn bind(
     pg_pool: PgPool,
+    share_store: Arc<dyn ShareStore>,
     gcp_service_account: Option<ServiceAccount>,
     aws_credentials: Option<AwsCredentials>,
     azure_credentials: Option<AzureLocation>,
 ) -> Result<()> {
     let app = route(
         pg_pool,
+        share_store,
         gcp_service_account,
         aws_credentials,
         azure_credentials,
