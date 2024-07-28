@@ -13,16 +13,19 @@ http = { workspace = true }
 object_store = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
+tonic = { workspace = true }
+tower = { workspace = true }
 tracing = { workspace = true }
 url = { workspace = true }
 
 # server dependencies (in alphabetical order)
-serde_json = { version = "1.0" }
 bytes = { version = "1.1" }
+futures-util = "0.3.28"
 pbjson = { version = "0.7" }
 prost = { version = "0.13" }
+serde_json = { version = "1.0" }
 tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
-tonic = { version = "0.12" }
+
 
 # in-memory handler dependencies (in alphabetical order)
 dashmap = { version = "6", optional = true }
@@ -40,6 +43,11 @@ axum = { version = "0.7.5", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
+tower = "*"
+http = "*"
+http-body-util = "*"
+serde_json = "*"
+
 
 [features]
 default = ["memory", "profiles", "axum"]

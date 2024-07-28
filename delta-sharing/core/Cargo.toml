@@ -17,4 +17,4 @@ serde_json.workspace = true
 thiserror.workspace = true
 
 tokio = { version = "1", features = ["full"] }
-serde_yml = { version = "0.0.5" }
+serde_yml = { version = "0.0.11" }

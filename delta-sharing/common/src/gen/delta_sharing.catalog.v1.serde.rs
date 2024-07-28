@@ -30,6 +30,7 @@ impl<'de> serde::Deserialize<'de> for CreateSchemaRequest {
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Name,
+            __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -52,7 +53,7 @@ impl<'de> serde::Deserialize<'de> for CreateSchemaRequest {
                     {
                         match value {
                             "name" => Ok(GeneratedField::Name),
-                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                            _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
                 }
@@ -79,6 +80,9 @@ impl<'de> serde::Deserialize<'de> for CreateSchemaRequest {
                                 return Err(serde::de::Error::duplicate_field("name"));
                             }
                             name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::__SkipField__ => {
+                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
                         }
                     }
                 }
@@ -129,6 +133,7 @@ impl<'de> serde::Deserialize<'de> for CreateTableRequest {
         enum GeneratedField {
             Name,
             Location,
+            __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -152,7 +157,7 @@ impl<'de> serde::Deserialize<'de> for CreateTableRequest {
                         match value {
                             "name" => Ok(GeneratedField::Name),
                             "location" => Ok(GeneratedField::Location),
-                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                            _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
                 }
@@ -186,6 +191,9 @@ impl<'de> serde::Deserialize<'de> for CreateTableRequest {
                                 return Err(serde::de::Error::duplicate_field("location"));
                             }
                             location__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::__SkipField__ => {
+                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
                         }
                     }
                 }
@@ -230,6 +238,7 @@ impl<'de> serde::Deserialize<'de> for CreateTableResponse {
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             TableUri,
+            __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -252,7 +261,7 @@ impl<'de> serde::Deserialize<'de> for CreateTableResponse {
                     {
                         match value {
                             "tableUri" | "table_uri" => Ok(GeneratedField::TableUri),
-                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                            _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
                 }
@@ -279,6 +288,9 @@ impl<'de> serde::Deserialize<'de> for CreateTableResponse {
                                 return Err(serde::de::Error::duplicate_field("tableUri"));
                             }
                             table_uri__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::__SkipField__ => {
+                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
                         }
                     }
                 }

@@ -12,6 +12,7 @@ delta_kernel = { version = "0.2", features = [
 ] }
 futures = { version = "0.3.28" }
 http = { version = "1.1.0" }
+hyper = { version = "1.4.1" }
 object_store = { version = "0.10" }
 reqwest = { version = "0.12", default-features = false, features = [
     "rustls-tls-native-roots",
@@ -20,6 +21,7 @@ reqwest = { version = "0.12", default-features = false, features = [
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.92"
 thiserror = "1"
+tonic = { version = "0.12" }
 tower = { version = "0.4.13", features = ["limit", "filter", "util"] }
 tracing = { version = "0.1.37", features = ["log"] }
 url = { version = "2.5.0", features = ["serde"] }
@@ -36,6 +38,7 @@ async-trait = { workspace = true }
 chrono = { workspace = true }
 clap = { workspace = true }
 futures = { workspace = true }
+hyper = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tower = { workspace = true }
@@ -49,7 +52,6 @@ axum = "0.7.5"
 axum-extra = { version = "0.9.2", features = ["json-lines"] }
 deltalake = { version = "0.18", features = ["s3", "azure", "gcs"] }
 futures-util = "0.3.28"
-hyper = { version = "1.4.1" }
 tokio = { version = "1.25.0", features = ["full", "rt-multi-thread"] }
 config = "0.14.0"
 colored = "2.0.0"

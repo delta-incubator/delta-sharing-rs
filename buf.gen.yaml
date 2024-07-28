@@ -6,8 +6,28 @@ plugins:
       - bytes=.
       - compile_well_known_types
       - extern_path=.google.protobuf=::pbjson_types
-      - file_descriptor_set
+      - file_descriptor_set=false
   - remote: buf.build/community/neoeinstein-prost-serde:v0.3.0
     out: delta-sharing/common/src/gen
+    opt:
+      # useful to build reusable extractors for axum
+      - ignore_unknown_fields=true
   - remote: buf.build/community/neoeinstein-tonic:v0.4.0
     out: delta-sharing/common/src/gen
+    opt:
+      - no_client=true
+      - extern_path=.google.protobuf=::pbjson_types
+  - remote: buf.build/community/neoeinstein-prost:v0.3.1
+    out: delta-sharing/client/src/gen
+    opt:
+      - bytes=.
+      - compile_well_known_types
+      - extern_path=.google.protobuf=::pbjson_types
+      - file_descriptor_set=false
+  - remote: buf.build/community/neoeinstein-prost-serde:v0.3.0
+    out: delta-sharing/client/src/gen
+  - remote: buf.build/community/neoeinstein-tonic:v0.4.0
+    out: delta-sharing/client/src/gen
+    opt:
+      - no_server=true
+      - extern_path=.google.protobuf=::pbjson_types

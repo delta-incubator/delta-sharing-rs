@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use axum::extract::Request;
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use jsonwebtoken::Validation;
@@ -44,6 +45,7 @@ pub use policies::*;
 #[cfg(feature = "profiles")]
 pub use profiles::*;
 pub use types::*;
+pub mod server;
 
 #[derive(Clone, Debug)]
 pub struct Recipient(pub Bytes);
@@ -174,14 +176,11 @@ pub enum Decision {
 
 /// Authenticator for authenticating requests to a sharing server.
 pub trait Authenticator: Send + Sync {
-    type Request;
-    type Recipient: Send;
-
     /// Authenticate a request.
     ///
     /// This method should return the recipient of the request, or an error if the request
     /// is not authenticated or the recipient cannot be determined from the request.
-    fn authenticate(&self, request: &Self::Request) -> Result<Self::Recipient>;
+    fn authenticate(&self, request: &Request) -> Result<Recipient>;
 }
 
 /// Policy for access control.
