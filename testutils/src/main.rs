@@ -83,7 +83,7 @@ async fn load_dat(args: DatArgs) -> TestResult {
     let tmp_dir = tempfile::tempdir()?;
     let tmp_fs = LocalFileSystem::new_with_prefix(tmp_dir.path())?;
     tmp_fs
-        .put(&object_store::path::Path::from("dat.tar.gz"), resp)
+        .put(&object_store::path::Path::from("dat.tar.gz"), resp.into())
         .await?;
     let tar_file = tmp_dir.path().join("dat.tar.gz");
 

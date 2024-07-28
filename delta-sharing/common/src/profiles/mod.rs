@@ -1,10 +1,11 @@
+use bytes::Bytes;
 use chrono::{DateTime, SecondsFormat, Utc};
 use dashmap::DashSet;
 use ring::digest;
 use serde::{Deserialize, Serialize};
 
 pub use self::tokens::*;
-use crate::{Profile, ProfileClaims, ProfileManager, Result};
+use crate::{Profile, ProfileClaims, ProfileManager, Recipient, Result};
 
 mod tokens;
 
@@ -12,10 +13,16 @@ pub type DeltaRecipient<C = DefaultClaims> = DefaultRecipient<C>;
 pub type DeltaProfileManager = InMemoryProfileManager<DefaultClaims>;
 
 /// Default recipient for delta sharing.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum DefaultRecipient<C: ProfileClaims> {
     Anonymous,
     Profile(C),
+}
+
+impl<C: ProfileClaims> From<DefaultRecipient<C>> for Recipient {
+    fn from(recipient: DefaultRecipient<C>) -> Self {
+        Recipient(Bytes::from(serde_json::to_vec(&recipient).unwrap()))
+    }
 }
 
 impl<C: ProfileClaims> DefaultRecipient<C> {

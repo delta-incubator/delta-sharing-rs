@@ -1,3 +1,6 @@
+use std::sync::Arc;
+
+use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use jsonwebtoken::Validation;
 use serde::{de::DeserializeOwned, Serialize};
@@ -23,6 +26,7 @@ pub mod types {
 }
 pub mod capabilities;
 pub mod error;
+mod grpc;
 #[cfg(feature = "memory")]
 mod in_memory;
 mod kernel;
@@ -41,16 +45,24 @@ pub use policies::*;
 pub use profiles::*;
 pub use types::*;
 
+#[derive(Clone, Debug)]
+pub struct Recipient(pub Bytes);
+
+#[derive(Clone)]
+pub struct DeltaSharingHandler {
+    pub discovery: Arc<dyn DiscoveryHandler>,
+    pub query: Arc<dyn TableQueryHandler>,
+    pub policy: Arc<dyn Policy>,
+}
+
 /// Handler for discovering shares, schemas, and tables exposed by a Delta Sharing server.
 #[async_trait::async_trait]
-pub trait DiscoveryHandler: Send + Sync {
-    type Recipient: Send;
-
+pub trait DiscoveryHandler: Send + Sync + 'static {
     /// List all shares that the recipient is allowed to read.
     async fn list_shares(
         &self,
         request: ListSharesRequest,
-        recipient: Self::Recipient,
+        recipient: &Recipient,
     ) -> Result<ListSharesResponse>;
 
     /// Get a share by name.
@@ -175,8 +187,6 @@ pub trait Authenticator: Send + Sync {
 /// Policy for access control.
 #[async_trait::async_trait]
 pub trait Policy: Send + Sync {
-    type Recipient: Send;
-
     /// Check if the policy allows the action.
     ///
     /// Specifically, this method should return [`Decision::Allow`] if the recipient
@@ -185,8 +195,30 @@ pub trait Policy: Send + Sync {
         &self,
         resource: Resource,
         permission: Permission,
-        recipient: &Self::Recipient,
+        recipient: &Recipient,
     ) -> Result<Decision>;
+
+    async fn authorize_checked(
+        &self,
+        resource: Resource,
+        permission: Permission,
+        recipient: &Recipient,
+    ) -> Result<()> {
+        match self.authorize(resource, permission, recipient).await? {
+            Decision::Allow => Ok(()),
+            Decision::Deny => Err(Error::NotAllowed),
+        }
+    }
+
+    async fn authorize_share(
+        &self,
+        share: String,
+        permission: Permission,
+        recipient: &Recipient,
+    ) -> Result<()> {
+        self.authorize_checked(Resource::Share(share), permission, recipient)
+            .await
+    }
 }
 
 /// Claims that are encoded in a profile.

@@ -6,27 +6,25 @@
 //! recipient.
 
 use crate::error::Result;
-use crate::{Decision, Permission, Policy, Resource};
+use crate::{Decision, Permission, Policy, Recipient, Resource};
 
 /// Policy that always returns a constant decision.
 ///
 /// This policy is mainly useful for testing and development, or servers that do not require
 /// authorization checks - e.g. when deployed in a trusted environment.
-pub struct ConstantPolicy<T> {
+pub struct ConstantPolicy {
     decision: Decision,
-    _phantom: std::marker::PhantomData<T>,
 }
 
-impl<T> Default for ConstantPolicy<T> {
+impl Default for ConstantPolicy {
     fn default() -> Self {
         Self {
             decision: Decision::Allow,
-            _phantom: std::marker::PhantomData,
         }
     }
 }
 
-impl<T> ConstantPolicy<T> {
+impl ConstantPolicy {
     /// Create a new instance of [`ConstantPolicy`].
     ///
     /// The [`ConstantPolicy`] will always return the same decision for all authorization requests.
@@ -48,18 +46,13 @@ impl<T> ConstantPolicy<T> {
     /// # }
     /// ```
     pub fn new(decision: Decision) -> Self {
-        Self {
-            decision,
-            _phantom: std::marker::PhantomData,
-        }
+        Self { decision }
     }
 }
 
 #[async_trait::async_trait]
-impl<T: Send + Sync> Policy for ConstantPolicy<T> {
-    type Recipient = T;
-
-    async fn authorize(&self, _: Resource, _: Permission, _: &Self::Recipient) -> Result<Decision> {
+impl Policy for ConstantPolicy {
+    async fn authorize(&self, _: Resource, _: Permission, _: &Recipient) -> Result<Decision> {
         Ok(self.decision)
     }
 }
@@ -71,7 +64,7 @@ mod test {
     #[test]
     fn assert_send_sync() {
         fn assert_send_sync<T: Send + Sync>() {}
-        assert_send_sync::<ConstantPolicy<()>>();
+        assert_send_sync::<ConstantPolicy>();
     }
 
     #[tokio::test]
@@ -80,7 +73,7 @@ mod test {
 
         let resource = Resource::Share("test_share".to_string());
         let permission = Permission::Read;
-        let recipient = &();
+        let recipient = &Recipient(bytes::Bytes::new());
 
         let decision = policy
             .authorize(resource, permission, recipient)
@@ -95,7 +88,7 @@ mod test {
 
         let resource = Resource::Share("test_share".to_string());
         let permission = Permission::Read;
-        let recipient = &();
+        let recipient = &Recipient(bytes::Bytes::new());
 
         let decision = policy
             .authorize(resource, permission, recipient)
@@ -110,7 +103,7 @@ mod test {
 
         let resource = Resource::Share("test_share".to_string());
         let permission = Permission::Read;
-        let recipient = &();
+        let recipient = &Recipient(bytes::Bytes::new());
 
         let decision = policy
             .authorize(resource, permission, recipient)
