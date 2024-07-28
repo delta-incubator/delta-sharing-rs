@@ -5,11 +5,9 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::error::{Error, Result};
-use crate::types as t;
+use crate::models::{v1::*, TableRef};
 use crate::{DiscoveryHandler, Recipient, TableLocationResover};
 
-#[cfg(feature = "profiles")]
-use crate::profiles::DeltaRecipient;
 #[cfg(feature = "profiles")]
 pub type DefaultInMemoryHandler = InMemoryHandler;
 #[cfg(not(feature = "profiles"))]
@@ -79,31 +77,31 @@ impl InMemoryHandler {
 impl DiscoveryHandler for InMemoryHandler {
     async fn list_shares(
         &self,
-        _request: t::ListSharesRequest,
+        _request: ListSharesRequest,
         _recipient: &Recipient,
-    ) -> Result<t::ListSharesResponse> {
+    ) -> Result<ListSharesResponse> {
         let shares = self
             .shares
             .iter()
             .map(|share| {
                 let id = Uuid::new_v5(&Uuid::NAMESPACE_OID, share.key().as_bytes());
-                t::Share {
+                Share {
                     id: Some(id.into()),
                     name: share.key().clone(),
                 }
             })
             .collect();
-        Ok(t::ListSharesResponse {
+        Ok(ListSharesResponse {
             items: shares,
             next_page_token: None,
         })
     }
 
-    async fn get_share(&self, request: t::GetShareRequest) -> Result<t::GetShareResponse> {
+    async fn get_share(&self, request: GetShareRequest) -> Result<GetShareResponse> {
         if self.shares.contains_key(&request.share) {
             let id = Uuid::new_v5(&Uuid::NAMESPACE_OID, request.share.as_bytes());
-            Ok(t::GetShareResponse {
-                share: Some(t::Share {
+            Ok(GetShareResponse {
+                share: Some(Share {
                     id: Some(id.to_string()),
                     name: request.share,
                 }),
@@ -113,17 +111,17 @@ impl DiscoveryHandler for InMemoryHandler {
         }
     }
 
-    async fn list_schemas(&self, request: t::ListSchemasRequest) -> Result<t::ListSchemasResponse> {
+    async fn list_schemas(&self, request: ListSchemasRequest) -> Result<ListSchemasResponse> {
         match self.shares.get(&request.share) {
             Some(schema_refs) => {
                 let schemas = schema_refs
                     .iter()
-                    .map(|schema_ref| t::Schema {
+                    .map(|schema_ref| Schema {
                         name: schema_ref.clone(),
                         share: request.share.clone(),
                     })
                     .collect();
-                Ok(t::ListSchemasResponse {
+                Ok(ListSchemasResponse {
                     items: schemas,
                     next_page_token: None,
                 })
@@ -134,8 +132,8 @@ impl DiscoveryHandler for InMemoryHandler {
 
     async fn list_schema_tables(
         &self,
-        request: t::ListSchemaTablesRequest,
-    ) -> Result<t::ListSchemaTablesResponse> {
+        request: ListSchemaTablesRequest,
+    ) -> Result<ListSchemaTablesResponse> {
         let schema_refs = self.shares.get(&request.share).ok_or(Error::NotFound)?;
         if !schema_refs.contains(&request.schema) {
             return Err(Error::NotFound);
@@ -146,7 +144,7 @@ impl DiscoveryHandler for InMemoryHandler {
                 let tables = tables
                     .iter()
                     .flat_map(|table_ref| {
-                        self.tables.get(table_ref).map(|v| t::Table {
+                        self.tables.get(table_ref).map(|v| Table {
                             id: Some(Uuid::new_v5(&share_id, v.name.as_bytes()).to_string()),
                             name: v.name.clone(),
                             share: request.share.clone(),
@@ -155,7 +153,7 @@ impl DiscoveryHandler for InMemoryHandler {
                         })
                     })
                     .collect();
-                Ok(t::ListSchemaTablesResponse {
+                Ok(ListSchemaTablesResponse {
                     items: tables,
                     next_page_token: None,
                 })
@@ -166,8 +164,8 @@ impl DiscoveryHandler for InMemoryHandler {
 
     async fn list_share_tables(
         &self,
-        request: t::ListShareTablesRequest,
-    ) -> Result<t::ListShareTablesResponse> {
+        request: ListShareTablesRequest,
+    ) -> Result<ListShareTablesResponse> {
         let share_id = Uuid::new_v5(&Uuid::NAMESPACE_OID, request.share.as_bytes());
         match self.shares.get(&request.share) {
             Some(schema_refs) => {
@@ -177,7 +175,7 @@ impl DiscoveryHandler for InMemoryHandler {
                         self.schemas.get(schema_ref).map(|v| {
                             v.iter()
                                 .flat_map(|table_ref| {
-                                    self.tables.get(table_ref).map(|v| t::Table {
+                                    self.tables.get(table_ref).map(|v| Table {
                                         id: Some(
                                             Uuid::new_v5(&share_id, v.name.as_bytes()).to_string(),
                                         ),
@@ -192,7 +190,7 @@ impl DiscoveryHandler for InMemoryHandler {
                     })
                     .flatten()
                     .collect();
-                Ok(t::ListShareTablesResponse {
+                Ok(ListShareTablesResponse {
                     items: tables,
                     next_page_token: None,
                 })
@@ -204,7 +202,7 @@ impl DiscoveryHandler for InMemoryHandler {
 
 #[async_trait::async_trait]
 impl TableLocationResover for InMemoryHandler {
-    async fn resolve(&self, table_ref: &t::TableRef) -> Result<url::Url> {
+    async fn resolve(&self, table_ref: &TableRef) -> Result<url::Url> {
         let Some(schemas) = self.shares.get(&table_ref.share) else {
             return Err(Error::NotFound);
         };
@@ -247,14 +245,14 @@ mod tests {
         let recipient = &Recipient(bytes::Bytes::new());
 
         let shares = handler
-            .list_shares(t::ListSharesRequest::default(), recipient)
+            .list_shares(ListSharesRequest::default(), recipient)
             .await
             .unwrap();
         assert_eq!(shares.items.len(), 1);
         assert_eq!(shares.items[0].name, "share1");
 
         let share = handler
-            .get_share(t::GetShareRequest {
+            .get_share(GetShareRequest {
                 share: "share1".to_string(),
             })
             .await
@@ -262,7 +260,7 @@ mod tests {
         assert_eq!(share.share.unwrap().name, "share1");
 
         let schemas = handler
-            .list_schemas(t::ListSchemasRequest {
+            .list_schemas(ListSchemasRequest {
                 share: "share1".to_string(),
                 pagination: None,
             })
@@ -272,7 +270,7 @@ mod tests {
         assert_eq!(schemas.items[0].name, "schema1");
 
         let tables = handler
-            .list_schema_tables(t::ListSchemaTablesRequest {
+            .list_schema_tables(ListSchemaTablesRequest {
                 share: "share1".to_string(),
                 schema: "schema1".to_string(),
                 pagination: None,
@@ -283,7 +281,7 @@ mod tests {
         assert_eq!(tables.items[0].name, "table1");
 
         let tables = handler
-            .list_share_tables(t::ListShareTablesRequest {
+            .list_share_tables(ListShareTablesRequest {
                 share: "share1".to_string(),
                 pagination: None,
             })

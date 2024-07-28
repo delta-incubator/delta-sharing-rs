@@ -1,14 +1,9 @@
-use std::sync::Arc;
-
 use axum::extract::{Extension, State};
 use axum::{routing::get, Json, Router};
 
 use crate::error::{Error, Result};
-use crate::types::*;
-use crate::{
-    Decision, DeltaSharingHandler, DiscoveryHandler, Permission, Policy, Recipient, Resource,
-    TableQueryHandler,
-};
+use crate::models::v1::*;
+use crate::{Decision, DeltaSharingHandler, Permission, Policy, Recipient, Resource};
 
 async fn list_shares(
     State(state): State<DeltaSharingHandler>,
@@ -86,6 +81,8 @@ pub fn get_router(state: DeltaSharingHandler) -> Router {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use axum::body::Body;
     use axum::http::{header, HeaderValue, Request, StatusCode};
     use http_body_util::BodyExt;

@@ -86,7 +86,7 @@ mod server {
     use tracing::error;
 
     use super::Error;
-    use crate::types::ErrorResponse;
+    use crate::models::ErrorResponse;
 
     const INTERNAL_ERROR: (StatusCode, &'static str) = (
         StatusCode::INTERNAL_SERVER_ERROR,

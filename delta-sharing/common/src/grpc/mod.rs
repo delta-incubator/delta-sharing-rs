@@ -1,7 +1,7 @@
 use tonic::{Request, Response, Status};
 
 use crate::error::{Error, Result};
-use crate::types::{delta_sharing_service_server::DeltaSharingService, *};
+use crate::models::v1::{delta_sharing_service_server::DeltaSharingService, *};
 use crate::{DeltaSharingHandler, Recipient};
 
 #[async_trait::async_trait]

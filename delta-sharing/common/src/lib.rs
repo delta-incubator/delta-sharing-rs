@@ -6,31 +6,15 @@ use chrono::{DateTime, Utc};
 use jsonwebtoken::Validation;
 use serde::{de::DeserializeOwned, Serialize};
 
-#[allow(dead_code)]
-pub mod types {
-    use serde::Serialize;
+pub use rest::get_rest_router;
 
-    #[derive(Serialize)]
-    #[serde(rename_all = "camelCase")]
-    pub struct ErrorResponse {
-        pub error_code: String,
-        pub message: String,
-    }
-
-    pub struct TableRef {
-        pub share: String,
-        pub schema: String,
-        pub table: String,
-    }
-
-    include!("gen/delta_sharing.v1.rs");
-}
 pub mod capabilities;
 pub mod error;
 mod grpc;
 #[cfg(feature = "memory")]
 mod in_memory;
 mod kernel;
+pub mod models;
 pub mod policies;
 #[cfg(feature = "profiles")]
 mod profiles;
@@ -41,10 +25,10 @@ pub use error::*;
 #[cfg(feature = "memory")]
 pub use in_memory::*;
 pub use kernel::*;
+pub use models::v1::*;
 pub use policies::*;
 #[cfg(feature = "profiles")]
 pub use profiles::*;
-pub use types::*;
 pub mod server;
 
 #[derive(Clone, Debug)]
@@ -89,7 +73,7 @@ pub trait DiscoveryHandler: Send + Sync + 'static {
 /// Resolver for the storage location of a table.
 #[async_trait::async_trait]
 pub trait TableLocationResover: Send + Sync {
-    async fn resolve(&self, table: &types::TableRef) -> Result<url::Url>;
+    async fn resolve(&self, table: &models::TableRef) -> Result<url::Url>;
 }
 
 /// Handler for querying tables exposed by a Delta Sharing server.
