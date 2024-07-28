@@ -4,11 +4,10 @@ use std::task::{Context, Poll};
 
 use axum::extract::Request;
 use axum::response::{IntoResponse, Response};
+use delta_sharing_common::error::{Error, Result};
 use delta_sharing_common::{Authenticator, DeltaRecipient, Error as CoreError};
 use futures_util::{future::BoxFuture, FutureExt};
 use tower::{Layer, Service};
-
-use crate::error::{Error, Result};
 
 /// Authenticator that always marks the recipient as anonymous.
 #[derive(Clone)]
@@ -105,7 +104,6 @@ mod tests {
     use tower::{ServiceBuilder, ServiceExt};
 
     use super::*;
-    use crate::error::Result;
 
     async fn check_recipient(req: Request) -> Result<Response<Body>> {
         assert_eq!(

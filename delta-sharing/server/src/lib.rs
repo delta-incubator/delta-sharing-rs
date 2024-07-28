@@ -1,5 +1,4 @@
 pub mod auth;
-pub mod error;
 pub mod server;
 
 use std::path::Path;

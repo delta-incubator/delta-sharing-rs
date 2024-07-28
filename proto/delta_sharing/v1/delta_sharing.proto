@@ -4,6 +4,22 @@ package delta_sharing.v1;
 
 import "buf/validate/validate.proto";
 
+message Pagination {
+  // The maximum number of results per page that should be returned.
+  // If the number of available results is larger than maxResults, the response
+  // will provide a next_page_token that can be used to get the next page of results
+  // in subsequent list requests. The server may return fewer than maxResults
+  // items even if there are more available. The client should check nextPageToken
+  // in the response to determine if there are more available.
+  // Must be non-negative. 0 will return no results but nextPageToken may be populated.
+  optional int32 max_results = 1 [(buf.validate.field).int32.gte = 0];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  // next_page_token will not be returned in a response if there are no more results available.
+  optional string page_token = 2;
+}
+
 // A share is a logical grouping to share with recipients. A share can be shared with one or multiple recipients.
 // A recipient can access all resources in a share. A share may contain multiple schemas.
 message Share {
@@ -36,19 +52,7 @@ message Table {
 }
 
 message ListSharesRequest {
-  // The maximum number of results per page that should be returned.
-  // If the number of available results is larger than maxResults, the response
-  // will provide a next_page_token that can be used to get the next page of results
-  // in subsequent list requests. The server may return fewer than maxResults
-  // items even if there are more available. The client should check nextPageToken
-  // in the response to determine if there are more available.
-  // Must be non-negative. 0 will return no results but nextPageToken may be populated.
-  optional int32 max_results = 1 [(buf.validate.field).int32.gte = 0];
-
-  // Specifies a page token to use. Set pageToken to the nextPageToken returned
-  // by a previous list request to get the next page of results.
-  // next_page_token will not be returned in a response if there are no more results available.
-  optional string page_token = 2;
+  Pagination pagination = 1;
 }
 
 message ListSharesResponse {
@@ -70,22 +74,10 @@ message GetShareResponse {
 }
 
 message ListSchemasRequest {
-  // The maximum number of results per page that should be returned.
-  // If the number of available results is larger than maxResults, the response
-  // will provide a next_page_token that can be used to get the next page of results
-  // in subsequent list requests. The server may return fewer than maxResults
-  // items even if there are more available. The client should check nextPageToken
-  // in the response to determine if there are more available.
-  // Must be non-negative. 0 will return no results but nextPageToken may be populated.
-  optional int32 max_results = 1 [(buf.validate.field).int32.gte = 0];
-
-  // Specifies a page token to use. Set pageToken to the nextPageToken returned
-  // by a previous list request to get the next page of results.
-  // next_page_token will not be returned in a response if there are no more results available.
-  optional string page_token = 2;
+  Pagination pagination = 1;
 
   // The share name to query. It's case-insensitive.
-  string share = 3 [(buf.validate.field).string.min_len = 1];
+  string share = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message ListSchemasResponse {
@@ -97,25 +89,13 @@ message ListSchemasResponse {
 }
 
 message ListSchemaTablesRequest {
-  // The maximum number of results per page that should be returned.
-  // If the number of available results is larger than maxResults, the response
-  // will provide a next_page_token that can be used to get the next page of results
-  // in subsequent list requests. The server may return fewer than maxResults
-  // items even if there are more available. The client should check nextPageToken
-  // in the response to determine if there are more available.
-  // Must be non-negative. 0 will return no results but nextPageToken may be populated.
-  optional int32 max_results = 1 [(buf.validate.field).int32.gte = 0];
-
-  // Specifies a page token to use. Set pageToken to the nextPageToken returned
-  // by a previous list request to get the next page of results.
-  // next_page_token will not be returned in a response if there are no more results available.
-  optional string page_token = 2;
+  Pagination pagination = 1;
 
   // The share name to query. It's case-insensitive.
-  string share = 3 [(buf.validate.field).string.min_len = 1];
+  string share = 2 [(buf.validate.field).string.min_len = 1];
 
   // The schema name to query. It's case-insensitive.
-  string schema = 4 [(buf.validate.field).string.min_len = 1];
+  string schema = 3 [(buf.validate.field).string.min_len = 1];
 }
 
 message ListSchemaTablesResponse {
@@ -127,22 +107,10 @@ message ListSchemaTablesResponse {
 }
 
 message ListShareTablesRequest {
-  // The maximum number of results per page that should be returned.
-  // If the number of available results is larger than maxResults, the response
-  // will provide a next_page_token that can be used to get the next page of results
-  // in subsequent list requests. The server may return fewer than maxResults
-  // items even if there are more available. The client should check nextPageToken
-  // in the response to determine if there are more available.
-  // Must be non-negative. 0 will return no results but nextPageToken may be populated.
-  optional int32 max_results = 1 [(buf.validate.field).int32.gte = 0];
-
-  // Specifies a page token to use. Set pageToken to the nextPageToken returned
-  // by a previous list request to get the next page of results.
-  // next_page_token will not be returned in a response if there are no more results available.
-  optional string page_token = 2;
+  Pagination pagination = 1;
 
   // The share name to query. It's case-insensitive.
-  string share = 3 [(buf.validate.field).string.min_len = 1];
+  string share = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message ListShareTablesResponse {

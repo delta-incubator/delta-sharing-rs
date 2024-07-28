@@ -17,12 +17,12 @@ tracing = { workspace = true }
 url = { workspace = true }
 
 # server dependencies (in alphabetical order)
-pbjson = { version = "0.6" }
-prost = { version = "0.12" }
+pbjson = { version = "0.7" }
+prost = { version = "0.13" }
 tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
 
 # in-memory handler dependencies (in alphabetical order)
-dashmap = { version = "5", optional = true }
+dashmap = { version = "6", optional = true }
 uuid = { version = "1.8", optional = true, features = ["v5"] }
 
 # profile management dependencies (in alphabetical order)
@@ -32,10 +32,14 @@ ring = { version = "0.17.8", default-features = false, features = [
     "std",
 ], optional = true }
 
+# axum handler dependencies (in alphabetical order)
+axum = { version = "0.7.5", optional = true }
+
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
 
 [features]
-default = ["memory", "profiles"]
+default = ["memory", "profiles", "axum"]
 memory = ["dashmap", "uuid"]
 profiles = ["jsonwebtoken", "hex", "ring"]
+axum = ["dep:axum"]

@@ -11,7 +11,6 @@ use self::auth::{AnonymousAuthenticator, AuthorizationLayer};
 use self::server::{get_router, DeltaSharingState};
 
 mod auth;
-mod error;
 mod server;
 
 #[derive(Parser)]

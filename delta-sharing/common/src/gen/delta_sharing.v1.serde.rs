@@ -426,10 +426,7 @@ impl serde::Serialize for ListSchemaTablesRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if self.max_results.is_some() {
-            len += 1;
-        }
-        if self.page_token.is_some() {
+        if self.pagination.is_some() {
             len += 1;
         }
         if !self.share.is_empty() {
@@ -439,11 +436,8 @@ impl serde::Serialize for ListSchemaTablesRequest {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.v1.ListSchemaTablesRequest", len)?;
-        if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("maxResults", v)?;
-        }
-        if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("pageToken", v)?;
+        if let Some(v) = self.pagination.as_ref() {
+            struct_ser.serialize_field("pagination", v)?;
         }
         if !self.share.is_empty() {
             struct_ser.serialize_field("share", &self.share)?;
@@ -461,18 +455,14 @@ impl<'de> serde::Deserialize<'de> for ListSchemaTablesRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "max_results",
-            "maxResults",
-            "page_token",
-            "pageToken",
+            "pagination",
             "share",
             "schema",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            MaxResults,
-            PageToken,
+            Pagination,
             Share,
             Schema,
         }
@@ -496,8 +486,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemaTablesRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
-                            "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
+                            "pagination" => Ok(GeneratedField::Pagination),
                             "share" => Ok(GeneratedField::Share),
                             "schema" => Ok(GeneratedField::Schema),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
@@ -519,25 +508,16 @@ impl<'de> serde::Deserialize<'de> for ListSchemaTablesRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut max_results__ = None;
-                let mut page_token__ = None;
+                let mut pagination__ = None;
                 let mut share__ = None;
                 let mut schema__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::MaxResults => {
-                            if max_results__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("maxResults"));
+                        GeneratedField::Pagination => {
+                            if pagination__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("pagination"));
                             }
-                            max_results__ = 
-                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
-                            ;
-                        }
-                        GeneratedField::PageToken => {
-                            if page_token__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("pageToken"));
-                            }
-                            page_token__ = map_.next_value()?;
+                            pagination__ = map_.next_value()?;
                         }
                         GeneratedField::Share => {
                             if share__.is_some() {
@@ -554,8 +534,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemaTablesRequest {
                     }
                 }
                 Ok(ListSchemaTablesRequest {
-                    max_results: max_results__,
-                    page_token: page_token__,
+                    pagination: pagination__,
                     share: share__.unwrap_or_default(),
                     schema: schema__.unwrap_or_default(),
                 })
@@ -681,21 +660,15 @@ impl serde::Serialize for ListSchemasRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if self.max_results.is_some() {
-            len += 1;
-        }
-        if self.page_token.is_some() {
+        if self.pagination.is_some() {
             len += 1;
         }
         if !self.share.is_empty() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.v1.ListSchemasRequest", len)?;
-        if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("maxResults", v)?;
-        }
-        if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("pageToken", v)?;
+        if let Some(v) = self.pagination.as_ref() {
+            struct_ser.serialize_field("pagination", v)?;
         }
         if !self.share.is_empty() {
             struct_ser.serialize_field("share", &self.share)?;
@@ -710,17 +683,13 @@ impl<'de> serde::Deserialize<'de> for ListSchemasRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "max_results",
-            "maxResults",
-            "page_token",
-            "pageToken",
+            "pagination",
             "share",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            MaxResults,
-            PageToken,
+            Pagination,
             Share,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -743,8 +712,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemasRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
-                            "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
+                            "pagination" => Ok(GeneratedField::Pagination),
                             "share" => Ok(GeneratedField::Share),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
@@ -765,24 +733,15 @@ impl<'de> serde::Deserialize<'de> for ListSchemasRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut max_results__ = None;
-                let mut page_token__ = None;
+                let mut pagination__ = None;
                 let mut share__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::MaxResults => {
-                            if max_results__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("maxResults"));
+                        GeneratedField::Pagination => {
+                            if pagination__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("pagination"));
                             }
-                            max_results__ = 
-                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
-                            ;
-                        }
-                        GeneratedField::PageToken => {
-                            if page_token__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("pageToken"));
-                            }
-                            page_token__ = map_.next_value()?;
+                            pagination__ = map_.next_value()?;
                         }
                         GeneratedField::Share => {
                             if share__.is_some() {
@@ -793,8 +752,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemasRequest {
                     }
                 }
                 Ok(ListSchemasRequest {
-                    max_results: max_results__,
-                    page_token: page_token__,
+                    pagination: pagination__,
                     share: share__.unwrap_or_default(),
                 })
             }
@@ -919,21 +877,15 @@ impl serde::Serialize for ListShareTablesRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if self.max_results.is_some() {
-            len += 1;
-        }
-        if self.page_token.is_some() {
+        if self.pagination.is_some() {
             len += 1;
         }
         if !self.share.is_empty() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.v1.ListShareTablesRequest", len)?;
-        if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("maxResults", v)?;
-        }
-        if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("pageToken", v)?;
+        if let Some(v) = self.pagination.as_ref() {
+            struct_ser.serialize_field("pagination", v)?;
         }
         if !self.share.is_empty() {
             struct_ser.serialize_field("share", &self.share)?;
@@ -948,17 +900,13 @@ impl<'de> serde::Deserialize<'de> for ListShareTablesRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "max_results",
-            "maxResults",
-            "page_token",
-            "pageToken",
+            "pagination",
             "share",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            MaxResults,
-            PageToken,
+            Pagination,
             Share,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -981,8 +929,7 @@ impl<'de> serde::Deserialize<'de> for ListShareTablesRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
-                            "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
+                            "pagination" => Ok(GeneratedField::Pagination),
                             "share" => Ok(GeneratedField::Share),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
@@ -1003,24 +950,15 @@ impl<'de> serde::Deserialize<'de> for ListShareTablesRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut max_results__ = None;
-                let mut page_token__ = None;
+                let mut pagination__ = None;
                 let mut share__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::MaxResults => {
-                            if max_results__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("maxResults"));
+                        GeneratedField::Pagination => {
+                            if pagination__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("pagination"));
                             }
-                            max_results__ = 
-                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
-                            ;
-                        }
-                        GeneratedField::PageToken => {
-                            if page_token__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("pageToken"));
-                            }
-                            page_token__ = map_.next_value()?;
+                            pagination__ = map_.next_value()?;
                         }
                         GeneratedField::Share => {
                             if share__.is_some() {
@@ -1031,8 +969,7 @@ impl<'de> serde::Deserialize<'de> for ListShareTablesRequest {
                     }
                 }
                 Ok(ListShareTablesRequest {
-                    max_results: max_results__,
-                    page_token: page_token__,
+                    pagination: pagination__,
                     share: share__.unwrap_or_default(),
                 })
             }
@@ -1157,18 +1094,12 @@ impl serde::Serialize for ListSharesRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if self.max_results.is_some() {
-            len += 1;
-        }
-        if self.page_token.is_some() {
+        if self.pagination.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.v1.ListSharesRequest", len)?;
-        if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("maxResults", v)?;
-        }
-        if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("pageToken", v)?;
+        if let Some(v) = self.pagination.as_ref() {
+            struct_ser.serialize_field("pagination", v)?;
         }
         struct_ser.end()
     }
@@ -1180,16 +1111,12 @@ impl<'de> serde::Deserialize<'de> for ListSharesRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "max_results",
-            "maxResults",
-            "page_token",
-            "pageToken",
+            "pagination",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            MaxResults,
-            PageToken,
+            Pagination,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -1211,8 +1138,7 @@ impl<'de> serde::Deserialize<'de> for ListSharesRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
-                            "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
+                            "pagination" => Ok(GeneratedField::Pagination),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -1232,29 +1158,19 @@ impl<'de> serde::Deserialize<'de> for ListSharesRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut max_results__ = None;
-                let mut page_token__ = None;
+                let mut pagination__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::MaxResults => {
-                            if max_results__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("maxResults"));
+                        GeneratedField::Pagination => {
+                            if pagination__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("pagination"));
                             }
-                            max_results__ = 
-                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
-                            ;
-                        }
-                        GeneratedField::PageToken => {
-                            if page_token__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("pageToken"));
-                            }
-                            page_token__ = map_.next_value()?;
+                            pagination__ = map_.next_value()?;
                         }
                     }
                 }
                 Ok(ListSharesRequest {
-                    max_results: max_results__,
-                    page_token: page_token__,
+                    pagination: pagination__,
                 })
             }
         }
@@ -1368,6 +1284,118 @@ impl<'de> serde::Deserialize<'de> for ListSharesResponse {
             }
         }
         deserializer.deserialize_struct("delta_sharing.v1.ListSharesResponse", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for Pagination {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if self.max_results.is_some() {
+            len += 1;
+        }
+        if self.page_token.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.v1.Pagination", len)?;
+        if let Some(v) = self.max_results.as_ref() {
+            struct_ser.serialize_field("maxResults", v)?;
+        }
+        if let Some(v) = self.page_token.as_ref() {
+            struct_ser.serialize_field("pageToken", v)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for Pagination {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "max_results",
+            "maxResults",
+            "page_token",
+            "pageToken",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            MaxResults,
+            PageToken,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
+                            "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = Pagination;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.v1.Pagination")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<Pagination, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut max_results__ = None;
+                let mut page_token__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::MaxResults => {
+                            if max_results__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("maxResults"));
+                            }
+                            max_results__ = 
+                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
+                            ;
+                        }
+                        GeneratedField::PageToken => {
+                            if page_token__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("pageToken"));
+                            }
+                            page_token__ = map_.next_value()?;
+                        }
+                    }
+                }
+                Ok(Pagination {
+                    max_results: max_results__,
+                    page_token: page_token__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.v1.Pagination", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for Profile {
