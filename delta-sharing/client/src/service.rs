@@ -52,13 +52,7 @@ impl ServiceClient for RestServiceClient {
             .client
             .request(Method::GET, url)
             .header(header::AUTHORIZATION, cred.as_str());
-
-        if let Some(max_results) = request.max_results {
-            req = req.query(&[("maxResults", max_results)]);
-        }
-        if let Some(page_token) = request.page_token {
-            req = req.query(&[("pageToken", page_token)]);
-        }
+        req = add_pagination_query(req, request.pagination);
 
         let body = req
             .send_retry(&self.retry_config)
@@ -111,13 +105,7 @@ impl ServiceClient for RestServiceClient {
             .client
             .request(Method::GET, url)
             .header(header::AUTHORIZATION, cred.as_str());
-
-        if let Some(max_results) = request.max_results {
-            req = req.query(&[("maxResults", max_results)]);
-        }
-        if let Some(page_token) = request.page_token {
-            req = req.query(&[("pageToken", page_token)]);
-        }
+        req = add_pagination_query(req, request.pagination);
 
         let body = req
             .send_retry(&self.retry_config)
@@ -150,13 +138,7 @@ impl ServiceClient for RestServiceClient {
             .client
             .request(Method::GET, url)
             .header(header::AUTHORIZATION, cred.as_str());
-
-        if let Some(max_results) = request.max_results {
-            req = req.query(&[("maxResults", max_results)]);
-        }
-        if let Some(page_token) = request.page_token {
-            req = req.query(&[("pageToken", page_token)]);
-        }
+        req = add_pagination_query(req, request.pagination);
 
         let body = req
             .send_retry(&self.retry_config)
@@ -188,13 +170,7 @@ impl ServiceClient for RestServiceClient {
             .client
             .request(Method::GET, url)
             .header(header::AUTHORIZATION, cred.as_str());
-
-        if let Some(max_results) = request.max_results {
-            req = req.query(&[("maxResults", max_results)]);
-        }
-        if let Some(page_token) = request.page_token {
-            req = req.query(&[("pageToken", page_token)]);
-        }
+        req = add_pagination_query(req, request.pagination);
 
         let body = req
             .send_retry(&self.retry_config)
@@ -212,4 +188,19 @@ impl ServiceClient for RestServiceClient {
             source: Box::new(e),
         })
     }
+}
+
+fn add_pagination_query(
+    mut req: reqwest::RequestBuilder,
+    pagination: Option<t::Pagination>,
+) -> reqwest::RequestBuilder {
+    if let Some(pagination) = pagination {
+        if let Some(max_results) = pagination.max_results {
+            req = req.query(&[("maxResults", max_results)]);
+        }
+        if let Some(page_token) = pagination.page_token {
+            req = req.query(&[("pageToken", page_token)]);
+        }
+    }
+    req
 }

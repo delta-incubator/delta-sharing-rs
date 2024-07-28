@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use delta_sharing_common::{types as t, ListSharesRequest, Share};
+use delta_sharing_common::{types as t, ListSharesRequest, Pagination, Share};
 use futures::{Stream, TryStreamExt};
 
 use crate::client::pagination::stream_paginated;
@@ -22,8 +22,10 @@ impl DeltaSharingClient {
     ) -> impl Stream<Item = Result<Share>> + '_ {
         stream_paginated(max_results, move |max_results, page_token| async move {
             let request = ListSharesRequest {
-                max_results,
-                page_token,
+                pagination: Some(Pagination {
+                    max_results,
+                    page_token,
+                }),
             };
             self.client.list_shares(request).await.map(|mut resp| {
                 let max_results = max_results
@@ -47,8 +49,10 @@ impl DeltaSharingClient {
             move |(share, max_results), page_token| async move {
                 let req = t::ListSchemasRequest {
                     share: share.clone(),
-                    max_results,
-                    page_token,
+                    pagination: Some(Pagination {
+                        max_results,
+                        page_token,
+                    }),
                 };
                 let mut resp = self.client.list_schemas(req).await?;
                 let max_results = max_results
@@ -74,8 +78,10 @@ impl DeltaSharingClient {
                 let req = t::ListSchemaTablesRequest {
                     share: share.clone(),
                     schema: schema.clone(),
-                    max_results,
-                    page_token,
+                    pagination: Some(Pagination {
+                        max_results,
+                        page_token,
+                    }),
                 };
                 let mut resp = self.client.list_schema_tables(req).await?;
                 let max_results = max_results
@@ -99,8 +105,10 @@ impl DeltaSharingClient {
             move |(share, max_results), page_token| async move {
                 let req = t::ListShareTablesRequest {
                     share: share.clone(),
-                    max_results,
-                    page_token,
+                    pagination: Some(Pagination {
+                        max_results,
+                        page_token,
+                    }),
                 };
                 let mut resp = self.client.list_share_tables(req).await?;
                 let max_results = max_results

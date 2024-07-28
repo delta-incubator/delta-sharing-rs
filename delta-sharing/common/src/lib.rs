@@ -23,6 +23,8 @@ pub mod types {
 }
 pub mod capabilities;
 pub mod error;
+#[cfg(feature = "axum")]
+mod extractors;
 #[cfg(feature = "memory")]
 mod in_memory;
 mod kernel;

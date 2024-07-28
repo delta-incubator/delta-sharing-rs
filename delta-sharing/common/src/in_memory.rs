@@ -268,8 +268,7 @@ mod tests {
         let schemas = handler
             .list_schemas(t::ListSchemasRequest {
                 share: "share1".to_string(),
-                max_results: None,
-                page_token: None,
+                pagination: None,
             })
             .await
             .unwrap();
@@ -280,8 +279,7 @@ mod tests {
             .list_schema_tables(t::ListSchemaTablesRequest {
                 share: "share1".to_string(),
                 schema: "schema1".to_string(),
-                max_results: None,
-                page_token: None,
+                pagination: None,
             })
             .await
             .unwrap();
@@ -291,8 +289,7 @@ mod tests {
         let tables = handler
             .list_share_tables(t::ListShareTablesRequest {
                 share: "share1".to_string(),
-                max_results: None,
-                page_token: None,
+                pagination: None,
             })
             .await
             .unwrap();
