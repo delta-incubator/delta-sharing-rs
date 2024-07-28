@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package delta_sharing.profiles.v1;
 
-import "delta_sharing/v1/delta_sharing.proto";
+import "delta_sharing/v1/models.proto";
 
 message CreateProfileRequest {
   // serialized profile claims

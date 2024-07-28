@@ -23,7 +23,7 @@ pub async fn run_server(config: impl AsRef<Path>, host: impl AsRef<str>, port: u
     let state = DeltaSharingState {
         query: KernelQueryHandler::new_multi_thread(discovery.clone(), Default::default()),
         discovery,
-        policy: Arc::new(ConstantPolicy::<DeltaRecipient>::default()),
+        policy: Arc::new(ConstantPolicy::default()),
     };
 
     let listener = TcpListener::bind(format!("{}:{}", host.as_ref(), port))

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package delta_sharing.profiles.v1;
+package delta_sharing.catalog.v1;
 
 /// Register a new table in the Delta Sharing service.
 message CreateTableRequest {

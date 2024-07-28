@@ -6,12 +6,12 @@ use uuid::Uuid;
 
 use crate::error::{Error, Result};
 use crate::types as t;
-use crate::{DiscoveryHandler, TableLocationResover};
+use crate::{DiscoveryHandler, Recipient, TableLocationResover};
 
 #[cfg(feature = "profiles")]
 use crate::profiles::DeltaRecipient;
 #[cfg(feature = "profiles")]
-pub type DefaultInMemoryHandler = InMemoryHandler<DeltaRecipient>;
+pub type DefaultInMemoryHandler = InMemoryHandler;
 #[cfg(not(feature = "profiles"))]
 pub type DefaultInMemoryHandler = InMemoryHandler<()>;
 
@@ -42,15 +42,14 @@ pub struct InMemoryConfig {
     pub tables: Vec<TableConfig>,
 }
 
-pub struct InMemoryHandler<T: Send + Sync> {
+pub struct InMemoryHandler {
     // The data in memory
     shares: Arc<DashMap<String, Vec<String>>>,
     schemas: Arc<DashMap<String, Vec<String>>>,
     tables: Arc<DashMap<String, TableConfig>>,
-    _phantom: std::marker::PhantomData<T>,
 }
 
-impl<T: Send + Sync> InMemoryHandler<T> {
+impl InMemoryHandler {
     pub fn new(config: InMemoryConfig) -> Self {
         let shares = Arc::new(DashMap::new());
         let schemas = Arc::new(DashMap::new());
@@ -72,19 +71,16 @@ impl<T: Send + Sync> InMemoryHandler<T> {
             shares,
             schemas,
             tables,
-            _phantom: std::marker::PhantomData,
         }
     }
 }
 
 #[async_trait::async_trait]
-impl<T: Send + Sync> DiscoveryHandler for InMemoryHandler<T> {
-    type Recipient = T;
-
+impl DiscoveryHandler for InMemoryHandler {
     async fn list_shares(
         &self,
         _request: t::ListSharesRequest,
-        _recipient: Self::Recipient,
+        _recipient: &Recipient,
     ) -> Result<t::ListSharesResponse> {
         let shares = self
             .shares
@@ -207,7 +203,7 @@ impl<T: Send + Sync> DiscoveryHandler for InMemoryHandler<T> {
 }
 
 #[async_trait::async_trait]
-impl<T: Send + Sync> TableLocationResover for InMemoryHandler<T> {
+impl TableLocationResover for InMemoryHandler {
     async fn resolve(&self, table_ref: &t::TableRef) -> Result<url::Url> {
         let Some(schemas) = self.shares.get(&table_ref.share) else {
             return Err(Error::NotFound);
@@ -230,7 +226,6 @@ impl<T: Send + Sync> TableLocationResover for InMemoryHandler<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::profiles::DeltaRecipient;
 
     #[tokio::test]
     async fn test_in_memory_handler() {
@@ -249,9 +244,10 @@ mod tests {
             }],
         };
         let handler = DefaultInMemoryHandler::new(config);
+        let recipient = &Recipient(bytes::Bytes::new());
 
         let shares = handler
-            .list_shares(t::ListSharesRequest::default(), DeltaRecipient::Anonymous)
+            .list_shares(t::ListSharesRequest::default(), recipient)
             .await
             .unwrap();
         assert_eq!(shares.items.len(), 1);

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use clap::Parser;
 use delta_sharing_common::policies::ConstantPolicy;
-use delta_sharing_common::{DeltaRecipient, InMemoryConfig, InMemoryHandler, KernelQueryHandler};
+use delta_sharing_common::{InMemoryConfig, InMemoryHandler, KernelQueryHandler};
 use tokio::net::TcpListener;
 use tokio::signal;
 use tower_http::trace::TraceLayer;
@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state = DeltaSharingState {
         query: KernelQueryHandler::new_multi_thread(discovery.clone(), Default::default()),
         discovery,
-        policy: Arc::new(ConstantPolicy::<DeltaRecipient>::default()),
+        policy: Arc::new(ConstantPolicy::default()),
     };
 
     let listener = TcpListener::bind(format!("{}:{}", args.host, args.port)).await?;

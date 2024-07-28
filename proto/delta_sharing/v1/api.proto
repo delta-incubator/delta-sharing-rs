@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package delta_sharing.v1;
+
+import "delta_sharing/v1/models.proto";
+
+service DeltaSharingService {
+  rpc ListShares(ListSharesRequest) returns (ListSharesResponse);
+  rpc GetShare(GetShareRequest) returns (GetShareResponse);
+  rpc ListShareTables(ListShareTablesRequest) returns (ListShareTablesResponse);
+  rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse);
+  rpc ListSchemaTables(ListSchemaTablesRequest) returns (ListSchemaTablesResponse);
+}
