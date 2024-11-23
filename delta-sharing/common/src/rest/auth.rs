@@ -7,7 +7,7 @@ use futures_util::{future::BoxFuture, FutureExt};
 use tower::{Layer, Service};
 
 use crate::error::{Error, Result};
-use crate::{Authenticator, DefaultClaims, DeltaRecipient, Recipient};
+use crate::{Authenticator, DeltaRecipient, Recipient};
 
 /// Authenticator that always marks the recipient as anonymous.
 #[derive(Clone)]

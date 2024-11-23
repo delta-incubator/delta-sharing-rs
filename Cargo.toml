@@ -24,7 +24,7 @@ thiserror = "1"
 tonic = { version = "0.12.3" }
 tower = { version = "0.5.1", features = ["limit", "filter", "util"] }
 tracing = { version = "0.1.40", features = ["log"] }
-url = { version = "2.5", features = ["serde"] }
+url = { version = "2.5.4", features = ["serde"] }
 
 [package]
 name = "delta-sharing-legacy"

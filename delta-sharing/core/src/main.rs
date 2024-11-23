@@ -1,7 +1,7 @@
 use chrono::Days;
 use clap::{Parser, Subcommand};
+use delta_sharing_common::server::run_rest_server;
 use delta_sharing_common::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
-use delta_sharing_server::run_server;
 
 use crate::error::{Error, Result};
 
@@ -101,7 +101,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// This function starts a delta-sharing server.
 async fn handle_server(args: ServerArgs) -> Result<()> {
-    run_server(args.config, args.host, args.port)
+    run_rest_server(args.config, args.host, args.port)
         .await
         .map_err(|_| Error::Generic("Server failed".to_string()))
 }
