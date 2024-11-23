@@ -9,7 +9,7 @@ use crate::{Profile, ProfileClaims, ProfileManager, Recipient, Result};
 
 mod tokens;
 
-pub type DeltaRecipient<C = DefaultClaims> = DefaultRecipient<C>;
+pub type DeltaRecipient = DefaultRecipient<DefaultClaims>;
 pub type DeltaProfileManager = InMemoryProfileManager<DefaultClaims>;
 
 /// Default recipient for delta sharing.

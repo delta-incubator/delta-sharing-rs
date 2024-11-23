@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::extract::{Extension, State};
 use axum::{routing::get, Json, Router};
 use delta_sharing_common::error::Result;
-use delta_sharing_common::{types::*, Recipient};
+use delta_sharing_common::{models::v1::*, Recipient};
 use delta_sharing_common::{
     Decision, DiscoveryHandler, Error as CoreError, Permission, Policy, Resource, TableQueryHandler,
 };

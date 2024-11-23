@@ -5,6 +5,7 @@ use std::task::{Context, Poll};
 use axum::extract::Request;
 use axum::response::{IntoResponse, Response};
 use delta_sharing_common::error::{Error, Result};
+use delta_sharing_common::Recipient;
 use delta_sharing_common::{Authenticator, DeltaRecipient, Error as CoreError};
 use futures_util::{future::BoxFuture, FutureExt};
 use tower::{Layer, Service};
@@ -14,11 +15,12 @@ use tower::{Layer, Service};
 pub struct AnonymousAuthenticator;
 
 impl Authenticator for AnonymousAuthenticator {
-    type Request = Request;
-    type Recipient = DeltaRecipient;
-
-    fn authenticate(&self, _: &Self::Request) -> Result<Self::Recipient, CoreError> {
-        Ok(DeltaRecipient::Anonymous)
+    fn authenticate(&self, _: &Request) -> Result<Recipient, CoreError> {
+        Ok(Recipient(
+            serde_json::to_vec(&DeltaRecipient::Anonymous)
+                .unwrap()
+                .into(),
+        ))
     }
 }
 
@@ -46,12 +48,11 @@ impl<S, T> AuthenticationMiddleware<S, T> {
     }
 }
 
-impl<S, T, R> Service<Request> for AuthenticationMiddleware<S, T>
+impl<S, T> Service<Request> for AuthenticationMiddleware<S, T>
 where
     S: Service<Request, Response = Response> + Send + 'static,
     S::Future: Send + 'static,
-    T: Authenticator<Recipient = R, Request = Request>,
-    T::Recipient: Clone + Send + Sync + 'static,
+    T: Authenticator,
 {
     type Response = S::Response;
     type Error = S::Error;

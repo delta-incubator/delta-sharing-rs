@@ -17,7 +17,7 @@ mod kernel;
 pub mod models;
 pub mod policies;
 #[cfg(feature = "profiles")]
-mod profiles;
+pub mod profiles;
 #[cfg(feature = "axum")]
 mod rest;
 

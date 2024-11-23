@@ -16,7 +16,7 @@ pub struct AnonymousAuthenticator;
 impl Authenticator for AnonymousAuthenticator {
     fn authenticate(&self, _: &Request) -> Result<Recipient> {
         Ok(Recipient(
-            serde_json::to_vec(&DeltaRecipient::<DefaultClaims>::Anonymous)
+            serde_json::to_vec(&DeltaRecipient::Anonymous)
                 .unwrap()
                 .into(),
         ))
