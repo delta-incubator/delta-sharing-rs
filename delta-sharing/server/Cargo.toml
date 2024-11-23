@@ -8,19 +8,25 @@ authors = ["Robert Pack <robstar.pack@gmail.com>"]
 delta-sharing-common = { path = "../common" }
 
 # workspace dependencies (in alphabetical order)
-async-trait.workspace = true
-clap.workspace = true
-delta_kernel.workspace = true
-serde.workspace = true
-tower.workspace = true
-tracing.workspace = true
+async-trait = { workspace = true }
+clap = { workspace = true }
+futures = { workspace = true }
+hyper = { workspace = true }
+delta_kernel = { workspace = true }
+serde = { workspace = true }
+tonic = { workspace = true }
+tower = { workspace = true }
+tracing = { workspace = true }
 
 # server dependencies (in alphabetical order)
 axum = "0.7.5"
 futures-util = "0.3.28"
+pin-project = "1.1"
 serde_yml = { version = "0.0.11" }
 tokio = { version = "1.10.0", features = ["full"] }
 tower-http = { version = "0.5", features = ["trace"] }
+http-body-util = { version = "0.1" }
+http-body = { version = "1" }
 
 [dev-dependencies]
 tower = "*"

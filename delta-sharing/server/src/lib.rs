@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use delta_sharing_common::error::{Error, Result};
 use delta_sharing_common::policies::ConstantPolicy;
-use delta_sharing_common::{DeltaRecipient, InMemoryConfig, InMemoryHandler, KernelQueryHandler};
+use delta_sharing_common::{InMemoryConfig, InMemoryHandler, KernelQueryHandler};
 use tokio::net::TcpListener;
 use tokio::signal;
 use tower_http::trace::TraceLayer;

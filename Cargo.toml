@@ -2,29 +2,29 @@
 members = ["delta-sharing/*"]
 
 [workspace.dependencies]
-async-trait = "0.1.64"
+async-trait = "0.1.83"
 chrono = { version = "0.4.38", features = ["serde"] }
-clap = { version = "4.5.4", features = ["derive"] }
+clap = { version = "4.5.21", features = ["derive"] }
 delta_kernel = { version = "0.2", features = [
     "tokio",
     "developer-visibility",
     "default-engine",
 ] }
-futures = { version = "0.3.28" }
+futures = { version = "0.3.31" }
 http = { version = "1.1.0" }
-hyper = { version = "1.4.1" }
+hyper = { version = "1.5.1" }
 object_store = { version = "0.10" }
 reqwest = { version = "0.12", default-features = false, features = [
     "rustls-tls-native-roots",
     "http2",
 ] }
-serde = { version = "1.0.152", features = ["derive"] }
-serde_json = "1.0.92"
+serde = { version = "1.0.215", features = ["derive"] }
+serde_json = "1.0.133"
 thiserror = "1"
 tonic = { version = "0.12" }
-tower = { version = "0.4.13", features = ["limit", "filter", "util"] }
-tracing = { version = "0.1.37", features = ["log"] }
-url = { version = "2.5.0", features = ["serde"] }
+tower = { version = "0.5.1", features = ["limit", "filter", "util"] }
+tracing = { version = "0.1.40", features = ["log"] }
+url = { version = "2.5", features = ["serde"] }
 
 [package]
 name = "delta-sharing-legacy"

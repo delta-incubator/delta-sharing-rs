@@ -10,6 +10,7 @@ async-trait = { workspace = true }
 chrono = { workspace = true }
 delta_kernel = { workspace = true }
 http = { workspace = true }
+hyper = { workspace = true }
 object_store = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
@@ -21,11 +22,14 @@ url = { workspace = true }
 # server dependencies (in alphabetical order)
 bytes = { version = "1.1" }
 futures-util = "0.3.28"
+http-body = { version = "1" }
 pbjson = { version = "0.7" }
+pin-project = "1.1"
 prost = { version = "0.13" }
 serde_json = { version = "1.0" }
+serde_yml = { version = "0.0.12" }
 tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
-
+tower-http = { version = "0.5", features = ["trace"] }
 
 # in-memory handler dependencies (in alphabetical order)
 dashmap = { version = "6", optional = true }
