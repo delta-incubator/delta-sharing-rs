@@ -38,6 +38,12 @@ pub enum Error {
     AxumQuery(#[from] QueryRejection),
 }
 
+impl Error {
+    pub fn generic(msg: impl Into<String>) -> Self {
+        Self::Generic(msg.into())
+    }
+}
+
 impl From<Error> for Status {
     fn from(e: Error) -> Self {
         match e {

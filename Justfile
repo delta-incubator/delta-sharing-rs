@@ -82,4 +82,7 @@ profile:
 
 # run the delta-sharing server with the dev config
 rest:
-    @RUST_LOG=DEBUG cargo run -p delta-sharing server --config {{ local_config }}
+    @RUST_LOG=DEBUG cargo run -p delta-sharing rest --config {{ local_config }}
+
+grpc:
+    @RUST_LOG=DEBUG cargo run -p delta-sharing grpc --config {{ local_config }}
