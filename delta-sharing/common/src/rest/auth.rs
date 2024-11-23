@@ -1,24 +1,25 @@
 //! Authentication middleware for Delta Sharing server.
-
 use std::task::{Context, Poll};
 
 use axum::extract::Request;
 use axum::response::{IntoResponse, Response};
-use delta_sharing_common::error::{Error, Result};
-use delta_sharing_common::{Authenticator, DeltaRecipient, Error as CoreError};
 use futures_util::{future::BoxFuture, FutureExt};
 use tower::{Layer, Service};
+
+use crate::error::{Error, Result};
+use crate::{Authenticator, DeltaRecipient, Recipient};
 
 /// Authenticator that always marks the recipient as anonymous.
 #[derive(Clone)]
 pub struct AnonymousAuthenticator;
 
 impl Authenticator for AnonymousAuthenticator {
-    type Request = Request;
-    type Recipient = DeltaRecipient;
-
-    fn authenticate(&self, _: &Self::Request) -> Result<Self::Recipient, CoreError> {
-        Ok(DeltaRecipient::Anonymous)
+    fn authenticate(&self, _: &Request) -> Result<Recipient> {
+        Ok(Recipient(
+            serde_json::to_vec(&DeltaRecipient::Anonymous)
+                .unwrap()
+                .into(),
+        ))
     }
 }
 
@@ -41,17 +42,16 @@ impl<S, T> AuthenticationMiddleware<S, T> {
     /// Create a new [`AuthorizationLayer`] with the given [`Authenticator`].
     ///
     /// This is a convenience method that is equivalent to calling [`AuthorizationLayer::new`].
-    pub fn layer(authenticator: T) -> AuthorizationLayer<T> {
-        AuthorizationLayer::new(authenticator)
+    pub fn layer(authenticator: T) -> AuthenticationLayer<T> {
+        AuthenticationLayer::new(authenticator)
     }
 }
 
-impl<S, T, R> Service<Request> for AuthenticationMiddleware<S, T>
+impl<S, T> Service<Request> for AuthenticationMiddleware<S, T>
 where
     S: Service<Request, Response = Response> + Send + 'static,
     S::Future: Send + 'static,
-    T: Authenticator<Recipient = R, Request = Request>,
-    T::Recipient: Clone + Send + Sync + 'static,
+    T: Authenticator,
 {
     type Response = S::Response;
     type Error = S::Error;
@@ -74,18 +74,18 @@ where
 
 /// Layer that applies the [`AuthenticationMiddleware`].
 #[derive(Clone)]
-pub struct AuthorizationLayer<T> {
+pub struct AuthenticationLayer<T> {
     authenticator: T,
 }
 
-impl<T> AuthorizationLayer<T> {
+impl<T> AuthenticationLayer<T> {
     /// Create a new [`AuthorizationLayer`] with the provided [`Authenticator`].
     pub fn new(authenticator: T) -> Self {
         Self { authenticator }
     }
 }
 
-impl<S, T: Clone + Send + Sync + 'static> Layer<S> for AuthorizationLayer<T> {
+impl<S, T: Clone + Send + Sync + 'static> Layer<S> for AuthenticationLayer<T> {
     type Service = AuthenticationMiddleware<S, T>;
 
     fn layer(&self, inner: S) -> Self::Service {
@@ -117,7 +117,7 @@ mod tests {
     async fn test_authentication_middleware() {
         let authenticator = AnonymousAuthenticator {};
         let mut service = ServiceBuilder::new()
-            .layer(AuthorizationLayer::new(authenticator))
+            .layer(AuthenticationLayer::new(authenticator))
             .service_fn(check_recipient);
 
         let request = Request::get("/")

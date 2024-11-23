@@ -7,8 +7,9 @@ use delta_kernel::engine::default::executor::tokio::{
 use delta_kernel::engine::default::{executor::TaskExecutor, DefaultEngine};
 use delta_kernel::{Engine, Table};
 
-use crate::types as t;
-use crate::{Result, TableLocationResover, TableQueryHandler, TableRef};
+use crate::models::v1::{GetTableVersionRequest, GetTableVersionResponse};
+use crate::models::TableRef;
+use crate::{Result, TableLocationResover, TableQueryHandler};
 
 #[async_trait::async_trait]
 pub trait KernelEngineFactroy: Send + Sync {
@@ -97,8 +98,8 @@ impl KernelQueryHandler {
 impl TableQueryHandler for KernelQueryHandler {
     async fn get_table_version(
         &self,
-        request: t::GetTableVersionRequest,
-    ) -> Result<t::GetTableVersionResponse> {
+        request: GetTableVersionRequest,
+    ) -> Result<GetTableVersionResponse> {
         let location = self
             .location_resolver
             .resolve(&TableRef {
@@ -113,7 +114,7 @@ impl TableQueryHandler for KernelQueryHandler {
         let snapshot = table.snapshot(engine.as_ref(), None)?;
 
         let version = snapshot.version();
-        Ok(t::GetTableVersionResponse {
+        Ok(GetTableVersionResponse {
             version: version as i64,
         })
     }

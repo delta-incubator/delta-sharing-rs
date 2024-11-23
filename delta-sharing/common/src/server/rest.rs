@@ -1,108 +1,63 @@
+use std::path::Path;
 use std::sync::Arc;
 
-use axum::extract::{Extension, State};
-use axum::{routing::get, Json, Router};
-use delta_sharing_common::error::Result;
-use delta_sharing_common::types::*;
-use delta_sharing_common::{
-    Decision, DiscoveryHandler, Error as CoreError, Permission, Policy, Resource, TableQueryHandler,
-};
+use tokio::net::TcpListener;
+use tower_http::trace::TraceLayer;
 
-#[derive(Clone)]
-pub struct DeltaSharingState<T: Send + Sync> {
-    pub discovery: Arc<dyn DiscoveryHandler<Recipient = T>>,
-    pub query: Arc<dyn TableQueryHandler>,
-    pub policy: Arc<dyn Policy<Recipient = T>>,
-}
+use super::shutdown_signal;
+use crate::error::{Error, Result};
+use crate::policies::ConstantPolicy;
+use crate::rest::auth::{AnonymousAuthenticator, AuthenticationLayer};
+use crate::rest::get_rest_router;
+use crate::{DeltaSharingHandler, InMemoryConfig, InMemoryHandler, KernelQueryHandler};
 
-// TODO(roeap): avoid cloning request fields for policy checks
-
-async fn list_shares<T: Send + Sync>(
-    State(state): State<DeltaSharingState<T>>,
-    Extension(recipient): Extension<T>,
-    request: ListSharesRequest,
-) -> Result<Json<ListSharesResponse>> {
-    // TODO: should we check the permission for all returned shares?
-    Ok(Json(state.discovery.list_shares(request, recipient).await?))
-}
-
-async fn get_share<T: Send + Sync>(
-    State(state): State<DeltaSharingState<T>>,
-    Extension(recipient): Extension<T>,
-    request: GetShareRequest,
-) -> Result<Json<GetShareResponse>> {
-    check_read_share_permission(state.policy.as_ref(), request.share.clone(), &recipient).await?;
-    Ok(Json(state.discovery.get_share(request).await?))
-}
-
-async fn list_schemas<T: Send + Sync>(
-    State(state): State<DeltaSharingState<T>>,
-    Extension(recipient): Extension<T>,
-    request: ListSchemasRequest,
-) -> Result<Json<ListSchemasResponse>> {
-    check_read_share_permission(state.policy.as_ref(), request.share.clone(), &recipient).await?;
-    Ok(Json(state.discovery.list_schemas(request).await?))
-}
-
-async fn list_share_tables<T: Send + Sync>(
-    State(state): State<DeltaSharingState<T>>,
-    Extension(recipient): Extension<T>,
-    request: ListShareTablesRequest,
-) -> Result<Json<ListShareTablesResponse>> {
-    check_read_share_permission(state.policy.as_ref(), request.share.clone(), &recipient).await?;
-    Ok(Json(state.discovery.list_share_tables(request).await?))
-}
-
-async fn list_schema_tables<T: Send + Sync>(
-    State(state): State<DeltaSharingState<T>>,
-    Extension(recipient): Extension<T>,
-    request: ListSchemaTablesRequest,
-) -> Result<Json<ListSchemaTablesResponse>> {
-    check_read_share_permission(state.policy.as_ref(), request.share.clone(), &recipient).await?;
-    Ok(Json(state.discovery.list_schema_tables(request).await?))
-}
-
-async fn check_read_share_permission<T: Send + Sync>(
-    policy: &dyn Policy<Recipient = T>,
-    share: String,
-    recipient: &T,
+pub async fn run_rest_server(
+    config: impl AsRef<Path>,
+    host: impl AsRef<str>,
+    port: u16,
 ) -> Result<()> {
-    let decision = policy
-        .authorize(Resource::Share(share), Permission::Read, recipient)
-        .await?;
-    if decision == Decision::Deny {
-        return Err(CoreError::NotAllowed.into());
-    }
-    Ok(())
-}
+    let config = std::fs::read_to_string(config)
+        .map_err(|_| Error::Generic("malformed config".to_string()))?;
+    let config = serde_yml::from_str::<InMemoryConfig>(&config)
+        .map_err(|_| Error::Generic("malformed config".to_string()))?;
 
-pub fn get_router<T: Send + Sync + Clone + 'static>(state: DeltaSharingState<T>) -> Router {
-    Router::new()
-        .route("/shares", get(list_shares))
-        .route("/shares/:share", get(get_share))
-        .route("/shares/:share/schemas", get(list_schemas))
-        .route("/shares/:share/all-tables", get(list_share_tables))
-        .route(
-            "/shares/:share/schemas/:schema/tables",
-            get(list_schema_tables),
-        )
-        .with_state(state)
+    let discovery = Arc::new(InMemoryHandler::new(config));
+    let state = DeltaSharingHandler {
+        query: KernelQueryHandler::new_multi_thread(discovery.clone(), Default::default()),
+        discovery,
+        policy: Arc::new(ConstantPolicy::default()),
+    };
+
+    let listener = TcpListener::bind(format!("{}:{}", host.as_ref(), port))
+        .await
+        .map_err(|e| Error::Generic(e.to_string()))?;
+    let server = get_rest_router(state)
+        .layer(AuthenticationLayer::new(AnonymousAuthenticator))
+        .layer(TraceLayer::new_for_http());
+
+    axum::serve(listener, server)
+        .with_graceful_shutdown(shutdown_signal())
+        .await
+        .map_err(|e| Error::Generic(e.to_string()))?;
+
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
+
     use axum::body::Body;
     use axum::http::{header, HeaderValue, Request, StatusCode};
-    use delta_sharing_common::policies::ConstantPolicy;
-    use delta_sharing_common::{DeltaRecipient, KernelQueryHandler};
+    use axum::Router;
     use http_body_util::BodyExt;
     use tower::ServiceExt;
 
     use super::*;
-    use crate::auth::{AnonymousAuthenticator, AuthorizationLayer};
-    use delta_sharing_common::{
-        DefaultInMemoryHandler, InMemoryConfig, SchemaConfig, ShareConfig, TableConfig,
-    };
+    use crate::models::v1::*;
+    use crate::policies::ConstantPolicy;
+    use crate::rest::auth::{AnonymousAuthenticator, AuthenticationLayer};
+    use crate::KernelQueryHandler;
+    use crate::{DefaultInMemoryHandler, InMemoryConfig, SchemaConfig, ShareConfig, TableConfig};
 
     pub(crate) fn test_config() -> InMemoryConfig {
         InMemoryConfig {
@@ -125,17 +80,17 @@ mod tests {
         DefaultInMemoryHandler::new(test_config())
     }
 
-    fn get_state() -> DeltaSharingState<DeltaRecipient> {
+    fn get_state() -> DeltaSharingHandler {
         let discovery = Arc::new(test_handler());
-        DeltaSharingState {
+        DeltaSharingHandler {
             query: KernelQueryHandler::new_background(discovery.clone(), Default::default()),
             discovery,
-            policy: Arc::new(ConstantPolicy::<DeltaRecipient>::default()),
+            policy: Arc::new(ConstantPolicy::default()),
         }
     }
 
     fn get_anonymous_router() -> Router {
-        get_router(get_state()).layer(AuthorizationLayer::new(AnonymousAuthenticator))
+        get_rest_router(get_state()).layer(AuthenticationLayer::new(AnonymousAuthenticator))
     }
 
     #[tokio::test]

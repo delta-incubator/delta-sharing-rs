@@ -52,7 +52,7 @@ generate:
 
 # run the delta-sharing server with the dev config
 do-it:
-    @RUST_BACKTRACE=1 cargo run -p delta-sharing-server -- --config {{ local_config }}
+    @RUST_BACKTRACE=1 cargo run -p delta-sharing server --config {{ local_config }}
 
 # the the documentation (requires mdbook)
 doc:
@@ -79,3 +79,10 @@ profile:
         --validity 90 \
         --shares asdf \
         --secret secret
+
+# run the delta-sharing server with the dev config
+rest:
+    @RUST_LOG=DEBUG cargo run -p delta-sharing rest --config {{ local_config }}
+
+grpc:
+    @RUST_LOG=DEBUG cargo run -p delta-sharing grpc --config {{ local_config }}

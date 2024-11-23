@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use delta_sharing_common::{types as t, ListSharesRequest, Pagination, Share};
+use delta_sharing_common::{models::v1::*, ListSharesRequest, Pagination, Share};
 use futures::{Stream, TryStreamExt};
 
 use crate::client::pagination::stream_paginated;
@@ -43,11 +43,11 @@ impl DeltaSharingClient {
         &self,
         share: impl Into<String>,
         max_results: Option<i32>,
-    ) -> impl Stream<Item = Result<t::Schema>> + '_ {
+    ) -> impl Stream<Item = Result<Schema>> + '_ {
         stream_paginated(
             (share.into(), max_results),
             move |(share, max_results), page_token| async move {
-                let req = t::ListSchemasRequest {
+                let req = ListSchemasRequest {
                     share: share.clone(),
                     pagination: Some(Pagination {
                         max_results,
@@ -71,11 +71,11 @@ impl DeltaSharingClient {
         share: impl Into<String>,
         schema: impl Into<String>,
         max_results: Option<i32>,
-    ) -> impl Stream<Item = Result<t::Table>> + '_ {
+    ) -> impl Stream<Item = Result<Table>> + '_ {
         stream_paginated(
             (share.into(), schema.into(), max_results),
             move |(share, schema, max_results), page_token| async move {
-                let req = t::ListSchemaTablesRequest {
+                let req = ListSchemaTablesRequest {
                     share: share.clone(),
                     schema: schema.clone(),
                     pagination: Some(Pagination {
@@ -99,11 +99,11 @@ impl DeltaSharingClient {
         &self,
         share: impl Into<String>,
         max_results: Option<i32>,
-    ) -> impl Stream<Item = Result<t::Table>> + '_ {
+    ) -> impl Stream<Item = Result<Table>> + '_ {
         stream_paginated(
             (share.into(), max_results),
             move |(share, max_results), page_token| async move {
-                let req = t::ListShareTablesRequest {
+                let req = ListShareTablesRequest {
                     share: share.clone(),
                     pagination: Some(Pagination {
                         max_results,

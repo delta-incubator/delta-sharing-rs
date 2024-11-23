@@ -1,6 +1,7 @@
 #[cfg(feature = "axum")]
 use axum::extract::rejection::{PathRejection, QueryRejection};
 use jsonwebtoken::errors::{Error as JwtError, ErrorKind as JwtErrorKind};
+use tonic::Status;
 
 // A convenience type for declaring Results in the Delta Sharing libraries.
 pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -25,6 +26,9 @@ pub enum Error {
     #[error("Generic error: {0}")]
     Generic(String),
 
+    #[error("Failed to extract recipient from request")]
+    MissingRecipient,
+
     #[cfg(feature = "axum")]
     #[error("Axum path: {0}")]
     AxumPath(#[from] PathRejection),
@@ -32,6 +36,38 @@ pub enum Error {
     #[cfg(feature = "axum")]
     #[error("Axum query: {0}")]
     AxumQuery(#[from] QueryRejection),
+}
+
+impl Error {
+    pub fn generic(msg: impl Into<String>) -> Self {
+        Self::Generic(msg.into())
+    }
+}
+
+impl From<Error> for Status {
+    fn from(e: Error) -> Self {
+        match e {
+            Error::NotFound => Status::not_found("The requested resource does not exist."),
+            Error::NotAllowed => {
+                Status::permission_denied("The request is forbidden from being fulfilled.")
+            }
+            Error::Unauthenticated => Status::unauthenticated(
+                "The request is unauthenticated. The bearer token is missing or incorrect.",
+            ),
+            Error::Kernel(error) => Status::internal(error.to_string()),
+            Error::InvalidTableLocation(location) => {
+                Status::internal(format!("Invalid table location: {}", location))
+            }
+            Error::MissingRecipient => {
+                Status::invalid_argument("Failed to extract recipient from request")
+            }
+            Error::Generic(message) => Status::internal(message),
+            #[cfg(feature = "axum")]
+            Error::AxumPath(rejection) => Status::internal(format!("Axum path: {}", rejection)),
+            #[cfg(feature = "axum")]
+            Error::AxumQuery(rejection) => Status::internal(format!("Axum query: {}", rejection)),
+        }
+    }
 }
 
 impl From<JwtError> for Error {
@@ -56,7 +92,7 @@ mod server {
     use tracing::error;
 
     use super::Error;
-    use crate::types::ErrorResponse;
+    use crate::models::ErrorResponse;
 
     const INTERNAL_ERROR: (StatusCode, &'static str) = (
         StatusCode::INTERNAL_SERVER_ERROR,
@@ -91,6 +127,13 @@ mod server {
                 Error::Generic(message) => {
                     error!("Generic error: {}", message);
                     INTERNAL_ERROR
+                }
+                Error::MissingRecipient => {
+                    error!("Failed to extract recipient from request");
+                    (
+                        StatusCode::BAD_REQUEST,
+                        "Failed to extract recipient from request",
+                    )
                 }
                 // TODO(roeap): what codes should these have?
                 #[cfg(feature = "axum")]

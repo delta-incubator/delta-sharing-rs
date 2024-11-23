@@ -1,56 +1,54 @@
+use std::sync::Arc;
+
+use axum::extract::Request;
+use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use jsonwebtoken::Validation;
 use serde::{de::DeserializeOwned, Serialize};
 
-#[allow(dead_code)]
-pub mod types {
-    use serde::Serialize;
+pub use rest::get_rest_router;
 
-    #[derive(Serialize)]
-    #[serde(rename_all = "camelCase")]
-    pub struct ErrorResponse {
-        pub error_code: String,
-        pub message: String,
-    }
-
-    pub struct TableRef {
-        pub share: String,
-        pub schema: String,
-        pub table: String,
-    }
-
-    include!("gen/delta_sharing.v1.rs");
-}
 pub mod capabilities;
 pub mod error;
-#[cfg(feature = "axum")]
-mod extractors;
+mod grpc;
 #[cfg(feature = "memory")]
 mod in_memory;
 mod kernel;
+pub mod models;
 pub mod policies;
 #[cfg(feature = "profiles")]
-mod profiles;
+pub mod profiles;
+#[cfg(feature = "axum")]
+mod rest;
 
 pub use error::*;
 #[cfg(feature = "memory")]
 pub use in_memory::*;
 pub use kernel::*;
+pub use models::v1::*;
 pub use policies::*;
 #[cfg(feature = "profiles")]
 pub use profiles::*;
-pub use types::*;
+pub mod server;
+
+#[derive(Clone, Debug)]
+pub struct Recipient(pub Bytes);
+
+#[derive(Clone)]
+pub struct DeltaSharingHandler {
+    pub discovery: Arc<dyn DiscoveryHandler>,
+    pub query: Arc<dyn TableQueryHandler>,
+    pub policy: Arc<dyn Policy>,
+}
 
 /// Handler for discovering shares, schemas, and tables exposed by a Delta Sharing server.
 #[async_trait::async_trait]
-pub trait DiscoveryHandler: Send + Sync {
-    type Recipient: Send;
-
+pub trait DiscoveryHandler: Send + Sync + 'static {
     /// List all shares that the recipient is allowed to read.
     async fn list_shares(
         &self,
         request: ListSharesRequest,
-        recipient: Self::Recipient,
+        recipient: &Recipient,
     ) -> Result<ListSharesResponse>;
 
     /// Get a share by name.
@@ -75,7 +73,7 @@ pub trait DiscoveryHandler: Send + Sync {
 /// Resolver for the storage location of a table.
 #[async_trait::async_trait]
 pub trait TableLocationResover: Send + Sync {
-    async fn resolve(&self, table: &types::TableRef) -> Result<url::Url>;
+    async fn resolve(&self, table: &models::TableRef) -> Result<url::Url>;
 }
 
 /// Handler for querying tables exposed by a Delta Sharing server.
@@ -162,21 +160,16 @@ pub enum Decision {
 
 /// Authenticator for authenticating requests to a sharing server.
 pub trait Authenticator: Send + Sync {
-    type Request;
-    type Recipient: Send;
-
     /// Authenticate a request.
     ///
     /// This method should return the recipient of the request, or an error if the request
     /// is not authenticated or the recipient cannot be determined from the request.
-    fn authenticate(&self, request: &Self::Request) -> Result<Self::Recipient>;
+    fn authenticate(&self, request: &Request) -> Result<Recipient>;
 }
 
 /// Policy for access control.
 #[async_trait::async_trait]
 pub trait Policy: Send + Sync {
-    type Recipient: Send;
-
     /// Check if the policy allows the action.
     ///
     /// Specifically, this method should return [`Decision::Allow`] if the recipient
@@ -185,8 +178,30 @@ pub trait Policy: Send + Sync {
         &self,
         resource: Resource,
         permission: Permission,
-        recipient: &Self::Recipient,
+        recipient: &Recipient,
     ) -> Result<Decision>;
+
+    async fn authorize_checked(
+        &self,
+        resource: Resource,
+        permission: Permission,
+        recipient: &Recipient,
+    ) -> Result<()> {
+        match self.authorize(resource, permission, recipient).await? {
+            Decision::Allow => Ok(()),
+            Decision::Deny => Err(Error::NotAllowed),
+        }
+    }
+
+    async fn authorize_share(
+        &self,
+        share: String,
+        permission: Permission,
+        recipient: &Recipient,
+    ) -> Result<()> {
+        self.authorize_checked(Resource::Share(share), permission, recipient)
+            .await
+    }
 }
 
 /// Claims that are encoded in a profile.

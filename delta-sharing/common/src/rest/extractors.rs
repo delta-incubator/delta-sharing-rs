@@ -2,7 +2,7 @@ use axum::extract::{FromRequestParts, Path, Query};
 use axum::http::request::Parts;
 use axum::{async_trait, RequestPartsExt};
 
-use crate::types::*;
+use crate::models::v1::*;
 use crate::Error;
 
 #[async_trait]

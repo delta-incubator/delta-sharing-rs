@@ -1,7 +1,7 @@
 use chrono::Days;
 use clap::{Parser, Subcommand};
+use delta_sharing_common::server::{run_grpc_server, run_rest_server};
 use delta_sharing_common::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
-use delta_sharing_server::run_server;
 
 use crate::error::{Error, Result};
 
@@ -16,8 +16,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    #[clap(about = "start a sharing server")]
-    Server(ServerArgs),
+    #[clap(about = "start a sharing server (REST)")]
+    Rest(ServerArgs),
+
+    #[clap(about = "start a sharing server (gRPC)")]
+    GRPC(ServerArgs),
 
     #[clap(
         arg_required_else_help = true,
@@ -83,7 +86,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::parse();
 
     match args.command {
-        Commands::Server(server_args) => handle_server(server_args).await?,
+        Commands::Rest(server_args) => handle_rest(server_args).await?,
+        Commands::GRPC(server_args) => handle_grpc(server_args).await?,
         Commands::Client(client_args) => {
             // Access the client arguments
             let endpoint = client_args.endpoint;
@@ -97,11 +101,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+/// Handle the rest server command.
+///
+/// This function starts a delta-sharing server using the REST protocol.
+async fn handle_rest(args: ServerArgs) -> Result<()> {
+    run_rest_server(args.config, args.host, args.port)
+        .await
+        .map_err(|_| Error::Generic("Server failed".to_string()))
+}
+
 /// Handle the server command.
 ///
-/// This function starts a delta-sharing server.
-async fn handle_server(args: ServerArgs) -> Result<()> {
-    run_server(args.config, args.host, args.port)
+/// This function starts a delta-sharing server using the gRPC protocol.
+async fn handle_grpc(args: ServerArgs) -> Result<()> {
+    run_grpc_server(args.config, args.host, args.port)
         .await
         .map_err(|_| Error::Generic("Server failed".to_string()))
 }
