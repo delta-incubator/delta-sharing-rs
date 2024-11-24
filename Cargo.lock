@@ -1846,7 +1846,6 @@ name = "delta-sharing-client"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "delta-sharing-common",
  "delta_kernel 0.4.1",
  "futures",
  "humantime",
