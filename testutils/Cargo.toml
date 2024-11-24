@@ -15,7 +15,7 @@ chrono = { workspace = true }
 clap = { workspace = true }
 delta_kernel = { workspace = true }
 futures = { workspace = true }
-object_store = { workspace = true }
+object_store = { workspace = true, features = ["azure"] }
 reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

@@ -1,7 +1,7 @@
-use delta_sharing_common::models::v1::*;
 use reqwest::{header, Client, Method};
 
 use crate::client::retry::RetryExt;
+use crate::models::v1::*;
 use crate::{ClientOptions, CredentialProvider, Error, Result, RetryConfig};
 
 #[async_trait::async_trait]

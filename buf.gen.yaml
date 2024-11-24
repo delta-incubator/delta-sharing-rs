@@ -1,33 +1,50 @@
 version: v2
+managed:
+  enabled: true
+  disable:
+     # Disables all go_package changes for this module only
+     - file_option: go_package
+       module: buf.build/googleapis/googleapis
+  override:
+     # Sets default go_package_prefix for all inputs
+     - file_option: go_package_prefix
+       value: github.com/delta-incubator/delta-sharing-rs/go
 plugins:
-  - remote: buf.build/community/neoeinstein-prost:v0.3.1
+  - remote: buf.build/community/neoeinstein-prost:v0.4.0
     out: delta-sharing/common/src/gen
     opt:
       - bytes=.
       - compile_well_known_types
       - extern_path=.google.protobuf=::pbjson_types
-      - file_descriptor_set=false
-  - remote: buf.build/community/neoeinstein-prost-serde:v0.3.0
+      - file_descriptor_set=true
+  - remote: buf.build/community/neoeinstein-prost-serde:v0.3.1
     out: delta-sharing/common/src/gen
     opt:
       # useful to build reusable extractors for axum
       - ignore_unknown_fields=true
-  - remote: buf.build/community/neoeinstein-tonic:v0.4.0
+  - remote: buf.build/community/neoeinstein-tonic:v0.4.1
     out: delta-sharing/common/src/gen
     opt:
       - no_client=true
       - extern_path=.google.protobuf=::pbjson_types
-  - remote: buf.build/community/neoeinstein-prost:v0.3.1
+  - remote: buf.build/community/neoeinstein-prost:v0.4.0
     out: delta-sharing/client/src/gen
     opt:
       - bytes=.
       - compile_well_known_types
       - extern_path=.google.protobuf=::pbjson_types
-      - file_descriptor_set=false
-  - remote: buf.build/community/neoeinstein-prost-serde:v0.3.0
+      - file_descriptor_set=true
+  - remote: buf.build/community/neoeinstein-prost-serde:v0.3.1
     out: delta-sharing/client/src/gen
-  - remote: buf.build/community/neoeinstein-tonic:v0.4.0
+  - remote: buf.build/community/neoeinstein-tonic:v0.4.1
     out: delta-sharing/client/src/gen
     opt:
       - no_server=true
       - extern_path=.google.protobuf=::pbjson_types
+  # - remote: buf.build/grpc-ecosystem/openapiv2:v2.23.0
+  #   out: schema
+  #   opt:
+  #     - openapi_naming_strategy=simple
+  #     - allow_merge=true
+  # - remote: buf.build/community/google-gnostic-openapi:v0.7.0
+  #   out: gnostic

@@ -4,19 +4,20 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Robert Pack <robstar.pack@gmail.com>"]
 
-[dependencies] # in alphabetical order
-delta-sharing-common = { path = "../common", default-features = false }
-
-# workspace dependencies
+[dependencies]
+# workspace dependencies in alphabetical order
 async-trait = { workspace = true }
 delta_kernel = { workspace = true }
 futures = { workspace = true }
+pbjson = { workspace = true }
+prost = { workspace = true }
 reqwest = { workspace = true }
 thiserror = { workspace = true }
+tonic = { workspace = true }
 tracing = { workspace = true }
 url = { workspace = true }
 
-# client dependencies
+# client dependencies in alphabetical order
 humantime = "2.1"
 hyper = { version = "1.2", default-features = false }
 serde = { version = "1.0", default-features = false, features = ["derive"] }

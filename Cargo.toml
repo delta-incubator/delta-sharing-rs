@@ -5,7 +5,7 @@ members = ["delta-sharing/*"]
 async-trait = "0.1.83"
 chrono = { version = "0.4.38", features = ["serde"] }
 clap = { version = "4.5.21", features = ["derive"] }
-delta_kernel = { version = "0.2", features = [
+delta_kernel = { version = "0.4.1", features = [
     "tokio",
     "developer-visibility",
     "default-engine",
@@ -13,7 +13,9 @@ delta_kernel = { version = "0.2", features = [
 futures = { version = "0.3.31" }
 http = { version = "1.1.0" }
 hyper = { version = "1.5.1" }
-object_store = { version = "0.10" }
+object_store = { version = "0.11.1" }
+pbjson = { version = "0.7" }
+prost = { version = "0.13.3" }
 reqwest = { version = "0.12.9", default-features = false, features = [
     "rustls-tls-native-roots",
     "http2",
