@@ -10,14 +10,13 @@ jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Install minimal stable with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
+      - name: Setup rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          profile: default
+          components: rustfmt
           toolchain: stable
-          override: true
 
       - name: Format
         run: cargo fmt -- --check
@@ -33,18 +32,16 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install minimal stable with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
+      - name: Setup rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          profile: default
+          components: clippy
           toolchain: stable
-          override: true
 
-      - uses: Swatinem/rust-cache@v2
-
-      - name: build and lint with clippy
+      - name: Check clippy
         run: cargo clippy --tests
 
       - name: Check docs
@@ -68,16 +65,12 @@ jobs:
       CARGO_INCREMENTAL: 0
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Install minimal stable with clippy and rustfmt
-        uses: actions-rs/toolchain@v1
+      - name: Setup rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          profile: default
-          toolchain: "stable"
-          override: true
-
-      - uses: Swatinem/rust-cache@v2
+          toolchain: stable
 
       - name: Run unit tests
         run: cargo test --lib
@@ -102,7 +95,7 @@ jobs:
       DATABASE_URL: postgres://postgres:secret@127.0.0.1:5432/sharing
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install minimal stable with clippy and rustfmt
         uses: actions-rs/toolchain@v1
