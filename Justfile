@@ -86,3 +86,6 @@ rest:
 
 grpc:
     @RUST_LOG=DEBUG cargo run -p delta-sharing grpc --config {{ local_config }}
+
+test-common:
+    cargo test -p delta-sharing-common

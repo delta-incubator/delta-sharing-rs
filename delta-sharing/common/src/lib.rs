@@ -235,3 +235,16 @@ pub trait ProfileManager: Send + Sync {
     /// This should return an error if the profile is invalid or has been revoked.
     async fn validate_profile(&self, token: &str) -> Result<Self::Claims>;
 }
+
+#[cfg(test)]
+mod tests {
+    macro_rules! maybe_skip_dat {
+        () => {
+            if testutils::dat::find_dat_dir().is_none() {
+                eprintln!("Skipping integration test - set DAT_DATA_DIR");
+                return;
+            }
+        };
+    }
+    pub(crate) use maybe_skip_dat;
+}

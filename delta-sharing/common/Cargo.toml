@@ -3,6 +3,7 @@ name = "delta-sharing-common"
 version = "0.1.0"
 edition = "2021"
 authors = ["Robert Pack <robstar.pack@gmail.com>"]
+rust-version = "1.81"
 
 [dependencies]
 # workspace dependencies (in alphabetical order)
@@ -55,7 +56,7 @@ tower = "*"
 http = "*"
 http-body-util = "*"
 serde_json = "*"
-
+testutils = { path = "../../testutils" }
 
 [features]
 default = ["memory", "profiles", "axum"]
