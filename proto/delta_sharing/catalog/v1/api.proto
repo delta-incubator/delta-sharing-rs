@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package delta_sharing.catalog.v1;
 
+import "delta_sharing/v1/models.proto";
+
 /// Register a new table in the Delta Sharing service.
 message CreateTableRequest {
   string name = 1;
