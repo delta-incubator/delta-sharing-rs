@@ -1,6 +1,7 @@
 use axum::extract::{FromRequestParts, Path, Query};
 use axum::http::request::Parts;
 use axum::{async_trait, RequestPartsExt};
+use serde::Deserialize;
 
 use crate::models::v1::*;
 use crate::Error;
@@ -66,6 +67,28 @@ impl<S: Send + Sync> FromRequestParts<S> for ListSchemaTablesRequest {
             share,
             schema,
             pagination: Some(pagination),
+        })
+    }
+}
+
+#[derive(Deserialize)]
+struct GetTableVersionQuery {
+    starting_timestamp: Option<String>,
+}
+
+#[async_trait]
+impl<S: Send + Sync> FromRequestParts<S> for GetTableVersionRequest {
+    type Rejection = Error;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let Query(query) = parts.extract::<Query<GetTableVersionQuery>>().await?;
+        let Path((share, schema, table)) =
+            parts.extract::<Path<(String, String, String)>>().await?;
+        Ok(GetTableVersionRequest {
+            share,
+            schema,
+            table,
+            starting_timestamp: query.starting_timestamp,
         })
     }
 }
