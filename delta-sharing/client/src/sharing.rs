@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-use delta_sharing_common::{models::v1::*, ListSharesRequest, Pagination, Share};
 use futures::{Stream, TryStreamExt};
 
 use crate::client::pagination::stream_paginated;
+use crate::models::v1::*;
 use crate::service::ServiceClient;
 use crate::Result;
 

@@ -3,9 +3,23 @@ syntax = "proto3";
 package delta_sharing.v1;
 
 import "delta_sharing/v1/models.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 service DeltaSharingService {
-  rpc ListShares(ListSharesRequest) returns (ListSharesResponse);
+  rpc ListShares(ListSharesRequest) returns (ListSharesResponse) {
+    option (google.api.http) = {get: "/shares"};
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List shares accessible to a recipient."
+      tags: [
+        "shares",
+        "official"
+      ]
+      operation_id: "ListShares"
+    };
+  }
+
   rpc GetShare(GetShareRequest) returns (GetShareResponse);
   rpc ListShareTables(ListShareTablesRequest) returns (ListShareTablesResponse);
   rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse);

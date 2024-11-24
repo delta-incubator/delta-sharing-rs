@@ -1,6 +1,7 @@
 pub(crate) mod client;
 pub(crate) mod config;
 pub(crate) mod error;
+pub mod models;
 pub(crate) mod service;
 pub(crate) mod sharing;
 
