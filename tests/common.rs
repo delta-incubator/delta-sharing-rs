@@ -27,6 +27,7 @@ pub async fn create_account(tx: &mut PgConnection) -> Result<AccountEntity> {
     Ok(account)
 }
 
+#[allow(dead_code)]
 pub async fn create_token(account_id: &AccountId, tx: &mut PgConnection) -> Result<TokenEntity> {
     let roles = vec!["Admin", "Guest"];
     let role = testutils::rand::choose(&roles);

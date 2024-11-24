@@ -86,7 +86,7 @@ pub fn uuid() -> String {
     Uuid::new_v4().to_string()
 }
 
-pub fn choose<T>(candidates: &Vec<T>) -> &T {
+pub fn choose<T>(candidates: &[T]) -> &T {
     &candidates[self::usize(candidates.len())]
 }
 

@@ -57,7 +57,7 @@ pub async fn main() -> TestResult {
 }
 
 async fn load_azurite(args: SyncAzArgs) -> TestResult {
-    let azurite = MicrosoftAzureBuilder::new()
+    let _azurite = MicrosoftAzureBuilder::new()
         .with_use_emulator(true)
         .with_container_name(args.container)
         .build()?;

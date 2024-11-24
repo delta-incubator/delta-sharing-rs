@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 /// Set environment variable if it is not set
 pub fn set_env_if_not_set(key: impl AsRef<str>, value: impl AsRef<str>) {
     if std::env::var(key.as_ref()).is_err() {

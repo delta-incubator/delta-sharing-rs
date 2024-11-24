@@ -59,4 +59,12 @@ impl DeltaSharingService for DeltaSharingHandler {
             .await?;
         Ok(Response::new(result))
     }
+
+    async fn get_table_version(
+        &self,
+        request: Request<GetTableVersionRequest>,
+    ) -> Result<Response<GetTableVersionResponse>, Status> {
+        let result = self.query.get_table_version(request.into_inner()).await?;
+        Ok(Response::new(result))
+    }
 }

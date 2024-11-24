@@ -3,6 +3,7 @@ name = "delta-sharing-client"
 version = "0.1.0"
 edition = "2021"
 authors = ["Robert Pack <robstar.pack@gmail.com>"]
+rust-version = "1.81"
 
 [dependencies]
 # workspace dependencies in alphabetical order

@@ -1,6 +1,9 @@
+#![allow(dead_code)]
+
 use std::collections::HashMap;
 use std::fs::File;
 use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
 use std::sync::Arc;
 
 use delta_kernel::snapshot::Snapshot;
@@ -137,15 +140,28 @@ pub fn read_dat_case(case_root: impl AsRef<Path>) -> DatResult<TestCaseInfo> {
     })
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_read_test_case() {
-        let path = PathBuf::from("./dat/out/reader_tests/generated/with_schema_change");
-        let case = read_dat_case(path).unwrap();
-        let versions = case.versions().await.unwrap();
-        println!("{:?}", versions)
+pub fn find_dat_dir() -> Option<PathBuf> {
+    if let Ok(dir) = std::env::var("DAT_DATA_DIR") {
+        let path = std::path::Path::new(&dir);
+        return std::fs::canonicalize(path).ok();
     }
+    if let Ok(path) = std::fs::canonicalize(std::path::Path::new("./dat")) {
+        return Some(path);
+    }
+    if let Some(root) = find_git_root() {
+        return std::fs::canonicalize(root.join("dat")).ok();
+    }
+    None
+}
+
+fn find_git_root() -> Option<PathBuf> {
+    // extract dat bundle
+    let child = Command::new("git")
+        .args(["rev-parse", "--show-toplevel"])
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("git command is installed");
+    let out = child.wait_with_output().ok()?;
+    let path = String::from_utf8(out.stdout).ok()?.trim().to_string();
+    std::fs::canonicalize(std::path::Path::new(&path)).ok()
 }
