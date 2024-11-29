@@ -121,27 +121,6 @@ message ListShareTablesResponse {
   optional string next_page_token = 2;
 }
 
-message GetTableVersionRequest {
-  // The share name to query. It's case-insensitive.
-  string share = 1 [(buf.validate.field).string.min_len = 1];
-
-  // The schema name to query. It's case-insensitive.
-  string schema = 2 [(buf.validate.field).string.min_len = 1];
-
-  // The table name to query. It's case-insensitive.
-  string table = 3 [(buf.validate.field).string.min_len = 1];
-
-  // The startingTimestamp of the query, a string in the  ISO8601 format, in the UTC timezone,
-  // such as 2022-01-01T00:00:00Z. the server needs to return the earliest table version at
-  // or after the provided timestamp, can be earlier than the timestamp of table version 0.
-  optional string starting_timestamp = 4;
-}
-
-message GetTableVersionResponse {
-  // The table version that was requested.
-  int64 version = 1;
-}
-
 message Profile {
   // The file format version of the profile file. This version will be increased whenever
   // non-forward-compatible changes are made to the profile format. When a client is running

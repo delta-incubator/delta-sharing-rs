@@ -46,5 +46,5 @@ plugins:
   #   opt:
   #     - openapi_naming_strategy=simple
   #     - allow_merge=true
-  # - remote: buf.build/community/google-gnostic-openapi:v0.7.0
-  #   out: gnostic
+  - remote: buf.build/community/google-gnostic-openapi:v0.7.0
+    out: openapi

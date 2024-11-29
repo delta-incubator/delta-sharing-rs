@@ -83,6 +83,8 @@ pub trait TableQueryHandler: Send + Sync {
         &self,
         request: GetTableVersionRequest,
     ) -> Result<GetTableVersionResponse>;
+
+    async fn get_table_metadata(&self, request: GetTableMetadataRequest) -> Result<QueryResponse>;
 }
 
 /// Permission that a policy can authorize.

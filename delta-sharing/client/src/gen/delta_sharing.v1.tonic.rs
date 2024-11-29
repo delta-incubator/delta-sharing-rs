@@ -271,5 +271,33 @@ pub mod delta_sharing_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        ///
+        pub async fn get_table_metadata(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetTableMetadataRequest>,
+        ) -> std::result::Result<tonic::Response<super::QueryResponse>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.v1.DeltaSharingService/GetTableMetadata",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.v1.DeltaSharingService",
+                        "GetTableMetadata",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }

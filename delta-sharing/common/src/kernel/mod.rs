@@ -5,11 +5,16 @@ use delta_kernel::engine::default::executor::tokio::{
     TokioBackgroundExecutor, TokioMultiThreadExecutor,
 };
 use delta_kernel::engine::default::{executor::TaskExecutor, DefaultEngine};
+use delta_kernel::snapshot::Snapshot;
 use delta_kernel::{Engine, Table};
 
-use crate::models::v1::{GetTableVersionRequest, GetTableVersionResponse};
+use crate::models::v1::{
+    GetTableMetadataRequest, GetTableVersionRequest, GetTableVersionResponse, QueryResponse,
+};
 use crate::models::TableRef;
 use crate::{Result, TableLocationResover, TableQueryHandler};
+
+mod conversion;
 
 #[async_trait::async_trait]
 pub trait KernelEngineFactroy: Send + Sync {
@@ -92,6 +97,14 @@ impl KernelQueryHandler {
         ));
         Arc::new(Self::new(engine_factory, location_resolver))
     }
+
+    async fn get_snapshot(&self, table_ref: &TableRef) -> Result<Snapshot> {
+        let location = self.location_resolver.resolve(table_ref).await?;
+        let table = Table::new(location);
+        let engine = self.engine_factory.create(&table).await?;
+        let snapshot = table.snapshot(engine.as_ref(), None)?;
+        Ok(snapshot)
+    }
 }
 
 #[async_trait::async_trait]
@@ -100,22 +113,28 @@ impl TableQueryHandler for KernelQueryHandler {
         &self,
         request: GetTableVersionRequest,
     ) -> Result<GetTableVersionResponse> {
-        let location = self
-            .location_resolver
-            .resolve(&TableRef {
+        let snapshot = self
+            .get_snapshot(&TableRef {
                 share: request.share,
                 schema: request.schema,
                 table: request.table,
             })
             .await?;
 
-        let table = Table::new(location);
-        let engine = self.engine_factory.create(&table).await?;
-        let snapshot = table.snapshot(engine.as_ref(), None)?;
-
         let version = snapshot.version();
         Ok(GetTableVersionResponse {
             version: version as i64,
         })
+    }
+
+    async fn get_table_metadata(&self, request: GetTableMetadataRequest) -> Result<QueryResponse> {
+        let snapshot = self
+            .get_snapshot(&TableRef {
+                share: request.share,
+                schema: request.schema,
+                table: request.table,
+            })
+            .await?;
+        Ok([snapshot.metadata().into(), snapshot.protocol().into()].into())
     }
 }

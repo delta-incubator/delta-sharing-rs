@@ -67,4 +67,12 @@ impl DeltaSharingService for DeltaSharingHandler {
         let result = self.query.get_table_version(request.into_inner()).await?;
         Ok(Response::new(result))
     }
+
+    async fn get_table_metadata(
+        &self,
+        request: Request<GetTableMetadataRequest>,
+    ) -> Result<Response<QueryResponse>, Status> {
+        let result = self.query.get_table_metadata(request.into_inner()).await?;
+        Ok(Response::new(result))
+    }
 }

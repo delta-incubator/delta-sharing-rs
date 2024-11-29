@@ -29,6 +29,9 @@ pub enum Error {
     #[error("Failed to extract recipient from request")]
     MissingRecipient,
 
+    #[error(transparent)]
+    SerDe(#[from] serde_json::Error),
+
     #[cfg(feature = "axum")]
     #[error("Axum path: {0}")]
     AxumPath(#[from] PathRejection),
@@ -55,6 +58,7 @@ impl From<Error> for Status {
                 "The request is unauthenticated. The bearer token is missing or incorrect.",
             ),
             Error::Kernel(error) => Status::internal(error.to_string()),
+            Error::SerDe(_) => Status::internal("Encountered invalid table log."),
             Error::InvalidTableLocation(location) => {
                 Status::internal(format!("Invalid table location: {}", location))
             }
@@ -122,6 +126,10 @@ mod server {
                 Error::InvalidTableLocation(location) => {
                     let message = format!("Invalid table location: {}", location);
                     error!("{}", message);
+                    INTERNAL_ERROR
+                }
+                Error::SerDe(_) => {
+                    error!("Inavalid table log encountered");
                     INTERNAL_ERROR
                 }
                 Error::Generic(message) => {

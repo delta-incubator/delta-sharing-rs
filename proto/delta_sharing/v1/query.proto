@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package delta_sharing.v1;
+
+import "buf/validate/validate.proto";
+import "delta_sharing/v1/protocol.proto";
+
+message GetTableVersionRequest {
+  // The share name to query. It's case-insensitive.
+  string share = 1 [(buf.validate.field).string.min_len = 1];
+
+  // The schema name to query. It's case-insensitive.
+  string schema = 2 [(buf.validate.field).string.min_len = 1];
+
+  // The table name to query. It's case-insensitive.
+  string table = 3 [(buf.validate.field).string.min_len = 1];
+
+  // The startingTimestamp of the query, a string in the  ISO8601 format, in the UTC timezone,
+  // such as 2022-01-01T00:00:00Z. the server needs to return the earliest table version at
+  // or after the provided timestamp, can be earlier than the timestamp of table version 0.
+  optional string starting_timestamp = 4;
+}
+
+message GetTableVersionResponse {
+  // The table version that was requested.
+  int64 version = 1;
+}
+
+message GetTableMetadataRequest {
+  // The share name to query. It's case-insensitive.
+  string share = 1 [(buf.validate.field).string.min_len = 1];
+
+  // The schema name to query. It's case-insensitive.
+  string schema = 2 [(buf.validate.field).string.min_len = 1];
+
+  // The table name to query. It's case-insensitive.
+  string table = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+message QueryResponse {
+  oneof response {
+    // Parquet response format
+    ParquetResponse parquet = 1;
+    // Delta response format
+    DeltaResponse delta = 2;
+  }
+}
+
+message ParquetResponse {
+  repeated ParquetLogMessage entries = 1;
+}
+
+message ParquetLogMessage {
+  oneof entry {
+    ProtocolParquet protocol = 1;
+    MetadataParquet metadata = 2;
+  }
+}
+
+message ProtocolParquet {
+  // The minimum version of the protocol that a client must implement
+  // in order to correctly read a Delta Lake table.
+  int32 min_reader_version = 1;
+}
+
+message MetadataParquet {
+  // Unique identifier for this table
+  string id = 1;
+
+  // User-provided identifier for this table
+  optional string name = 2;
+
+  // User-provided description for this table
+  optional string description = 3;
+
+  // Specification of the encoding for the files stored in the table
+  Format format = 4;
+
+  // Schema of the table
+  string schema_string = 5;
+
+  // An array containing the names of columns by which the data should be partitioned
+  repeated string partition_columns = 6;
+}
+
+message DeltaResponse {
+  repeated DeltaLogMessage entries = 1;
+}
+
+message DeltaLogMessage {
+  oneof entry {
+    ProtocolDelta protocol = 1;
+    MetadatDelta metadata = 2;
+  }
+}
+
+message ProtocolDelta {
+  // The minimum version of the protocol that a client must implement
+  // in order to correctly read a Delta Lake table.
+  int32 min_reader_version = 1;
+
+  int32 min_writer_version = 2;
+}
+
+message MetadatDelta {
+  // Metadata from Delta protocol
+  Metadata delta_metadata = 1;
+
+  // The table version the metadata corresponds to, returned when querying
+  // table data with a version or timestamp parameter, or cdf query
+  // with includeHistoricalMetadata set to true.
+  optional int64 version = 2;
+
+  // The size of the table in bytes, will be returned if available in the delta log.
+  optional int64 size = 3;
+
+  // The number of files in the table, will be returned if available in the delta log.
+  optional int64 num_files = 4;
+}
