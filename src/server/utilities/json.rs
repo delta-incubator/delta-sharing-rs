@@ -493,10 +493,10 @@ impl Utility {
     pub fn filter(predicate: &Predicate, stats: &Stats, schema: &Schema) -> bool {
         match predicate {
             Predicate::And(children) => {
-                return children.iter().all(|c| Self::filter(c, stats, schema));
+                children.iter().all(|c| Self::filter(c, stats, schema))
             }
             Predicate::Or(children) => {
-                return children.iter().any(|c| Self::filter(c, stats, schema));
+                children.iter().any(|c| Self::filter(c, stats, schema))
             }
             Predicate::Not(child) => !Self::filter(child, stats, schema),
             Predicate::IsNull { column, value_type }
