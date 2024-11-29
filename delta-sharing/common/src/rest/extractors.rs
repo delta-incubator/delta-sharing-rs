@@ -92,3 +92,18 @@ impl<S: Send + Sync> FromRequestParts<S> for GetTableVersionRequest {
         })
     }
 }
+
+#[async_trait]
+impl<S: Send + Sync> FromRequestParts<S> for GetTableMetadataRequest {
+    type Rejection = Error;
+
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let Path((share, schema, table)) =
+            parts.extract::<Path<(String, String, String)>>().await?;
+        Ok(GetTableMetadataRequest {
+            share,
+            schema,
+            table,
+        })
+    }
+}

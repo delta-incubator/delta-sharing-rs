@@ -1,6 +1,7 @@
 use axum::body::Body;
 use axum::extract::{Extension, State};
 use axum::{response::Response, routing::get, Json, Router};
+use http::header::CONTENT_TYPE;
 
 use crate::error::{Error, Result};
 use crate::models::v1::*;
@@ -67,6 +68,27 @@ async fn get_table_version(
     Ok(response)
 }
 
+async fn get_table_metadata(
+    State(handler): State<DeltaSharingHandler>,
+    Extension(recipient): Extension<Recipient>,
+    request: GetTableMetadataRequest,
+) -> Result<Response<Body>> {
+    check_read_share_permission(handler.policy.as_ref(), &request.share, &recipient).await?;
+    let result = handler.query.get_table_metadata(request).await?;
+    let response = Response::builder()
+        .header(CONTENT_TYPE, "application/x-ndjson; charset=utf-8")
+        .body(Body::from(query_response_to_ndjson(result)?))
+        .map_err(|e| Error::generic(e.to_string()))?;
+    Ok(response)
+}
+
+fn query_response_to_ndjson(response: impl IntoIterator<Item = Result<String>>) -> Result<String> {
+    Ok(response
+        .into_iter()
+        .collect::<Result<Vec<String>>>()?
+        .join("\n"))
+}
+
 async fn check_read_share_permission(
     policy: &dyn Policy,
     share: impl Into<String>,
@@ -94,6 +116,10 @@ pub fn get_router(state: DeltaSharingHandler) -> Router {
         .route(
             "/shares/:share/schemas/:schema/tables/:table/version",
             get(get_table_version),
+        )
+        .route(
+            "/shares/:share/schemas/:schema/tables/:table/metadata",
+            get(get_table_metadata),
         )
         .with_state(state)
 }
@@ -342,6 +368,28 @@ mod tests {
                 .get("Delta-Table-Version")
                 .map(|v| v.to_str().unwrap());
             assert_eq!(maybe_version, expected);
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_table_metadata() {
+        maybe_skip_dat!();
+
+        let app = get_anonymous_router_dat();
+        let cases = ["all_primitive_types", "basic_append", "basic_partitioned"];
+
+        for name in cases {
+            let request = get_test_request(format!(
+                "/shares/dat/schemas/reader_tests/tables/{}/metadata",
+                name
+            ));
+            let response = app.clone().oneshot(request).await.unwrap();
+            assert!(response.status().is_success());
+            let body = response.into_body().collect().await.unwrap().to_bytes();
+            let content = String::from_utf8_lossy(&body);
+            for line in content.split("\n") {
+                let _: ParquetLogMessage = serde_json::from_str(line).unwrap();
+            }
         }
     }
 }

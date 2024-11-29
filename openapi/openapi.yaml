@@ -1,0 +1,780 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: DeltaSharingService API
+    version: 0.0.1
+paths:
+    /shares:
+        get:
+            tags:
+                - DeltaSharingService
+            description: List shares accessible to a recipient.
+            operationId: DeltaSharingService_ListShares
+            parameters:
+                - name: pagination.maxResults
+                  in: query
+                  description: |-
+                    The maximum number of results per page that should be returned.
+                     If the number of available results is larger than maxResults, the response
+                     will provide a next_page_token that can be used to get the next page of results
+                     in subsequent list requests. The server may return fewer than maxResults
+                     items even if there are more available. The client should check nextPageToken
+                     in the response to determine if there are more available.
+                     Must be non-negative. 0 will return no results but nextPageToken may be populated.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pagination.pageToken
+                  in: query
+                  description: |-
+                    Specifies a page token to use. Set pageToken to the nextPageToken returned
+                     by a previous list request to get the next page of results.
+                     next_page_token will not be returned in a response if there are no more results available.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListSharesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /shares/{share}:
+        get:
+            tags:
+                - DeltaSharingService
+            description: Get the metadata for a specific share.
+            operationId: DeltaSharingService_GetShare
+            parameters:
+                - name: share
+                  in: path
+                  description: The share name to query. It's case-insensitive.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetShareResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /shares/{share}/all-tables:
+        get:
+            tags:
+                - DeltaSharingService
+            description: List all the tables under all schemas in a share.
+            operationId: DeltaSharingService_ListShareTables
+            parameters:
+                - name: share
+                  in: path
+                  description: The share name to query. It's case-insensitive.
+                  required: true
+                  schema:
+                    type: string
+                - name: pagination.maxResults
+                  in: query
+                  description: |-
+                    The maximum number of results per page that should be returned.
+                     If the number of available results is larger than maxResults, the response
+                     will provide a next_page_token that can be used to get the next page of results
+                     in subsequent list requests. The server may return fewer than maxResults
+                     items even if there are more available. The client should check nextPageToken
+                     in the response to determine if there are more available.
+                     Must be non-negative. 0 will return no results but nextPageToken may be populated.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pagination.pageToken
+                  in: query
+                  description: |-
+                    Specifies a page token to use. Set pageToken to the nextPageToken returned
+                     by a previous list request to get the next page of results.
+                     next_page_token will not be returned in a response if there are no more results available.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListShareTablesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /shares/{share}/schemas:
+        get:
+            tags:
+                - DeltaSharingService
+            description: List the schemas in a share.
+            operationId: DeltaSharingService_ListSchemas
+            parameters:
+                - name: share
+                  in: path
+                  description: The share name to query. It's case-insensitive.
+                  required: true
+                  schema:
+                    type: string
+                - name: pagination.maxResults
+                  in: query
+                  description: |-
+                    The maximum number of results per page that should be returned.
+                     If the number of available results is larger than maxResults, the response
+                     will provide a next_page_token that can be used to get the next page of results
+                     in subsequent list requests. The server may return fewer than maxResults
+                     items even if there are more available. The client should check nextPageToken
+                     in the response to determine if there are more available.
+                     Must be non-negative. 0 will return no results but nextPageToken may be populated.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pagination.pageToken
+                  in: query
+                  description: |-
+                    Specifies a page token to use. Set pageToken to the nextPageToken returned
+                     by a previous list request to get the next page of results.
+                     next_page_token will not be returned in a response if there are no more results available.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListSchemasResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /shares/{share}/schemas/{schema}/tables:
+        get:
+            tags:
+                - DeltaSharingService
+            description: List the tables in a given share's schema.
+            operationId: DeltaSharingService_ListSchemaTables
+            parameters:
+                - name: share
+                  in: path
+                  description: The share name to query. It's case-insensitive.
+                  required: true
+                  schema:
+                    type: string
+                - name: schema
+                  in: path
+                  description: The schema name to query. It's case-insensitive.
+                  required: true
+                  schema:
+                    type: string
+                - name: pagination.maxResults
+                  in: query
+                  description: |-
+                    The maximum number of results per page that should be returned.
+                     If the number of available results is larger than maxResults, the response
+                     will provide a next_page_token that can be used to get the next page of results
+                     in subsequent list requests. The server may return fewer than maxResults
+                     items even if there are more available. The client should check nextPageToken
+                     in the response to determine if there are more available.
+                     Must be non-negative. 0 will return no results but nextPageToken may be populated.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pagination.pageToken
+                  in: query
+                  description: |-
+                    Specifies a page token to use. Set pageToken to the nextPageToken returned
+                     by a previous list request to get the next page of results.
+                     next_page_token will not be returned in a response if there are no more results available.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListSchemaTablesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /shares/{share}/schemas/{schema}/tables/{table}/metadata:
+        get:
+            tags:
+                - DeltaSharingService
+            operationId: DeltaSharingService_GetTableMetadata
+            parameters:
+                - name: share
+                  in: path
+                  description: The share name to query. It's case-insensitive.
+                  required: true
+                  schema:
+                    type: string
+                - name: schema
+                  in: path
+                  description: The schema name to query. It's case-insensitive.
+                  required: true
+                  schema:
+                    type: string
+                - name: table
+                  in: path
+                  description: The table name to query. It's case-insensitive.
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/QueryResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /shares/{share}/schemas/{schema}/tables/{table}/version:
+        get:
+            tags:
+                - DeltaSharingService
+            description: Get the current version for a table within a schema.
+            operationId: DeltaSharingService_GetTableVersion
+            parameters:
+                - name: share
+                  in: path
+                  description: The share name to query. It's case-insensitive.
+                  required: true
+                  schema:
+                    type: string
+                - name: schema
+                  in: path
+                  description: The schema name to query. It's case-insensitive.
+                  required: true
+                  schema:
+                    type: string
+                - name: table
+                  in: path
+                  description: The table name to query. It's case-insensitive.
+                  required: true
+                  schema:
+                    type: string
+                - name: startingTimestamp
+                  in: query
+                  description: |-
+                    The startingTimestamp of the query, a string in the  ISO8601 format, in the UTC timezone,
+                     such as 2022-01-01T00:00:00Z. the server needs to return the earliest table version at
+                     or after the provided timestamp, can be earlier than the timestamp of table version 0.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetTableVersionResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+components:
+    schemas:
+        DeltaLogMessage:
+            type: object
+            properties:
+                protocol:
+                    $ref: '#/components/schemas/ProtocolDelta'
+                metadata:
+                    $ref: '#/components/schemas/MetadatDelta'
+        DeltaResponse:
+            type: object
+            properties:
+                entries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/DeltaLogMessage'
+        ExternalDocumentation:
+            type: object
+            properties:
+                description:
+                    type: string
+                    description: |-
+                        A short description of the target documentation. GFM syntax can be used for
+                         rich text representation.
+                url:
+                    type: string
+                    description: |-
+                        The URL for the target documentation. Value MUST be in the format
+                         of a URL.
+            description: |-
+                `ExternalDocumentation` is a representation of OpenAPI v2 specification's
+                 ExternalDocumentation object.
+
+                 See: https://github.com/OAI/OpenAPI-Specification/blob/3.0.0/versions/2.0.md#externalDocumentationObject
+
+                 Example:
+
+                  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+                    ...
+                    external_docs: {
+                      description: "More about gRPC-Gateway";
+                      url: "https://github.com/grpc-ecosystem/grpc-gateway";
+                    }
+                    ...
+                  };
+        Format:
+            type: object
+            properties:
+                provider:
+                    type: string
+                    description: Name of the encoding for files in this table
+                options:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: A map containing configuration options for the format
+        GetShareResponse:
+            type: object
+            properties:
+                share:
+                    allOf:
+                        - $ref: '#/components/schemas/Share'
+                    description: The share that was requested.
+        GetTableVersionResponse:
+            type: object
+            properties:
+                version:
+                    type: string
+                    description: The table version that was requested.
+        GoogleProtobufAny:
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        GoogleProtobufValue:
+            description: Represents a dynamically typed value which can be either null, a number, a string, a boolean, a recursive struct value, or a list of values.
+        JSONSchema:
+            type: object
+            properties:
+                ref:
+                    type: string
+                    description: |-
+                        Ref is used to define an external reference to include in the message.
+                         This could be a fully qualified proto message reference, and that type must
+                         be imported into the protofile. If no message is identified, the Ref will
+                         be used verbatim in the output.
+                         For example:
+                          `ref: ".google.protobuf.Timestamp"`.
+                title:
+                    type: string
+                    description: The title of the schema.
+                description:
+                    type: string
+                    description: A short description of the schema.
+                default:
+                    type: string
+                readOnly:
+                    type: boolean
+                example:
+                    type: string
+                    description: |-
+                        A free-form property to include a JSON example of this field. This is copied
+                         verbatim to the output swagger.json. Quotes must be escaped.
+                         This property is the same for 2.0 and 3.0.0 https://github.com/OAI/OpenAPI-Specification/blob/3.0.0/versions/3.0.0.md#schemaObject  https://github.com/OAI/OpenAPI-Specification/blob/3.0.0/versions/2.0.md#schemaObject
+                multipleOf:
+                    type: number
+                    format: double
+                maximum:
+                    type: number
+                    description: |-
+                        Maximum represents an inclusive upper limit for a numeric instance. The
+                         value of MUST be a number,
+                    format: double
+                exclusiveMaximum:
+                    type: boolean
+                minimum:
+                    type: number
+                    description: |-
+                        minimum represents an inclusive lower limit for a numeric instance. The
+                         value of MUST be a number,
+                    format: double
+                exclusiveMinimum:
+                    type: boolean
+                maxLength:
+                    type: string
+                minLength:
+                    type: string
+                pattern:
+                    type: string
+                maxItems:
+                    type: string
+                minItems:
+                    type: string
+                uniqueItems:
+                    type: boolean
+                maxProperties:
+                    type: string
+                minProperties:
+                    type: string
+                required:
+                    type: array
+                    items:
+                        type: string
+                array:
+                    type: array
+                    items:
+                        type: string
+                    description: Items in 'array' must be unique.
+                type:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+                format:
+                    type: string
+                    description: '`Format`'
+                enum:
+                    type: array
+                    items:
+                        type: string
+                    description: Items in `enum` must be unique https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.5.1
+                fieldConfiguration:
+                    allOf:
+                        - $ref: '#/components/schemas/JSONSchema_FieldConfiguration'
+                    description: Additional field level properties used when generating the OpenAPI v2 file.
+                extensions:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/GoogleProtobufValue'
+                    description: |-
+                        Custom properties that start with "x-" such as "x-foo" used to describe
+                         extra functionality that is not covered by the standard OpenAPI Specification.
+                         See: https://swagger.io/docs/specification/2-0/swagger-extensions/
+            description: |-
+                `JSONSchema` represents properties from JSON Schema taken, and as used, in
+                 the OpenAPI v2 spec.
+
+                 This includes changes made by OpenAPI v2.
+
+                 See: https://github.com/OAI/OpenAPI-Specification/blob/3.0.0/versions/2.0.md#schemaObject
+
+                 See also: https://cswr.github.io/JsonSchema/spec/basic_types/,
+                 https://github.com/json-schema-org/json-schema-spec/blob/master/schema.json
+
+                 Example:
+
+                  message SimpleMessage {
+                    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+                      json_schema: {
+                        title: "SimpleMessage"
+                        description: "A simple message."
+                        required: ["id"]
+                      }
+                    };
+
+                    // Id represents the message identifier.
+                    string id = 1; [
+                        (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+                          description: "The unique identifier of the simple message."
+                        }];
+                  }
+        JSONSchema_FieldConfiguration:
+            type: object
+            properties:
+                pathParamName:
+                    type: string
+                    description: |-
+                        Alternative parameter name when used as path parameter. If set, this will
+                         be used as the complete parameter name when this field is used as a path
+                         parameter. Use this to avoid having auto generated path parameter names
+                         for overlapping paths.
+            description: |-
+                'FieldConfiguration' provides additional field level properties used when generating the OpenAPI v2 file.
+                 These properties are not defined by OpenAPIv2, but they are used to control the generation.
+        ListSchemaTablesResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Table'
+                    description: The tables that were requested.
+                nextPageToken:
+                    type: string
+                    description: |-
+                        Token that can be used to retrieve the next page of tables.
+                         An empty or missing token means that no more tables are available for retrieval.
+        ListSchemasResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Schema'
+                    description: The schemas that were requested.
+                nextPageToken:
+                    type: string
+                    description: |-
+                        Token that can be used to retrieve the next page of schemas.
+                         An empty or missing token means that no more schemas are available for retrieval.
+        ListShareTablesResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Table'
+                    description: The tables that were requested.
+                nextPageToken:
+                    type: string
+                    description: |-
+                        Token that can be used to retrieve the next page of tables.
+                         An empty or missing token means that no more tables are available for retrieval.
+        ListSharesResponse:
+            type: object
+            properties:
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Share'
+                    description: The shares that were requested.
+                nextPageToken:
+                    type: string
+                    description: |-
+                        Token that can be used to retrieve the next page of shares.
+                         An empty or missing token means that no more shares are available for retrieval.
+        MetadatDelta:
+            type: object
+            properties:
+                deltaMetadata:
+                    allOf:
+                        - $ref: '#/components/schemas/Metadata'
+                    description: Metadata from Delta protocol
+                version:
+                    type: string
+                    description: |-
+                        The table version the metadata corresponds to, returned when querying
+                         table data with a version or timestamp parameter, or cdf query
+                         with includeHistoricalMetadata set to true.
+                size:
+                    type: string
+                    description: The size of the table in bytes, will be returned if available in the delta log.
+                numFiles:
+                    type: string
+                    description: The number of files in the table, will be returned if available in the delta log.
+        Metadata:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: |-
+                        Unique identifier for this table
+                         Validate GUID
+                name:
+                    type: string
+                    description: User-provided identifier for this table
+                description:
+                    type: string
+                    description: User-provided description for this table
+                format:
+                    allOf:
+                        - $ref: '#/components/schemas/Format'
+                    description: Specification of the encoding for the files stored in the table
+                schemaString:
+                    type: string
+                    description: Schema of the table
+                partitionColumns:
+                    type: array
+                    items:
+                        type: string
+                    description: An array containing the names of columns by which the data should be partitioned
+                createdTime:
+                    type: string
+                    description: The time when this metadata action is created, in milliseconds since the Unix epoch
+                options:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: A map containing configuration options for the metadata action
+        MetadataParquet:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Unique identifier for this table
+                name:
+                    type: string
+                    description: User-provided identifier for this table
+                description:
+                    type: string
+                    description: User-provided description for this table
+                format:
+                    allOf:
+                        - $ref: '#/components/schemas/Format'
+                    description: Specification of the encoding for the files stored in the table
+                schemaString:
+                    type: string
+                    description: Schema of the table
+                partitionColumns:
+                    type: array
+                    items:
+                        type: string
+                    description: An array containing the names of columns by which the data should be partitioned
+        ParquetLogMessage:
+            type: object
+            properties:
+                protocol:
+                    $ref: '#/components/schemas/ProtocolParquet'
+                metadata:
+                    $ref: '#/components/schemas/MetadataParquet'
+        ParquetResponse:
+            type: object
+            properties:
+                entries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ParquetLogMessage'
+        ProtocolDelta:
+            type: object
+            properties:
+                minReaderVersion:
+                    type: integer
+                    description: |-
+                        The minimum version of the protocol that a client must implement
+                         in order to correctly read a Delta Lake table.
+                    format: int32
+                minWriterVersion:
+                    type: integer
+                    format: int32
+        ProtocolParquet:
+            type: object
+            properties:
+                minReaderVersion:
+                    type: integer
+                    description: |-
+                        The minimum version of the protocol that a client must implement
+                         in order to correctly read a Delta Lake table.
+                    format: int32
+        QueryResponse:
+            type: object
+            properties:
+                parquet:
+                    allOf:
+                        - $ref: '#/components/schemas/ParquetResponse'
+                    description: Parquet response format
+                delta:
+                    allOf:
+                        - $ref: '#/components/schemas/DeltaResponse'
+                    description: Delta response format
+        Schema:
+            type: object
+            properties:
+                jsonSchema:
+                    $ref: '#/components/schemas/JSONSchema'
+                discriminator:
+                    type: string
+                    description: |-
+                        Adds support for polymorphism. The discriminator is the schema property
+                         name that is used to differentiate between other schema that inherit this
+                         schema. The property name used MUST be defined at this schema and it MUST
+                         be in the required property list. When used, the value MUST be the name of
+                         this schema or any schema that inherits it.
+                readOnly:
+                    type: boolean
+                    description: |-
+                        Relevant only for Schema "properties" definitions. Declares the property as
+                         "read only". This means that it MAY be sent as part of a response but MUST
+                         NOT be sent as part of the request. Properties marked as readOnly being
+                         true SHOULD NOT be in the required list of the defined schema. Default
+                         value is false.
+                externalDocs:
+                    allOf:
+                        - $ref: '#/components/schemas/ExternalDocumentation'
+                    description: Additional external documentation for this schema.
+                example:
+                    type: string
+                    description: |-
+                        A free-form property to include an example of an instance for this schema in JSON.
+                         This is copied verbatim to the output.
+            description: |-
+                `Schema` is a representation of OpenAPI v2 specification's Schema object.
+
+                 See: https://github.com/OAI/OpenAPI-Specification/blob/3.0.0/versions/2.0.md#schemaObject
+        Share:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Unique identifier for the share.
+                name:
+                    type: string
+                    description: Name of the share.
+            description: |-
+                A share is a logical grouping to share with recipients. A share can be shared with one or multiple recipients.
+                 A recipient can access all resources in a share. A share may contain multiple schemas.
+        Status:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+                    format: int32
+                message:
+                    type: string
+                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+                details:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GoogleProtobufAny'
+                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
+            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+        Table:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Unique identifier for the table.
+                name:
+                    type: string
+                    description: The name of the table.
+                schema:
+                    type: string
+                    description: The schema name that the table belongs to.
+                share:
+                    type: string
+                    description: The share name that the table belongs to.
+                shareId:
+                    type: string
+                    description: A unique identifier for the share this table belongs to.
+            description: A table is a Delta Lake table or a view on top of a Delta Lake table.
+tags:
+    - name: DeltaSharingService

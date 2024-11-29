@@ -3,6 +3,7 @@ syntax = "proto3";
 package delta_sharing.v1;
 
 import "delta_sharing/v1/models.proto";
+import "delta_sharing/v1/query.proto";
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
@@ -37,7 +38,7 @@ service DeltaSharingService {
 
   // List the schemas in a share.
   rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse) {
-    option (google.api.http) = {get: "/shares/{share}/schemas"};
+    option (google.api.http).get = "/shares/{share}/schemas";
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "List the schemas in a share."
@@ -79,15 +80,19 @@ service DeltaSharingService {
 
   // Get the current version for a table within a schema.
   rpc GetTableVersion(GetTableVersionRequest) returns (GetTableVersionResponse) {
-    option (google.api.http) = {get: "/shares/{share}/schemas/{schema}/tables/{table}/version"};
+    option (google.api.http).get = "/shares/{share}/schemas/{schema}/tables/{table}/version";
 
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Get the current version for a table within a schema."
       tags: [
-        "shares",
+        "tables",
         "official"
       ]
       operation_id: "GetTableVersion"
     };
+  }
+
+  rpc GetTableMetadata(GetTableMetadataRequest) returns (QueryResponse) {
+    option (google.api.http).get = "/shares/{share}/schemas/{schema}/tables/{table}/metadata";
   }
 }
