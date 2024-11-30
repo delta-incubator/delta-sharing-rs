@@ -1,0 +1,20 @@
+model
+  schema 1.1
+
+type user
+
+type share
+  relations
+    define owner: [ user ]
+    define reader: [ user ]
+
+    define can_share: owner
+
+type schema
+  relations
+    define parent: [ share ]
+
+
+type table
+  relations
+    define parent: [ schema ]
