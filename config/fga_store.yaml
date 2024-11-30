@@ -1,0 +1,39 @@
+model: |
+  model
+    schema 1.1
+
+  type user
+
+  type share
+    relations
+      define owner: [ user ]
+      define reader: [ user ]
+
+      define can_share: owner
+
+  type schema
+    relations
+      define parent: [ share ]
+
+
+  type table
+    relations
+      define parent: [ schema ]
+      define part_of: parent from parent
+
+tuples:
+  - user: share:dat
+    relation: parent
+    object: schema:dat
+  - user: schema:dat
+    relation: parent
+    object: table:all_primitive_types
+  - user: schema:dat
+    relation: parent
+    object: table:basic_append
+  - user: schema:dat
+    relation: parent
+    object: table:basic_partitioned
+  - user: user:roeap
+    relation: owner
+    object: share:dat

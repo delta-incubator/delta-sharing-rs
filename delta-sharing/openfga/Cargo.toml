@@ -1,0 +1,15 @@
+[package]
+name = "delta-sharing-openfga"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+prost = { workspace = true }
+thiserror = { workspace = true }
+tonic = { workspace = true }
+
+prost-types = "0.13"
+
+
+[dev_dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }

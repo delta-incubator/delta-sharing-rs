@@ -3,12 +3,15 @@ model
 
 type user
 
+type server
+
 type share
   relations
     define owner: [ user ]
     define reader: [ user ]
 
     define can_share: owner
+    define can_read: owner or reader
 
 type schema
   relations
@@ -18,3 +21,4 @@ type schema
 type table
   relations
     define parent: [ schema ]
+    define part_of: parent from parent

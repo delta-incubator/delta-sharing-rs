@@ -49,6 +49,7 @@ package:
 # generate delta-sharing types from proto files
 generate:
     @buf generate proto
+    @buf generate buf.build/openfga/api --template {{ justfile_directory() }}/delta-sharing/openfga/buf.gen.yaml
 
 # run the delta-sharing server with the dev config
 do-it:
@@ -59,6 +60,7 @@ doc:
     cd docs && mdbook serve --open
 
 # load delta acceptance testing (dat) data from the release
+[group('dev')]
 load-dat:
     rm -rf {{ dat_dir }}
     curl -OL https://github.com/delta-incubator/dat/releases/download/v{{ dat_version }}/deltalake-dat-v{{ dat_version }}.tar.gz
@@ -66,26 +68,27 @@ load-dat:
     tar  --no-same-permissions -xzf deltalake-dat-v{{ dat_version }}.tar.gz --directory {{ dat_dir }}
     rm deltalake-dat-v{{ dat_version }}.tar.gz
 
+[group('dev')]
 render-config:
     DIRECTORY={{ justfile_directory() }} DAT={{ dat_dir }} envsubst < config/local.yaml.tpl > {{ local_config }}
 
 # local setup
+[group('dev')]
 local-setup: load-dat render-config
 
-profile:
-    @cargo run -p delta-sharing -- profile \
-        -e https://localhost:8080 \
-        --subject someone@email.com \
-        --validity 90 \
-        --shares asdf \
-        --secret secret
+[group('dev')]
+test-common:
+    cargo test -p delta-sharing-common
 
 # run the delta-sharing server with the dev config
+[group('server')]
 rest:
     @RUST_LOG=DEBUG cargo run -p delta-sharing rest --config {{ local_config }}
 
+[group('server')]
 grpc:
     @RUST_LOG=DEBUG cargo run -p delta-sharing grpc --config {{ local_config }}
 
-test-common:
-    cargo test -p delta-sharing-common
+[group('openfga')]
+load-store:
+    fga store import --file {{ justfile_directory() }}/config/fga_store.yaml
