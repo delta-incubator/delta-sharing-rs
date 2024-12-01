@@ -96,6 +96,17 @@ jobs:
         with:
           store-file-path: ./delta-sharing/openfga/fga/dev.fga.yaml
 
+      - name: Install OpenFGA server
+        uses: jaxxstorm/action-install-gh-release@v1.14.0
+        with:
+          repo: openfga/openfga
+          tag: v1.8.0
+          cache: enable
+
+      - name: Start OpenFGA server in background
+        shell: bash
+        run: openfga run &
+
       - name: Run openfga create tests
         run: |
           export FGA_STORE_ID="$(fga store import --file ./delta-sharing/openfga/fga/dev.fga.yaml | jq -r .store.id)"
