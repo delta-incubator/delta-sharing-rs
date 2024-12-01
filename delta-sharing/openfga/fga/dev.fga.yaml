@@ -1,0 +1,29 @@
+model_file: ./model.fga
+
+tuples:
+  - user: share:dat
+    relation: parent
+    object: schema:dat
+  - user: schema:dat
+    relation: parent
+    object: table:all_primitive_types
+  - user: schema:dat
+    relation: parent
+    object: table:basic_append
+  - user: schema:dat
+    relation: parent
+    object: table:basic_partitioned
+  - user: user:roeap
+    relation: owner
+    object: share:dat
+
+tests:
+  - name: owner
+    check:
+      - user: user:roeap
+        object: share:dat
+        assertions:
+          owner: true
+          reader: false
+          can_share: true
+          can_read: true

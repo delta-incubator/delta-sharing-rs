@@ -2,11 +2,11 @@
 
 [Introduction](README.md)
 
-# User Guide
+## User Guide
 
 - [Getting Started](./user_guide/quickstart.md)
 
-# Developer Guide
+## Developer Guide
 
 - [Overview](./developer_guide/overview.md)
   - [Protocol router](./developer_guide/overview.md)

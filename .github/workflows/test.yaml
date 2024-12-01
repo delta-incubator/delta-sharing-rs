@@ -75,8 +75,38 @@ jobs:
       - name: Run unit tests
         run: cargo test --lib
 
+  policy:
+    name: OpenFGA model tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run model tests
+        uses: openfga/action-openfga-test@v0.1.1
+        with:
+          store-file-path: ./delta-sharing/openfga/fga/dev.fga.yaml
+
+      - name: Install OpenFGA server
+        uses: jaxxstorm/action-install-gh-release@v1.14.0
+        with:
+          repo: openfga/openfga
+          tag: v1.8.0
+          cache: enable
+
+      - name: Start OpenFGA server in background
+        shell: bash
+        run: openfga run &
+
+      - name: Run openfga create tests
+        run: |
+          export FGA_STORE_ID="$(fga store import --file ./delta-sharing/openfga/fga/dev.fga.yaml | jq -r .store.id)"
+          cargo test -p delta-sharing-openfga
+
   integration:
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:alpine
@@ -86,6 +116,7 @@ jobs:
           POSTGRES_PASSWORD: secret
         ports:
           - 5432:5432
+
     env:
       # Disable full debug symbol generation to speed up CI build and keep memory down
       RUSTFLAGS: -C debuginfo=line-tables-only

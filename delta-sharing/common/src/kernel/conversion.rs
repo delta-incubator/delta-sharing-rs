@@ -34,7 +34,7 @@ impl From<&Metadata> for ParquetLogMessage {
 impl From<&Protocol> for ProtocolParquet {
     fn from(value: &Protocol) -> Self {
         ProtocolParquet {
-            min_reader_version: value.min_reader_version,
+            min_reader_version: value.min_reader_version(),
         }
     }
 }

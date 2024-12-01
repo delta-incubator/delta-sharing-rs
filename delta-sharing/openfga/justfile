@@ -1,0 +1,9 @@
+# list all availabe commands
+default:
+    @just --list
+
+generate:
+    @buf generate buf.build/openfga/api --template {{ source_directory() }}/buf.gen.yaml
+
+test-model:
+    fga model test --tests {{ source_directory() }}/fga/dev.fga.yaml
