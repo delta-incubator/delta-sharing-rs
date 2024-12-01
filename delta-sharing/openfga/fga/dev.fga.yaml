@@ -1,25 +1,4 @@
-model: |
-  model
-    schema 1.1
-
-  type user
-
-  type share
-    relations
-      define owner: [ user ]
-      define reader: [ user ]
-
-      define can_share: owner
-
-  type schema
-    relations
-      define parent: [ share ]
-
-
-  type table
-    relations
-      define parent: [ schema ]
-      define part_of: parent from parent
+model_file: ./model.fga
 
 tuples:
   - user: share:dat
@@ -37,3 +16,14 @@ tuples:
   - user: user:roeap
     relation: owner
     object: share:dat
+
+tests:
+  - name: owner
+    check:
+      - user: user:roeap
+        object: share:dat
+        assertions:
+          owner: true
+          reader: false
+          can_share: true
+          can_read: true

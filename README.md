@@ -1,7 +1,7 @@
 Delta Sharing Server
 ==============================
 
- delta-sharing-rs is a Rust-based Delta Sharing server that includes administration functionality.
+delta-sharing-rs is a Rust-based Delta Sharing server that includes administration functionality.
 Unlike [the reference implementation of a Delta Sharing server](https://github.com/delta-io/delta-sharing),
 which primarily focuses on the API specification and uses static file-based sharing information,
 delta-sharing-rs manages its sharing information through an API.
@@ -19,8 +19,8 @@ Supported Platforms
 
 Configure Credentials for Cloud Storage Backends
 ==============================
- 1. **Amazon AWS**
 
+ 1. **Amazon AWS**
 
  To access the S3 Delta table backend, you need to create an IAM user with an Amazon S3 permissions policy.
 Once you've created the IAM user, you must configure the profile name and region to allow the Delta Sharing
@@ -28,7 +28,7 @@ server to access the S3 bucket. The location of the credentials file is specifie
 `AWS_SHARED_CREDENTIALS_FILE`. If this variable is not set, the credentials file should be located at `~/.aws/credentials`.
  delta-sharing-rs utilizes the [Object Store](https://crates.io/crates/object_store) crate with the [aws-config](https://crates.io/crates/aws-config)
 feature, which requires the `AWS_PROFILE` and `AWS_REGION` environment variables if you use S3 Delta table backend.
- 
+
   2. **Google GCP**
 
  To access the GCS Delta table backend, you need to create a GCS service account. The location of the GCP service
@@ -38,7 +38,7 @@ variable is not set, the private key JSON file should be located at `~/.gcp/serv
   3. **Microsoft Azure**
   
  Microsoft Azure backed Delta tables will be supported in the near future.
- 
+
 Starting Delta Sharing Server
 ==============================
 
@@ -47,52 +47,52 @@ delta-sharing-rs. Therefore, you will need to build your own release manually. T
 run the following command in the project directory:
 
 ```bash
-$ just build
+just build
 ```
 
 The following files might be helpful for you in creating your own `docker-compose` file.
 
- - [Dockerfile](devops/docker/Dockerfile)
- - [Docker Compose](devops/docker/docker-compose.yaml)
+- [Dockerfile](devops/docker/Dockerfile)
+- [Docker Compose](devops/docker/docker-compose.yaml)
 
 ~~You can start Delta Sharing using one of the following two options:~~
- 
+
 ~~1. [Docker Hub](https://hub.docker.com/r/kotosiro/sharing)~~
 ~~2. [Docker Compose](https://github.com/kotosiro/docker-compose-files)~~
- 
+
 ~~Please choose the option that best fits your needs and follow the instructions in the corresponding link to start~~
 ~~Delta Sharing. You can also find deployment examples [here](examples).~~
 ~~Please note that these two repositories are not part of the delta-incubator project due to the donation, but they~~
 ~~still maintain the latest image of the official build. This arrangement may change in the future.~~
- 
+
 Starting the Development Server
 ==============================
 
  Since the implementation is still in the early stages, only the development server is currently available. A Helm
 chart will be added to the project in the near future.
- 
+
  To run the development server, execute the following commands in this directory:
 
 ```bash
- $ just docker
- $ just server
+just docker
+just server
 ```
 
  To run the unit tests, execute the following commands in this directory:
 
 ```bash
- $ just docker
- $ just test
- $ just testdb
+just docker
+just test
+just testdb
 ```
- 
+
 Create a New Sharing via the API
 ==============================
 
  Once you've started the development server, you can create a new sharing via the API. Follow these steps:
- 
+
  1. Log in to Delta Sharing server and get the admin access token by running the following command:
- 
+
 ```bash
  $ curl -s -X POST http://localhost:8080/admin/login -H "Content-Type: application/json" -d '{"account": "deltars", "password": "password"}' | jq '.'
 {
@@ -104,9 +104,9 @@ Create a New Sharing via the API
   }
 }
 ```
- 
+
  2. Register a new share by running the following command:
- 
+
 ```bash
   $ curl -s -X POST "http://localhost:8080/admin/shares" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" -d'{ "name": "share1" }' | jq '.'
 {
@@ -116,7 +116,7 @@ Create a New Sharing via the API
   }
 }
 ```
- 
+
  3. Register a new table by running the following command:
 
 ```bash
@@ -131,7 +131,7 @@ Create a New Sharing via the API
 ```
 
  4. Register a new table as a part of schema1 in the share1 by running the following command:
- 
+
 ```bash
  $ curl -s -X POST "http://localhost:8080/admin/shares/share1/schemas/schema1/tables" -H "Authorization: Bearer YOUR_ADMIN_ACCESS_TOKEN" -H "Content-Type: application/json" -d'{ "table": "table1" }' | jq '.'
 {
@@ -183,8 +183,6 @@ Below is a list of the configuration variables:
 [^1]: An example configuration can also be found at [`config`](https://github.com/delta-incubator/delta-sharing-rs/tree/main/config) directory.
 
 [^2]: When delta-sharing-rs detects duplicated configuration variables, the values from environment variables take precedence over those from configuration files.
-
-[^3]: These variables may be required when you use the corresponding cloud backends. If these variables are not set when dealing with tables located in the corresponding storage backends, the server will return unsigned URLs instead and may cause internal server errors.
 
 API
 ==============================
@@ -240,7 +238,7 @@ References
 1. [Delta Sharing: An Open Protocol for Secure Data Sharing](https://github.com/delta-io/delta-sharing)
 
  You can find the Delta Sharing open protocol specification here.
- 
+
 2. [Open source self-hosted Delta Sharing server](https://delta.io/blog/2023-04-24-open-source-selfhosted-delta-sharing-server/)
 
  My blog post on the official Delta Lake community.

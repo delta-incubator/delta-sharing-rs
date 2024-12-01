@@ -6,22 +6,17 @@ pub(crate) mod gen {
     }
 }
 
-pub use client::Client;
-
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+pub use client::{ClientConfig, OpenFgaClient};
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn it_works() {
-        let mut client = Client::connect("http://[::1]:8081".into(), "sharing")
-            .await
-            .unwrap();
-        let schemas = client.list_schemas("roeap").await.unwrap();
-        println!("{schemas:?}");
+    macro_rules! maybe_skip_fga {
+        () => {
+            if std::env::var("FGA_STORE_ID").is_err() {
+                eprintln!("Skipping integration test - set FGA_STORE_ID");
+                return;
+            }
+        };
     }
+    pub(crate) use maybe_skip_fga;
 }

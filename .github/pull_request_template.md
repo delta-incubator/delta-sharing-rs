@@ -1,17 +1,10 @@
 ### Which issue does this PR close?
 
-<!--
-We generally require a GitHub issue to be filed for all bug fixes and enhancements and this helps us generate change logs for our releases. You can link an issue to this PR using the GitHub syntax. For example `Closes #123` indicates that this PR will close issue #123.
--->
-
 Closes #.
 
 ### Rationale for this change
 
-<!--
-Why are you proposing this change? If this is already explained clearly in the issue then this section is not needed.
-Explaining clearly why changes are proposed helps reviewers understand your changes and offer better suggestions for fixes.
--->
+<!-- Why are you proposing this change? If this is already explained clearly in the issue then this section is not needed. -->
 
 ### Changes are included in this PR
 

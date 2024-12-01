@@ -3,8 +3,6 @@ model
 
 type user
 
-type server
-
 type share
   relations
     define owner: [ user ]

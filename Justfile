@@ -4,9 +4,9 @@ dat_version := "0.0.3"
 dat_dir := "dat"
 local_config := "config/local.yaml"
 
-# list all availabe commands
+# Show available commands
 default:
-    @just --list
+    @just --list --justfile {{ justfile() }}
 
 # Conduct a rust checking
 check:
@@ -49,7 +49,7 @@ package:
 # generate delta-sharing types from proto files
 generate:
     @buf generate proto
-    @buf generate buf.build/openfga/api --template {{ justfile_directory() }}/delta-sharing/openfga/buf.gen.yaml
+    @just delta-sharing/openfga/generate
 
 # run the delta-sharing server with the dev config
 do-it:
@@ -91,4 +91,8 @@ grpc:
 
 [group('openfga')]
 load-store:
-    fga store import --file {{ justfile_directory() }}/config/fga_store.yaml
+    fga store import --file {{ justfile_directory() }}/delta-sharing/openfga/fga/dev.fga.yaml
+
+# Show unused dependencies
+udeps:
+    cargo +nightly udeps
