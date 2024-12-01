@@ -79,14 +79,6 @@ jobs:
     name: OpenFGA model tests
     runs-on: ubuntu-latest
 
-    services:
-      openfga:
-        image: openfga/openfga:latest
-        ports:
-          - 8080:8080
-          - 8081:8081
-        options: --entrypoint '/openfga run'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
