@@ -1,0 +1,17 @@
+run-migrations:
+    DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres \
+        sqlx migrate run --source {{ source_directory() }}/migrations
+
+docker:
+  docker run \
+    --name postgres-sharing \
+    -e POSTGRES_PASSWORD=postgres \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_DATABASE=postgres \
+    -e POSTGRES_HOST_AUTH_METHOD=trust \
+    -d \
+    -p 5432:5432 \
+    postgres
+
+prepare:
+    cargo sqlx prepare --workspace
