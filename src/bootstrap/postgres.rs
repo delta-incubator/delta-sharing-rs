@@ -25,8 +25,8 @@ pub async fn connect(url: &str) -> Result<PgPool> {
 mod tests {
     use super::*;
     use std::collections::HashSet;
-    use testcontainers::clients;
-    use testcontainers::images::postgres;
+    use testcontainers::runners::AsyncRunner;
+    use testcontainers_modules::postgres::Postgres;
 
     #[derive(sqlx::FromRow)]
     struct Table {
@@ -35,11 +35,16 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
-    async fn test_connect() {
+    async fn test_connect() -> Result<(), Box<dyn std::error::Error + 'static>> {
         dotenv::dotenv().ok();
-        let docker = clients::Cli::default();
-        docker.run(postgres::Postgres::default());
-        let url = "postgres://postgres:secret@127.0.0.1:5432";
+
+        let node = Postgres::default().with_password("secret").start().await?;
+
+        let connection_string = &format!(
+            "postgres://postgres:secret@127.0.0.1:{}/postgres",
+            node.get_host_port_ipv4(5432).await?
+        );
+
         let expected: HashSet<_> = [
             String::from("account"),
             String::from("share"),
@@ -50,7 +55,7 @@ mod tests {
         .iter()
         .cloned()
         .collect();
-        let pool = connect(url)
+        let pool = connect(connection_string)
             .await
             .expect("connection should be established");
         let tables: HashSet<String> = HashSet::from_iter(
@@ -69,5 +74,7 @@ mod tests {
             .collect::<Vec<String>>(),
         );
         assert_eq!(&expected, &tables);
+
+        Ok(())
     }
 }
