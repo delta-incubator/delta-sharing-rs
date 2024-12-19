@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+async-trait = { workspace = true }
 thiserror = { workspace = true }
+url = { workspace = true }
 
 sqlx = { version = "0.7", features = [
     "postgres",

@@ -11,6 +11,9 @@ pub enum Error {
 
     #[error("Entity not found: '{0}'")]
     EntityNotFound(String),
+
+    #[error("Invalid Url: '{0}'")]
+    InvalidUrl(#[from] url::ParseError),
 }
 
 impl Error {
