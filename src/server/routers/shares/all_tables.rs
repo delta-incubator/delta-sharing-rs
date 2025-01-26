@@ -1,15 +1,12 @@
-use anyhow::anyhow;
 use axum::extract::{Extension, Json, Path, Query};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use utoipa::{IntoParams, ToSchema};
 
-use crate::server::entities::share::Entity as ShareEntity;
+use crate::server::catalog::Pagination;
 use crate::server::entities::share::Name as ShareName;
-use crate::server::entities::table::Name as TableName;
 use crate::server::routers::SharedState;
 use crate::server::services::error::Error;
-use crate::server::services::table::Service as TableService;
 use crate::server::services::table::TableDetail;
 
 const DEFAULT_PAGE_RESULTS: usize = 10;
@@ -23,7 +20,7 @@ pub struct SharesAllTablesListParams {
 #[derive(Debug, serde::Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct SharesAllTablesListQuery {
-    pub max_results: Option<i64>,
+    pub max_results: Option<u32>,
     pub page_token: Option<String>,
 }
 
@@ -63,63 +60,25 @@ pub async fn list(
         tracing::error!("requested share data is malformed");
         return Err(Error::ValidationFailed);
     };
-    let Ok(share) = ShareEntity::load(&share, &state.pg_pool).await else {
-        tracing::error!(
-            "request is not handled correctly due to a server error while selecting share"
-        );
-        return Err(anyhow!("error occured while selecting share").into());
+
+    let pagination = Pagination::new(query.max_results, query.page_token);
+    let tables = state
+        .share_store
+        .list_tables_in_share(share.as_str(), &pagination)
+        .await?;
+
+    let res = SharesAllTablesListResponse {
+        items: tables
+            .items()
+            .iter()
+            .map(|t| TableDetail {
+                name: t.name.to_string(),
+                schema: String::new(),
+                share: String::new(),
+            })
+            .collect::<Vec<_>>(),
+        next_page_token: tables.next_page_token().map(|s| s.to_string()),
     };
-    let Some(share) = share else {
-        tracing::error!("requested share does not exist");
-        return Err(Error::NotFound);
-    };
-    let limit = if let Some(limit) = &query.max_results {
-        let Ok(limit) = usize::try_from(*limit) else {
-            tracing::error!("requested limit is malformed");
-            return Err(Error::ValidationFailed);
-        };
-        limit
-    } else {
-        DEFAULT_PAGE_RESULTS
-    };
-    let after = if let Some(name) = &query.page_token {
-        TableName::try_new(name).ok()
-    } else {
-        None
-    };
-    let Ok(tables) = TableService::query_by_share_name(
-        share.name(),
-        Some(&((limit + 1) as i64)),
-        after.as_ref(),
-        &state.pg_pool,
-    )
-    .await
-    else {
-        tracing::error!(
-            "request is not handled correctly due to a server error while selecting tables"
-        );
-        return Err(anyhow!("error occured while selecting tables(s)").into());
-    };
-    if tables.len() == limit + 1 {
-        let next = &tables[limit];
-        let tables = &tables[..limit];
-        tracing::info!("tables were successfully returned");
-        return Ok((
-            StatusCode::OK,
-            Json(SharesAllTablesListResponse {
-                items: tables.to_vec(),
-                next_page_token: next.name.clone().into(),
-            }),
-        )
-            .into_response());
-    }
     tracing::info!("tables were successfully returned");
-    Ok((
-        StatusCode::OK,
-        Json(SharesAllTablesListResponse {
-            items: tables,
-            next_page_token: None,
-        }),
-    )
-        .into_response())
+    Ok((StatusCode::OK, Json(res)).into_response())
 }

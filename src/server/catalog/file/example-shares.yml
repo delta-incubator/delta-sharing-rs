@@ -1,0 +1,38 @@
+shares:
+  - name: "share1"
+    schemas:
+      - name: "schema1"
+        tables:
+          - name: "table1"
+            # S3. See https://github.com/delta-io/delta-sharing#s3 for how to config the credentials
+            location: "s3a://<bucket-name>/<the-table-path>"
+            id: "00000000-0000-0000-0000-000000000000"
+          - name: "table2"
+            # Azure Blob Storage. See https://github.com/delta-io/delta-sharing#azure-blob-storage for how to config the credentials
+            location: "wasbs://<container-name>@<account-name}.blob.core.windows.net/<the-table-path>"
+            id: "00000000-0000-0000-0000-000000000001"
+  - name: "share2"
+    schemas:
+      - name: "schema2"
+        tables:
+          - name: "table3"
+            # Azure Data Lake Storage Gen2. See https://github.com/delta-io/delta-sharing#azure-data-lake-storage-gen2 for how to config the credentials
+            location: "abfss://<container-name>@<account-name}.dfs.core.windows.net/<the-table-path>"
+            historyShared: true
+            id: "00000000-0000-0000-0000-000000000002"
+  - name: "share3"
+    schemas:
+      - name: "schema3"
+        tables:
+          - name: "table4"
+            # Google Cloud Storage (GCS). See https://github.com/delta-io/delta-sharing#google-cloud-storage for how to config the credentials
+            location: "gs://<bucket-name>/<the-table-path>"
+            id: "00000000-0000-0000-0000-000000000003"
+  - name: "share4"
+    schemas:
+      - name: "schema4"
+        tables:
+          - name: "table5"
+            # Cloudflare R2. See https://github.com/delta-io/delta-sharing#cloudflare-r2 for how to config the credentials
+            location: "s3a://<bucket-name>/<the-table-path>"
+            id: "00000000-0000-0000-0000-000000000004"
