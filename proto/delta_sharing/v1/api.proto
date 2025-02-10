@@ -5,15 +5,49 @@ package delta_sharing.v1;
 import "delta_sharing/v1/models.proto";
 import "delta_sharing/v1/query.proto";
 import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "openapiv3/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (openapi.v3.document) = {
+  info: {
+    title: "Delta Sharing API"
+    version: "0.0.0"
+    description: "An Open Protocol for Secure Data Sharing"
+    license: {
+      name: "AGPL v3.0"
+      url: "https://www.gnu.org/licenses/agpl-3.0.en.html"
+    }
+  }
+  tags: [
+    {
+      name: "shares"
+      description: "Share discovery APIs"
+    },
+    {
+      name: "schemas"
+      description: "Schema discovery APIs"
+    },
+    {
+      name: "tables"
+      description: "Table query and inspection APIs"
+    },
+    {
+      name: "official"
+      description: "APIs which are part of published official document"
+    },
+    {
+      name: "proposed"
+      description: "APIs which are part proposed and may or may not be part of official"
+    }
+  ]
+};
 
 service DeltaSharingService {
   // List shares accessible to a recipient.
   rpc ListShares(ListSharesRequest) returns (ListSharesResponse) {
     option (google.api.http) = {get: "/shares"};
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "List shares accessible to a recipient."
+    option (openapi.v3.operation) = {
       tags: [
         "shares",
         "official"
@@ -25,9 +59,7 @@ service DeltaSharingService {
   // Get the metadata for a specific share.
   rpc GetShare(GetShareRequest) returns (GetShareResponse) {
     option (google.api.http) = {get: "/shares/{share}"};
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Get the metadata for a specific share."
+    option (openapi.v3.operation) = {
       tags: [
         "shares",
         "official"
@@ -38,10 +70,8 @@ service DeltaSharingService {
 
   // List the schemas in a share.
   rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse) {
-    option (google.api.http).get = "/shares/{share}/schemas";
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "List the schemas in a share."
+    option (google.api.http).get = "/{share=shares/*}/schemas";
+    option (openapi.v3.operation) = {
       tags: [
         "shares",
         "official"
@@ -53,11 +83,9 @@ service DeltaSharingService {
   // List the tables in a given share's schema.
   rpc ListSchemaTables(ListSchemaTablesRequest) returns (ListSchemaTablesResponse) {
     option (google.api.http) = {get: "/shares/{share}/schemas/{schema}/tables"};
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "List the tables in a given share's schema."
+    option (openapi.v3.operation) = {
       tags: [
-        "schemas",
+        "shares",
         "official"
       ]
       operation_id: "ListTables"
@@ -67,23 +95,19 @@ service DeltaSharingService {
   // List all the tables under all schemas in a share.
   rpc ListShareTables(ListShareTablesRequest) returns (ListShareTablesResponse) {
     option (google.api.http) = {get: "/shares/{share}/all-tables"};
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "List all the tables under all schemas in a share."
+    option (openapi.v3.operation) = {
       tags: [
         "shares",
         "official"
       ]
-      operation_id: "ListAllTables"
+      operation_id: "ListShareTables"
     };
   }
 
   // Get the current version for a table within a schema.
   rpc GetTableVersion(GetTableVersionRequest) returns (GetTableVersionResponse) {
     option (google.api.http).get = "/shares/{share}/schemas/{schema}/tables/{table}/version";
-
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Get the current version for a table within a schema."
+    option (openapi.v3.operation) = {
       tags: [
         "tables",
         "official"

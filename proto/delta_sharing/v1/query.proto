@@ -4,16 +4,26 @@ package delta_sharing.v1;
 
 import "buf/validate/validate.proto";
 import "delta_sharing/v1/protocol.proto";
+import "google/api/resource.proto";
 
 message GetTableVersionRequest {
   // The share name to query. It's case-insensitive.
-  string share = 1 [(buf.validate.field).string.min_len = 1];
+  string share = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
 
   // The schema name to query. It's case-insensitive.
-  string schema = 2 [(buf.validate.field).string.min_len = 1];
+  string schema = 2 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+  ];
 
   // The table name to query. It's case-insensitive.
-  string table = 3 [(buf.validate.field).string.min_len = 1];
+  string table = 3 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Table"}
+  ];
 
   // The startingTimestamp of the query, a string in the  ISO8601 format, in the UTC timezone,
   // such as 2022-01-01T00:00:00Z. the server needs to return the earliest table version at
@@ -28,13 +38,22 @@ message GetTableVersionResponse {
 
 message GetTableMetadataRequest {
   // The share name to query. It's case-insensitive.
-  string share = 1 [(buf.validate.field).string.min_len = 1];
+  string share = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
 
   // The schema name to query. It's case-insensitive.
-  string schema = 2 [(buf.validate.field).string.min_len = 1];
+  string schema = 2 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+  ];
 
   // The table name to query. It's case-insensitive.
-  string table = 3 [(buf.validate.field).string.min_len = 1];
+  string table = 3 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Table"}
+  ];
 }
 
 message QueryResponse {

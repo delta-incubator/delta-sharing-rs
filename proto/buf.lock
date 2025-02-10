@@ -4,15 +4,20 @@ deps:
   - remote: buf.build
     owner: bufbuild
     repository: protovalidate
-    commit: 5a7b106cbb87462d9a8c9ffecdbd2e38
-    digest: shake256:2f7efa5a904668219f039d4f6eeb51e871f8f7f5966055a10663cba335bd65f76cac84da3fa758ab7b5dcb489ec599521390ce3951d119fb56df1fc2def16bb0
+    commit: 63bb56e204954558946a641ef0d68910
+    digest: shake256:1ccb2153a5ff5906729567f09f3e5bb6b6de356dc875eb4d12572097b9d6f9ab773b44d88e0a4c2052abca9ca60f3edfea71b1f51bfe5ea25b32a083e8e083b6
   - remote: buf.build
     owner: googleapis
     repository: googleapis
-    commit: c0913f24652a4cfc95f77d97443a5005
-    digest: shake256:0ef3248c6235d420fe61f373154adcde6b94e3297f82472b1d8d8c3747240b61b4a10405e2a6f8ac1c98816ac6e690ea7871024aa5ae0e035cd540214667ceed
+    commit: 83c0f6c19b2f4ea0b0fd84a80e753659
+    digest: shake256:20e034fe1562d2ef4137cd7822344d4c29cff8130e112a16e44bc3102be688e9134fae531ec1de7ae18dd660160649db28d160b006c9c70964e3f72a60dc47e3
   - remote: buf.build
     owner: grpc-ecosystem
     repository: grpc-gateway
-    commit: a48fcebcf8f140dd9d09359b9bb185a4
-    digest: shake256:a926173f0ec3e1a929462c350acda846e546134b5ce2bb83fe44f02f9330a42b1c9b292f64b951b06a4d2c47e2ce4d477d6a2cb31502a15637ada35ecedefcf6
+    commit: 4c5ba75caaf84e928b7137ae5c18c26a
+    digest: shake256:e174ad9408f3e608f6157907153ffec8d310783ee354f821f57178ffbeeb8faa6bb70b41b61099c1783c82fe16210ebd1279bc9c9ee6da5cffba9f0e675b8b99
+  - remote: buf.build
+    owner: qrkkk
+    repository: openapiv3
+    commit: 3e169d7b0f2849cf98c4c99e06d93b90
+    digest: shake256:a8793bb07531b68343ef71bac451d3b9ca257a17d80ef9fe3c86ad83caee5f568e8ad6d1db568a418df64a96a9ff9c91202346d1e22f116a8cbbf87dd5be7c00
