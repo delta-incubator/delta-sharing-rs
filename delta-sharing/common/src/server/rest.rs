@@ -131,8 +131,8 @@ mod tests {
         assert!(response.status().is_success());
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let result = serde_json::from_slice::<GetShareResponse>(&body).unwrap();
-        assert!(matches!(result, GetShareResponse { share: Some(_) }));
+        let result = serde_json::from_slice::<Share>(&body).unwrap();
+        assert!(matches!(result, Share { .. }));
     }
 
     #[tokio::test]

@@ -22,10 +22,8 @@ impl DeltaSharingClient {
     ) -> impl Stream<Item = Result<Share>> + '_ {
         stream_paginated(max_results, move |max_results, page_token| async move {
             let request = ListSharesRequest {
-                pagination: Some(Pagination {
-                    max_results,
-                    page_token,
-                }),
+                max_results,
+                page_token,
             };
             self.client.list_shares(request).await.map(|mut resp| {
                 let max_results = max_results
@@ -49,10 +47,8 @@ impl DeltaSharingClient {
             move |(share, max_results), page_token| async move {
                 let req = ListSchemasRequest {
                     share: share.clone(),
-                    pagination: Some(Pagination {
-                        max_results,
-                        page_token,
-                    }),
+                    max_results,
+                    page_token,
                 };
                 let mut resp = self.client.list_schemas(req).await?;
                 let max_results = max_results
@@ -78,10 +74,8 @@ impl DeltaSharingClient {
                 let req = ListSchemaTablesRequest {
                     share: share.clone(),
                     schema: schema.clone(),
-                    pagination: Some(Pagination {
-                        max_results,
-                        page_token,
-                    }),
+                    max_results,
+                    page_token,
                 };
                 let mut resp = self.client.list_schema_tables(req).await?;
                 let max_results = max_results
@@ -105,10 +99,8 @@ impl DeltaSharingClient {
             move |(share, max_results), page_token| async move {
                 let req = ListShareTablesRequest {
                     share: share.clone(),
-                    pagination: Some(Pagination {
-                        max_results,
-                        page_token,
-                    }),
+                    max_results,
+                    page_token,
                 };
                 let mut resp = self.client.list_share_tables(req).await?;
                 let max_results = max_results

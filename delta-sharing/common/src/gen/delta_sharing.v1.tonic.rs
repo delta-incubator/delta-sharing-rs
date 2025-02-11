@@ -16,12 +16,7 @@ pub mod delta_sharing_service_server {
         async fn get_share(
             &self,
             request: tonic::Request<super::GetShareRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetShareResponse>,
-            tonic::Status,
-        >;
-        /** List the schemas in a share.
-*/
+        ) -> std::result::Result<tonic::Response<super::Share>, tonic::Status>;
         async fn list_schemas(
             &self,
             request: tonic::Request<super::ListSchemasRequest>,
@@ -191,7 +186,7 @@ pub mod delta_sharing_service_server {
                         T: DeltaSharingService,
                     > tonic::server::UnaryService<super::GetShareRequest>
                     for GetShareSvc<T> {
-                        type Response = super::GetShareResponse;
+                        type Response = super::Share;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,

@@ -16,11 +16,14 @@ message Share {
     plural: "shares"
   };
 
-  // Unique identifier for the share.
-  optional string id = 1;
-
   // Name of the share.
-  string name = 2 [(google.api.field_behavior) = IDENTIFIER];
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = IDENTIFIER
+  ];
+
+  // Unique identifier for the share.
+  optional string id = 2;
 }
 
 // A schema is a logical grouping of tables. A schema may contain multiple tables.
@@ -35,14 +38,12 @@ message Schema {
   // The name of the schama
   string name = 1 [
     (buf.validate.field).string.min_len = 1,
-    (google.api.field_behavior) = REQUIRED,
     (google.api.field_behavior) = IDENTIFIER
   ];
 
   // The share name that the schema belongs to.
   string share = 2 [
     (buf.validate.field).string.min_len = 1,
-    (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
 }
@@ -59,21 +60,18 @@ message Table {
   // The name of the table.
   string name = 1 [
     (buf.validate.field).string.min_len = 1,
-    (google.api.field_behavior) = REQUIRED,
     (google.api.field_behavior) = IDENTIFIER
   ];
 
   // The schema name that the table belongs to.
   string schema = 2 [
     (buf.validate.field).string.min_len = 1,
-    (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
   ];
 
   // The share name that the table belongs to.
   string share = 3 [
     (buf.validate.field).string.min_len = 1,
-    (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
 
@@ -86,18 +84,14 @@ message Table {
 
 message ListSharesRequest {
   // The maximum number of results per page that should be returned.
-  // If the number of available results is larger than maxResults, the response
-  // will provide a next_page_token that can be used to get the next page of results
-  // in subsequent list requests. The server may return fewer than maxResults
-  // items even if there are more available. The client should check nextPageToken
-  // in the response to determine if there are more available.
-  // Must be non-negative. 0 will return no results but nextPageToken may be populated.
-  optional int32 max_results = 1 [(buf.validate.field).int32.gte = 0];
+  optional int32 max_results = 1 [
+    (buf.validate.field).int32.gte = 0,
+    (google.api.field_behavior) = OPTIONAL
+  ];
 
   // Specifies a page token to use. Set pageToken to the nextPageToken returned
   // by a previous list request to get the next page of results.
-  // next_page_token will not be returned in a response if there are no more results available.
-  optional string page_token = 2;
+  optional string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListSharesResponse {
@@ -111,77 +105,65 @@ message ListSharesResponse {
 
 message GetShareRequest {
   // The share name to query. It's case-insensitive.
-  string share = 1 [
+  string name = 1 [
     (buf.validate.field).string.min_len = 1,
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
 }
 
-message GetShareResponse {
-  // The share that was requested.
-  Share share = 1;
-}
-
 message ListSchemasRequest {
+  // The share name to query. It's case-insensitive.
+  string share = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+
   // The maximum number of results per page that should be returned.
-  // If the number of available results is larger than maxResults, the response
-  // will provide a next_page_token that can be used to get the next page of results
-  // in subsequent list requests. The server may return fewer than maxResults
-  // items even if there are more available. The client should check nextPageToken
-  // in the response to determine if there are more available.
-  // Must be non-negative. 0 will return no results but nextPageToken may be populated.
-  optional int32 max_results = 1 [(buf.validate.field).int32.gte = 0];
+  optional int32 max_results = 2 [
+    (buf.validate.field).int32.gte = 0,
+    (google.api.field_behavior) = OPTIONAL
+  ];
 
   // Specifies a page token to use. Set pageToken to the nextPageToken returned
   // by a previous list request to get the next page of results.
-  // next_page_token will not be returned in a response if there are no more results available.
-  optional string page_token = 2;
-
-  // The share name to query. It's case-insensitive.
-  string share = 3 [
-    (buf.validate.field).string.min_len = 1,
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
-  ];
+  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListSchemasResponse {
   // The schemas that were requested.
   repeated Schema items = 1;
+
   // Token that can be used to retrieve the next page of schemas.
   // An empty or missing token means that no more schemas are available for retrieval.
   optional string next_page_token = 2;
 }
 
 message ListSchemaTablesRequest {
-  // The maximum number of results per page that should be returned.
-  // If the number of available results is larger than maxResults, the response
-  // will provide a next_page_token that can be used to get the next page of results
-  // in subsequent list requests. The server may return fewer than maxResults
-  // items even if there are more available. The client should check nextPageToken
-  // in the response to determine if there are more available.
-  // Must be non-negative. 0 will return no results but nextPageToken may be populated.
-  optional int32 max_results = 1 [(buf.validate.field).int32.gte = 0];
-
-  // Specifies a page token to use. Set pageToken to the nextPageToken returned
-  // by a previous list request to get the next page of results.
-  // next_page_token will not be returned in a response if there are no more results available.
-  optional string page_token = 2;
+  // The schema name to query. It's case-insensitive.
+  string schema = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+  ];
 
   // The share name to query. It's case-insensitive.
-  string share = 3 [
+  string share = 2 [
     (buf.validate.field).string.min_len = 1,
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
 
-  // The schema name to query. It's case-insensitive.
-  string schema = 4 [
-    (buf.validate.field).string.min_len = 1,
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 3 [
+    (buf.validate.field).int32.gte = 1,
+    (google.api.field_behavior) = OPTIONAL
   ];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  optional string page_token = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListSchemaTablesResponse {
@@ -193,26 +175,22 @@ message ListSchemaTablesResponse {
 }
 
 message ListShareTablesRequest {
-  // The maximum number of results per page that should be returned.
-  // If the number of available results is larger than maxResults, the response
-  // will provide a next_page_token that can be used to get the next page of results
-  // in subsequent list requests. The server may return fewer than maxResults
-  // items even if there are more available. The client should check nextPageToken
-  // in the response to determine if there are more available.
-  // Must be non-negative. 0 will return no results but nextPageToken may be populated.
-  optional int32 max_results = 1 [(buf.validate.field).int32.gte = 0];
-
-  // Specifies a page token to use. Set pageToken to the nextPageToken returned
-  // by a previous list request to get the next page of results.
-  // next_page_token will not be returned in a response if there are no more results available.
-  optional string page_token = 2;
-
   // The share name to query. It's case-insensitive.
-  string share = 3 [
+  string share = 1 [
     (buf.validate.field).string.min_len = 1,
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
+
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 2 [
+    (buf.validate.field).int32.gte = 0,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListShareTablesResponse {

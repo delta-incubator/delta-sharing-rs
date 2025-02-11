@@ -97,14 +97,12 @@ impl DiscoveryHandler for InMemoryHandler {
         })
     }
 
-    async fn get_share(&self, request: GetShareRequest) -> Result<GetShareResponse> {
-        if self.shares.contains_key(&request.share) {
-            let id = Uuid::new_v5(&Uuid::NAMESPACE_OID, request.share.as_bytes());
-            Ok(GetShareResponse {
-                share: Some(Share {
-                    id: Some(id.to_string()),
-                    name: request.share,
-                }),
+    async fn get_share(&self, request: GetShareRequest) -> Result<Share> {
+        if self.shares.contains_key(&request.name) {
+            let id = Uuid::new_v5(&Uuid::NAMESPACE_OID, request.name.as_bytes());
+            Ok(Share {
+                id: Some(id.to_string()),
+                name: request.name,
             })
         } else {
             Err(Error::NotFound)
@@ -253,16 +251,17 @@ mod tests {
 
         let share = handler
             .get_share(GetShareRequest {
-                share: "share1".to_string(),
+                name: "share1".to_string(),
             })
             .await
             .unwrap();
-        assert_eq!(share.share.unwrap().name, "share1");
+        assert_eq!(share.name, "share1");
 
         let schemas = handler
             .list_schemas(ListSchemasRequest {
                 share: "share1".to_string(),
-                pagination: None,
+                max_results: None,
+                page_token: None,
             })
             .await
             .unwrap();
@@ -273,7 +272,8 @@ mod tests {
             .list_schema_tables(ListSchemaTablesRequest {
                 share: "share1".to_string(),
                 schema: "schema1".to_string(),
-                pagination: None,
+                max_results: None,
+                page_token: None,
             })
             .await
             .unwrap();
@@ -283,7 +283,8 @@ mod tests {
         let tables = handler
             .list_share_tables(ListShareTablesRequest {
                 share: "share1".to_string(),
-                pagination: None,
+                max_results: None,
+                page_token: None,
             })
             .await
             .unwrap();

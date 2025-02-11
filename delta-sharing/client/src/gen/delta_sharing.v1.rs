@@ -5,12 +5,12 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Share {
-    /// Unique identifier for the share.
-    #[prost(string, optional, tag="1")]
-    pub id: ::core::option::Option<::prost::alloc::string::String>,
     /// Name of the share.
-    #[prost(string, tag="2")]
+    #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
+    /// Unique identifier for the share.
+    #[prost(string, optional, tag="2")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// A schema is a logical grouping of tables. A schema may contain multiple tables.
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -47,17 +47,10 @@ pub struct Table {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSharesRequest {
     /// The maximum number of results per page that should be returned.
-    /// If the number of available results is larger than maxResults, the response
-    /// will provide a next_page_token that can be used to get the next page of results
-    /// in subsequent list requests. The server may return fewer than maxResults
-    /// items even if there are more available. The client should check nextPageToken
-    /// in the response to determine if there are more available.
-    /// Must be non-negative. 0 will return no results but nextPageToken may be populated.
     #[prost(int32, optional, tag="1")]
     pub max_results: ::core::option::Option<i32>,
     /// Specifies a page token to use. Set pageToken to the nextPageToken returned
     /// by a previous list request to get the next page of results.
-    /// next_page_token will not be returned in a response if there are no more results available.
     #[prost(string, optional, tag="2")]
     pub page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
@@ -77,35 +70,21 @@ pub struct ListSharesResponse {
 pub struct GetShareRequest {
     /// The share name to query. It's case-insensitive.
     #[prost(string, tag="1")]
-    pub share: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GetShareResponse {
-    /// The share that was requested.
-    #[prost(message, optional, tag="1")]
-    pub share: ::core::option::Option<Share>,
+    pub name: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSchemasRequest {
+    /// The share name to query. It's case-insensitive.
+    #[prost(string, tag="1")]
+    pub share: ::prost::alloc::string::String,
     /// The maximum number of results per page that should be returned.
-    /// If the number of available results is larger than maxResults, the response
-    /// will provide a next_page_token that can be used to get the next page of results
-    /// in subsequent list requests. The server may return fewer than maxResults
-    /// items even if there are more available. The client should check nextPageToken
-    /// in the response to determine if there are more available.
-    /// Must be non-negative. 0 will return no results but nextPageToken may be populated.
-    #[prost(int32, optional, tag="1")]
+    #[prost(int32, optional, tag="2")]
     pub max_results: ::core::option::Option<i32>,
     /// Specifies a page token to use. Set pageToken to the nextPageToken returned
     /// by a previous list request to get the next page of results.
-    /// next_page_token will not be returned in a response if there are no more results available.
-    #[prost(string, optional, tag="2")]
+    #[prost(string, optional, tag="3")]
     pub page_token: ::core::option::Option<::prost::alloc::string::String>,
-    /// The share name to query. It's case-insensitive.
-    #[prost(string, tag="3")]
-    pub share: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -121,26 +100,19 @@ pub struct ListSchemasResponse {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSchemaTablesRequest {
+    /// The schema name to query. It's case-insensitive.
+    #[prost(string, tag="1")]
+    pub schema: ::prost::alloc::string::String,
+    /// The share name to query. It's case-insensitive.
+    #[prost(string, tag="2")]
+    pub share: ::prost::alloc::string::String,
     /// The maximum number of results per page that should be returned.
-    /// If the number of available results is larger than maxResults, the response
-    /// will provide a next_page_token that can be used to get the next page of results
-    /// in subsequent list requests. The server may return fewer than maxResults
-    /// items even if there are more available. The client should check nextPageToken
-    /// in the response to determine if there are more available.
-    /// Must be non-negative. 0 will return no results but nextPageToken may be populated.
-    #[prost(int32, optional, tag="1")]
+    #[prost(int32, optional, tag="3")]
     pub max_results: ::core::option::Option<i32>,
     /// Specifies a page token to use. Set pageToken to the nextPageToken returned
     /// by a previous list request to get the next page of results.
-    /// next_page_token will not be returned in a response if there are no more results available.
-    #[prost(string, optional, tag="2")]
+    #[prost(string, optional, tag="4")]
     pub page_token: ::core::option::Option<::prost::alloc::string::String>,
-    /// The share name to query. It's case-insensitive.
-    #[prost(string, tag="3")]
-    pub share: ::prost::alloc::string::String,
-    /// The schema name to query. It's case-insensitive.
-    #[prost(string, tag="4")]
-    pub schema: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -156,23 +128,16 @@ pub struct ListSchemaTablesResponse {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListShareTablesRequest {
+    /// The share name to query. It's case-insensitive.
+    #[prost(string, tag="1")]
+    pub share: ::prost::alloc::string::String,
     /// The maximum number of results per page that should be returned.
-    /// If the number of available results is larger than maxResults, the response
-    /// will provide a next_page_token that can be used to get the next page of results
-    /// in subsequent list requests. The server may return fewer than maxResults
-    /// items even if there are more available. The client should check nextPageToken
-    /// in the response to determine if there are more available.
-    /// Must be non-negative. 0 will return no results but nextPageToken may be populated.
-    #[prost(int32, optional, tag="1")]
+    #[prost(int32, optional, tag="2")]
     pub max_results: ::core::option::Option<i32>,
     /// Specifies a page token to use. Set pageToken to the nextPageToken returned
     /// by a previous list request to get the next page of results.
-    /// next_page_token will not be returned in a response if there are no more results available.
-    #[prost(string, optional, tag="2")]
+    #[prost(string, optional, tag="3")]
     pub page_token: ::core::option::Option<::prost::alloc::string::String>,
-    /// The share name to query. It's case-insensitive.
-    #[prost(string, tag="3")]
-    pub share: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -247,15 +212,15 @@ pub struct Metadata {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetTableVersionRequest {
-    /// The share name to query. It's case-insensitive.
+    /// The table name to query. It's case-insensitive.
     #[prost(string, tag="1")]
-    pub share: ::prost::alloc::string::String,
+    pub name: ::prost::alloc::string::String,
     /// The schema name to query. It's case-insensitive.
     #[prost(string, tag="2")]
     pub schema: ::prost::alloc::string::String,
-    /// The table name to query. It's case-insensitive.
+    /// The share name to query. It's case-insensitive.
     #[prost(string, tag="3")]
-    pub table: ::prost::alloc::string::String,
+    pub share: ::prost::alloc::string::String,
     /// The startingTimestamp of the query, a string in the  ISO8601 format, in the UTC timezone,
     /// such as 2022-01-01T00:00:00Z. the server needs to return the earliest table version at
     /// or after the provided timestamp, can be earlier than the timestamp of table version 0.
@@ -272,15 +237,15 @@ pub struct GetTableVersionResponse {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetTableMetadataRequest {
-    /// The share name to query. It's case-insensitive.
+    /// The table name to query. It's case-insensitive.
     #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+    /// The share name to query. It's case-insensitive.
+    #[prost(string, tag="2")]
     pub share: ::prost::alloc::string::String,
     /// The schema name to query. It's case-insensitive.
-    #[prost(string, tag="2")]
-    pub schema: ::prost::alloc::string::String,
-    /// The table name to query. It's case-insensitive.
     #[prost(string, tag="3")]
-    pub table: ::prost::alloc::string::String,
+    pub schema: ::prost::alloc::string::String,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

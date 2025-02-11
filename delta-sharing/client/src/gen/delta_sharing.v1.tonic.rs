@@ -114,10 +114,7 @@ pub mod delta_sharing_service_client {
         pub async fn get_share(
             &mut self,
             request: impl tonic::IntoRequest<super::GetShareRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetShareResponse>,
-            tonic::Status,
-        > {
+        ) -> std::result::Result<tonic::Response<super::Share>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -138,8 +135,6 @@ pub mod delta_sharing_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        /** List the schemas in a share.
-*/
         pub async fn list_schemas(
             &mut self,
             request: impl tonic::IntoRequest<super::ListSchemasRequest>,

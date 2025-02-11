@@ -53,7 +53,7 @@ generate:
     @just clean-openapi
 
 clean-openapi:
-    npx @redocly/cli bundle --remove-unused-components openapi/openapi.yaml > tmp.yaml
+    npx -y @redocly/cli bundle --remove-unused-components openapi/openapi.yaml > tmp.yaml
     mv tmp.yaml openapi/openapi.yaml
 
 # run the delta-sharing server with the dev config

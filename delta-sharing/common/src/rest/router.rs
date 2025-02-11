@@ -22,8 +22,8 @@ async fn get_share(
     State(handler): State<DeltaSharingHandler>,
     Extension(recipient): Extension<Recipient>,
     request: GetShareRequest,
-) -> Result<Json<GetShareResponse>> {
-    check_read_share_permission(handler.policy.as_ref(), &request.share, &recipient).await?;
+) -> Result<Json<Share>> {
+    check_read_share_permission(handler.policy.as_ref(), &request.name, &recipient).await?;
     Ok(Json(handler.discovery.get_share(request).await?))
 }
 
@@ -266,8 +266,8 @@ mod tests {
         assert!(response.status().is_success());
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let result = serde_json::from_slice::<GetShareResponse>(&body).unwrap();
-        assert!(matches!(result, GetShareResponse { share: Some(_) }));
+        let result = serde_json::from_slice::<Share>(&body).unwrap();
+        assert!(matches!(result, Share { .. }));
     }
 
     #[tokio::test]
