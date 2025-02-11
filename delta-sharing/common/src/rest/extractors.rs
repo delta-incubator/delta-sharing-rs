@@ -2,7 +2,7 @@
 
 use axum::extract::{FromRequestParts, Path, Query};
 use axum::http::request::Parts;
-use axum::{async_trait, RequestPartsExt};
+use axum::RequestPartsExt;
 use serde::Deserialize;
 
 use crate::models::v1::*;
@@ -10,7 +10,6 @@ use crate::Error;
 
 macro_rules! impl_get_request {
     ($request_type:ident { $($field:ident: $field_type:ty),+ }) => {
-        #[async_trait]
         impl<S: Send + Sync> FromRequestParts<S> for $request_type {
             type Rejection = Error;
 
@@ -43,7 +42,6 @@ struct Pagination {
 macro_rules! impl_list_request {
     // Matcher for requests with only pagination (no path parameters)
     ($request_type:ident {}) => {
-        #[async_trait]
         impl<S: Send + Sync> FromRequestParts<S> for $request_type {
             type Rejection = Error;
 
@@ -58,7 +56,6 @@ macro_rules! impl_list_request {
     };
     // Matcher for requests with both path parameters and pagination
     ($request_type:ident { $($field:ident: $field_type:ty),+ }) => {
-        #[async_trait]
         impl<S: Send + Sync> FromRequestParts<S> for $request_type {
             type Rejection = Error;
 
@@ -88,7 +85,6 @@ struct GetTableVersionQuery {
     starting_timestamp: Option<String>,
 }
 
-#[async_trait]
 impl<S: Send + Sync> FromRequestParts<S> for GetTableVersionRequest {
     type Rejection = Error;
 
