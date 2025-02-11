@@ -52,7 +52,7 @@ pub trait DiscoveryHandler: Send + Sync + 'static {
     ) -> Result<ListSharesResponse>;
 
     /// Get a share by name.
-    async fn get_share(&self, request: GetShareRequest) -> Result<GetShareResponse>;
+    async fn get_share(&self, request: GetShareRequest) -> Result<Share>;
 
     /// List all schemas in a share.
     async fn list_schemas(&self, request: ListSchemasRequest) -> Result<ListSchemasResponse>;

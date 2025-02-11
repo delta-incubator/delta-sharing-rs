@@ -25,7 +25,7 @@ impl DeltaSharingService for DeltaSharingHandler {
     async fn get_share(
         &self,
         request: Request<GetShareRequest>,
-    ) -> Result<Response<GetShareResponse>, Status> {
+    ) -> Result<Response<Share>, Status> {
         let result = self.discovery.get_share(request.into_inner()).await?;
         Ok(Response::new(result))
     }

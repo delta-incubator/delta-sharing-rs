@@ -7,7 +7,7 @@ use crate::{ClientOptions, CredentialProvider, Error, Result, RetryConfig};
 #[async_trait::async_trait]
 pub trait ServiceClient: Send + Sync + 'static {
     async fn list_shares(&self, request: ListSharesRequest) -> Result<ListSharesResponse>;
-    async fn get_share(&self, request: GetShareRequest) -> Result<GetShareResponse>;
+    async fn get_share(&self, request: GetShareRequest) -> Result<Share>;
     async fn list_schemas(&self, request: ListSchemasRequest) -> Result<ListSchemasResponse>;
     async fn list_schema_tables(
         &self,
@@ -52,7 +52,7 @@ impl ServiceClient for RestServiceClient {
             .client
             .request(Method::GET, url)
             .header(header::AUTHORIZATION, cred.as_str());
-        req = add_pagination_query(req, request.pagination);
+        req = add_pagination_query(req, request.max_results, request.page_token);
 
         let body = req
             .send_retry(&self.retry_config)
@@ -71,8 +71,8 @@ impl ServiceClient for RestServiceClient {
         })
     }
 
-    async fn get_share(&self, request: GetShareRequest) -> Result<GetShareResponse> {
-        let url = self.endpoint.join(&format!("shares/{}", request.share))?;
+    async fn get_share(&self, request: GetShareRequest) -> Result<Share> {
+        let url = self.endpoint.join(&format!("shares/{}", request.name))?;
         let cred = self.credential_provider.get_credential().await?;
 
         let body = self
@@ -105,7 +105,7 @@ impl ServiceClient for RestServiceClient {
             .client
             .request(Method::GET, url)
             .header(header::AUTHORIZATION, cred.as_str());
-        req = add_pagination_query(req, request.pagination);
+        req = add_pagination_query(req, request.max_results, request.page_token);
 
         let body = req
             .send_retry(&self.retry_config)
@@ -138,7 +138,7 @@ impl ServiceClient for RestServiceClient {
             .client
             .request(Method::GET, url)
             .header(header::AUTHORIZATION, cred.as_str());
-        req = add_pagination_query(req, request.pagination);
+        req = add_pagination_query(req, request.max_results, request.page_token);
 
         let body = req
             .send_retry(&self.retry_config)
@@ -170,7 +170,7 @@ impl ServiceClient for RestServiceClient {
             .client
             .request(Method::GET, url)
             .header(header::AUTHORIZATION, cred.as_str());
-        req = add_pagination_query(req, request.pagination);
+        req = add_pagination_query(req, request.max_results, request.page_token);
 
         let body = req
             .send_retry(&self.retry_config)
@@ -192,15 +192,14 @@ impl ServiceClient for RestServiceClient {
 
 fn add_pagination_query(
     mut req: reqwest::RequestBuilder,
-    pagination: Option<Pagination>,
+    max_results: Option<i32>,
+    page_token: Option<String>,
 ) -> reqwest::RequestBuilder {
-    if let Some(pagination) = pagination {
-        if let Some(max_results) = pagination.max_results {
-            req = req.query(&[("maxResults", max_results)]);
-        }
-        if let Some(page_token) = pagination.page_token {
-            req = req.query(&[("pageToken", page_token)]);
-        }
+    if let Some(max_results) = max_results {
+        req = req.query(&[("maxResults", max_results)]);
+    }
+    if let Some(page_token) = page_token {
+        req = req.query(&[("pageToken", page_token)]);
     }
     req
 }

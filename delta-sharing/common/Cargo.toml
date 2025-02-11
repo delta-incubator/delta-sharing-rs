@@ -48,7 +48,7 @@ ring = { version = "0.17.8", default-features = false, features = [
 ], optional = true }
 
 # axum handler dependencies (in alphabetical order)
-axum = { version = "0.7.5", optional = true }
+axum = { version = "0.8", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }

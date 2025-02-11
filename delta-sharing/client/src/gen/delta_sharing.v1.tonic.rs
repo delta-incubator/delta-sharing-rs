@@ -4,7 +4,6 @@ pub mod delta_sharing_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
-    ///
     #[derive(Debug, Clone)]
     pub struct DeltaSharingServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -85,8 +84,6 @@ pub mod delta_sharing_service_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        /** List shares accessible to a recipient.
-*/
         pub async fn list_shares(
             &mut self,
             request: impl tonic::IntoRequest<super::ListSharesRequest>,
@@ -114,15 +111,10 @@ pub mod delta_sharing_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        /** Get the metadata for a specific share.
-*/
         pub async fn get_share(
             &mut self,
             request: impl tonic::IntoRequest<super::GetShareRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetShareResponse>,
-            tonic::Status,
-        > {
+        ) -> std::result::Result<tonic::Response<super::Share>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -143,8 +135,6 @@ pub mod delta_sharing_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        /** List the schemas in a share.
-*/
         pub async fn list_schemas(
             &mut self,
             request: impl tonic::IntoRequest<super::ListSchemasRequest>,

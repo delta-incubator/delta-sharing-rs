@@ -6,8 +6,6 @@ pub mod delta_sharing_service_server {
     /// Generated trait containing gRPC methods that should be implemented for use with DeltaSharingServiceServer.
     #[async_trait]
     pub trait DeltaSharingService: Send + Sync + 'static {
-        /** List shares accessible to a recipient.
-*/
         async fn list_shares(
             &self,
             request: tonic::Request<super::ListSharesRequest>,
@@ -15,17 +13,10 @@ pub mod delta_sharing_service_server {
             tonic::Response<super::ListSharesResponse>,
             tonic::Status,
         >;
-        /** Get the metadata for a specific share.
-*/
         async fn get_share(
             &self,
             request: tonic::Request<super::GetShareRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetShareResponse>,
-            tonic::Status,
-        >;
-        /** List the schemas in a share.
-*/
+        ) -> std::result::Result<tonic::Response<super::Share>, tonic::Status>;
         async fn list_schemas(
             &self,
             request: tonic::Request<super::ListSchemasRequest>,
@@ -66,7 +57,6 @@ pub mod delta_sharing_service_server {
             request: tonic::Request<super::GetTableMetadataRequest>,
         ) -> std::result::Result<tonic::Response<super::QueryResponse>, tonic::Status>;
     }
-    ///
     #[derive(Debug)]
     pub struct DeltaSharingServiceServer<T: DeltaSharingService> {
         inner: Arc<T>,
@@ -196,7 +186,7 @@ pub mod delta_sharing_service_server {
                         T: DeltaSharingService,
                     > tonic::server::UnaryService<super::GetShareRequest>
                     for GetShareSvc<T> {
-                        type Response = super::GetShareResponse;
+                        type Response = super::Share;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,

@@ -3,61 +3,101 @@ syntax = "proto3";
 package delta_sharing.v1;
 
 import "buf/validate/validate.proto";
-
-message Pagination {
-  // The maximum number of results per page that should be returned.
-  // If the number of available results is larger than maxResults, the response
-  // will provide a next_page_token that can be used to get the next page of results
-  // in subsequent list requests. The server may return fewer than maxResults
-  // items even if there are more available. The client should check nextPageToken
-  // in the response to determine if there are more available.
-  // Must be non-negative. 0 will return no results but nextPageToken may be populated.
-  optional int32 max_results = 1 [(buf.validate.field).int32.gte = 0];
-
-  // Specifies a page token to use. Set pageToken to the nextPageToken returned
-  // by a previous list request to get the next page of results.
-  // next_page_token will not be returned in a response if there are no more results available.
-  optional string page_token = 2;
-}
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
 
 // A share is a logical grouping to share with recipients. A share can be shared with one or multiple recipients.
 // A recipient can access all resources in a share. A share may contain multiple schemas.
 message Share {
-  // Unique identifier for the share.
-  optional string id = 1;
+  option (google.api.resource) = {
+    type: "sharing.delta.io/Share"
+    pattern: "shares/{share}"
+    singular: "share"
+    plural: "shares"
+  };
+
   // Name of the share.
-  string name = 2;
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = IDENTIFIER
+  ];
+
+  // Unique identifier for the share.
+  optional string id = 2;
 }
 
 // A schema is a logical grouping of tables. A schema may contain multiple tables.
 message Schema {
+  option (google.api.resource) = {
+    type: "sharing.delta.io/Schema"
+    pattern: "shares/{share}/schemas/{schema}"
+    singular: "schema"
+    plural: "schemas"
+  };
+
   // The name of the schama
-  string name = 1;
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = IDENTIFIER
+  ];
+
   // The share name that the schema belongs to.
-  string share = 2;
+  string share = 2 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
 }
 
 // A table is a Delta Lake table or a view on top of a Delta Lake table.
 message Table {
-  // Unique identifier for the table.
-  optional string id = 1;
+  option (google.api.resource) = {
+    type: "sharing.delta.io/Table"
+    pattern: "shares/{share}/schemas/{schema}/tables/{table}"
+    singular: "table"
+    plural: "tables"
+  };
+
   // The name of the table.
-  string name = 2;
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = IDENTIFIER
+  ];
+
   // The schema name that the table belongs to.
-  string schema = 3;
+  string schema = 2 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+  ];
+
   // The share name that the table belongs to.
-  string share = 4;
+  string share = 3 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+
+  // Unique identifier for the table.
+  optional string id = 4;
+
   // A unique identifier for the share this table belongs to.
   optional string share_id = 5;
 }
 
 message ListSharesRequest {
-  Pagination pagination = 1;
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 1 [
+    (buf.validate.field).int32.gte = 0,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  optional string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListSharesResponse {
   // The shares that were requested.
   repeated Share items = 1;
+
   // Token that can be used to retrieve the next page of shares.
   // An empty or missing token means that no more shares are available for retrieval.
   optional string next_page_token = 2;
@@ -65,37 +105,65 @@ message ListSharesResponse {
 
 message GetShareRequest {
   // The share name to query. It's case-insensitive.
-  string share = 1;
-}
-
-message GetShareResponse {
-  // The share that was requested.
-  Share share = 1;
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
 }
 
 message ListSchemasRequest {
-  Pagination pagination = 1;
-
   // The share name to query. It's case-insensitive.
-  string share = 2 [(buf.validate.field).string.min_len = 1];
+  string share = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 2 [
+    (buf.validate.field).int32.gte = 0,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListSchemasResponse {
   // The schemas that were requested.
   repeated Schema items = 1;
+
   // Token that can be used to retrieve the next page of schemas.
   // An empty or missing token means that no more schemas are available for retrieval.
   optional string next_page_token = 2;
 }
 
 message ListSchemaTablesRequest {
-  Pagination pagination = 1;
+  // The schema name to query. It's case-insensitive.
+  string schema = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+  ];
 
   // The share name to query. It's case-insensitive.
-  string share = 2 [(buf.validate.field).string.min_len = 1];
+  string share = 2 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
 
-  // The schema name to query. It's case-insensitive.
-  string schema = 3 [(buf.validate.field).string.min_len = 1];
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 3 [
+    (buf.validate.field).int32.gte = 1,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  optional string page_token = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListSchemaTablesResponse {
@@ -107,15 +175,28 @@ message ListSchemaTablesResponse {
 }
 
 message ListShareTablesRequest {
-  Pagination pagination = 1;
-
   // The share name to query. It's case-insensitive.
-  string share = 2 [(buf.validate.field).string.min_len = 1];
+  string share = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 2 [
+    (buf.validate.field).int32.gte = 0,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 message ListShareTablesResponse {
   // The tables that were requested.
   repeated Table items = 1;
+
   // Token that can be used to retrieve the next page of tables.
   // An empty or missing token means that no more tables are available for retrieval.
   optional string next_page_token = 2;

@@ -16,7 +16,7 @@ plugins:
       - bytes=.
       - compile_well_known_types
       - extern_path=.google.protobuf=::pbjson_types
-      - file_descriptor_set=true
+      - file_descriptor_set=false
   - remote: buf.build/community/neoeinstein-prost-serde:v0.3.1
     out: delta-sharing/common/src/gen
     opt:
@@ -33,7 +33,7 @@ plugins:
       - bytes=.
       - compile_well_known_types
       - extern_path=.google.protobuf=::pbjson_types
-      - file_descriptor_set=true
+      - file_descriptor_set=false
   - remote: buf.build/community/neoeinstein-prost-serde:v0.3.1
     out: delta-sharing/client/src/gen
   - remote: buf.build/community/neoeinstein-tonic:v0.4.1
@@ -41,10 +41,5 @@ plugins:
     opt:
       - no_server=true
       - extern_path=.google.protobuf=::pbjson_types
-  # - remote: buf.build/grpc-ecosystem/openapiv2:v2.23.0
-  #   out: schema
-  #   opt:
-  #     - openapi_naming_strategy=simple
-  #     - allow_merge=true
   - remote: buf.build/community/google-gnostic-openapi:v0.7.0
     out: openapi
