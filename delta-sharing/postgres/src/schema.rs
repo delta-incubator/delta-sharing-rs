@@ -48,11 +48,9 @@ impl PgSharingRepo {
 impl SharingRepo for PgSharingRepo {
     async fn add_table(&self, record: &TableRecord) -> Result<Uuid> {
         let rec = sqlx::query!(
-            r#"
-INSERT INTO table_metadata ( id, name, location )
-VALUES ( $1, $2, $3 )
-RETURNING id
-        "#,
+            r#"INSERT INTO table_metadata ( id, name, location )
+               VALUES ( $1, $2, $3 )
+               RETURNING id"#,
             record.id,
             record.name,
             record.location.as_str()

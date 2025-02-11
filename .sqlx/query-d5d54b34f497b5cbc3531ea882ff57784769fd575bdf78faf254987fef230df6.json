@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\nINSERT INTO table_metadata ( id, name, location )\nVALUES ( $1, $2, $3 )\nRETURNING id\n        ",
+  "query": "INSERT INTO table_metadata ( id, name, location )\n               VALUES ( $1, $2, $3 )\n               RETURNING id",
   "describe": {
     "columns": [
       {
@@ -20,5 +20,5 @@
       false
     ]
   },
-  "hash": "a6ed1ec6319c2dc38e147fb8cb18daf0173b42e3ca17c09dddead2e90b3f5e5a"
+  "hash": "d5d54b34f497b5cbc3531ea882ff57784769fd575bdf78faf254987fef230df6"
 }

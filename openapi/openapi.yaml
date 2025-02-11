@@ -1,4 +1,4 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
   title: Delta Sharing API
   description: An Open Protocol for Secure Data Sharing
@@ -42,18 +42,18 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ListSharesResponse"
+                $ref: '#/components/schemas/ListSharesResponse'
         default:
           description: Default error response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Status"
+                $ref: '#/components/schemas/Status'
   /shares/{share}:
     get:
       tags:
@@ -70,18 +70,18 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Share"
+                $ref: '#/components/schemas/Share'
         default:
           description: Default error response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Status"
+                $ref: '#/components/schemas/Status'
   /shares/{share}/all-tables:
     get:
       tags:
@@ -116,18 +116,18 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ListShareTablesResponse"
+                $ref: '#/components/schemas/ListShareTablesResponse'
         default:
           description: Default error response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Status"
+                $ref: '#/components/schemas/Status'
   /shares/{share}/schemas:
     get:
       tags:
@@ -162,18 +162,18 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ListSchemasResponse"
+                $ref: '#/components/schemas/ListSchemasResponse'
         default:
           description: Default error response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Status"
+                $ref: '#/components/schemas/Status'
   /shares/{share}/schemas/{parent}/tables:
     get:
       tags:
@@ -213,18 +213,18 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ListSchemaTablesResponse"
+                $ref: '#/components/schemas/ListSchemaTablesResponse'
         default:
           description: Default error response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Status"
+                $ref: '#/components/schemas/Status'
   /shares/{share}/schemas/{schema}/tables/{name}/metadata:
     get:
       tags:
@@ -252,18 +252,18 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/QueryResponse"
+                $ref: '#/components/schemas/QueryResponse'
         default:
           description: Default error response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Status"
+                $ref: '#/components/schemas/Status'
   /shares/{share}/schemas/{schema}/tables/{name}/version:
     get:
       tags:
@@ -300,32 +300,32 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GetTableVersionResponse"
+                $ref: '#/components/schemas/GetTableVersionResponse'
         default:
           description: Default error response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Status"
+                $ref: '#/components/schemas/Status'
 components:
   schemas:
     AdditionalPropertiesItem:
       type: object
       properties:
         schemaOrReference:
-          $ref: "#/components/schemas/SchemaOrReference"
+          $ref: '#/components/schemas/SchemaOrReference'
         boolean:
           type: boolean
     Any:
       type: object
       properties:
         value:
-          $ref: "#/components/schemas/GoogleProtobufAny"
+          $ref: '#/components/schemas/GoogleProtobufAny'
         yaml:
           type: string
     DefaultType:
@@ -342,27 +342,27 @@ components:
       type: object
       properties:
         protocol:
-          $ref: "#/components/schemas/ProtocolDelta"
+          $ref: '#/components/schemas/ProtocolDelta'
         metadata:
-          $ref: "#/components/schemas/MetadatDelta"
+          $ref: '#/components/schemas/MetadatDelta'
     DeltaResponse:
       type: object
       properties:
         entries:
           type: array
           items:
-            $ref: "#/components/schemas/DeltaLogMessage"
+            $ref: '#/components/schemas/DeltaLogMessage'
     Discriminator:
       type: object
       properties:
         propertyName:
           type: string
         mapping:
-          $ref: "#/components/schemas/Strings"
+          $ref: '#/components/schemas/Strings'
         specificationExtension:
           type: array
           items:
-            $ref: "#/components/schemas/NamedAny"
+            $ref: '#/components/schemas/NamedAny'
       description: When request bodies or response payloads may be one of a number of different schemas, a `discriminator` object can be used to aid in serialization, deserialization, and validation.  The discriminator is a specific object in a schema which is used to inform the consumer of the specification of an alternative schema based on the value associated with it.  When using the discriminator, _inline_ schemas will not be considered.
     ExternalDocs:
       type: object
@@ -374,7 +374,7 @@ components:
         specificationExtension:
           type: array
           items:
-            $ref: "#/components/schemas/NamedAny"
+            $ref: '#/components/schemas/NamedAny'
       description: Allows referencing an external resource for extended documentation.
     Format:
       type: object
@@ -396,7 +396,7 @@ components:
     GoogleProtobufAny:
       type: object
       properties:
-        "@type":
+        '@type':
           type: string
           description: The type of the serialized message.
       additionalProperties: true
@@ -407,14 +407,14 @@ components:
         schemaOrReference:
           type: array
           items:
-            $ref: "#/components/schemas/SchemaOrReference"
+            $ref: '#/components/schemas/SchemaOrReference'
     ListSchemaTablesResponse:
       type: object
       properties:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/Table"
+            $ref: '#/components/schemas/Table'
           description: The tables that were requested.
         nextPageToken:
           type: string
@@ -427,7 +427,7 @@ components:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/Schema"
+            $ref: '#/components/schemas/Schema'
           description: The schemas that were requested.
         nextPageToken:
           type: string
@@ -440,7 +440,7 @@ components:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/Table"
+            $ref: '#/components/schemas/Table'
           description: The tables that were requested.
         nextPageToken:
           type: string
@@ -453,7 +453,7 @@ components:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/Share"
+            $ref: '#/components/schemas/Share'
           description: The shares that were requested.
         nextPageToken:
           type: string
@@ -465,7 +465,7 @@ components:
       properties:
         deltaMetadata:
           allOf:
-            - $ref: "#/components/schemas/Metadata"
+            - $ref: '#/components/schemas/Metadata'
           description: Metadata from Delta protocol
         version:
           type: string
@@ -495,7 +495,7 @@ components:
           description: User-provided description for this table
         format:
           allOf:
-            - $ref: "#/components/schemas/Format"
+            - $ref: '#/components/schemas/Format'
           description: Specification of the encoding for the files stored in the table
         schemaString:
           type: string
@@ -527,7 +527,7 @@ components:
           description: User-provided description for this table
         format:
           allOf:
-            - $ref: "#/components/schemas/Format"
+            - $ref: '#/components/schemas/Format'
           description: Specification of the encoding for the files stored in the table
         schemaString:
           type: string
@@ -545,7 +545,7 @@ components:
           description: Map key
         value:
           allOf:
-            - $ref: "#/components/schemas/Any"
+            - $ref: '#/components/schemas/Any'
           description: Mapped value
       description: Automatically-generated message used to represent maps of Any as ordered (name,value) pairs.
     NamedSchemaOrReference:
@@ -556,7 +556,7 @@ components:
           description: Map key
         value:
           allOf:
-            - $ref: "#/components/schemas/SchemaOrReference"
+            - $ref: '#/components/schemas/SchemaOrReference'
           description: Mapped value
       description: Automatically-generated message used to represent maps of SchemaOrReference as ordered (name,value) pairs.
     NamedString:
@@ -573,23 +573,23 @@ components:
       type: object
       properties:
         protocol:
-          $ref: "#/components/schemas/ProtocolParquet"
+          $ref: '#/components/schemas/ProtocolParquet'
         metadata:
-          $ref: "#/components/schemas/MetadataParquet"
+          $ref: '#/components/schemas/MetadataParquet'
     ParquetResponse:
       type: object
       properties:
         entries:
           type: array
           items:
-            $ref: "#/components/schemas/ParquetLogMessage"
+            $ref: '#/components/schemas/ParquetLogMessage'
     Properties:
       type: object
       properties:
         additionalProperties:
           type: array
           items:
-            $ref: "#/components/schemas/NamedSchemaOrReference"
+            $ref: '#/components/schemas/NamedSchemaOrReference'
     ProtocolDelta:
       type: object
       properties:
@@ -616,11 +616,11 @@ components:
       properties:
         parquet:
           allOf:
-            - $ref: "#/components/schemas/ParquetResponse"
+            - $ref: '#/components/schemas/ParquetResponse'
           description: Parquet response format
         delta:
           allOf:
-            - $ref: "#/components/schemas/DeltaResponse"
+            - $ref: '#/components/schemas/DeltaResponse'
           description: Delta response format
     Reference:
       type: object
@@ -638,17 +638,17 @@ components:
         nullable:
           type: boolean
         discriminator:
-          $ref: "#/components/schemas/Discriminator"
+          $ref: '#/components/schemas/Discriminator'
         readOnly:
           type: boolean
         writeOnly:
           type: boolean
         xml:
-          $ref: "#/components/schemas/Xml"
+          $ref: '#/components/schemas/Xml'
         externalDocs:
-          $ref: "#/components/schemas/ExternalDocs"
+          $ref: '#/components/schemas/ExternalDocs'
         example:
-          $ref: "#/components/schemas/Any"
+          $ref: '#/components/schemas/Any'
         deprecated:
           type: boolean
         title:
@@ -689,31 +689,31 @@ components:
         enum:
           type: array
           items:
-            $ref: "#/components/schemas/Any"
+            $ref: '#/components/schemas/Any'
         type:
           type: string
         allOf:
           type: array
           items:
-            $ref: "#/components/schemas/SchemaOrReference"
+            $ref: '#/components/schemas/SchemaOrReference'
         oneOf:
           type: array
           items:
-            $ref: "#/components/schemas/SchemaOrReference"
+            $ref: '#/components/schemas/SchemaOrReference'
         anyOf:
           type: array
           items:
-            $ref: "#/components/schemas/SchemaOrReference"
+            $ref: '#/components/schemas/SchemaOrReference'
         not:
-          $ref: "#/components/schemas/Schema"
+          $ref: '#/components/schemas/Schema'
         items:
-          $ref: "#/components/schemas/ItemsItem"
+          $ref: '#/components/schemas/ItemsItem'
         properties:
-          $ref: "#/components/schemas/Properties"
+          $ref: '#/components/schemas/Properties'
         additionalProperties:
-          $ref: "#/components/schemas/AdditionalPropertiesItem"
+          $ref: '#/components/schemas/AdditionalPropertiesItem'
         default:
-          $ref: "#/components/schemas/DefaultType"
+          $ref: '#/components/schemas/DefaultType'
         description:
           type: string
         format:
@@ -721,15 +721,15 @@ components:
         specificationExtension:
           type: array
           items:
-            $ref: "#/components/schemas/NamedAny"
+            $ref: '#/components/schemas/NamedAny'
       description: The Schema Object allows the definition of input and output data types. These types can be objects, but also primitives and arrays. This object is an extended subset of the JSON Schema Specification Wright Draft 00.  For more information about the properties, see JSON Schema Core and JSON Schema Validation. Unless stated otherwise, the property definitions follow the JSON Schema.
     SchemaOrReference:
       type: object
       properties:
         schema:
-          $ref: "#/components/schemas/Schema"
+          $ref: '#/components/schemas/Schema'
         reference:
-          $ref: "#/components/schemas/Reference"
+          $ref: '#/components/schemas/Reference'
     Share:
       type: object
       properties:
@@ -755,16 +755,16 @@ components:
         details:
           type: array
           items:
-            $ref: "#/components/schemas/GoogleProtobufAny"
+            $ref: '#/components/schemas/GoogleProtobufAny'
           description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
-      description: "The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors)."
+      description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
     Strings:
       type: object
       properties:
         additionalProperties:
           type: array
           items:
-            $ref: "#/components/schemas/NamedString"
+            $ref: '#/components/schemas/NamedString'
     Table:
       type: object
       properties:
@@ -800,5 +800,5 @@ components:
         specificationExtension:
           type: array
           items:
-            $ref: "#/components/schemas/NamedAny"
+            $ref: '#/components/schemas/NamedAny'
       description: A metadata object that allows for more fine-tuned XML model definitions.  When using arrays, XML element names are *not* inferred (for singular/plural forms) and the `name` property SHOULD be used to add that information. See examples for expected behavior.

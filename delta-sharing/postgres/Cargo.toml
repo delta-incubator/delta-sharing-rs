@@ -8,7 +8,7 @@ async-trait = { workspace = true }
 thiserror = { workspace = true }
 url = { workspace = true }
 
-sqlx = { version = "0.7", features = [
+sqlx = { version = "0.8", features = [
     "postgres",
     "chrono",
     "uuid",

@@ -98,7 +98,7 @@ mod server {
     use super::Error;
     use crate::models::ErrorResponse;
 
-    const INTERNAL_ERROR: (StatusCode, &'static str) = (
+    const INTERNAL_ERROR: (StatusCode, &str) = (
         StatusCode::INTERNAL_SERVER_ERROR,
         "The request is not handled correctly due to a server error.",
     );

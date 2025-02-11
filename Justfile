@@ -51,6 +51,7 @@ generate:
     @buf generate proto
     @just delta-sharing/openfga/generate
     @just clean-openapi
+    @cargo clippy --fix --allow-dirty --allow-staged
 
 clean-openapi:
     npx -y @redocly/cli bundle --remove-unused-components openapi/openapi.yaml > tmp.yaml
@@ -95,5 +96,21 @@ load-store:
 udeps:
     cargo +nightly udeps
 
-sqlx-prepare:
+sqlx-prepare: sqlx-prepare-postgres
+    # Wait for PostgreSQL to be ready
+    sleep 3
+    # Run migrations to create tables
+    DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres cargo sqlx migrate run --source ./delta-sharing/postgres/migrations
+    # Prepare SQLx
     cargo sqlx prepare --workspace -- --tests
+    # Clean up
+    docker stop postgres-sqlx && docker rm postgres-sqlx
+
+sqlx-prepare-postgres:
+    docker run -d \
+        --name postgres-sqlx \
+        -e POSTGRES_PASSWORD=postgres \
+        -e POSTGRES_USER=postgres \
+        -e POSTGRES_DB=postgres \
+        -p 5432:5432 \
+        postgres:14
