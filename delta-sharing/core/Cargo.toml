@@ -6,6 +6,7 @@ authors = ["Robert Pack <robstar.pack@gmail.com>"]
 rust-version = "1.81"
 
 [dependencies]
+# path dependencies (in alphabetical order)
 delta-sharing-common = { path = "../common" }
 delta-sharing-client = { path = "../client" }
 
