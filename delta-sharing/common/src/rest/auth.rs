@@ -106,10 +106,10 @@ mod tests {
     use super::*;
 
     async fn check_recipient(req: Request) -> Result<Response<Body>> {
-        assert_eq!(
-            req.extensions().get::<DeltaRecipient>(),
-            Some(&DeltaRecipient::Anonymous)
-        );
+        assert!(matches!(
+            req.extensions().get::<Recipient>(),
+            Some(&Recipient(_))
+        ));
         Ok(Response::new(req.into_body()))
     }
 

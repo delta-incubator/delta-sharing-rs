@@ -602,7 +602,6 @@ mod tests {
         let allow_http = "true".to_string();
         let allow_invalid_certificates = "false".to_string();
         let connect_timeout = "90 seconds".to_string();
-        let default_content_type = "object_store:fake_default_content_type".to_string();
         let http1_only = "true".to_string();
         let http2_only = "false".to_string();
         let http2_keep_alive_interval = "90 seconds".to_string();
@@ -621,7 +620,6 @@ mod tests {
                 allow_invalid_certificates.clone(),
             ),
             ("connect_timeout", connect_timeout.clone()),
-            ("default_content_type", default_content_type.clone()),
             ("http1_only", http1_only.clone()),
             ("http2_only", http2_only.clone()),
             (

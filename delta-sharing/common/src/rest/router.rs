@@ -106,19 +106,19 @@ async fn check_read_share_permission(
 pub fn get_router(state: DeltaSharingHandler) -> Router {
     Router::new()
         .route("/shares", get(list_shares))
-        .route("/shares/:share", get(get_share))
-        .route("/shares/:share/schemas", get(list_schemas))
-        .route("/shares/:share/all-tables", get(list_share_tables))
+        .route("/shares/{share}", get(get_share))
+        .route("/shares/{share}/schemas", get(list_schemas))
+        .route("/shares/{share}/all-tables", get(list_share_tables))
         .route(
-            "/shares/:share/schemas/:schema/tables",
+            "/shares/{share}/schemas/{schema}/tables",
             get(list_schema_tables),
         )
         .route(
-            "/shares/:share/schemas/:schema/tables/:table/version",
+            "/shares/{share}/schemas/{schema}/tables/{table}/version",
             get(get_table_version),
         )
         .route(
-            "/shares/:share/schemas/:schema/tables/:table/metadata",
+            "/shares/{share}/schemas/{schema}/tables/{table}/metadata",
             get(get_table_metadata),
         )
         .with_state(state)
