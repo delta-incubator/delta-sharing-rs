@@ -4,21 +4,38 @@ package delta_sharing.v1;
 
 import "buf/validate/validate.proto";
 import "delta_sharing/v1/protocol.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
 
 message GetTableVersionRequest {
-  // The share name to query. It's case-insensitive.
-  string share = 1 [(buf.validate.field).string.min_len = 1];
+  // The table name to query. It's case-insensitive.
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Table"}
+  ];
 
   // The schema name to query. It's case-insensitive.
-  string schema = 2 [(buf.validate.field).string.min_len = 1];
+  string schema = 2 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+  ];
 
-  // The table name to query. It's case-insensitive.
-  string table = 3 [(buf.validate.field).string.min_len = 1];
+  // The share name to query. It's case-insensitive.
+  string share = 3 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
 
   // The startingTimestamp of the query, a string in the  ISO8601 format, in the UTC timezone,
   // such as 2022-01-01T00:00:00Z. the server needs to return the earliest table version at
   // or after the provided timestamp, can be earlier than the timestamp of table version 0.
-  optional string starting_timestamp = 4;
+  optional string starting_timestamp = 4 [
+    (google.api.field_behavior) = OPTIONAL,
+    (buf.validate.field).string.pattern = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+  ];
 }
 
 message GetTableVersionResponse {
@@ -27,14 +44,26 @@ message GetTableVersionResponse {
 }
 
 message GetTableMetadataRequest {
+  // The table name to query. It's case-insensitive.
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Table"}
+  ];
+
   // The share name to query. It's case-insensitive.
-  string share = 1 [(buf.validate.field).string.min_len = 1];
+  string share = 2 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
 
   // The schema name to query. It's case-insensitive.
-  string schema = 2 [(buf.validate.field).string.min_len = 1];
-
-  // The table name to query. It's case-insensitive.
-  string table = 3 [(buf.validate.field).string.min_len = 1];
+  string schema = 3 [
+    (buf.validate.field).string.min_len = 1,
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+  ];
 }
 
 message QueryResponse {

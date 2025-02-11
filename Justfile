@@ -50,6 +50,11 @@ package:
 generate:
     @buf generate proto
     @just delta-sharing/openfga/generate
+    @just clean-openapi
+
+clean-openapi:
+    npx -y @redocly/cli bundle --remove-unused-components openapi/openapi.yaml > tmp.yaml
+    mv tmp.yaml openapi/openapi.yaml
 
 # run the delta-sharing server with the dev config
 do-it:
@@ -60,7 +65,6 @@ doc:
     cd docs && mdbook serve --open
 
 # load delta acceptance testing (dat) data from the release
-[group('dev')]
 load-dat:
     rm -rf {{ dat_dir }}
     curl -OL https://github.com/delta-incubator/dat/releases/download/v{{ dat_version }}/deltalake-dat-v{{ dat_version }}.tar.gz
@@ -68,31 +72,28 @@ load-dat:
     tar  --no-same-permissions -xzf deltalake-dat-v{{ dat_version }}.tar.gz --directory {{ dat_dir }}
     rm deltalake-dat-v{{ dat_version }}.tar.gz
 
-[group('dev')]
 render-config:
     DIRECTORY={{ justfile_directory() }} DAT={{ dat_dir }} envsubst < config/local.yaml.tpl > {{ local_config }}
 
 # local setup
-[group('dev')]
 local-setup: load-dat render-config
 
-[group('dev')]
 test-common:
     cargo test -p delta-sharing-common
 
 # run the delta-sharing server with the dev config
-[group('server')]
 rest:
     @RUST_LOG=DEBUG cargo run -p delta-sharing rest --config {{ local_config }}
 
-[group('server')]
 grpc:
     @RUST_LOG=DEBUG cargo run -p delta-sharing grpc --config {{ local_config }}
 
-[group('openfga')]
 load-store:
     fga store import --file {{ justfile_directory() }}/delta-sharing/openfga/fga/dev.fga.yaml
 
 # Show unused dependencies
 udeps:
     cargo +nightly udeps
+
+sqlx-prepare:
+    cargo sqlx prepare --workspace -- --tests

@@ -117,7 +117,7 @@ impl TableQueryHandler for KernelQueryHandler {
             .get_snapshot(&TableRef {
                 share: request.share,
                 schema: request.schema,
-                table: request.table,
+                table: request.name,
             })
             .await?;
 
@@ -132,7 +132,7 @@ impl TableQueryHandler for KernelQueryHandler {
             .get_snapshot(&TableRef {
                 share: request.share,
                 schema: request.schema,
-                table: request.table,
+                table: request.name,
             })
             .await?;
         Ok([snapshot.metadata().into(), snapshot.protocol().into()].into())

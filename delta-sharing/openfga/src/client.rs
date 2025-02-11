@@ -88,6 +88,7 @@ impl OpenFgaClient {
                 .list_stores(ListStoresRequest {
                     page_size: None,
                     continuation_token: "".into(),
+                    name: store_name.clone(),
                 })
                 .await?
                 .into_inner();
