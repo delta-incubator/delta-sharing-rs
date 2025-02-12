@@ -81,11 +81,9 @@ impl SharingRepo for PgSharingRepo {
 
     async fn update_table(&self, record: &TableRecord) -> Result<TableRecord> {
         let rec = sqlx::query!(
-            r#"
-UPDATE table_metadata
-SET name = $1, location = $2
-WHERE id = $3
-        "#,
+            r#"UPDATE table_metadata
+               SET name = $1, location = $2
+               WHERE id = $3"#,
             record.name,
             record.location.as_str(),
             record.id
@@ -104,11 +102,11 @@ pub async fn run_migrations(pool: &PgPool) -> Result<()> {
 mod tests {
     use super::*;
 
-    use testcontainers::runners::AsyncRunner;
+    use testcontainers::{runners::AsyncRunner, ImageExt};
     use testcontainers_modules::postgres::Postgres;
 
     pub async fn get_repo() -> Result<PgSharingRepo, Box<dyn std::error::Error + 'static>> {
-        let node = Postgres::default().start().await?;
+        let node = Postgres::default().with_tag("14").start().await?;
         let connection_string = &format!(
             "postgres://postgres:postgres@127.0.0.1:{}/postgres",
             node.get_host_port_ipv4(5432).await?

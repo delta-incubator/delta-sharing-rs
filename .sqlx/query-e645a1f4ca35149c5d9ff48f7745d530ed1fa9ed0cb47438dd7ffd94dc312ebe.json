@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\nUPDATE table_metadata\nSET name = $1, location = $2\nWHERE id = $3\n        ",
+  "query": "UPDATE table_metadata\n               SET name = $1, location = $2\n               WHERE id = $3",
   "describe": {
     "columns": [],
     "parameters": {
@@ -12,5 +12,5 @@
     },
     "nullable": []
   },
-  "hash": "48de4b38931fb102413db7b1734ee393656bcaf9603f36ce3f467ddd442fcca3"
+  "hash": "e645a1f4ca35149c5d9ff48f7745d530ed1fa9ed0cb47438dd7ffd94dc312ebe"
 }
