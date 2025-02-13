@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS table_metadata;
+drop table if exists table_metadata;

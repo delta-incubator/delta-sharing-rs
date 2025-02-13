@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 async-trait = { workspace = true }
+chrono = { workspace = true }
 thiserror = { workspace = true }
 url = { workspace = true }
 

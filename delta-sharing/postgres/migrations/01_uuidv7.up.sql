@@ -1,10 +1,10 @@
-/* Script lifted from https://github.com/dverite/postgres-uuidv7-sql/blob/main/sql/uuidv7-sql--1.0.sql */
+/* Script adopted from https://github.com/dverite/postgres-uuidv7-sql/blob/main/sql/uuidv7-sql--1.0.sql */
 
 /* See the UUID Version 7 specification at
    https://www.rfc-editor.org/rfc/rfc9562#name-uuid-version-7 */
 
 /* Main function to generate a uuidv7 value with millisecond precision */
-CREATE FUNCTION uuidv7(timestamptz DEFAULT clock_timestamp()) RETURNS uuid
+create or replace function uuidv7(timestamptz DEFAULT clock_timestamp()) RETURNS uuid
 AS $$
   -- Replace the first 48 bits of a uuidv4 with the current
   -- number of milliseconds since 1970-01-01 UTC
@@ -19,9 +19,8 @@ AS $$
       53, 1), 'hex')::uuid;
 $$ LANGUAGE sql volatile parallel safe;
 
-COMMENT ON FUNCTION uuidv7(timestamptz) IS
+comment on function uuidv7(timestamptz) is
 'Generate a uuid-v7 value with a 48-bit timestamp (millisecond precision) and 74 bits of randomness';
-
 
 /* Version with the "rand_a" field containing sub-milliseconds (method 3 of the spec)
    clock_timestamp() is hoped to provide enough precision and consecutive
@@ -33,7 +32,7 @@ COMMENT ON FUNCTION uuidv7(timestamptz) IS
       - 12 bits for the fractional part after the milliseconds
    - 8 bytes of randomness from the second half of a uuidv4
  */
-CREATE FUNCTION uuidv7_sub_ms(timestamptz DEFAULT clock_timestamp()) RETURNS uuid
+create or replace function uuidv7_sub_ms(timestamptz DEFAULT clock_timestamp()) RETURNS uuid
 AS $$
  select encode(
    substring(int8send(floor(t_ms)::int8) from 3) ||
@@ -43,25 +42,24 @@ AS $$
   from (select extract(epoch from $1)*1000 as t_ms) s
 $$ LANGUAGE sql volatile parallel safe;
 
-COMMENT ON FUNCTION uuidv7_sub_ms(timestamptz) IS
+comment on function uuidv7_sub_ms(timestamptz) IS
 'Generate a uuid-v7 value with a 60-bit timestamp (sub-millisecond precision) and 62 bits of randomness';
 
 /* Extract the timestamp in the first 6 bytes of the uuidv7 value.
    Use the fact that 'xHHHHH' (where HHHHH are hexadecimal numbers)
    can be cast to bit(N) and then to int8.
  */
-CREATE FUNCTION uuidv7_extract_timestamp(uuid) RETURNS timestamptz
+create or replace function uuidv7_extract_timestamp(uuid) RETURNS timestamptz
 AS $$
  select to_timestamp(
    right(substring(uuid_send($1) from 1 for 6)::text, -1)::bit(48)::int8 -- milliseconds
     /1000.0);
 $$ LANGUAGE sql immutable strict parallel safe;
 
-COMMENT ON FUNCTION uuidv7_extract_timestamp(uuid) IS
+comment on function uuidv7_extract_timestamp(uuid) is
 'Return the timestamp stored in the first 48 bits of the UUID v7 value';
 
-
-CREATE FUNCTION uuidv7_boundary(timestamptz) RETURNS uuid
+create or replace function uuidv7_boundary(timestamptz) RETURNS uuid
 AS $$
   /* uuid fields: version=0b0111, variant=0b10 */
   select encode(
@@ -71,5 +69,5 @@ AS $$
     'hex')::uuid;
 $$ LANGUAGE sql stable strict parallel safe;
 
-COMMENT ON FUNCTION uuidv7_boundary(timestamptz) IS
+comment on function uuidv7_boundary(timestamptz) is
 'Generate a non-random uuidv7 with the given timestamp (first 48 bits) and all random bits to 0. As the smallest possible uuidv7 for that timestamp, it may be used as a boundary for partitions.';

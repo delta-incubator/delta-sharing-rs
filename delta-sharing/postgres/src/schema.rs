@@ -14,13 +14,15 @@ pub struct TableRecord {
     id: Uuid,
     name: String,
     location: Url,
+    created_at: chrono::DateTime<chrono::Utc>,
+    updated_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[async_trait::async_trait]
 pub trait SharingRepo {
-    async fn add_table(&self, record: &TableRecord) -> Result<Uuid>;
+    async fn add_table(&self, name: &str, location: &str) -> Result<TableRecord>;
     async fn get_table(&self, id: &Uuid) -> Result<TableRecord>;
-    async fn update_table(&self, record: &TableRecord) -> Result<()>;
+    async fn update_table(&self, record: &TableRecord) -> Result<TableRecord>;
 }
 
 pub struct PgSharingRepo {
@@ -53,26 +55,36 @@ impl PgSharingRepo {
 
 #[async_trait::async_trait]
 impl SharingRepo for PgSharingRepo {
-    async fn add_table(&self, record: &TableRecord) -> Result<Uuid> {
+    async fn add_table(&self, name: &str, location: &str) -> Result<TableRecord> {
+        let location = Url::parse(location)?;
         let rec = sqlx::query!(
             r#"
-            INSERT INTO table_metadata ( id, name, location )
-            VALUES ( $1, $2, $3 )
-            RETURNING id
+            INSERT INTO table_metadata ( name, location )
+            VALUES ( $1, $2 )
+            RETURNING id, name, location, created_at, updated_at
             "#,
-            record.id,
-            record.name,
-            record.location.as_str()
+            name,
+            location.as_str()
         )
         .fetch_one(&*self.pg_pool)
         .await?;
 
-        Ok(rec.id)
+        Ok(TableRecord {
+            id: rec.id,
+            name: name.into(),
+            location,
+            created_at: rec.created_at,
+            updated_at: rec.updated_at,
+        })
     }
 
     async fn get_table(&self, id: &Uuid) -> Result<TableRecord> {
         let rec = sqlx::query!(
-            "SELECT id, name, location FROM table_metadata WHERE id = $1",
+            r#"
+            SELECT id, name, location, created_at, updated_at
+            FROM table_metadata
+            WHERE id = $1
+            "#,
             id
         )
         .fetch_one(&*self.pg_pool)
@@ -85,15 +97,18 @@ impl SharingRepo for PgSharingRepo {
             id: rec.id,
             name: rec.name,
             location: Url::parse(rec.location.as_str())?,
+            created_at: rec.created_at,
+            updated_at: rec.updated_at,
         })
     }
 
-    async fn update_table(&self, record: &TableRecord) -> Result<()> {
+    async fn update_table(&self, record: &TableRecord) -> Result<TableRecord> {
         let rec = sqlx::query!(
             r#"
             UPDATE table_metadata
             SET name = $1, location = $2
             WHERE id = $3
+            RETURNING id, name, location
             "#,
             record.name,
             record.location.as_str(),
@@ -101,8 +116,13 @@ impl SharingRepo for PgSharingRepo {
         )
         .fetch_one(&*self.pg_pool)
         .await?;
-        println!("Updated table: {:?}", rec);
-        Ok(())
+        Ok(TableRecord {
+            id: rec.id,
+            name: rec.name,
+            location: Url::parse(rec.location.as_str())?,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        })
     }
 }
 
@@ -118,18 +138,13 @@ mod tests {
     async fn test_tables(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Error + 'static>> {
         let repo = PgSharingRepo::new(pool);
 
-        let mut record = TableRecord {
-            id: Uuid::new_v4(),
-            name: "table_name".into(),
-            location: Url::parse("file:///location").unwrap(),
-        };
-
-        repo.add_table(&record).await?;
+        let mut record = repo.add_table("table_name", "file:///location").await?;
         let retrieved = repo.get_table(&record.id).await?;
         assert_eq!(record.id, retrieved.id);
 
         record.location = Url::parse("file:///location-new").unwrap();
-        repo.update_table(&record).await?;
+        let updated = repo.update_table(&record).await?;
+        assert_eq!(record.location, updated.location);
 
         let retrieved = repo.get_table(&record.id).await?;
         assert_eq!(record.location, retrieved.location);
