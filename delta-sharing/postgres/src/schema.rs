@@ -20,7 +20,7 @@ pub struct TableRecord {
 pub trait SharingRepo {
     async fn add_table(&self, record: &TableRecord) -> Result<Uuid>;
     async fn get_table(&self, id: &Uuid) -> Result<TableRecord>;
-    async fn update_table(&self, record: &TableRecord) -> Result<TableRecord>;
+    async fn update_table(&self, record: &TableRecord) -> Result<()>;
 }
 
 pub struct PgSharingRepo {
@@ -36,11 +36,18 @@ impl PgSharingRepo {
 
     pub async fn connect(url: impl AsRef<str>) -> Result<Self> {
         let pool = PgPool::connect(url.as_ref()).await?;
-        Ok(Self::new(pool))
+        let repo = Self::new(pool);
+        repo.test_connection().await?;
+        Ok(repo)
     }
 
     pub async fn migrate(&self) -> Result<()> {
         run_migrations(&self.pg_pool).await
+    }
+
+    async fn test_connection(&self) -> Result<()> {
+        sqlx::query("SELECT 1").execute(&*self.pg_pool).await?;
+        Ok(())
     }
 }
 
@@ -48,9 +55,11 @@ impl PgSharingRepo {
 impl SharingRepo for PgSharingRepo {
     async fn add_table(&self, record: &TableRecord) -> Result<Uuid> {
         let rec = sqlx::query!(
-            r#"INSERT INTO table_metadata ( id, name, location )
-               VALUES ( $1, $2, $3 )
-               RETURNING id"#,
+            r#"
+            INSERT INTO table_metadata ( id, name, location )
+            VALUES ( $1, $2, $3 )
+            RETURNING id
+            "#,
             record.id,
             record.name,
             record.location.as_str()
@@ -79,18 +88,21 @@ impl SharingRepo for PgSharingRepo {
         })
     }
 
-    async fn update_table(&self, record: &TableRecord) -> Result<TableRecord> {
+    async fn update_table(&self, record: &TableRecord) -> Result<()> {
         let rec = sqlx::query!(
-            r#"UPDATE table_metadata
-               SET name = $1, location = $2
-               WHERE id = $3"#,
+            r#"
+            UPDATE table_metadata
+            SET name = $1, location = $2
+            WHERE id = $3
+            "#,
             record.name,
             record.location.as_str(),
             record.id
         )
         .fetch_one(&*self.pg_pool)
         .await?;
-        todo!()
+        println!("Updated table: {:?}", rec);
+        Ok(())
     }
 }
 
@@ -102,24 +114,9 @@ pub async fn run_migrations(pool: &PgPool) -> Result<()> {
 mod tests {
     use super::*;
 
-    use testcontainers::{runners::AsyncRunner, ImageExt};
-    use testcontainers_modules::postgres::Postgres;
-
-    pub async fn get_repo() -> Result<PgSharingRepo, Box<dyn std::error::Error + 'static>> {
-        let node = Postgres::default().with_tag("14").start().await?;
-        let connection_string = &format!(
-            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            node.get_host_port_ipv4(5432).await?
-        );
-
-        let repo = PgSharingRepo::connect(connection_string).await?;
-        repo.migrate().await?;
-        Ok(repo)
-    }
-
-    #[tokio::test]
-    async fn test_tables() -> Result<(), Box<dyn std::error::Error + 'static>> {
-        let repo = get_repo().await?;
+    #[sqlx::test]
+    async fn test_tables(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Error + 'static>> {
+        let repo = PgSharingRepo::new(pool);
 
         let mut record = TableRecord {
             id: Uuid::new_v4(),

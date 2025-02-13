@@ -96,21 +96,28 @@ load-store:
 udeps:
     cargo +nightly udeps
 
-sqlx-prepare: sqlx-prepare-postgres
+sqlx-prepare: start-pg
     # Wait for PostgreSQL to be ready
-    sleep 3
+    sleep 2
     # Run migrations to create tables
     DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres cargo sqlx migrate run --source ./delta-sharing/postgres/migrations
     # Prepare SQLx
     cargo sqlx prepare --workspace -- --tests
     # Clean up
-    docker stop postgres-sqlx && docker rm postgres-sqlx
+    @just stop-pg
 
-sqlx-prepare-postgres:
+start-pg:
     docker run -d \
-        --name postgres-sqlx \
+        --name postgres-sharing \
         -e POSTGRES_PASSWORD=postgres \
         -e POSTGRES_USER=postgres \
         -e POSTGRES_DB=postgres \
         -p 5432:5432 \
         postgres:14
+
+stop-pg:
+    docker stop postgres-sharing && docker rm postgres-sharing
+
+test-pg: start-pg
+    DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres cargo test -p delta-sharing-postgres -- --nocapture
+    @just stop-pg
