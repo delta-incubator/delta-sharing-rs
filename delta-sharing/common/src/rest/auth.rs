@@ -6,7 +6,7 @@ use axum::response::{IntoResponse, Response};
 use futures_util::{future::BoxFuture, FutureExt};
 use tower::{Layer, Service};
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::{Authenticator, DeltaRecipient, Recipient};
 
 /// Authenticator that always marks the recipient as anonymous.
@@ -30,6 +30,7 @@ pub struct AuthenticationMiddleware<S, T> {
     authenticator: T,
 }
 
+#[allow(unused)]
 impl<S, T> AuthenticationMiddleware<S, T> {
     /// Create new [`AuthenticationMiddleware`].
     pub fn new(inner: S, authenticator: T) -> Self {
@@ -67,7 +68,7 @@ where
                 req.extensions_mut().insert(recipient);
                 self.inner.call(req).boxed()
             }
-            Err(e) => async { Ok(Error::from(e).into_response()) }.boxed(),
+            Err(e) => async { Ok(e.into_response()) }.boxed(),
         }
     }
 }

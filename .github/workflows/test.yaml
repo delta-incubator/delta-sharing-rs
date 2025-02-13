@@ -109,11 +109,11 @@ jobs:
 
     services:
       postgres:
-        image: postgres:alpine
+        image: postgres:15
         env:
-          POSTGRES_DB: sharing
+          POSTGRES_DB: postgres
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: secret
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
 
@@ -123,7 +123,7 @@ jobs:
       # Disable incremental builds by cargo for CI which should save disk space
       # and hopefully avoid final link "No space left on device"
       CARGO_INCREMENTAL: 0
-      DATABASE_URL: postgres://postgres:secret@127.0.0.1:5432/sharing
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
 
     steps:
       - uses: actions/checkout@v4
@@ -134,4 +134,4 @@ jobs:
           toolchain: stable
 
       - name: Run integration tests
-        run: cargo test --tests
+        run: cargo test --tests --features integration-pg

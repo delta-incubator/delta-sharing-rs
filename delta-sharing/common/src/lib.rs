@@ -34,6 +34,12 @@ pub mod server;
 #[derive(Clone, Debug)]
 pub struct Recipient(pub Bytes);
 
+impl Recipient {
+    pub fn anonymous() -> Self {
+        Self(Bytes::new())
+    }
+}
+
 #[derive(Clone)]
 pub struct DeltaSharingHandler {
     pub discovery: Arc<dyn DiscoveryHandler>,
@@ -105,9 +111,9 @@ impl AsRef<str> for Permission {
     }
 }
 
-impl Into<String> for Permission {
-    fn into(self) -> String {
-        self.as_ref().to_string()
+impl From<Permission> for String {
+    fn from(val: Permission) -> Self {
+        val.as_ref().to_string()
     }
 }
 
@@ -139,9 +145,9 @@ impl Resource {
     }
 }
 
-impl Into<String> for &Resource {
-    fn into(self) -> String {
-        match self {
+impl From<&Resource> for String {
+    fn from(val: &Resource) -> Self {
+        match val {
             Resource::Share(s) => format!("share::{s}"),
             Resource::Schema(s) => format!("schema::{s}"),
             Resource::Table(t) => format!("table::{t}"),

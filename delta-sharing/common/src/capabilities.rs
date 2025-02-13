@@ -43,7 +43,7 @@ impl Capabilities {
     ///
     /// # Example
     /// ```
-    /// use delta_sharing_core::capabilities::{Capabilities, ResponseFormat};
+    /// # use delta_sharing_common::capabilities::{Capabilities, ResponseFormat};
     ///
     /// let capabilities = Capabilities::new(
     ///   vec![ResponseFormat::Delta],
@@ -65,7 +65,7 @@ impl Capabilities {
     ///
     /// # Example
     /// ```
-    /// use delta_sharing_core::capabilities::{Capabilities, ResponseFormat};
+    /// # use delta_sharing_common::capabilities::{Capabilities, ResponseFormat};
     ///
     /// let capabilities = Capabilities::new(
     ///   vec![ResponseFormat::Delta],
@@ -81,7 +81,7 @@ impl Capabilities {
     ///
     /// # Example
     /// ```
-    /// use delta_sharing_core::capabilities::{Capabilities, ResponseFormat};
+    /// # use delta_sharing_common::capabilities::{Capabilities, ResponseFormat};
     ///
     /// let capabilities = Capabilities::new(
     ///   vec![ResponseFormat::Delta],

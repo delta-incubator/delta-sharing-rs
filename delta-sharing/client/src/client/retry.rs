@@ -178,7 +178,7 @@ impl RetryableRequest {
             .unwrap_or_else(|| self.request.method().is_safe());
 
         loop {
-            let mut request = self
+            let request = self
                 .request
                 .try_clone()
                 .expect("request body must be cloneable");

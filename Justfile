@@ -12,10 +12,6 @@ default:
 check:
     @cargo check
 
-# Clean up the pre-build target
-clean:
-    @cargo clean
-
 # Conduct a full release build
 build:
     @# This causes cargo to have to rebuild the binary,
@@ -50,9 +46,10 @@ package:
 generate:
     @buf generate proto
     @just delta-sharing/openfga/generate
-    @just clean-openapi
+    @just clean_openapi
+    @cargo clippy --fix --allow-dirty --allow-staged
 
-clean-openapi:
+clean_openapi:
     npx -y @redocly/cli bundle --remove-unused-components openapi/openapi.yaml > tmp.yaml
     mv tmp.yaml openapi/openapi.yaml
 
@@ -61,7 +58,7 @@ do-it:
     @RUST_BACKTRACE=1 cargo run -p delta-sharing server --config {{ local_config }}
 
 # the the documentation (requires mdbook)
-doc:
+docs:
     cd docs && mdbook serve --open
 
 # load delta acceptance testing (dat) data from the release
@@ -81,7 +78,6 @@ local-setup: load-dat render-config
 test-common:
     cargo test -p delta-sharing-common
 
-# run the delta-sharing server with the dev config
 rest:
     @RUST_LOG=DEBUG cargo run -p delta-sharing rest --config {{ local_config }}
 
@@ -95,5 +91,28 @@ load-store:
 udeps:
     cargo +nightly udeps
 
-sqlx-prepare:
+sqlx-prepare: start-pg
+    # Wait for PostgreSQL to be ready
+    sleep 2
+    # Run migrations to create tables
+    DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres cargo sqlx migrate run --source ./delta-sharing/postgres/migrations
+    # Prepare SQLx
     cargo sqlx prepare --workspace -- --tests
+    # Clean up
+    @just stop-pg
+
+start-pg:
+    docker run -d \
+        --name postgres-sharing \
+        -e POSTGRES_PASSWORD=postgres \
+        -e POSTGRES_USER=postgres \
+        -e POSTGRES_DB=postgres \
+        -p 5432:5432 \
+        postgres:14
+
+stop-pg:
+    docker stop postgres-sharing && docker rm postgres-sharing
+
+test-pg: start-pg
+    DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres cargo test -p delta-sharing-postgres -- --nocapture
+    @just stop-pg

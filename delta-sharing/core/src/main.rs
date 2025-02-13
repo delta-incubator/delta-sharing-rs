@@ -20,7 +20,7 @@ enum Commands {
     Rest(ServerArgs),
 
     #[clap(about = "start a sharing server (gRPC)")]
-    GRPC(ServerArgs),
+    Grpc(ServerArgs),
 
     #[clap(
         arg_required_else_help = true,
@@ -87,7 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match args.command {
         Commands::Rest(server_args) => handle_rest(server_args).await?,
-        Commands::GRPC(server_args) => handle_grpc(server_args).await?,
+        Commands::Grpc(server_args) => handle_grpc(server_args).await?,
         Commands::Client(client_args) => {
             // Access the client arguments
             let endpoint = client_args.endpoint;
