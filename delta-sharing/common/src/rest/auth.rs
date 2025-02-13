@@ -30,6 +30,7 @@ pub struct AuthenticationMiddleware<S, T> {
     authenticator: T,
 }
 
+#[allow(unused)]
 impl<S, T> AuthenticationMiddleware<S, T> {
     /// Create new [`AuthenticationMiddleware`].
     pub fn new(inner: S, authenticator: T) -> Self {

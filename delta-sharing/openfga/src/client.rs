@@ -57,6 +57,7 @@ pub struct ClientConfig {
 pub struct OpenFgaClient {
     inner: OpenFgaServiceClient<Channel>,
     store_id: String,
+    #[allow(unused)]
     authorization_model_id: String,
 }
 
