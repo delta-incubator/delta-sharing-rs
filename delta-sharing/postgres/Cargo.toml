@@ -24,3 +24,9 @@ uuid = { version = "1.8", features = ["v4", "serde"] }
 testcontainers = "0.23"
 testcontainers-modules = { version = "0.11", features = ["postgres"] }
 tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
+
+[features]
+# feature flags for integration tests
+# running integration tests requires a running PostgreSQL instance
+# and DATABASE_URL environment variable set
+integration-pg = []

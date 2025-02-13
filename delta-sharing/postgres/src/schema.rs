@@ -11,11 +11,11 @@ static MIGRATOR: Migrator = sqlx::migrate!();
 
 #[derive(Debug, Clone)]
 pub struct TableRecord {
-    id: Uuid,
-    name: String,
-    location: Url,
-    created_at: chrono::DateTime<chrono::Utc>,
-    updated_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub id: Uuid,
+    pub name: String,
+    pub location: Url,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[async_trait::async_trait]
@@ -128,27 +128,4 @@ impl SharingRepo for PgSharingRepo {
 
 pub async fn run_migrations(pool: &PgPool) -> Result<()> {
     Ok(MIGRATOR.run(pool).await?)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[sqlx::test]
-    async fn test_tables(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Error + 'static>> {
-        let repo = PgSharingRepo::new(pool);
-
-        let mut record = repo.add_table("table_name", "file:///location").await?;
-        let retrieved = repo.get_table(&record.id).await?;
-        assert_eq!(record.id, retrieved.id);
-
-        record.location = Url::parse("file:///location-new").unwrap();
-        let updated = repo.update_table(&record).await?;
-        assert_eq!(record.location, updated.location);
-
-        let retrieved = repo.get_table(&record.id).await?;
-        assert_eq!(record.location, retrieved.location);
-
-        Ok(())
-    }
 }

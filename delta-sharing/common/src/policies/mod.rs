@@ -32,15 +32,15 @@ impl ConstantPolicy {
     /// # Example
     /// ```
     /// # async fn doc() -> Result<(), Box<dyn std::error::Error>> {
-    /// use delta_sharing_core::{Policy, Resource, Permission, Decision};
-    /// use delta_sharing_core::policies::ConstantPolicy;
+    /// use delta_sharing_common::{Policy, Resource, Permission, Decision, Recipient};
+    /// use delta_sharing_common::policies::ConstantPolicy;
     ///
     /// let policy = ConstantPolicy::new(Decision::Allow);
     /// let resource = Resource::share("test");
     /// let permission = Permission::Read;
-    /// let recipient = &();
+    /// let recipient = Recipient::anonymous();
     ///
-    /// let decision = policy.authorize(resource, permission, recipient).await.unwrap();
+    /// let decision = policy.authorize(resource, permission, &recipient).await.unwrap();
     /// assert_eq!(decision, Decision::Allow);
     /// # Ok(())
     /// # }
