@@ -1,14 +1,14 @@
-FROM rust:1.83 as build
+FROM rust:1.84 as build
 
 WORKDIR /home/rust
 
 COPY . .
 
-RUN cargo build -p delta-sharing --release && mv /home/rust/target/release/delta-sharing /usr/bin
+RUN cargo build -p delta-sharing-cli --release
 
 FROM gcr.io/distroless/cc-debian12
 
-COPY --from=build /usr/bin/delta-sharing /usr/bin
+COPY --from=build /home/rust/target/release/delta-sharing /usr/bin
 
 ENTRYPOINT ["/usr/bin/delta-sharing"]
 

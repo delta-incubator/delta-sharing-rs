@@ -15,6 +15,7 @@ max_line_length = 100
 # double whitespace at end of line
 # denotes a line break in Markdown
 trim_trailing_whitespace = false
+indent_style = space
 
 [*.{yml,yaml}]
 indent_size = 2

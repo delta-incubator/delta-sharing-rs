@@ -23,7 +23,7 @@ jobs:
 
   build:
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os:
           - ubuntu-latest
@@ -49,7 +49,7 @@ jobs:
 
   unit:
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os:
           - ubuntu-latest
@@ -75,8 +75,7 @@ jobs:
       - name: Run unit tests
         run: cargo test --lib
 
-  policy:
-    name: OpenFGA model tests
+  policy-openfga:
     runs-on: ubuntu-latest
 
     steps:

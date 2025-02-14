@@ -585,9 +585,9 @@ checksum = "f61dac84819c6588b558454b194026eb1f09c293b9036ae9b159e74e73ab6cf9"
 
 [[package]]
 name = "cc"
-version = "1.2.13"
+version = "1.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7777341816418c02e033934a09f20dc0ccaf65a5201ef8a450ae0105a573fda"
+checksum = "0c3d1b2e905a3a7b00a6141adb0e4c0bb941d11caf55349d863942a1cc44e3c9"
 dependencies = [
  "jobserver",
  "libc",
@@ -863,18 +863,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "delta-sharing"
+name = "delta-sharing-cli"
 version = "0.1.0"
 dependencies = [
  "chrono",
  "clap",
  "delta-sharing-client",
  "delta-sharing-common",
+ "delta-sharing-profiles",
+ "delta-sharing-server",
  "serde",
  "serde_json",
  "serde_yml",
  "thiserror 1.0.69",
  "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -912,31 +916,16 @@ dependencies = [
  "chrono",
  "dashmap",
  "delta_kernel",
- "futures",
- "futures-util",
- "hex",
- "http",
- "http-body",
- "http-body-util",
- "hyper",
- "hyper-util",
- "jsonwebtoken",
  "object_store",
  "pbjson",
- "pin-project",
  "prost",
- "ring",
  "serde",
  "serde_json",
- "serde_yml",
  "testutils",
  "thiserror 1.0.69",
  "tokio",
  "tonic",
- "tower 0.5.2",
- "tower-http",
  "tracing",
- "tracing-subscriber",
  "url",
  "uuid",
 ]
@@ -968,6 +957,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "delta-sharing-profiles"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "chrono",
+ "dashmap",
+ "delta-sharing-common",
+ "hex",
+ "jsonwebtoken",
+ "ring",
+ "serde",
+ "serde_json",
+ "url",
+]
+
+[[package]]
+name = "delta-sharing-server"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum 0.8.1",
+ "delta-sharing-common",
+ "futures-util",
+ "http",
+ "http-body-util",
+ "serde",
+ "serde_json",
+ "testutils",
+ "tokio",
+ "tonic",
+ "tower 0.5.2",
+ "tower-http",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "delta_kernel"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -987,7 +1014,7 @@ dependencies = [
  "fix-hidden-lifetime-bug",
  "futures",
  "indexmap 2.7.1",
- "itertools",
+ "itertools 0.13.0",
  "object_store",
  "parquet",
  "reqwest",
@@ -1867,6 +1894,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2260,7 +2296,7 @@ dependencies = [
  "httparse",
  "humantime",
  "hyper",
- "itertools",
+ "itertools 0.13.0",
  "parking_lot",
  "percent-encoding",
  "quick-xml",
@@ -2604,9 +2640,9 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.13.4"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c0fef6c4230e4ccf618a35c59d7ede15dea37de8427500f50aff708806e42ec"
+checksum = "2796faa41db3ec313a31f7624d9286acf277b52de526150b7e69f3debf891ee5"
 dependencies = [
  "bytes",
  "prost-derive",
@@ -2614,12 +2650,12 @@ dependencies = [
 
 [[package]]
 name = "prost-derive"
-version = "0.13.4"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "157c5a9d7ea5c2ed2d9fb8f495b64759f7816c7eaea54ba3978f0d63000162e3"
+checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools",
+ "itertools 0.14.0",
  "proc-macro2",
  "quote",
  "syn 2.0.98",
@@ -2627,9 +2663,9 @@ dependencies = [
 
 [[package]]
 name = "prost-types"
-version = "0.13.4"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc2f1e56baa61e93533aebc21af4d2134b70f66275e0fcdf3cbe43d77ff7e8fc"
+checksum = "52c2c1bf36ddb1a1c396b3601a3cec27c2462e45f07c386894ec3ccf5332bd16"
 dependencies = [
  "prost",
 ]
@@ -2866,15 +2902,14 @@ dependencies = [
 
 [[package]]
 name = "ring"
-version = "0.17.8"
+version = "0.17.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c17fa4cb658e3583423e915b9f3acc01cceaee1860e33d59ebae66adc3a2dc0d"
+checksum = "e75ec5e92c4d8aede845126adc388046234541629e76029599ed35a003c7ed24"
 dependencies = [
  "cc",
  "cfg-if",
  "getrandom 0.2.15",
  "libc",
- "spin",
  "untrusted",
  "windows-sys 0.52.0",
 ]

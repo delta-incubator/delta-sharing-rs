@@ -1,23 +1,13 @@
 use std::sync::Arc;
 
-use axum::extract::Request;
 use bytes::Bytes;
-use chrono::{DateTime, Utc};
-use jsonwebtoken::Validation;
-use serde::{de::DeserializeOwned, Serialize};
 
-pub use rest::get_rest_router;
-
-pub mod capabilities;
 pub mod error;
-mod grpc;
 #[cfg(feature = "memory")]
 mod in_memory;
 mod kernel;
 pub mod models;
 pub mod policies;
-#[cfg(feature = "profiles")]
-pub mod profiles;
 #[cfg(feature = "axum")]
 mod rest;
 
@@ -27,9 +17,6 @@ pub use in_memory::*;
 pub use kernel::*;
 pub use models::v1::*;
 pub use policies::*;
-#[cfg(feature = "profiles")]
-pub use profiles::*;
-pub mod server;
 
 #[derive(Clone, Debug)]
 pub struct Recipient(pub Bytes);
@@ -166,15 +153,6 @@ pub enum Decision {
     Deny,
 }
 
-/// Authenticator for authenticating requests to a sharing server.
-pub trait Authenticator: Send + Sync {
-    /// Authenticate a request.
-    ///
-    /// This method should return the recipient of the request, or an error if the request
-    /// is not authenticated or the recipient cannot be determined from the request.
-    fn authenticate(&self, request: &Request) -> Result<Recipient>;
-}
-
 /// Policy for access control.
 #[async_trait::async_trait]
 pub trait Policy: Send + Sync {
@@ -210,49 +188,4 @@ pub trait Policy: Send + Sync {
         self.authorize_checked(Resource::Share(share), permission, recipient)
             .await
     }
-}
-
-/// Claims that are encoded in a profile.
-pub trait ProfileClaims: Serialize + DeserializeOwned + Send + Sync {
-    /// Get the profile fingerprint from the claims.
-    fn fingerprint(&self) -> String;
-
-    fn validation() -> Validation {
-        Validation::default()
-    }
-}
-
-#[async_trait::async_trait]
-pub trait ProfileManager: Send + Sync {
-    /// Claims that are encoded in the profile.
-    type Claims: ProfileClaims;
-
-    /// Issue a profile for a set of claims that can be shared with a recipient.
-    async fn issue_profile(
-        &self,
-        claims: &Self::Claims,
-        expiration_time: Option<DateTime<Utc>>,
-    ) -> Result<Profile>;
-
-    /// Revoke a profile by its fingerprint.
-    ///
-    /// This should invalidate the profile and prevent it from being used.
-    async fn revoke_profile(&self, fingerprint: &str) -> Result<()>;
-
-    /// Validate a profile token and return the claims.
-    /// This should return an error if the profile is invalid or has been revoked.
-    async fn validate_profile(&self, token: &str) -> Result<Self::Claims>;
-}
-
-#[cfg(test)]
-mod tests {
-    macro_rules! maybe_skip_dat {
-        () => {
-            if testutils::dat::find_dat_dir().is_none() {
-                eprintln!("Skipping integration test - set DAT_DATA_DIR");
-                return;
-            }
-        };
-    }
-    pub(crate) use maybe_skip_dat;
 }

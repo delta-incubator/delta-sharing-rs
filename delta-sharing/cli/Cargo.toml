@@ -1,0 +1,29 @@
+[package]
+name = "delta-sharing-cli"
+version = "0.1.0"
+edition = "2021"
+authors = ["Robert Pack <robstar.pack@gmail.com>"]
+rust-version = "1.81"
+
+[[bin]]
+name = "delta-sharing"
+path = "src/main.rs"
+
+[dependencies]
+# path dependencies (in alphabetical order)
+delta-sharing-common = { path = "../common" }
+delta-sharing-client = { path = "../client" }
+delta-sharing-profiles = { path = "../profiles" }
+delta-sharing-server = { path = "../server", features = ["rest", "grpc"] }
+
+# workspace dependencies (in alphabetical order)
+chrono = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+tokio = { version = "1", features = ["full"] }
+serde_yml = { version = "0.0.12" }
+tracing-subscriber = { version = "0.3", features = ["tracing-log", "fmt"] }

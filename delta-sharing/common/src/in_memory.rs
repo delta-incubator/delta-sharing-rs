@@ -8,10 +8,7 @@ use crate::error::{Error, Result};
 use crate::models::{v1::*, TableRef};
 use crate::{DiscoveryHandler, Recipient, TableLocationResover};
 
-#[cfg(feature = "profiles")]
 pub type DefaultInMemoryHandler = InMemoryHandler;
-#[cfg(not(feature = "profiles"))]
-pub type DefaultInMemoryHandler = InMemoryHandler<()>;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TableConfig {

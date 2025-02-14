@@ -1,5 +1,5 @@
 # delta-sharing-openfga
 
-[OpenFGA] integration fro delta-sharing.
+[OpenFGA] integration for delta-sharing.
 
 [OpenFGA]: https://openfga.dev/
