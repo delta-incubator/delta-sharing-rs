@@ -1,10 +1,11 @@
 use chrono::Days;
 use clap::{Parser, Subcommand};
 use delta_sharing_common::server::{run_grpc_server, run_rest_server};
-use delta_sharing_common::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
+use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
 
 use crate::error::{Error, Result};
 
+mod config;
 mod error;
 
 #[derive(Parser)]
@@ -33,6 +34,9 @@ enum Commands {
         about = "create a profile for sharing server"
     )]
     Profile(ProfileArgs),
+
+    #[clap(about = "run database migrations")]
+    Migrate,
 }
 
 #[derive(Parser)]
@@ -96,6 +100,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             // Your client logic goes here
         }
         Commands::Profile(args) => handle_profile(args).await?,
+        Commands::Migrate => todo!(),
     };
 
     Ok(())

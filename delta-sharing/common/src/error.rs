@@ -1,6 +1,5 @@
 #[cfg(feature = "axum")]
 use axum::extract::rejection::{PathRejection, QueryRejection};
-use jsonwebtoken::errors::{Error as JwtError, ErrorKind as JwtErrorKind};
 use tonic::Status;
 
 // A convenience type for declaring Results in the Delta Sharing libraries.
@@ -74,19 +73,19 @@ impl From<Error> for Status {
     }
 }
 
-impl From<JwtError> for Error {
-    fn from(e: JwtError) -> Self {
-        match e.kind() {
-            JwtErrorKind::InvalidToken
-            | JwtErrorKind::InvalidIssuer
-            | JwtErrorKind::InvalidSubject
-            | JwtErrorKind::ExpiredSignature
-            | JwtErrorKind::ImmatureSignature
-            | JwtErrorKind::InvalidSignature => Error::Unauthenticated,
-            _ => Error::Generic(e.to_string()),
-        }
-    }
-}
+// impl From<JwtError> for Error {
+//     fn from(e: JwtError) -> Self {
+//         match e.kind() {
+//             JwtErrorKind::InvalidToken
+//             | JwtErrorKind::InvalidIssuer
+//             | JwtErrorKind::InvalidSubject
+//             | JwtErrorKind::ExpiredSignature
+//             | JwtErrorKind::ImmatureSignature
+//             | JwtErrorKind::InvalidSignature => Error::Unauthenticated,
+//             _ => Error::Generic(e.to_string()),
+//         }
+//     }
+// }
 
 #[cfg(feature = "axum")]
 mod server {
@@ -129,7 +128,7 @@ mod server {
                     INTERNAL_ERROR
                 }
                 Error::SerDe(_) => {
-                    error!("Inavalid table log encountered");
+                    error!("Invalid table log encountered");
                     INTERNAL_ERROR
                 }
                 Error::Generic(message) => {

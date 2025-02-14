@@ -19,12 +19,12 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, SecondsFormat, Utc};
+use jsonwebtoken::errors::{Error as JwtError, ErrorKind as JwtErrorKind};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
 
-use crate::error::{Error, Result};
-use crate::{Permission, Resource};
+use delta_sharing_common::{Error, Permission, Resource, Result};
 
 /// A pair of encoding and decoding keys.
 #[derive(Clone)]
@@ -34,7 +34,7 @@ pub struct Keys {
 }
 
 impl Keys {
-    /// Create a new instnace of [`Keys`].
+    /// Create a new instance of [`Keys`].
     pub fn new(encoding: EncodingKey, decoding: DecodingKey) -> Self {
         Self { encoding, decoding }
     }
@@ -56,7 +56,7 @@ impl From<&[u8]> for Keys {
 
 /// Token manager.
 ///
-/// This struct provides simple token management capabilties that can be used to
+/// This struct provides simple token management capabilities that can be used to
 /// build a profile management system for delta-sharing servers.
 pub struct TokenManager {
     validation: Validation,
@@ -82,14 +82,26 @@ impl TokenManager {
 
     /// Encode a set of claims into a token.
     pub fn encode<C: Serialize>(&self, claims: &C) -> Result<String> {
-        encode(&Header::default(), claims, &self.keys.encoding).map_err(Error::from)
+        encode(&Header::default(), claims, &self.keys.encoding).map_err(to_err)
     }
 
     /// Decode a token into a set of claims.
     pub fn decode<C: DeserializeOwned>(&self, token: impl AsRef<str>) -> Result<C> {
         decode::<C>(token.as_ref(), &self.keys.decoding, &self.validation)
             .map(|data| data.claims)
-            .map_err(Error::from)
+            .map_err(to_err)
+    }
+}
+
+fn to_err(e: JwtError) -> Error {
+    match e.kind() {
+        JwtErrorKind::InvalidToken
+        | JwtErrorKind::InvalidIssuer
+        | JwtErrorKind::InvalidSubject
+        | JwtErrorKind::ExpiredSignature
+        | JwtErrorKind::ImmatureSignature
+        | JwtErrorKind::InvalidSignature => Error::Unauthenticated,
+        _ => Error::Generic(e.to_string()),
     }
 }
 

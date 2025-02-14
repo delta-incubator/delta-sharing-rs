@@ -1,10 +1,17 @@
 # Overview
 
-The Delta Sharing Server first and foremost implements the Delta Sharing
-protocol. The protocol is a REST API that allows clients to discover and query
+The Delta Sharing Server first and foremost implements the Delta Sharing protocol.
+The protocol is a REST API that allows clients to discover and query
 Delta Tables. The server is responsible for authenticating requests, looking up
 table details, and creating signed URLs to the data files that contain the
 relevant table data.
+
+However the protocol deliberately leaves out several aspects that are relevant
+when operating a Delta Sharing server. This implementation takes an opinion
+on how to handle these aspects with the aim to provide both, a composable
+framework that adopters can use to build their own production systems and a
+batteries-included implementation that can be used out of the box for many
+real-world scenarios.
 
 The Delta Sharing Server is thus responsible for the following:
 

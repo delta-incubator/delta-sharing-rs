@@ -870,6 +870,7 @@ dependencies = [
  "clap",
  "delta-sharing-client",
  "delta-sharing-common",
+ "delta-sharing-profiles",
  "serde",
  "serde_json",
  "serde_yml",
@@ -914,18 +915,15 @@ dependencies = [
  "delta_kernel",
  "futures",
  "futures-util",
- "hex",
  "http",
  "http-body",
  "http-body-util",
  "hyper",
  "hyper-util",
- "jsonwebtoken",
  "object_store",
  "pbjson",
  "pin-project",
  "prost",
- "ring",
  "serde",
  "serde_json",
  "serde_yml",
@@ -965,6 +963,23 @@ dependencies = [
  "tokio",
  "url",
  "uuid",
+]
+
+[[package]]
+name = "delta-sharing-profiles"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "chrono",
+ "dashmap",
+ "delta-sharing-common",
+ "hex",
+ "jsonwebtoken",
+ "ring",
+ "serde",
+ "serde_json",
+ "url",
 ]
 
 [[package]]

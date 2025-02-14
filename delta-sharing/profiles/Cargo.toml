@@ -1,0 +1,21 @@
+[package]
+name = "delta-sharing-profiles"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# path dependencies (in alphabetical order)
+delta-sharing-common = { path = "../common" }
+
+# workspace dependencies (in alphabetical order)
+async-trait = { workspace = true }
+bytes = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+url = { workspace = true }
+
+dashmap = { version = "6" }
+hex = { version = "0.4.3" }
+jsonwebtoken = { version = "9.3" }
+ring = { version = "0.17.8", default-features = false, features = ["std"] }

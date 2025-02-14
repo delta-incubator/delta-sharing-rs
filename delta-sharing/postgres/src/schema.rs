@@ -6,24 +6,9 @@ use url::Url;
 use uuid::Uuid;
 
 use crate::error::{Error, Result};
+use crate::{SharingRepo, TableRecord};
 
 static MIGRATOR: Migrator = sqlx::migrate!();
-
-#[derive(Debug, Clone)]
-pub struct TableRecord {
-    pub id: Uuid,
-    pub name: String,
-    pub location: Url,
-    pub created_at: chrono::DateTime<chrono::Utc>,
-    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
-}
-
-#[async_trait::async_trait]
-pub trait SharingRepo {
-    async fn add_table(&self, name: &str, location: &str) -> Result<TableRecord>;
-    async fn get_table(&self, id: &Uuid) -> Result<TableRecord>;
-    async fn update_table(&self, record: &TableRecord) -> Result<TableRecord>;
-}
 
 pub struct PgSharingRepo {
     pg_pool: Arc<PgPool>,

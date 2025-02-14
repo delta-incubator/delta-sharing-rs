@@ -1,13 +1,12 @@
 use bytes::Bytes;
 use chrono::{DateTime, SecondsFormat, Utc};
 use dashmap::DashSet;
+use delta_sharing_common::{Error, Recipient, Result};
 use ring::digest;
 use serde::{Deserialize, Serialize};
 
-pub use self::tokens::*;
-use crate::{Profile, ProfileClaims, ProfileManager, Recipient, Result};
-
-mod tokens;
+pub use crate::tokens::*;
+use crate::{Profile, ProfileClaims, ProfileManager};
 
 pub type DeltaRecipient = DefaultRecipient<DefaultClaims>;
 pub type DeltaProfileManager = InMemoryProfileManager<DefaultClaims>;
@@ -118,7 +117,7 @@ impl<T: ProfileClaims + Send> ProfileManager for InMemoryProfileManager<T> {
     async fn validate_profile(&self, token: &str) -> Result<Self::Claims> {
         let claims = self.token_manager.decode::<Self::Claims>(token)?;
         if self.revoked_profiles.contains(&claims.fingerprint()) {
-            return Err(crate::Error::Generic(
+            return Err(Error::Generic(
                 "Profile has previously been revoked".to_string(),
             ));
         }

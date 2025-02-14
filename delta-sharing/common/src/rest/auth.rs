@@ -7,7 +7,7 @@ use futures_util::{future::BoxFuture, FutureExt};
 use tower::{Layer, Service};
 
 use crate::error::Result;
-use crate::{Authenticator, DeltaRecipient, Recipient};
+use crate::{Authenticator, Recipient};
 
 /// Authenticator that always marks the recipient as anonymous.
 #[derive(Clone)]
@@ -15,11 +15,7 @@ pub struct AnonymousAuthenticator;
 
 impl Authenticator for AnonymousAuthenticator {
     fn authenticate(&self, _: &Request) -> Result<Recipient> {
-        Ok(Recipient(
-            serde_json::to_vec(&DeltaRecipient::Anonymous)
-                .unwrap()
-                .into(),
-        ))
+        Ok(Recipient::anonymous())
     }
 }
 

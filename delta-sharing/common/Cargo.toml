@@ -8,6 +8,7 @@ rust-version = "1.81"
 [dependencies]
 # workspace dependencies (in alphabetical order)
 async-trait = { workspace = true }
+bytes = { workspace = true }
 chrono = { workspace = true }
 delta_kernel = { workspace = true }
 futures = { workspace = true }
@@ -24,7 +25,6 @@ tracing = { workspace = true }
 url = { workspace = true }
 
 # server dependencies (in alphabetical order)
-bytes = { version = "1.1" }
 futures-util = "0.3.28"
 http-body = { version = "1" }
 http-body-util = "0.1.2"
@@ -40,13 +40,6 @@ tracing-subscriber = { version = "0.3", features = ["tracing-log", "fmt"] }
 dashmap = { version = "6", optional = true }
 uuid = { version = "1.8", optional = true, features = ["v5"] }
 
-# profile management dependencies (in alphabetical order)
-hex = { version = "0.4.3", optional = true }
-jsonwebtoken = { version = "9.3", optional = true }
-ring = { version = "0.17.8", default-features = false, features = [
-    "std",
-], optional = true }
-
 # axum handler dependencies (in alphabetical order)
 axum = { version = "0.8", optional = true }
 
@@ -59,7 +52,6 @@ serde_json = "*"
 testutils = { path = "../../testutils" }
 
 [features]
-default = ["memory", "profiles", "axum"]
+default = ["memory", "axum"]
 memory = ["dashmap", "uuid"]
-profiles = ["jsonwebtoken", "hex", "ring"]
 axum = ["dep:axum"]
