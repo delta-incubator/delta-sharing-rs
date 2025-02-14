@@ -1,9 +1,13 @@
 [package]
-name = "delta-sharing"
+name = "delta-sharing-cli"
 version = "0.1.0"
 edition = "2021"
 authors = ["Robert Pack <robstar.pack@gmail.com>"]
 rust-version = "1.81"
+
+[[bin]]
+name = "delta-sharing"
+path = "src/main.rs"
 
 [dependencies]
 # path dependencies (in alphabetical order)

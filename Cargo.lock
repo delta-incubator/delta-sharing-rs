@@ -863,7 +863,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "delta-sharing"
+name = "delta-sharing-cli"
 version = "0.1.0"
 dependencies = [
  "chrono",
