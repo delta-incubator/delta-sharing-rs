@@ -1,7 +1,11 @@
+use std::path::Path;
+use std::sync::Arc;
+
 use chrono::Days;
 use clap::{Parser, Subcommand};
-use delta_sharing_common::server::{run_grpc_server, run_rest_server};
+use delta_sharing_common::{ConstantPolicy, InMemoryConfig, InMemoryHandler, KernelQueryHandler};
 use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
+use delta_sharing_server::{run_grpc_server, run_rest_server, DeltaSharingHandler};
 
 use crate::error::{Error, Result};
 
@@ -106,11 +110,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+fn get_handler(config: impl AsRef<Path>) -> Result<DeltaSharingHandler> {
+    let config = std::fs::read_to_string(config)
+        .map_err(|_| Error::Generic("malformed config".to_string()))?;
+    let config = serde_yml::from_str::<InMemoryConfig>(&config)
+        .map_err(|_| Error::Generic("malformed config".to_string()))?;
+
+    let discovery = Arc::new(InMemoryHandler::new(config));
+    let handler = DeltaSharingHandler {
+        query: KernelQueryHandler::new_multi_thread(discovery.clone(), Default::default()),
+        discovery,
+        policy: Arc::new(ConstantPolicy::default()),
+    };
+    Ok(handler)
+}
+
 /// Handle the rest server command.
 ///
 /// This function starts a delta-sharing server using the REST protocol.
 async fn handle_rest(args: ServerArgs) -> Result<()> {
-    run_rest_server(args.config, args.host, args.port)
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+
+    let handler = get_handler(args.config)?;
+
+    run_rest_server(args.host, args.port, handler)
         .await
         .map_err(|_| Error::Generic("Server failed".to_string()))
 }
@@ -119,7 +144,13 @@ async fn handle_rest(args: ServerArgs) -> Result<()> {
 ///
 /// This function starts a delta-sharing server using the gRPC protocol.
 async fn handle_grpc(args: ServerArgs) -> Result<()> {
-    run_grpc_server(args.config, args.host, args.port)
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+
+    let handler = get_handler(args.config)?;
+
+    run_grpc_server(args.host, args.port, handler)
         .await
         .map_err(|_| Error::Generic("Server failed".to_string()))
 }

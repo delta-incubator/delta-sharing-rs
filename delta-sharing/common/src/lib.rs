@@ -1,13 +1,8 @@
 use std::sync::Arc;
 
-use axum::extract::Request;
 use bytes::Bytes;
 
-pub use rest::get_rest_router;
-
-pub mod capabilities;
 pub mod error;
-mod grpc;
 #[cfg(feature = "memory")]
 mod in_memory;
 mod kernel;
@@ -22,7 +17,6 @@ pub use in_memory::*;
 pub use kernel::*;
 pub use models::v1::*;
 pub use policies::*;
-pub mod server;
 
 #[derive(Clone, Debug)]
 pub struct Recipient(pub Bytes);
@@ -159,15 +153,6 @@ pub enum Decision {
     Deny,
 }
 
-/// Authenticator for authenticating requests to a sharing server.
-pub trait Authenticator: Send + Sync {
-    /// Authenticate a request.
-    ///
-    /// This method should return the recipient of the request, or an error if the request
-    /// is not authenticated or the recipient cannot be determined from the request.
-    fn authenticate(&self, request: &Request) -> Result<Recipient>;
-}
-
 /// Policy for access control.
 #[async_trait::async_trait]
 pub trait Policy: Send + Sync {
@@ -203,17 +188,4 @@ pub trait Policy: Send + Sync {
         self.authorize_checked(Resource::Share(share), permission, recipient)
             .await
     }
-}
-
-#[cfg(test)]
-mod tests {
-    macro_rules! maybe_skip_dat {
-        () => {
-            if testutils::dat::find_dat_dir().is_none() {
-                eprintln!("Skipping integration test - set DAT_DATA_DIR");
-                return;
-            }
-        };
-    }
-    pub(crate) use maybe_skip_dat;
 }

@@ -4,9 +4,8 @@
 
 use std::str::FromStr;
 
+use delta_sharing_common::Error;
 use http::header::HeaderMap;
-
-use crate::Error;
 
 const DELTA_SHARING_CAPABILITIES: &str = "delta-sharing-capabilities";
 
@@ -43,7 +42,7 @@ impl Capabilities {
     ///
     /// # Example
     /// ```
-    /// # use delta_sharing_common::capabilities::{Capabilities, ResponseFormat};
+    /// # use delta_sharing_server::{Capabilities, ResponseFormat};
     ///
     /// let capabilities = Capabilities::new(
     ///   vec![ResponseFormat::Delta],
@@ -65,7 +64,7 @@ impl Capabilities {
     ///
     /// # Example
     /// ```
-    /// # use delta_sharing_common::capabilities::{Capabilities, ResponseFormat};
+    /// # use delta_sharing_server::{Capabilities, ResponseFormat};
     ///
     /// let capabilities = Capabilities::new(
     ///   vec![ResponseFormat::Delta],
@@ -81,7 +80,7 @@ impl Capabilities {
     ///
     /// # Example
     /// ```
-    /// # use delta_sharing_common::capabilities::{Capabilities, ResponseFormat};
+    /// # use delta_sharing_server::{Capabilities, ResponseFormat};
     ///
     /// let capabilities = Capabilities::new(
     ///   vec![ResponseFormat::Delta],

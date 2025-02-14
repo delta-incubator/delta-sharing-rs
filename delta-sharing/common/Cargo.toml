@@ -11,30 +11,18 @@ async-trait = { workspace = true }
 bytes = { workspace = true }
 chrono = { workspace = true }
 delta_kernel = { workspace = true }
-futures = { workspace = true }
-http = { workspace = true }
-hyper = { workspace = true }
 object_store = { workspace = true }
 pbjson = { workspace = true }
 prost = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
-tonic = { workspace = true }
-tower = { workspace = true, features = ["make"] }
+tonic = { workspace = true, optional = true }
 tracing = { workspace = true }
 url = { workspace = true }
 
 # server dependencies (in alphabetical order)
-futures-util = "0.3.28"
-http-body = { version = "1" }
-http-body-util = "0.1.2"
-hyper-util = { version = "0.1", features = ["full"] }
-pin-project = "1.1"
 serde_json = { version = "1.0" }
-serde_yml = { version = "0.0.12" }
 tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
-tower-http = { version = "0.6", features = ["trace"] }
-tracing-subscriber = { version = "0.3", features = ["tracing-log", "fmt"] }
 
 # in-memory handler dependencies (in alphabetical order)
 dashmap = { version = "6", optional = true }
@@ -45,13 +33,11 @@ axum = { version = "0.8", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
-tower = "*"
-http = "*"
-http-body-util = "*"
 serde_json = "*"
 testutils = { path = "../../testutils" }
 
 [features]
-default = ["memory", "axum"]
+default = ["memory", "axum", "grpc"]
 memory = ["dashmap", "uuid"]
 axum = ["dep:axum"]
+grpc = ["dep:tonic"]

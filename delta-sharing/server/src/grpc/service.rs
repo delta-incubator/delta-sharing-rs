@@ -1,8 +1,9 @@
 use tonic::{Request, Response, Status};
 
-use crate::error::{Error, Result};
-use crate::models::v1::{delta_sharing_service_server::DeltaSharingService, *};
-use crate::{DeltaSharingHandler, Recipient};
+use delta_sharing_common::models::v1::{delta_sharing_service_server::DeltaSharingService, *};
+use delta_sharing_common::{Error, Recipient, Result};
+
+use crate::DeltaSharingHandler;
 
 #[async_trait::async_trait]
 impl DeltaSharingService for DeltaSharingHandler {

@@ -371,5 +371,4 @@ pub struct MetadatDelta {
     pub num_files: ::core::option::Option<i64>,
 }
 include!("delta_sharing.v1.serde.rs");
-include!("delta_sharing.v1.tonic.rs");
 // @@protoc_insertion_point(module)

@@ -1,5 +1,6 @@
 #[cfg(feature = "axum")]
 use axum::extract::rejection::{PathRejection, QueryRejection};
+#[cfg(feature = "grpc")]
 use tonic::Status;
 
 // A convenience type for declaring Results in the Delta Sharing libraries.
@@ -46,6 +47,7 @@ impl Error {
     }
 }
 
+#[cfg(feature = "grpc")]
 impl From<Error> for Status {
     fn from(e: Error) -> Self {
         match e {

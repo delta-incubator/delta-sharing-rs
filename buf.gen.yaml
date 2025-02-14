@@ -2,13 +2,13 @@ version: v2
 managed:
   enabled: true
   disable:
-     # Disables all go_package changes for this module only
-     - file_option: go_package
-       module: buf.build/googleapis/googleapis
+    # Disables all go_package changes for this module only
+    - file_option: go_package
+      module: buf.build/googleapis/googleapis
   override:
-     # Sets default go_package_prefix for all inputs
-     - file_option: go_package_prefix
-       value: github.com/delta-incubator/delta-sharing-rs/go
+    # Sets default go_package_prefix for all inputs
+    - file_option: go_package_prefix
+      value: github.com/delta-incubator/delta-sharing-rs/go
 plugins:
   - remote: buf.build/community/neoeinstein-prost:v0.4.0
     out: delta-sharing/common/src/gen
@@ -27,6 +27,7 @@ plugins:
     opt:
       - no_client=true
       - extern_path=.google.protobuf=::pbjson_types
+      - no_include=true
   - remote: buf.build/community/neoeinstein-prost:v0.4.0
     out: delta-sharing/client/src/gen
     opt:

@@ -3,11 +3,18 @@ use std::task::{Context, Poll};
 
 use axum::extract::Request;
 use axum::response::{IntoResponse, Response};
+use delta_sharing_common::{Recipient, Result};
 use futures_util::{future::BoxFuture, FutureExt};
 use tower::{Layer, Service};
 
-use crate::error::Result;
-use crate::{Authenticator, Recipient};
+/// Authenticator for authenticating requests to a sharing server.
+pub trait Authenticator: Send + Sync {
+    /// Authenticate a request.
+    ///
+    /// This method should return the recipient of the request, or an error if the request
+    /// is not authenticated or the recipient cannot be determined from the request.
+    fn authenticate(&self, request: &axum::extract::Request) -> Result<Recipient>;
+}
 
 /// Authenticator that always marks the recipient as anonymous.
 #[derive(Clone)]

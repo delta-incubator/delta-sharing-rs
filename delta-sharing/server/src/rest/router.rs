@@ -1,11 +1,11 @@
 use axum::body::Body;
 use axum::extract::{Extension, State};
 use axum::{response::Response, routing::get, Json, Router};
+use delta_sharing_common::models::v1::*;
+use delta_sharing_common::{Decision, Error, Permission, Policy, Recipient, Resource, Result};
 use http::header::CONTENT_TYPE;
 
-use crate::error::{Error, Result};
-use crate::models::v1::*;
-use crate::{Decision, DeltaSharingHandler, Permission, Policy, Recipient, Resource};
+use crate::DeltaSharingHandler;
 
 async fn list_shares(
     State(handler): State<DeltaSharingHandler>,
@@ -130,19 +130,18 @@ mod tests {
 
     use axum::body::Body;
     use axum::http::{header, HeaderValue, Request, StatusCode};
+    use delta_sharing_common::policies::ConstantPolicy;
+    use delta_sharing_common::KernelQueryHandler;
+    use delta_sharing_common::{
+        DefaultInMemoryHandler, InMemoryConfig, SchemaConfig, ShareConfig, TableConfig,
+    };
     use http_body_util::BodyExt;
     use tower::ServiceExt;
     use url::Url;
 
     use super::*;
-    use crate::policies::ConstantPolicy;
     use crate::rest::auth::{AnonymousAuthenticator, AuthenticationLayer};
     use crate::tests::maybe_skip_dat;
-    use crate::KernelQueryHandler;
-    use crate::{
-        DefaultInMemoryHandler, DeltaSharingHandler, InMemoryConfig, SchemaConfig, ShareConfig,
-        TableConfig,
-    };
 
     pub(crate) fn test_config() -> InMemoryConfig {
         InMemoryConfig {

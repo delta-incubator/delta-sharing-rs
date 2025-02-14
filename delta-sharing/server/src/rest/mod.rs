@@ -1,39 +1,29 @@
-use std::path::Path;
-use std::sync::Arc;
-
+use delta_sharing_common::{Error, Result};
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
 
-use super::shutdown_signal;
-use crate::error::{Error, Result};
-use crate::policies::ConstantPolicy;
+use self::router::get_router;
 use crate::rest::auth::{AnonymousAuthenticator, AuthenticationLayer};
-use crate::rest::get_rest_router;
-use crate::{DeltaSharingHandler, InMemoryConfig, InMemoryHandler, KernelQueryHandler};
+use crate::shutdown::shutdown_signal;
+use crate::DeltaSharingHandler;
 
-pub async fn run_rest_server(
-    config: impl AsRef<Path>,
+mod auth;
+mod router;
+
+pub async fn run_server(
     host: impl AsRef<str>,
     port: u16,
+    handler: DeltaSharingHandler,
 ) -> Result<()> {
-    let config = std::fs::read_to_string(config)
-        .map_err(|_| Error::Generic("malformed config".to_string()))?;
-    let config = serde_yml::from_str::<InMemoryConfig>(&config)
-        .map_err(|_| Error::Generic("malformed config".to_string()))?;
-
-    let discovery = Arc::new(InMemoryHandler::new(config));
-    let state = DeltaSharingHandler {
-        query: KernelQueryHandler::new_multi_thread(discovery.clone(), Default::default()),
-        discovery,
-        policy: Arc::new(ConstantPolicy::default()),
-    };
+    let server = get_router(handler)
+        .layer(AuthenticationLayer::new(AnonymousAuthenticator))
+        .layer(TraceLayer::new_for_http());
 
     let listener = TcpListener::bind(format!("{}:{}", host.as_ref(), port))
         .await
         .map_err(|e| Error::Generic(e.to_string()))?;
-    let server = get_rest_router(state)
-        .layer(AuthenticationLayer::new(AnonymousAuthenticator))
-        .layer(TraceLayer::new_for_http());
+
+    tracing::info!("Listning on: {}", listener.local_addr().unwrap());
 
     axum::serve(listener, server)
         .with_graceful_shutdown(shutdown_signal())
@@ -45,19 +35,22 @@ pub async fn run_rest_server(
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
 
     use axum::body::Body;
     use axum::http::{header, HeaderValue, Request, StatusCode};
     use axum::Router;
+    use delta_sharing_common::models::v1::*;
+    use delta_sharing_common::policies::ConstantPolicy;
+    use delta_sharing_common::KernelQueryHandler;
+    use delta_sharing_common::{
+        DefaultInMemoryHandler, InMemoryConfig, SchemaConfig, ShareConfig, TableConfig,
+    };
     use http_body_util::BodyExt;
     use tower::ServiceExt;
 
     use super::*;
-    use crate::models::v1::*;
-    use crate::policies::ConstantPolicy;
     use crate::rest::auth::{AnonymousAuthenticator, AuthenticationLayer};
-    use crate::KernelQueryHandler;
-    use crate::{DefaultInMemoryHandler, InMemoryConfig, SchemaConfig, ShareConfig, TableConfig};
 
     pub(crate) fn test_config() -> InMemoryConfig {
         InMemoryConfig {
@@ -90,7 +83,7 @@ mod tests {
     }
 
     fn get_anonymous_router() -> Router {
-        get_rest_router(get_state()).layer(AuthenticationLayer::new(AnonymousAuthenticator))
+        get_router(get_state()).layer(AuthenticationLayer::new(AnonymousAuthenticator))
     }
 
     #[tokio::test]
