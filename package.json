@@ -1,5 +1,0 @@
-{
-  "devDependencies": {
-    "@types/github-script": "github:actions/github-script"
-  }
-}
