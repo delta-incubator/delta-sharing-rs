@@ -2,7 +2,8 @@
 
 use std::sync::Arc;
 
-use delta_sharing_postgres::{AssociationLabel, Error, Error, GraphStore, ObjectLabel};
+use delta_sharing_postgres::{AssociationLabel, Error, GraphStore, ObjectLabel};
+use uuid::Uuid;
 
 #[sqlx::test]
 async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Error + 'static>> {
