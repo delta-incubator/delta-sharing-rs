@@ -14,7 +14,7 @@ async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Erro
             &ObjectLabel::Table,
             &["namespace".to_string()],
             "table_name",
-            serde_json::json!({ "key": "value" }),
+            Some(serde_json::json!({ "key": "value" })),
         )
         .await?;
     assert_eq!(object.label, ObjectLabel::Table);
@@ -27,7 +27,7 @@ async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Erro
             &ObjectLabel::Table,
             &["namespace".to_string()],
             "table_name",
-            serde_json::json!({ "key": "value" }),
+            Some(serde_json::json!({ "key": "value" })),
         )
         .await;
     assert!(matches!(res, Err(Error::AlreadyExists(_))));
@@ -83,7 +83,7 @@ async fn test_associations(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error:
             &ObjectLabel::Table,
             &["namespace".to_string()],
             "table_name1",
-            serde_json::json!({ "key": "value" }),
+            Some(serde_json::json!({ "key": "value" })),
         )
         .await?;
     let object2 = store
@@ -91,7 +91,7 @@ async fn test_associations(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error:
             &ObjectLabel::Table,
             &["namespace".to_string()],
             "table_name2",
-            serde_json::json!({ "key": "value" }),
+            Some(serde_json::json!({ "key": "value" })),
         )
         .await?;
 
