@@ -74,10 +74,10 @@ macro_rules! impl_list_request {
 
 impl_list_request!(ListSharesRequest {});
 impl_list_request!(ListSchemasRequest { share: String });
-impl_list_request!(ListShareTablesRequest { share: String });
+impl_list_request!(ListShareTablesRequest { name: String });
 impl_list_request!(ListSchemaTablesRequest {
     share: String,
-    schema: String
+    name: String
 });
 
 #[derive(Deserialize)]

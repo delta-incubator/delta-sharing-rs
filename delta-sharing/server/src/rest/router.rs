@@ -41,7 +41,7 @@ async fn list_share_tables(
     Extension(recipient): Extension<Recipient>,
     request: ListShareTablesRequest,
 ) -> Result<Json<ListShareTablesResponse>> {
-    check_read_share_permission(handler.policy.as_ref(), &request.share, &recipient).await?;
+    check_read_share_permission(handler.policy.as_ref(), &request.name, &recipient).await?;
     Ok(Json(handler.discovery.list_share_tables(request).await?))
 }
 

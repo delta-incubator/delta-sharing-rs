@@ -23,14 +23,14 @@ message Share {
   ];
 
   // Unique identifier for the share.
-  optional string id = 2;
+  optional string id = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // A schema is a logical grouping of tables. A schema may contain multiple tables.
 message Schema {
   option (google.api.resource) = {
     type: "sharing.delta.io/Schema"
-    pattern: "shares/{share}/schemas/{schema}"
+    pattern: "shares/{share}/schemas/{name}"
     singular: "schema"
     plural: "schemas"
   };
@@ -60,32 +60,38 @@ message Table {
   // The name of the table.
   string name = 1 [
     (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 255,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
     (google.api.field_behavior) = IDENTIFIER
   ];
 
   // The schema name that the table belongs to.
   string schema = 2 [
     (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 255,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
     (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
   ];
 
   // The share name that the table belongs to.
   string share = 3 [
     (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 255,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
 
   // Unique identifier for the table.
-  optional string id = 4;
+  optional string id = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // A unique identifier for the share this table belongs to.
-  optional string share_id = 5;
+  optional string share_id = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 message ListSharesRequest {
   // The maximum number of results per page that should be returned.
   optional int32 max_results = 1 [
-    (buf.validate.field).int32.gte = 0,
+    (buf.validate.field).int32.gt = 0,
     (google.api.field_behavior) = OPTIONAL
   ];
 
@@ -107,6 +113,7 @@ message GetShareRequest {
   // The share name to query. It's case-insensitive.
   string name = 1 [
     (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
@@ -116,13 +123,14 @@ message ListSchemasRequest {
   // The share name to query. It's case-insensitive.
   string share = 1 [
     (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
 
   // The maximum number of results per page that should be returned.
   optional int32 max_results = 2 [
-    (buf.validate.field).int32.gte = 0,
+    (buf.validate.field).int32.gt = 0,
     (google.api.field_behavior) = OPTIONAL
   ];
 
@@ -142,8 +150,9 @@ message ListSchemasResponse {
 
 message ListSchemaTablesRequest {
   // The schema name to query. It's case-insensitive.
-  string schema = 1 [
+  string name = 1 [
     (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
   ];
@@ -151,13 +160,14 @@ message ListSchemaTablesRequest {
   // The share name to query. It's case-insensitive.
   string share = 2 [
     (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
 
   // The maximum number of results per page that should be returned.
   optional int32 max_results = 3 [
-    (buf.validate.field).int32.gte = 1,
+    (buf.validate.field).int32.gt = 0,
     (google.api.field_behavior) = OPTIONAL
   ];
 
@@ -176,15 +186,16 @@ message ListSchemaTablesResponse {
 
 message ListShareTablesRequest {
   // The share name to query. It's case-insensitive.
-  string share = 1 [
+  string name = 1 [
     (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
 
   // The maximum number of results per page that should be returned.
   optional int32 max_results = 2 [
-    (buf.validate.field).int32.gte = 0,
+    (buf.validate.field).int32.gt = 0,
     (google.api.field_behavior) = OPTIONAL
   ];
 

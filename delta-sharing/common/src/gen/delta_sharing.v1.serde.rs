@@ -799,7 +799,7 @@ impl serde::Serialize for ListSchemaTablesRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if !self.schema.is_empty() {
+        if !self.name.is_empty() {
             len += 1;
         }
         if !self.share.is_empty() {
@@ -812,8 +812,8 @@ impl serde::Serialize for ListSchemaTablesRequest {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.v1.ListSchemaTablesRequest", len)?;
-        if !self.schema.is_empty() {
-            struct_ser.serialize_field("schema", &self.schema)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
         }
         if !self.share.is_empty() {
             struct_ser.serialize_field("share", &self.share)?;
@@ -834,7 +834,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemaTablesRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "schema",
+            "name",
             "share",
             "max_results",
             "maxResults",
@@ -844,7 +844,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemaTablesRequest {
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Schema,
+            Name,
             Share,
             MaxResults,
             PageToken,
@@ -870,7 +870,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemaTablesRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "schema" => Ok(GeneratedField::Schema),
+                            "name" => Ok(GeneratedField::Name),
                             "share" => Ok(GeneratedField::Share),
                             "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
                             "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
@@ -893,17 +893,17 @@ impl<'de> serde::Deserialize<'de> for ListSchemaTablesRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut schema__ = None;
+                let mut name__ = None;
                 let mut share__ = None;
                 let mut max_results__ = None;
                 let mut page_token__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Schema => {
-                            if schema__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("schema"));
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
                             }
-                            schema__ = Some(map_.next_value()?);
+                            name__ = Some(map_.next_value()?);
                         }
                         GeneratedField::Share => {
                             if share__.is_some() {
@@ -931,7 +931,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemaTablesRequest {
                     }
                 }
                 Ok(ListSchemaTablesRequest {
-                    schema: schema__.unwrap_or_default(),
+                    name: name__.unwrap_or_default(),
                     share: share__.unwrap_or_default(),
                     max_results: max_results__,
                     page_token: page_token__,
@@ -1308,7 +1308,7 @@ impl serde::Serialize for ListShareTablesRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if !self.share.is_empty() {
+        if !self.name.is_empty() {
             len += 1;
         }
         if self.max_results.is_some() {
@@ -1318,8 +1318,8 @@ impl serde::Serialize for ListShareTablesRequest {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.v1.ListShareTablesRequest", len)?;
-        if !self.share.is_empty() {
-            struct_ser.serialize_field("share", &self.share)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
         }
         if let Some(v) = self.max_results.as_ref() {
             struct_ser.serialize_field("maxResults", v)?;
@@ -1337,7 +1337,7 @@ impl<'de> serde::Deserialize<'de> for ListShareTablesRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "share",
+            "name",
             "max_results",
             "maxResults",
             "page_token",
@@ -1346,7 +1346,7 @@ impl<'de> serde::Deserialize<'de> for ListShareTablesRequest {
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Share,
+            Name,
             MaxResults,
             PageToken,
             __SkipField__,
@@ -1371,7 +1371,7 @@ impl<'de> serde::Deserialize<'de> for ListShareTablesRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "share" => Ok(GeneratedField::Share),
+                            "name" => Ok(GeneratedField::Name),
                             "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
                             "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
                             _ => Ok(GeneratedField::__SkipField__),
@@ -1393,16 +1393,16 @@ impl<'de> serde::Deserialize<'de> for ListShareTablesRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut share__ = None;
+                let mut name__ = None;
                 let mut max_results__ = None;
                 let mut page_token__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Share => {
-                            if share__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("share"));
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
                             }
-                            share__ = Some(map_.next_value()?);
+                            name__ = Some(map_.next_value()?);
                         }
                         GeneratedField::MaxResults => {
                             if max_results__.is_some() {
@@ -1424,7 +1424,7 @@ impl<'de> serde::Deserialize<'de> for ListShareTablesRequest {
                     }
                 }
                 Ok(ListShareTablesRequest {
-                    share: share__.unwrap_or_default(),
+                    name: name__.unwrap_or_default(),
                     max_results: max_results__,
                     page_token: page_token__,
                 })

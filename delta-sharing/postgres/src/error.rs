@@ -43,10 +43,10 @@ impl From<sqlx::Error> for Error {
                 let pg_err = db_err.try_downcast_ref::<sqlx::postgres::PgDatabaseError>();
                 match pg_err {
                     Some(pg_err) if pg_err.code() == "23505" => {
-                        return Error::AlreadyExists("Unique violation".to_string());
+                        Error::AlreadyExists("Unique violation".to_string())
                     }
                     Some(pg_err) if pg_err.code() == "23503" => {
-                        return Error::EntityNotFound("Foreign key violation".to_string());
+                        Error::EntityNotFound("Foreign key violation".to_string())
                     }
                     _ => Error::Connection(e),
                 }
