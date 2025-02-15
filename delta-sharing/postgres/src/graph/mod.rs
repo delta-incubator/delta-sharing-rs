@@ -16,7 +16,7 @@ pub enum ObjectLabel {
     Principal,
 }
 
-#[derive(Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct Object {
     /// The globally unique identifier of the object.
     pub id: Uuid,

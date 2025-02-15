@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                id,\n                from_id,\n                label AS \"label: AssociationLabel\",\n                to_id,\n                properties,\n                created_at,\n                updated_at\n            FROM associations\n            WHERE from_id = $1\n              AND label = $2\n              AND to_id = ANY($3)\n            ORDER BY created_at DESC\n            LIMIT 1000\n            ",
+  "query": "\n            SELECT\n                id,\n                from_id,\n                label AS \"label: AssociationLabel\",\n                to_id,\n                properties,\n                created_at,\n                updated_at\n            FROM associations\n            WHERE from_id = $1\n              AND label = $2\n              AND to_id = ANY($3)\n              AND ( id < $4 OR $4 IS NULL )\n            ORDER BY id DESC\n            LIMIT $5\n            ",
   "describe": {
     "columns": [
       {
@@ -67,7 +67,9 @@
             }
           }
         },
-        "UuidArray"
+        "UuidArray",
+        "Uuid",
+        "Int8"
       ]
     },
     "nullable": [
@@ -80,5 +82,5 @@
       true
     ]
   },
-  "hash": "ba189c005e10780e5f6d7dc0120c78061f8209105f113da19f97cdb22b6ffb3f"
+  "hash": "7edc112031d2eb551a8f3e0399a715192ab9e4c37e642c952a8a9436743cecb9"
 }

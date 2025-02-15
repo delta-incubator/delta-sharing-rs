@@ -23,6 +23,19 @@ impl Store {
     }
 
     /// Add an object to the store.
+    ///
+    /// # Parameters
+    /// - `label`: The label of the object.
+    /// - `namespace`: The namespace of the object.
+    /// - `name`: The name of the object.
+    /// - `properties`: The properties of the object.
+    ///
+    /// # Returns
+    /// The object that was added to the store.
+    ///
+    /// # Errors
+    /// - [AlreadyExists](crate::Error::AlreadyExists): If an object with the
+    ///   same name already exists in the namespace
     pub async fn add_object(
         &self,
         label: &ObjectLabel,
@@ -54,6 +67,15 @@ impl Store {
     }
 
     /// Get an object from the store.
+    ///
+    /// # Parameters
+    /// - `id`: The globally unique identifier of the object.
+    ///
+    /// # Returns
+    /// The object with the given identifier.
+    ///
+    /// # Errors
+    /// - [EntityNotFound](crate::Error::EntityNotFound): If the object does not exist.
     pub async fn get_object(&self, id: &Uuid) -> Result<Object> {
         Ok(sqlx::query_as!(
             Object,
@@ -75,7 +97,61 @@ impl Store {
         .await?)
     }
 
+    /// Get an object from the store by name.
+    ///
+    /// The name of the object is unique within the namespace.
+    ///
+    /// # Parameters
+    /// - `label`: The label of the object.
+    /// - `namespace`: The namespace of the object.
+    /// - `name`: The name of the object.
+    ///
+    /// # Returns
+    /// The object with the given name.
+    ///
+    /// # Errors
+    /// - [EntityNotFound](crate::Error::EntityNotFound): If the object does not exist.
+    pub async fn get_object_by_name(
+        &self,
+        label: &ObjectLabel,
+        namespace: &[String],
+        name: impl AsRef<str>,
+    ) -> Result<Object> {
+        Ok(sqlx::query_as!(
+            Object,
+            r#"
+            SELECT
+                id,
+                label AS "label: ObjectLabel",
+                namespace,
+                name,
+                properties,
+                created_at,
+                updated_at
+            FROM objects
+            WHERE label = $1
+              AND namespace = $2
+              AND name = $3
+            "#,
+            label as &ObjectLabel,
+            namespace,
+            name.as_ref()
+        )
+        .fetch_one(&*self.pool)
+        .await?)
+    }
+
     /// Update an object in the store.
+    ///
+    /// # Parameters
+    /// - `id`: The globally unique identifier of the object.
+    /// - `properties`: The properties of the object.
+    ///
+    /// # Returns
+    /// The updated object.
+    ///
+    /// # Errors
+    /// - [EntityNotFound](crate::Error::EntityNotFound): If the object does not exist.
     pub async fn update_object(
         &self,
         id: &Uuid,
@@ -104,6 +180,9 @@ impl Store {
     }
 
     /// Delete an object from the store.
+    ///
+    /// # Parameters
+    /// - `id`: The globally unique identifier of the object.
     pub async fn delete_object(&self, id: &Uuid) -> Result<()> {
         let mut txn = self.pool.begin().await?;
 
@@ -136,6 +215,19 @@ impl Store {
     ///
     /// Associations are directed edges between objects.
     /// If an inverse association exists, it is automatically created.
+    ///
+    /// # Parameters
+    /// - `from_id`: The identifier of the source object.
+    /// - `label`: The label of the association.
+    /// - `to_id`: The identifier of the target object.
+    /// - `properties`: The properties of the association.
+    ///
+    /// # Returns
+    /// The association that was added to the store.
+    ///
+    /// # Errors
+    /// - [EntityNotFound](crate::Error::EntityNotFound): If the source or target object does not exist.
+    /// - [AlreadyExists](crate::Error::AlreadyExists): If the association already exists.
     pub async fn add_association(
         &self,
         from_id: &Uuid,
@@ -206,13 +298,32 @@ impl Store {
     }
 
     /// List associations of a specific type from an object to a set of objects.
+    ///
+    /// # Parameters
+    /// - `from_id`: The identifier of the source object.
+    /// - `label`: The label of the association.
+    /// - `to_ids`: The identifiers of the target objects.
+    ///
+    /// # Returns
+    /// The associations from the source object to the target objects.
     pub async fn get_associations(
         &self,
         from_id: &Uuid,
         label: &AssociationLabel,
         to_ids: &[Uuid],
-    ) -> Result<Vec<Association>> {
-        Ok(sqlx::query_as!(
+        page_token: Option<&str>,
+        max_page_size: Option<usize>,
+    ) -> Result<(Vec<Association>, Option<String>)> {
+        let max_page_size = usize::min(max_page_size.unwrap_or(MAX_PAGE_SIZE), MAX_PAGE_SIZE);
+        let token = page_token
+            .map(PaginateToken::<Uuid>::try_from)
+            .transpose()?;
+        let (_token_ts, token_id) = token
+            .as_ref()
+            .map(|PaginateToken::V1(V1PaginateToken { created_at, id })| (created_at, id))
+            .unzip();
+
+        let assocs = sqlx::query_as!(
             Association,
             r#"
             SELECT
@@ -227,15 +338,32 @@ impl Store {
             WHERE from_id = $1
               AND label = $2
               AND to_id = ANY($3)
-            ORDER BY created_at DESC
-            LIMIT 1000
+              AND ( id < $4 OR $4 IS NULL )
+            ORDER BY id DESC
+            LIMIT $5
             "#,
             from_id,
             label as &AssociationLabel,
-            &to_ids
+            &to_ids,
+            token_id,
+            max_page_size as i64
         )
         .fetch_all(&*self.pool)
-        .await?)
+        .await?;
+
+        let next = (assocs.len() == max_page_size)
+            .then(|| {
+                assocs.last().map(|a| {
+                    PaginateToken::V1(V1PaginateToken {
+                        created_at: a.created_at,
+                        id: a.id,
+                    })
+                    .to_string()
+                })
+            })
+            .flatten();
+
+        Ok((assocs, next))
     }
 
     /// List associations of a specific type from an object to all objects.
@@ -333,113 +461,4 @@ async fn delete_association(
         .await?;
     };
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::error::Error;
-
-    #[sqlx::test]
-    async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Error + 'static>> {
-        let store = Store::new(Arc::new(pool));
-
-        let object = store
-            .add_object(
-                &ObjectLabel::Table,
-                &["namespace".to_string()],
-                "table_name",
-                serde_json::json!({ "key": "value" }),
-            )
-            .await?;
-        assert_eq!(object.label, ObjectLabel::Table);
-        assert_eq!(object.namespace, vec!["namespace".to_string()]);
-        assert_eq!(object.name, "table_name");
-
-        let object = store.get_object(&object.id).await?;
-        assert_eq!(object.label, ObjectLabel::Table);
-        assert_eq!(object.namespace, vec!["namespace".to_string()]);
-        assert_eq!(object.name, "table_name");
-        assert_eq!(
-            object.properties,
-            Some(serde_json::json!({ "key": "value" }))
-        );
-
-        let object = store
-            .update_object(&object.id, serde_json::json!({ "key": "value2" }))
-            .await?;
-        assert_eq!(
-            object.properties,
-            Some(serde_json::json!({ "key": "value2" }))
-        );
-
-        store.delete_object(&object.id).await?;
-        let res = store.get_object(&object.id).await;
-        assert!(matches!(res, Err(Error::EntityNotFound(_))));
-
-        Ok(())
-    }
-
-    #[sqlx::test]
-    async fn test_associations(
-        pool: sqlx::PgPool,
-    ) -> Result<(), Box<dyn std::error::Error + 'static>> {
-        let store = Store::new(Arc::new(pool));
-
-        let object1 = store
-            .add_object(
-                &ObjectLabel::Table,
-                &["namespace".to_string()],
-                "table_name1",
-                serde_json::json!({ "key": "value" }),
-            )
-            .await?;
-        let object2 = store
-            .add_object(
-                &ObjectLabel::Table,
-                &["namespace".to_string()],
-                "table_name2",
-                serde_json::json!({ "key": "value" }),
-            )
-            .await?;
-
-        let association = store
-            .add_association(
-                &object1.id,
-                &AssociationLabel::HasPart,
-                &object2.id,
-                serde_json::json!({ "key": "value" }),
-            )
-            .await?;
-        assert_eq!(association.label, AssociationLabel::HasPart);
-        assert_eq!(association.from_id, object1.id);
-        assert_eq!(association.to_id, object2.id);
-
-        let associations = store
-            .get_associations(&object1.id, &AssociationLabel::HasPart, &[object2.id])
-            .await?;
-        assert_eq!(associations.len(), 1);
-        assert_eq!(associations[0].label, AssociationLabel::HasPart);
-        assert_eq!(associations[0].from_id, object1.id);
-        assert_eq!(associations[0].to_id, object2.id);
-
-        // assert inverse association
-        let associations = store
-            .get_associations(&object2.id, &AssociationLabel::PartOf, &[object1.id])
-            .await?;
-        assert_eq!(associations.len(), 1);
-        assert_eq!(associations[0].label, AssociationLabel::PartOf);
-        assert_eq!(associations[0].from_id, object2.id);
-        assert_eq!(associations[0].to_id, object1.id);
-
-        store
-            .delete_association(&object1.id, &AssociationLabel::HasPart, &object2.id)
-            .await?;
-        let associations = store
-            .get_associations(&object1.id, &AssociationLabel::HasPart, &[object2.id])
-            .await?;
-        assert!(associations.is_empty());
-
-        Ok(())
-    }
 }

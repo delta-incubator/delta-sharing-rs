@@ -9,9 +9,6 @@ pub enum Error {
     #[error(transparent)]
     Migration(#[from] sqlx::migrate::MigrateError),
 
-    #[error("Entity not found: '{0}'")]
-    EntityNotFound(String),
-
     #[error("Invalid Url: '{0}'")]
     InvalidUrl(#[from] url::ParseError),
 
@@ -20,6 +17,12 @@ pub enum Error {
 
     #[error("Generic error: {0}")]
     Generic(String),
+
+    #[error("Entity not found: '{0}'")]
+    EntityNotFound(String),
+
+    #[error("Already exists: '{0}'")]
+    AlreadyExists(String),
 }
 
 impl Error {
@@ -34,8 +37,20 @@ impl Error {
 
 impl From<sqlx::Error> for Error {
     fn from(e: sqlx::Error) -> Self {
-        match e {
+        match &e {
             sqlx::Error::RowNotFound => Error::EntityNotFound("Row not found".to_string()),
+            sqlx::Error::Database(db_err) => {
+                let pg_err = db_err.try_downcast_ref::<sqlx::postgres::PgDatabaseError>();
+                match pg_err {
+                    Some(pg_err) if pg_err.code() == "23505" => {
+                        return Error::AlreadyExists("Unique violation".to_string());
+                    }
+                    Some(pg_err) if pg_err.code() == "23503" => {
+                        return Error::EntityNotFound("Foreign key violation".to_string());
+                    }
+                    _ => Error::Connection(e),
+                }
+            }
             _ => Error::Connection(e),
         }
     }
