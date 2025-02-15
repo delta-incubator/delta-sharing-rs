@@ -73,7 +73,7 @@ impl DeltaSharingClient {
             move |(share, schema, max_results), page_token| async move {
                 let req = ListSchemaTablesRequest {
                     share: share.clone(),
-                    schema: schema.clone(),
+                    name: schema.clone(),
                     max_results,
                     page_token,
                 };
@@ -98,7 +98,7 @@ impl DeltaSharingClient {
             (share.into(), max_results),
             move |(share, max_results), page_token| async move {
                 let req = ListShareTablesRequest {
-                    share: share.clone(),
+                    name: share.clone(),
                     max_results,
                     page_token,
                 };

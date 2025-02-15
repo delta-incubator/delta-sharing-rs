@@ -30,6 +30,7 @@ uuid = { version = "1.8", optional = true, features = ["v5"] }
 
 # axum handler dependencies (in alphabetical order)
 axum = { version = "0.8", optional = true }
+pbjson-types = "0.7"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }

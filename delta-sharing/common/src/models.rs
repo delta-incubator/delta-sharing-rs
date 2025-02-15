@@ -7,6 +7,14 @@ pub mod v1 {
     include!("gen/delta_sharing.v1.tonic.rs");
 }
 
+pub mod catalog {
+    pub mod v1 {
+        include!("gen/delta_sharing.catalog.v1.rs");
+        #[cfg(feature = "grpc")]
+        include!("gen/delta_sharing.catalog.v1.tonic.rs");
+    }
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ErrorResponse {

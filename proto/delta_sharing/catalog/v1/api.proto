@@ -3,11 +3,26 @@ syntax = "proto3";
 package delta_sharing.catalog.v1;
 
 import "delta_sharing/v1/models.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/struct.proto";
+import "openapiv3/annotations.proto";
+
+enum TableType {
+  UNSPECIFIED = 0;
+  DELTA = 1;
+  ICEBERG = 2;
+  HUDI = 3;
+  PARQUET = 4;
+}
 
 /// Register a new table in the Delta Sharing service.
 message CreateTableRequest {
-  string name = 1;
-  string location = 2;
+  string catalog_name = 1;
+  string schema_name = 2;
+  google.protobuf.Struct properties = 3;
 }
 
 /// Response to CreateTableRequest.
@@ -15,6 +30,89 @@ message CreateTableResponse {
   string table_uri = 1;
 }
 
+message CreateShareRequest {
+  delta_sharing.v1.Share share = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteShareRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+}
+
 message CreateSchemaRequest {
-  string name = 1;
+  string share = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+  delta_sharing.v1.Schema schema = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteSchemaRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+  ];
+
+  string share = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+}
+
+service CatalogService {
+  // Create a new Share in the Delta Sharing service.
+  rpc CreateShare(CreateShareRequest) returns (delta_sharing.v1.Share) {
+    option (google.api.http) = {
+      post: "/shares"
+      body: "share"
+    };
+    option (openapi.v3.operation) = {
+      tags: [
+        "shares",
+        "unofficial"
+      ]
+      operation_id: "CreateShare"
+    };
+  }
+
+  // Delete a Share in the Delta Sharing service.
+  rpc DeleteShare(DeleteShareRequest) returns (delta_sharing.v1.Share) {
+    option (google.api.http) = {delete: "/shares/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "shares",
+        "unofficial"
+      ]
+      operation_id: "DeleteShare"
+    };
+  }
+
+  // Create a new Schema in the Delta Sharing service.
+  rpc CreateSchema(CreateSchemaRequest) returns (delta_sharing.v1.Schema) {
+    option (google.api.http) = {
+      post: "/shares/{share}/schemas"
+      body: "schema"
+    };
+    option (openapi.v3.operation) = {
+      tags: [
+        "schemas",
+        "unofficial"
+      ]
+      operation_id: "CreateSchema"
+    };
+  }
+
+  // Delete a Schema in the Delta Sharing service.
+  rpc DeleteSchema(DeleteSchemaRequest) returns (delta_sharing.v1.Schema) {
+    option (google.api.http) = {delete: "/shares/{share}/schemas/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "schemas",
+        "unofficial"
+      ]
+      operation_id: "DeleteSchema"
+    };
+  }
 }

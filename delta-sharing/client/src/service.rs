@@ -130,7 +130,7 @@ impl ServiceClient for RestServiceClient {
     ) -> Result<ListSchemaTablesResponse> {
         let url = self.endpoint.join(&format!(
             "shares/{}/schemas/{}/tables",
-            request.share, request.schema
+            request.share, request.name
         ))?;
         let cred = self.credential_provider.get_credential().await?;
 
@@ -163,7 +163,7 @@ impl ServiceClient for RestServiceClient {
     ) -> Result<ListShareTablesResponse> {
         let url = self
             .endpoint
-            .join(&format!("shares/{}/all-tables", request.share))?;
+            .join(&format!("shares/{}/all-tables", request.name))?;
         let cred = self.credential_provider.get_credential().await?;
 
         let mut req = self

@@ -130,11 +130,11 @@ impl DiscoveryHandler for InMemoryHandler {
         request: ListSchemaTablesRequest,
     ) -> Result<ListSchemaTablesResponse> {
         let schema_refs = self.shares.get(&request.share).ok_or(Error::NotFound)?;
-        if !schema_refs.contains(&request.schema) {
+        if !schema_refs.contains(&request.name) {
             return Err(Error::NotFound);
         }
         let share_id = Uuid::new_v5(&Uuid::NAMESPACE_OID, request.share.as_bytes());
-        match self.schemas.get(&request.schema) {
+        match self.schemas.get(&request.name) {
             Some(tables) => {
                 let tables = tables
                     .iter()
@@ -143,7 +143,7 @@ impl DiscoveryHandler for InMemoryHandler {
                             id: Some(Uuid::new_v5(&share_id, v.name.as_bytes()).to_string()),
                             name: v.name.clone(),
                             share: request.share.clone(),
-                            schema: request.schema.clone(),
+                            schema: request.name.clone(),
                             share_id: Some(share_id.to_string()),
                         })
                     })
@@ -161,8 +161,8 @@ impl DiscoveryHandler for InMemoryHandler {
         &self,
         request: ListShareTablesRequest,
     ) -> Result<ListShareTablesResponse> {
-        let share_id = Uuid::new_v5(&Uuid::NAMESPACE_OID, request.share.as_bytes());
-        match self.shares.get(&request.share) {
+        let share_id = Uuid::new_v5(&Uuid::NAMESPACE_OID, request.name.as_bytes());
+        match self.shares.get(&request.name) {
             Some(schema_refs) => {
                 let tables = schema_refs
                     .iter()
@@ -175,7 +175,7 @@ impl DiscoveryHandler for InMemoryHandler {
                                             Uuid::new_v5(&share_id, v.name.as_bytes()).to_string(),
                                         ),
                                         name: v.name.clone(),
-                                        share: request.share.clone(),
+                                        share: request.name.clone(),
                                         schema: schema_ref.clone(),
                                         share_id: Some(share_id.to_string()),
                                     })
@@ -268,7 +268,7 @@ mod tests {
         let tables = handler
             .list_schema_tables(ListSchemaTablesRequest {
                 share: "share1".to_string(),
-                schema: "schema1".to_string(),
+                name: "schema1".to_string(),
                 max_results: None,
                 page_token: None,
             })
@@ -279,7 +279,7 @@ mod tests {
 
         let tables = handler
             .list_share_tables(ListShareTablesRequest {
-                share: "share1".to_string(),
+                name: "share1".to_string(),
                 max_results: None,
                 page_token: None,
             })

@@ -102,7 +102,7 @@ pub struct ListSchemasResponse {
 pub struct ListSchemaTablesRequest {
     /// The schema name to query. It's case-insensitive.
     #[prost(string, tag="1")]
-    pub schema: ::prost::alloc::string::String,
+    pub name: ::prost::alloc::string::String,
     /// The share name to query. It's case-insensitive.
     #[prost(string, tag="2")]
     pub share: ::prost::alloc::string::String,
@@ -130,7 +130,7 @@ pub struct ListSchemaTablesResponse {
 pub struct ListShareTablesRequest {
     /// The share name to query. It's case-insensitive.
     #[prost(string, tag="1")]
-    pub share: ::prost::alloc::string::String,
+    pub name: ::prost::alloc::string::String,
     /// The maximum number of results per page that should be returned.
     #[prost(int32, optional, tag="2")]
     pub max_results: ::core::option::Option<i32>,

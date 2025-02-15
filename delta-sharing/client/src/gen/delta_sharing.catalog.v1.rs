@@ -5,9 +5,11 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateTableRequest {
     #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
+    pub catalog_name: ::prost::alloc::string::String,
     #[prost(string, tag="2")]
-    pub location: ::prost::alloc::string::String,
+    pub schema_name: ::prost::alloc::string::String,
+    #[prost(message, optional, tag="3")]
+    pub properties: ::core::option::Option<::pbjson_types::Struct>,
 }
 /// / Response to CreateTableRequest.
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -18,9 +20,67 @@ pub struct CreateTableResponse {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CreateSchemaRequest {
+pub struct CreateShareRequest {
+    #[prost(message, optional, tag="1")]
+    pub share: ::core::option::Option<super::super::v1::Share>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteShareRequest {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
 }
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateSchemaRequest {
+    #[prost(string, tag="1")]
+    pub share: ::prost::alloc::string::String,
+    #[prost(message, optional, tag="2")]
+    pub schema: ::core::option::Option<super::super::v1::Schema>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteSchemaRequest {
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub share: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum TableType {
+    Unspecified = 0,
+    Delta = 1,
+    Iceberg = 2,
+    Hudi = 3,
+    Parquet = 4,
+}
+impl TableType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            TableType::Unspecified => "UNSPECIFIED",
+            TableType::Delta => "DELTA",
+            TableType::Iceberg => "ICEBERG",
+            TableType::Hudi => "HUDI",
+            TableType::Parquet => "PARQUET",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "UNSPECIFIED" => Some(Self::Unspecified),
+            "DELTA" => Some(Self::Delta),
+            "ICEBERG" => Some(Self::Iceberg),
+            "HUDI" => Some(Self::Hudi),
+            "PARQUET" => Some(Self::Parquet),
+            _ => None,
+        }
+    }
+}
 include!("delta_sharing.catalog.v1.serde.rs");
+include!("delta_sharing.catalog.v1.tonic.rs");
 // @@protoc_insertion_point(module)

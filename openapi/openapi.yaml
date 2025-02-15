@@ -7,7 +7,9 @@ info:
     url: https://www.gnu.org/licenses/agpl-3.0.en.html
   version: 0.0.0
 tags:
+  - name: CatalogService
   - name: DeltaSharingService
+    description: Service exposing the official APIs for Delta Sharing.
   - name: official
     description: APIs which are part of published official document
   - name: proposed
@@ -48,6 +50,59 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListSharesResponse'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    post:
+      tags:
+        - CatalogService
+        - shares
+        - unofficial
+      description: Create a new Share in the Delta Sharing service.
+      operationId: CreateShare
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Share'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Share'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /shares/{name}:
+    delete:
+      tags:
+        - CatalogService
+        - shares
+        - unofficial
+      description: Delete a Share in the Delta Sharing service.
+      operationId: DeleteShare
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Share'
         default:
           description: Default error response
           content:
@@ -95,11 +150,6 @@ paths:
           in: path
           description: The share id.
           required: true
-          schema:
-            type: string
-        - name: share
-          in: query
-          description: The share name to query. It's case-insensitive.
           schema:
             type: string
         - name: maxResults
@@ -174,7 +224,71 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
-  /shares/{share}/schemas/{parent}/tables:
+    post:
+      tags:
+        - CatalogService
+        - schemas
+        - unofficial
+      description: Create a new Schema in the Delta Sharing service.
+      operationId: CreateSchema
+      parameters:
+        - name: share
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Schema'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schema'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /shares/{share}/schemas/{name}:
+    delete:
+      tags:
+        - CatalogService
+        - schemas
+        - unofficial
+      description: Delete a Schema in the Delta Sharing service.
+      operationId: DeleteSchema
+      parameters:
+        - name: share
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schema'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /shares/{share}/schemas/{name}/tables:
     get:
       tags:
         - DeltaSharingService
@@ -189,14 +303,10 @@ paths:
           required: true
           schema:
             type: string
-        - name: parent
+        - name: name
           in: path
-          required: true
-          schema:
-            type: string
-        - name: schema
-          in: query
           description: The schema name to query. It's case-insensitive.
+          required: true
           schema:
             type: string
         - name: maxResults
@@ -314,30 +424,6 @@ paths:
                 $ref: '#/components/schemas/Status'
 components:
   schemas:
-    AdditionalPropertiesItem:
-      type: object
-      properties:
-        schemaOrReference:
-          $ref: '#/components/schemas/SchemaOrReference'
-        boolean:
-          type: boolean
-    Any:
-      type: object
-      properties:
-        value:
-          $ref: '#/components/schemas/GoogleProtobufAny'
-        yaml:
-          type: string
-    DefaultType:
-      type: object
-      properties:
-        number:
-          type: number
-          format: double
-        boolean:
-          type: boolean
-        string:
-          type: string
     DeltaLogMessage:
       type: object
       properties:
@@ -352,30 +438,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DeltaLogMessage'
-    Discriminator:
-      type: object
-      properties:
-        propertyName:
-          type: string
-        mapping:
-          $ref: '#/components/schemas/Strings'
-        specificationExtension:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedAny'
-      description: When request bodies or response payloads may be one of a number of different schemas, a `discriminator` object can be used to aid in serialization, deserialization, and validation.  The discriminator is a specific object in a schema which is used to inform the consumer of the specification of an alternative schema based on the value associated with it.  When using the discriminator, _inline_ schemas will not be considered.
-    ExternalDocs:
-      type: object
-      properties:
-        description:
-          type: string
-        url:
-          type: string
-        specificationExtension:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedAny'
-      description: Allows referencing an external resource for extended documentation.
     Format:
       type: object
       properties:
@@ -401,13 +463,6 @@ components:
           description: The type of the serialized message.
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-    ItemsItem:
-      type: object
-      properties:
-        schemaOrReference:
-          type: array
-          items:
-            $ref: '#/components/schemas/SchemaOrReference'
     ListSchemaTablesResponse:
       type: object
       properties:
@@ -537,38 +592,6 @@ components:
           items:
             type: string
           description: An array containing the names of columns by which the data should be partitioned
-    NamedAny:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Map key
-        value:
-          allOf:
-            - $ref: '#/components/schemas/Any'
-          description: Mapped value
-      description: Automatically-generated message used to represent maps of Any as ordered (name,value) pairs.
-    NamedSchemaOrReference:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Map key
-        value:
-          allOf:
-            - $ref: '#/components/schemas/SchemaOrReference'
-          description: Mapped value
-      description: Automatically-generated message used to represent maps of SchemaOrReference as ordered (name,value) pairs.
-    NamedString:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Map key
-        value:
-          type: string
-          description: Mapped value
-      description: Automatically-generated message used to represent maps of string as ordered (name,value) pairs.
     ParquetLogMessage:
       type: object
       properties:
@@ -583,13 +606,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ParquetLogMessage'
-    Properties:
-      type: object
-      properties:
-        additionalProperties:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedSchemaOrReference'
     ProtocolDelta:
       type: object
       properties:
@@ -622,114 +638,16 @@ components:
           allOf:
             - $ref: '#/components/schemas/DeltaResponse'
           description: Delta response format
-    Reference:
-      type: object
-      properties:
-        Ref:
-          type: string
-        summary:
-          type: string
-        description:
-          type: string
-      description: A simple object to allow referencing other components in the specification, internally and externally.  The Reference Object is defined by JSON Reference and follows the same structure, behavior and rules.   For this specification, reference resolution is accomplished as defined by the JSON Reference specification and not by the JSON Schema specification.
     Schema:
       type: object
       properties:
-        nullable:
-          type: boolean
-        discriminator:
-          $ref: '#/components/schemas/Discriminator'
-        readOnly:
-          type: boolean
-        writeOnly:
-          type: boolean
-        xml:
-          $ref: '#/components/schemas/Xml'
-        externalDocs:
-          $ref: '#/components/schemas/ExternalDocs'
-        example:
-          $ref: '#/components/schemas/Any'
-        deprecated:
-          type: boolean
-        title:
+        name:
           type: string
-        multipleOf:
-          type: number
-          format: double
-        maximum:
-          type: number
-          format: double
-        exclusiveMaximum:
-          type: boolean
-        minimum:
-          type: number
-          format: double
-        exclusiveMinimum:
-          type: boolean
-        maxLength:
+          description: The name of the schama
+        share:
           type: string
-        minLength:
-          type: string
-        pattern:
-          type: string
-        maxItems:
-          type: string
-        minItems:
-          type: string
-        uniqueItems:
-          type: boolean
-        maxProperties:
-          type: string
-        minProperties:
-          type: string
-        required:
-          type: array
-          items:
-            type: string
-        enum:
-          type: array
-          items:
-            $ref: '#/components/schemas/Any'
-        type:
-          type: string
-        allOf:
-          type: array
-          items:
-            $ref: '#/components/schemas/SchemaOrReference'
-        oneOf:
-          type: array
-          items:
-            $ref: '#/components/schemas/SchemaOrReference'
-        anyOf:
-          type: array
-          items:
-            $ref: '#/components/schemas/SchemaOrReference'
-        not:
-          $ref: '#/components/schemas/Schema'
-        items:
-          $ref: '#/components/schemas/ItemsItem'
-        properties:
-          $ref: '#/components/schemas/Properties'
-        additionalProperties:
-          $ref: '#/components/schemas/AdditionalPropertiesItem'
-        default:
-          $ref: '#/components/schemas/DefaultType'
-        description:
-          type: string
-        format:
-          type: string
-        specificationExtension:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedAny'
-      description: The Schema Object allows the definition of input and output data types. These types can be objects, but also primitives and arrays. This object is an extended subset of the JSON Schema Specification Wright Draft 00.  For more information about the properties, see JSON Schema Core and JSON Schema Validation. Unless stated otherwise, the property definitions follow the JSON Schema.
-    SchemaOrReference:
-      type: object
-      properties:
-        schema:
-          $ref: '#/components/schemas/Schema'
-        reference:
-          $ref: '#/components/schemas/Reference'
+          description: The share name that the schema belongs to.
+      description: A schema is a logical grouping of tables. A schema may contain multiple tables.
     Share:
       type: object
       properties:
@@ -737,6 +655,7 @@ components:
           type: string
           description: Name of the share.
         id:
+          readOnly: true
           type: string
           description: Unique identifier for the share.
       description: |-
@@ -758,13 +677,6 @@ components:
             $ref: '#/components/schemas/GoogleProtobufAny'
           description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
       description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
-    Strings:
-      type: object
-      properties:
-        additionalProperties:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedString'
     Table:
       type: object
       properties:
@@ -778,27 +690,11 @@ components:
           type: string
           description: The share name that the table belongs to.
         id:
+          readOnly: true
           type: string
           description: Unique identifier for the table.
         shareId:
+          readOnly: true
           type: string
           description: A unique identifier for the share this table belongs to.
       description: A table is a Delta Lake table or a view on top of a Delta Lake table.
-    Xml:
-      type: object
-      properties:
-        name:
-          type: string
-        namespace:
-          type: string
-        prefix:
-          type: string
-        attribute:
-          type: boolean
-        wrapped:
-          type: boolean
-        specificationExtension:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedAny'
-      description: A metadata object that allows for more fine-tuned XML model definitions.  When using arrays, XML element names are *not* inferred (for singular/plural forms) and the `name` property SHOULD be used to add that information. See examples for expected behavior.
