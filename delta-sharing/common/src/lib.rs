@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use bytes::Bytes;
 
 pub mod error;
@@ -25,13 +23,6 @@ impl Recipient {
     pub fn anonymous() -> Self {
         Self(Bytes::new())
     }
-}
-
-#[derive(Clone)]
-pub struct DeltaSharingHandler {
-    pub discovery: Arc<dyn DiscoveryHandler>,
-    pub query: Arc<dyn TableQueryHandler>,
-    pub policy: Arc<dyn Policy>,
 }
 
 /// Handler for discovering shares, schemas, and tables exposed by a Delta Sharing server.

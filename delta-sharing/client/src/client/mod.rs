@@ -1,6 +1,6 @@
 //! Client for interacting with sharing servers
 //!
-//! Implementaions are adopted from the [object_store](https://docs.rs/object_store) crate.
+//! Implementation is adopted from the [object_store](https://docs.rs/object_store) crate.
 
 pub mod backoff;
 #[cfg(test)]

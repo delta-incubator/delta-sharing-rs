@@ -1,0 +1,84 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                id,\n                from_id,\n                label AS \"label: AssociationLabel\",\n                to_id,\n                properties,\n                created_at,\n                updated_at\n            FROM associations\n            WHERE from_id = $1\n              AND label = $2\n              AND to_id = ANY($3)\n            ORDER BY created_at DESC\n            LIMIT 1000\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "from_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "label: AssociationLabel",
+        "type_info": {
+          "Custom": {
+            "name": "association_label",
+            "kind": {
+              "Enum": [
+                "has_part",
+                "part_of",
+                "created",
+                "created_by"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "to_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "properties",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "association_label",
+            "kind": {
+              "Enum": [
+                "has_part",
+                "part_of",
+                "created",
+                "created_by"
+              ]
+            }
+          }
+        },
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "ba189c005e10780e5f6d7dc0120c78061f8209105f113da19f97cdb22b6ffb3f"
+}

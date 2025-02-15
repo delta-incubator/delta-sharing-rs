@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        DELETE FROM associations\n        WHERE from_id = $1 AND label = $2 AND to_id = $3\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "association_label",
+            "kind": {
+              "Enum": [
+                "has_part",
+                "part_of",
+                "created",
+                "created_by"
+              ]
+            }
+          }
+        },
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1164a04b25a54de3ec2fbe41cce9563a9daceba18f8c1cbcc6622036313a8bc6"
+}
