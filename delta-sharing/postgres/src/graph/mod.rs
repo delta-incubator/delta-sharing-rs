@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+mod sharing;
 mod store;
 
 pub use store::Store as GraphStore;

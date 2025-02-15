@@ -1,0 +1,85 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                id,\n                label AS \"label: ObjectLabel\",\n                namespace,\n                name,\n                properties,\n                created_at,\n                updated_at\n            FROM objects\n            WHERE label = $1\n              AND namespace = $2\n              AND ( id < $3 OR $3 IS NULL )\n            ORDER BY id DESC\n            LIMIT $4\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "label: ObjectLabel",
+        "type_info": {
+          "Custom": {
+            "name": "object_label",
+            "kind": {
+              "Enum": [
+                "share",
+                "schema",
+                "table",
+                "principal"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "namespace",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 3,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "properties",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "object_label",
+            "kind": {
+              "Enum": [
+                "share",
+                "schema",
+                "table",
+                "principal"
+              ]
+            }
+          }
+        },
+        "TextArray",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "b9594b4ea65a14d2b0247ffed055e797c32f7bbf855d13c3b978687e8fb8c644"
+}

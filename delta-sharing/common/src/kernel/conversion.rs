@@ -86,7 +86,7 @@ impl IntoIterator for QueryResponse {
                 .map(|it| Ok(serde_json::to_string(it)?))
                 .collect::<Vec<_>>()
                 .into_iter(),
-            QueryResponseType::Delta(msg) => todo!(),
+            QueryResponseType::Delta(_msg) => todo!(),
         }
     }
 }

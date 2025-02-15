@@ -5,9 +5,9 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateTableRequest {
     #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
+    pub catalog_name: ::prost::alloc::string::String,
     #[prost(string, tag="2")]
-    pub location: ::prost::alloc::string::String,
+    pub schema_name: ::prost::alloc::string::String,
     #[prost(message, optional, tag="3")]
     pub properties: ::core::option::Option<::pbjson_types::Struct>,
 }

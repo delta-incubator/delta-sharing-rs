@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use sqlx::migrate::Migrator;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -7,6 +8,8 @@ use super::{Association, AssociationLabel, Object, ObjectLabel};
 use crate::constants::MAX_PAGE_SIZE;
 use crate::pagination::V1PaginateToken;
 use crate::{error::Result, pagination::PaginateToken};
+
+static MIGRATOR: Migrator = sqlx::migrate!();
 
 pub struct Store {
     pool: Arc<PgPool>,
@@ -20,6 +23,11 @@ impl Store {
     pub async fn connect(url: impl AsRef<str>) -> Result<Self> {
         let pool = PgPool::connect(url.as_ref()).await.unwrap();
         Ok(Self::new(Arc::new(pool)))
+    }
+
+    pub async fn migrate(&self) -> Result<()> {
+        MIGRATOR.run(&*self.pool).await?;
+        Ok(())
     }
 
     /// Add an object to the store.
@@ -41,7 +49,7 @@ impl Store {
         label: &ObjectLabel,
         namespace: &[String],
         name: impl AsRef<str>,
-        properties: impl Into<Option<serde_json::Value>>,
+        properties: Option<serde_json::Value>,
     ) -> Result<Object> {
         Ok(sqlx::query_as!(
             Object,
@@ -60,7 +68,7 @@ impl Store {
             label as &ObjectLabel,
             namespace,
             name.as_ref(),
-            properties.into()
+            properties
         )
         .fetch_one(&*self.pool)
         .await?)
@@ -209,6 +217,75 @@ impl Store {
         .await?;
 
         Ok(txn.commit().await?)
+    }
+
+    /// List objects from the store.
+    ///
+    /// Returns a list of objects in the namespace. The list is paginated.
+    ///
+    /// # Parameters
+    /// - `label`: The label of the objects.
+    /// - `namespace`: The namespace of the objects.
+    /// - `page_token`: The page token.
+    /// - `max_page_size`: The maximum page size.
+    ///
+    /// # Returns
+    /// A tuple containing the objects in the namespace and an optional next page token.
+    pub async fn list_objects(
+        &self,
+        label: &ObjectLabel,
+        namespace: &[String],
+        page_token: Option<&str>,
+        max_page_size: Option<usize>,
+    ) -> Result<(Vec<Object>, Option<String>)> {
+        let max_page_size = usize::min(max_page_size.unwrap_or(MAX_PAGE_SIZE), MAX_PAGE_SIZE);
+        let token = page_token
+            .map(PaginateToken::<Uuid>::try_from)
+            .transpose()?;
+        let (_token_ts, token_id) = token
+            .as_ref()
+            .map(|PaginateToken::V1(V1PaginateToken { created_at, id })| (created_at, id))
+            .unzip();
+
+        let objects = sqlx::query_as!(
+            Object,
+            r#"
+            SELECT
+                id,
+                label AS "label: ObjectLabel",
+                namespace,
+                name,
+                properties,
+                created_at,
+                updated_at
+            FROM objects
+            WHERE label = $1
+              AND namespace = $2
+              AND ( id < $3 OR $3 IS NULL )
+            ORDER BY id DESC
+            LIMIT $4
+            "#,
+            label as &ObjectLabel,
+            namespace,
+            token_id,
+            max_page_size as i64
+        )
+        .fetch_all(&*self.pool)
+        .await?;
+
+        let next = (objects.len() == max_page_size)
+            .then(|| {
+                objects.last().map(|o| {
+                    PaginateToken::V1(V1PaginateToken {
+                        created_at: o.created_at,
+                        id: o.id,
+                    })
+                    .to_string()
+                })
+            })
+            .flatten();
+
+        Ok((objects, next))
     }
 
     /// Add an association to the store.

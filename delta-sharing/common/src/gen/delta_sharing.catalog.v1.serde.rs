@@ -47,7 +47,7 @@ impl<'de> serde::Deserialize<'de> for CreateSchemaRequest {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -151,7 +151,7 @@ impl<'de> serde::Deserialize<'de> for CreateShareRequest {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -214,21 +214,21 @@ impl serde::Serialize for CreateTableRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if !self.name.is_empty() {
+        if !self.catalog_name.is_empty() {
             len += 1;
         }
-        if !self.location.is_empty() {
+        if !self.schema_name.is_empty() {
             len += 1;
         }
         if self.properties.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.catalog.v1.CreateTableRequest", len)?;
-        if !self.name.is_empty() {
-            struct_ser.serialize_field("name", &self.name)?;
+        if !self.catalog_name.is_empty() {
+            struct_ser.serialize_field("catalogName", &self.catalog_name)?;
         }
-        if !self.location.is_empty() {
-            struct_ser.serialize_field("location", &self.location)?;
+        if !self.schema_name.is_empty() {
+            struct_ser.serialize_field("schemaName", &self.schema_name)?;
         }
         if let Some(v) = self.properties.as_ref() {
             struct_ser.serialize_field("properties", v)?;
@@ -243,15 +243,17 @@ impl<'de> serde::Deserialize<'de> for CreateTableRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "name",
-            "location",
+            "catalog_name",
+            "catalogName",
+            "schema_name",
+            "schemaName",
             "properties",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Name,
-            Location,
+            CatalogName,
+            SchemaName,
             Properties,
             __SkipField__,
         }
@@ -262,7 +264,7 @@ impl<'de> serde::Deserialize<'de> for CreateTableRequest {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -275,8 +277,8 @@ impl<'de> serde::Deserialize<'de> for CreateTableRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "name" => Ok(GeneratedField::Name),
-                            "location" => Ok(GeneratedField::Location),
+                            "catalogName" | "catalog_name" => Ok(GeneratedField::CatalogName),
+                            "schemaName" | "schema_name" => Ok(GeneratedField::SchemaName),
                             "properties" => Ok(GeneratedField::Properties),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
@@ -297,22 +299,22 @@ impl<'de> serde::Deserialize<'de> for CreateTableRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut name__ = None;
-                let mut location__ = None;
+                let mut catalog_name__ = None;
+                let mut schema_name__ = None;
                 let mut properties__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Name => {
-                            if name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("name"));
+                        GeneratedField::CatalogName => {
+                            if catalog_name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("catalogName"));
                             }
-                            name__ = Some(map_.next_value()?);
+                            catalog_name__ = Some(map_.next_value()?);
                         }
-                        GeneratedField::Location => {
-                            if location__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("location"));
+                        GeneratedField::SchemaName => {
+                            if schema_name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("schemaName"));
                             }
-                            location__ = Some(map_.next_value()?);
+                            schema_name__ = Some(map_.next_value()?);
                         }
                         GeneratedField::Properties => {
                             if properties__.is_some() {
@@ -326,8 +328,8 @@ impl<'de> serde::Deserialize<'de> for CreateTableRequest {
                     }
                 }
                 Ok(CreateTableRequest {
-                    name: name__.unwrap_or_default(),
-                    location: location__.unwrap_or_default(),
+                    catalog_name: catalog_name__.unwrap_or_default(),
+                    schema_name: schema_name__.unwrap_or_default(),
                     properties: properties__,
                 })
             }
@@ -376,7 +378,7 @@ impl<'de> serde::Deserialize<'de> for CreateTableResponse {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -479,7 +481,7 @@ impl<'de> serde::Deserialize<'de> for DeleteSchemaRequest {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -583,7 +585,7 @@ impl<'de> serde::Deserialize<'de> for DeleteShareRequest {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -670,7 +672,7 @@ impl<'de> serde::Deserialize<'de> for TableType {
 
         struct GeneratedVisitor;
 
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+        impl serde::de::Visitor<'_> for GeneratedVisitor {
             type Value = TableType;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

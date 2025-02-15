@@ -1,10 +1,13 @@
 #![allow(unused_parens)]
 
-use axum::extract::{FromRequestParts, Path, Query};
+use axum::body::Body;
+use axum::extract::{FromRequest, FromRequestParts, Json, Path, Query, Request};
 use axum::http::request::Parts;
-use axum::RequestPartsExt;
+use axum::response::{IntoResponse, Response};
+use axum::{RequestExt, RequestPartsExt};
 use serde::Deserialize;
 
+use crate::models::catalog::v1 as catalog;
 use crate::models::v1::*;
 use crate::Error;
 
@@ -97,5 +100,27 @@ impl<S: Send + Sync> FromRequestParts<S> for GetTableVersionRequest {
             name,
             starting_timestamp: query.starting_timestamp,
         })
+    }
+}
+
+impl<S: Send + Sync> FromRequest<S> for catalog::CreateShareRequest {
+    type Rejection = Response;
+
+    async fn from_request(req: Request<Body>, _state: &S) -> Result<Self, Self::Rejection> {
+        let Json(share) = req.extract().await.map_err(IntoResponse::into_response)?;
+        Ok(catalog::CreateShareRequest { share })
+    }
+}
+
+impl<S: Send + Sync> FromRequest<S> for catalog::CreateSchemaRequest {
+    type Rejection = Response;
+
+    async fn from_request(req: Request<Body>, _state: &S) -> Result<Self, Self::Rejection> {
+        let (mut parts, body) = req.into_parts();
+        let Path((share)): Path<(String)> =
+            parts.extract().await.map_err(IntoResponse::into_response)?;
+        let req = Request::from_parts(parts, body);
+        let Json(schema) = req.extract().await.map_err(IntoResponse::into_response)?;
+        Ok(catalog::CreateSchemaRequest { schema, share })
     }
 }
