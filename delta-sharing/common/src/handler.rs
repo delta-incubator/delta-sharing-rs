@@ -14,12 +14,8 @@ pub struct DeltaSharingHandler {
 
 #[async_trait::async_trait]
 impl DiscoveryHandler for DeltaSharingHandler {
-    async fn list_shares(
-        &self,
-        request: ListSharesRequest,
-        recipient: &Recipient,
-    ) -> Result<ListSharesResponse> {
-        self.discovery.list_shares(request, recipient).await
+    async fn list_shares(&self, request: ListSharesRequest) -> Result<ListSharesResponse> {
+        self.discovery.list_shares(request).await
     }
 
     async fn get_share(&self, request: GetShareRequest) -> Result<Share> {

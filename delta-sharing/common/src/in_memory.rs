@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use crate::error::{Error, Result};
 use crate::models::{v1::*, TableRef};
-use crate::{DiscoveryHandler, Recipient, TableLocationResover};
+use crate::{DiscoveryHandler, TableLocationResover};
 
 pub type DefaultInMemoryHandler = InMemoryHandler;
 
@@ -72,11 +72,7 @@ impl InMemoryHandler {
 
 #[async_trait::async_trait]
 impl DiscoveryHandler for InMemoryHandler {
-    async fn list_shares(
-        &self,
-        _request: ListSharesRequest,
-        _recipient: &Recipient,
-    ) -> Result<ListSharesResponse> {
+    async fn list_shares(&self, _: ListSharesRequest) -> Result<ListSharesResponse> {
         let shares = self
             .shares
             .iter()
@@ -237,10 +233,9 @@ mod tests {
             }],
         };
         let handler = DefaultInMemoryHandler::new(config);
-        let recipient = &Recipient::anonymous();
 
         let shares = handler
-            .list_shares(ListSharesRequest::default(), recipient)
+            .list_shares(ListSharesRequest::default())
             .await
             .unwrap();
         assert_eq!(shares.items.len(), 1);

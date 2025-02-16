@@ -9,6 +9,7 @@ pub mod handler;
 #[cfg(feature = "memory")]
 mod in_memory;
 mod kernel;
+pub mod managers;
 pub mod models;
 pub mod policy;
 pub mod repository;
@@ -20,6 +21,7 @@ pub use handler::*;
 #[cfg(feature = "memory")]
 pub use in_memory::*;
 pub use kernel::*;
+pub use managers::*;
 pub use models::v1::*;
 pub use policy::*;
 pub use repository::*;
@@ -111,11 +113,7 @@ impl<T: ToString + Sized, U: ToString, const N: usize> From<([T; N], U)> for Res
 #[async_trait::async_trait]
 pub trait DiscoveryHandler: Send + Sync + 'static {
     /// List all shares that the recipient is allowed to read.
-    async fn list_shares(
-        &self,
-        request: ListSharesRequest,
-        recipient: &Recipient,
-    ) -> Result<ListSharesResponse>;
+    async fn list_shares(&self, request: ListSharesRequest) -> Result<ListSharesResponse>;
 
     /// Get a share by name.
     async fn get_share(&self, request: GetShareRequest) -> Result<Share>;
@@ -138,12 +136,8 @@ pub trait DiscoveryHandler: Send + Sync + 'static {
 
 #[async_trait::async_trait]
 impl<T: DiscoveryHandler> DiscoveryHandler for Arc<T> {
-    async fn list_shares(
-        &self,
-        request: ListSharesRequest,
-        recipient: &Recipient,
-    ) -> Result<ListSharesResponse> {
-        T::list_shares(self, request, recipient).await
+    async fn list_shares(&self, request: ListSharesRequest) -> Result<ListSharesResponse> {
+        T::list_shares(self, request).await
     }
 
     async fn get_share(&self, request: GetShareRequest) -> Result<Share> {
@@ -184,7 +178,7 @@ impl<T: TableLocationResover> TableLocationResover for Arc<T> {
 
 /// Handler for querying tables exposed by a Delta Sharing server.
 #[async_trait::async_trait]
-pub trait TableQueryHandler: Send + Sync {
+pub trait TableQueryHandler: Send + Sync + 'static {
     async fn get_table_version(
         &self,
         request: GetTableVersionRequest,

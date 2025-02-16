@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::models::v1::*;
-use crate::{DiscoveryHandler, Recipient, ResourceRef, Result, Schema, Share};
+use crate::{DiscoveryHandler, ResourceRef, Result, Schema, Share};
 
 #[async_trait::async_trait]
 pub trait SharingRepository: Send + Sync + 'static {
@@ -25,7 +25,7 @@ pub trait SharingRepository: Send + Sync + 'static {
     /// Add a schema.
     async fn add_schema(
         &self,
-        share: &str,
+        share: &ResourceRef,
         name: &str,
         comment: Option<String>,
         properties: Option<HashMap<String, serde_json::Value>>,
@@ -45,6 +45,20 @@ pub trait SharingRepository: Send + Sync + 'static {
         page_token: Option<impl AsRef<str>>,
     ) -> Result<(Vec<Schema>, Option<String>)>;
 
+    async fn list_schema_tables(
+        &self,
+        schema: &ResourceRef,
+        max_results: Option<usize>,
+        page_token: Option<impl AsRef<str>>,
+    ) -> Result<(Vec<Table>, Option<String>)>;
+
+    async fn list_share_tables(
+        &self,
+        share: &ResourceRef,
+        max_results: Option<usize>,
+        page_token: Option<impl AsRef<str>>,
+    ) -> Result<(Vec<Table>, Option<String>)>;
+
     // async fn add_table(&self, name: &str, location: &str) -> Result<TableRecord>;
     // async fn get_table(&self, id: &uuid::Uuid) -> Result<TableRecord>;
     // async fn update_table(&self, record: &TableRecord) -> Result<TableRecord>;
@@ -52,11 +66,7 @@ pub trait SharingRepository: Send + Sync + 'static {
 
 #[async_trait::async_trait]
 impl<T: SharingRepository> DiscoveryHandler for T {
-    async fn list_shares(
-        &self,
-        request: ListSharesRequest,
-        _recipient: &Recipient,
-    ) -> Result<ListSharesResponse> {
+    async fn list_shares(&self, request: ListSharesRequest) -> Result<ListSharesResponse> {
         let (items, next_page_token) = T::list_shares(
             self,
             request.max_results.as_ref().map(|v| *v as usize),
@@ -88,13 +98,27 @@ impl<T: SharingRepository> DiscoveryHandler for T {
         &self,
         request: ListSchemaTablesRequest,
     ) -> Result<ListSchemaTablesResponse> {
-        T::list_schema_tables(self, request).await
+        let max_results = request.max_results.as_ref().map(|v| *v as usize);
+        let page_token = request.page_token.clone();
+        let (items, next_page_token) =
+            T::list_schema_tables(self, &request.into(), max_results, page_token.as_ref()).await?;
+        Ok(ListSchemaTablesResponse {
+            items,
+            next_page_token,
+        })
     }
 
     async fn list_share_tables(
         &self,
         request: ListShareTablesRequest,
     ) -> Result<ListShareTablesResponse> {
-        T::list_share_tables(self, request).await
+        let max_results = request.max_results.as_ref().map(|v| *v as usize);
+        let page_token = request.page_token.clone();
+        let (items, next_page_token) =
+            T::list_share_tables(self, &request.into(), max_results, page_token.as_ref()).await?;
+        Ok(ListShareTablesResponse {
+            items,
+            next_page_token,
+        })
     }
 }

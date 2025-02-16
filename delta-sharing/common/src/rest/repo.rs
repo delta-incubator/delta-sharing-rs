@@ -1,5 +1,5 @@
 use axum::extract::{Extension, State};
-use axum::{routing::get, Json, Router};
+use axum::{routing::post, Json, Router};
 
 use crate::models::catalog::v1::*;
 use crate::models::v1::*;
@@ -11,7 +11,7 @@ where
     T: SharingRepository + Policy + Clone + Send + Sync + 'static,
 {
     Router::new()
-        .route("/shares", get(create_share::<T>))
+        .route("/shares", post(create_share::<T>))
         .with_state(handler)
 }
 

@@ -123,3 +123,9 @@ impl From<v1::ListSchemasRequest> for ResourceRef {
         ResourceRef::from(req.share)
     }
 }
+
+impl From<v1::ListSchemaTablesRequest> for ResourceRef {
+    fn from(req: v1::ListSchemaTablesRequest) -> Self {
+        ResourceRef::from(([&req.share], &req.name))
+    }
+}
