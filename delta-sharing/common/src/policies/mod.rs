@@ -52,7 +52,7 @@ impl ConstantPolicy {
 
 #[async_trait::async_trait]
 impl Policy for ConstantPolicy {
-    async fn authorize(&self, _: Resource, _: Permission, _: &Recipient) -> Result<Decision> {
+    async fn authorize(&self, _: &Resource, _: &Permission, _: &Recipient) -> Result<Decision> {
         Ok(self.decision)
     }
 }
@@ -71,12 +71,12 @@ mod test {
     async fn allow_by_default() {
         let policy = ConstantPolicy::default();
 
-        let resource = Resource::Share("test_share".to_string());
+        let resource = Resource::share("test_share");
         let permission = Permission::Read;
         let recipient = &Recipient(bytes::Bytes::new());
 
         let decision = policy
-            .authorize(resource, permission, recipient)
+            .authorize(&resource, &permission, recipient)
             .await
             .unwrap();
         assert_eq!(decision, Decision::Allow);
@@ -86,12 +86,12 @@ mod test {
     async fn allow() {
         let policy = ConstantPolicy::new(Decision::Allow);
 
-        let resource = Resource::Share("test_share".to_string());
+        let resource = Resource::share("test_share");
         let permission = Permission::Read;
         let recipient = &Recipient(bytes::Bytes::new());
 
         let decision = policy
-            .authorize(resource, permission, recipient)
+            .authorize(&resource, &permission, recipient)
             .await
             .unwrap();
         assert_eq!(decision, Decision::Allow);
@@ -101,12 +101,12 @@ mod test {
     async fn deny() {
         let policy = ConstantPolicy::new(Decision::Deny);
 
-        let resource = Resource::Share("test_share".to_string());
+        let resource = Resource::share("test_share");
         let permission = Permission::Read;
         let recipient = &Recipient(bytes::Bytes::new());
 
         let decision = policy
-            .authorize(resource, permission, recipient)
+            .authorize(&resource, &permission, recipient)
             .await
             .unwrap();
         assert_eq!(decision, Decision::Deny);

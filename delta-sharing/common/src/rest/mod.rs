@@ -11,6 +11,10 @@ use crate::models::catalog::v1 as catalog;
 use crate::models::v1::*;
 use crate::Error;
 
+mod router;
+
+pub use router::get_router as get_sharing_router;
+
 macro_rules! impl_get_request {
     ($request_type:ident { $($field:ident: $field_type:ty),+ }) => {
         impl<S: Send + Sync> FromRequestParts<S> for $request_type {

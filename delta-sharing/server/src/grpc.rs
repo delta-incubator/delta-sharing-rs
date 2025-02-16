@@ -1,5 +1,3 @@
-mod service;
-
 use delta_sharing_common::models::v1::delta_sharing_service_server::DeltaSharingServiceServer;
 use delta_sharing_common::{Error, Result};
 use tonic::transport::Server;

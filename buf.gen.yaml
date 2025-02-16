@@ -43,4 +43,4 @@ plugins:
       - no_server=true
       - extern_path=.google.protobuf=::pbjson_types
   - remote: buf.build/community/google-gnostic-openapi:v0.7.0
-    out: openapi
+    out: delta-sharing/server
