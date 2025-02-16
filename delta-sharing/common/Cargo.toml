@@ -11,6 +11,7 @@ async-trait = { workspace = true }
 bytes = { workspace = true }
 chrono = { workspace = true }
 delta_kernel = { workspace = true }
+http = { workspace = true, optional = true }
 object_store = { workspace = true }
 pbjson = { workspace = true }
 prost = { workspace = true }
@@ -40,5 +41,8 @@ testutils = { path = "../../testutils" }
 [features]
 default = ["memory", "axum", "grpc"]
 memory = ["dashmap", "uuid"]
-axum = ["dep:axum"]
+axum = ["dep:axum", "http"]
+
+# The grpc features provides implementations to support
+# building a gPRC servers and clients.
 grpc = ["dep:tonic"]

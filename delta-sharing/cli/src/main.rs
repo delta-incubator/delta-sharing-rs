@@ -6,6 +6,7 @@ use clap::{Parser, Subcommand};
 use delta_sharing_common::{ConstantPolicy, InMemoryConfig, InMemoryHandler, KernelQueryHandler};
 use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
 use delta_sharing_server::{run_grpc_server, run_rest_server, DeltaSharingHandler};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::error::{Error, Result};
 
@@ -125,13 +126,28 @@ fn get_handler(config: impl AsRef<Path>) -> Result<DeltaSharingHandler> {
     Ok(handler)
 }
 
+fn init_tracing() {
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                // axum logs rejections from built-in extractors with the `axum::rejection`
+                // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
+                format!(
+                    "{}=debug,tower_http=debug,axum::rejection=trace",
+                    env!("CARGO_CRATE_NAME")
+                )
+                .into()
+            }),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+}
+
 /// Handle the rest server command.
 ///
 /// This function starts a delta-sharing server using the REST protocol.
 async fn handle_rest(args: ServerArgs) -> Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
-        .init();
+    init_tracing();
 
     let handler = get_handler(args.config)?;
 
@@ -144,9 +160,7 @@ async fn handle_rest(args: ServerArgs) -> Result<()> {
 ///
 /// This function starts a delta-sharing server using the gRPC protocol.
 async fn handle_grpc(args: ServerArgs) -> Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
-        .init();
+    init_tracing();
 
     let handler = get_handler(args.config)?;
 

@@ -46,6 +46,9 @@ message Schema {
     (buf.validate.field).string.min_len = 1,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
+
+  // Unique identifier for the schema.
+  optional string id = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // A table is a Delta Lake table or a view on top of a Delta Lake table.

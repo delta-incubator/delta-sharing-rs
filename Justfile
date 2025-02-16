@@ -46,8 +46,8 @@ docker:
 generate:
     buf generate proto
     just delta-sharing/openfga/generate
-    npx -y @redocly/cli bundle --remove-unused-components openapi/openapi.yaml > tmp.yaml
-    mv tmp.yaml openapi/openapi.yaml
+    npx -y @redocly/cli bundle --remove-unused-components delta-sharing/server/openapi.yaml > tmp.yaml
+    mv tmp.yaml delta-sharing/server/openapi.yaml
     cargo clippy --fix --allow-dirty --allow-staged
 
 # load delta acceptance testing (dat) data from the release
@@ -65,10 +65,10 @@ render-config:
 local-setup: load-dat render-config
 
 rest:
-    @RUST_LOG=DEBUG cargo run --bin delta-sharing rest --config {{ local_config }}
+    @RUST_LOG=INFO cargo run --bin delta-sharing rest --config {{ local_config }}
 
 grpc:
-    @RUST_LOG=DEBUG cargo run --bin delta-sharing grpc --config {{ local_config }}
+    @RUST_LOG=INFO cargo run --bin delta-sharing grpc --config {{ local_config }}
 
 load-store:
     fga store import --file {{ justfile_directory() }}/delta-sharing/openfga/fga/dev.fga.yaml

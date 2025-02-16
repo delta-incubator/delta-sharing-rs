@@ -26,4 +26,8 @@ tracing = { workspace = true }
 
 tokio = { version = "1", features = ["full"] }
 serde_yml = { version = "0.0.12" }
-tracing-subscriber = { version = "0.3", features = ["tracing-log", "fmt"] }
+tracing-subscriber = { version = "0.3", features = [
+    "tracing-log",
+    "fmt",
+    "env-filter",
+] }
