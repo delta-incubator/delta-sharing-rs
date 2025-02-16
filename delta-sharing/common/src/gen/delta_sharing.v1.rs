@@ -22,6 +22,9 @@ pub struct Schema {
     /// The share name that the schema belongs to.
     #[prost(string, tag="2")]
     pub share: ::prost::alloc::string::String,
+    /// Unique identifier for the schema.
+    #[prost(string, optional, tag="3")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// A table is a Delta Lake table or a view on top of a Delta Lake table.
 #[allow(clippy::derive_partial_eq_without_eq)]

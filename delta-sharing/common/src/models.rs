@@ -35,7 +35,7 @@ impl AsResource for v1::Share {
             .and_then(|id| {
                 uuid::Uuid::parse_str(id)
                     .ok()
-                    .map(|uuid| Resource::share(uuid))
+                    .map(Resource::share)
             })
             .unwrap_or_else(|| Resource::share(&self.name))
     }

@@ -1,4 +1,6 @@
 /// A convenience type for declaring Results in the Delta Sharing libraries.
+use delta_sharing_common::Error as CommonError;
+
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Debug, thiserror::Error)]
@@ -53,5 +55,11 @@ impl From<sqlx::Error> for Error {
             }
             _ => Error::Connection(e),
         }
+    }
+}
+
+impl From<Error> for CommonError {
+    fn from(e: Error) -> Self {
+        CommonError::Generic(e.to_string())
     }
 }

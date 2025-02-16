@@ -154,7 +154,7 @@ pub trait Policy: Send + Sync {
         permission: &Permission,
         recipient: &Recipient,
     ) -> Result<()> {
-        match self.authorize(resource, &permission, recipient).await? {
+        match self.authorize(resource, permission, recipient).await? {
             Decision::Allow => Ok(()),
             Decision::Deny => Err(Error::NotAllowed),
         }
@@ -192,7 +192,7 @@ pub async fn process_resources<T: Policy, R: AsResource>(
     resources: &mut Vec<R>,
 ) -> Result<()> {
     let res = resources
-        .into_iter()
+        .iter_mut()
         .map(|share| share.as_resource())
         .collect::<Vec<_>>();
     let mut decisions = handler.authorize_many(&res, permission, recipient).await?;

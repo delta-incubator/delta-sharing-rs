@@ -110,6 +110,7 @@ impl DiscoveryHandler for InMemoryHandler {
                     .map(|schema_ref| Schema {
                         name: schema_ref.clone(),
                         share: request.share.clone(),
+                        id: None,
                     })
                     .collect();
                 Ok(ListSchemasResponse {

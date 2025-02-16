@@ -19,7 +19,7 @@ pub trait SharingRepository: Send + Sync + 'static {
     async fn list_shares(
         &self,
         max_results: Option<usize>,
-        page_token: Option<impl AsRef<str>>,
+        page_token: Option<String>,
     ) -> Result<(Vec<Share>, Option<String>)>;
 
     /// Add a schema.
@@ -42,21 +42,21 @@ pub trait SharingRepository: Send + Sync + 'static {
         &self,
         share: &ResourceRef,
         max_results: Option<usize>,
-        page_token: Option<impl AsRef<str>>,
+        page_token: Option<String>,
     ) -> Result<(Vec<Schema>, Option<String>)>;
 
     async fn list_schema_tables(
         &self,
         schema: &ResourceRef,
         max_results: Option<usize>,
-        page_token: Option<impl AsRef<str>>,
+        page_token: Option<String>,
     ) -> Result<(Vec<Table>, Option<String>)>;
 
     async fn list_share_tables(
         &self,
         share: &ResourceRef,
         max_results: Option<usize>,
-        page_token: Option<impl AsRef<str>>,
+        page_token: Option<String>,
     ) -> Result<(Vec<Table>, Option<String>)>;
 
     // async fn add_table(&self, name: &str, location: &str) -> Result<TableRecord>;
@@ -70,7 +70,7 @@ impl<T: SharingRepository> DiscoveryHandler for T {
         let (items, next_page_token) = T::list_shares(
             self,
             request.max_results.as_ref().map(|v| *v as usize),
-            request.page_token.as_ref(),
+            request.page_token,
         )
         .await?;
         Ok(ListSharesResponse {
@@ -87,7 +87,7 @@ impl<T: SharingRepository> DiscoveryHandler for T {
         let max_results = request.max_results.as_ref().map(|v| *v as usize);
         let page_token = request.page_token.clone();
         let (items, next_page_token) =
-            T::list_schemas(self, &request.into(), max_results, page_token.as_ref()).await?;
+            T::list_schemas(self, &request.into(), max_results, page_token).await?;
         Ok(ListSchemasResponse {
             items,
             next_page_token,
@@ -101,7 +101,7 @@ impl<T: SharingRepository> DiscoveryHandler for T {
         let max_results = request.max_results.as_ref().map(|v| *v as usize);
         let page_token = request.page_token.clone();
         let (items, next_page_token) =
-            T::list_schema_tables(self, &request.into(), max_results, page_token.as_ref()).await?;
+            T::list_schema_tables(self, &request.into(), max_results, page_token).await?;
         Ok(ListSchemaTablesResponse {
             items,
             next_page_token,
@@ -115,7 +115,7 @@ impl<T: SharingRepository> DiscoveryHandler for T {
         let max_results = request.max_results.as_ref().map(|v| *v as usize);
         let page_token = request.page_token.clone();
         let (items, next_page_token) =
-            T::list_share_tables(self, &request.into(), max_results, page_token.as_ref()).await?;
+            T::list_share_tables(self, &request.into(), max_results, page_token).await?;
         Ok(ListShareTablesResponse {
             items,
             next_page_token,

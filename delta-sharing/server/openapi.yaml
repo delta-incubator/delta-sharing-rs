@@ -12,14 +12,14 @@ tags:
     description: Service exposing the official APIs for Delta Sharing.
   - name: official
     description: APIs which are part of published official document
-  - name: proposed
-    description: APIs which are part proposed and may or may not be part of official
   - name: schemas
     description: Schema discovery APIs
   - name: shares
     description: Share discovery APIs
   - name: tables
     description: Table query and inspection APIs
+  - name: unofficial
+    description: APIs which are custom to delta-sharing-rs
 paths:
   /shares:
     get:
@@ -141,7 +141,7 @@ paths:
     get:
       tags:
         - DeltaSharingService
-        - shares
+        - tables
         - official
       description: List all the tables under all schemas in a share.
       operationId: ListShareTables
@@ -182,7 +182,7 @@ paths:
     get:
       tags:
         - DeltaSharingService
-        - shares
+        - schemas
         - official
       description: List the schemas in a share.
       operationId: ListSchemas
@@ -292,7 +292,7 @@ paths:
     get:
       tags:
         - DeltaSharingService
-        - shares
+        - tables
         - official
       description: List the tables in a given share's schema.
       operationId: ListSchemaTables
@@ -647,6 +647,10 @@ components:
         share:
           type: string
           description: The share name that the schema belongs to.
+        id:
+          readOnly: true
+          type: string
+          description: Unique identifier for the schema.
       description: A schema is a logical grouping of tables. A schema may contain multiple tables.
     Share:
       type: object
