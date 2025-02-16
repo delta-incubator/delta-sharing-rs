@@ -1,17 +1,21 @@
-# Welcome to MkDocs
+# Delta Sharing RS
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+[Delta Sharing] is an open protocol for secure real-time exchange of
+large datasets, which enables organizations to share data in real time regardless of which
+computing platforms they use. It is a simple [REST protocol] that securely shares access to part
+of a cloud dataset and leverages modern cloud storage systems, such as S3, ADLS,or GCS, to reliably
+transfer data.
 
-## Commands
+While the [reference implementation] focuses on providing providing a service that can be used
+to test connectors or run small instances with static or slow changing configuration, this project
+aims to provide a more flexible and scalable implementation that can be tailored to specific use cases.
 
--   `mkdocs new [dir-name]` - Create a new project.
--   `mkdocs serve` - Start the live-reloading docs server.
--   `mkdocs build` - Build the documentation site.
--   `mkdocs -h` - Print help message and exit.
+[Delta Sharing]: https://delta.io/sharing
+[reference implementation]: https://github.com/delta-io/delta-sharing
+[REST protocol]: https://github.com/delta-io/delta-sharing/blob/main/PROTOCOL.md
 
-## Project layout
+## Getting Started
 
-    mkdocs.yml # The configuration file.
-    docs/
-        index.md # The documentation homepage.
-        ... # Other markdown pages, images and other files.
+```sh
+cargo run --bin delta-sharing rest
+```

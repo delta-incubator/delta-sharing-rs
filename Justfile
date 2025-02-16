@@ -14,7 +14,7 @@ fix:
 
 # the the documentation (requires mdbook)
 docs:
-    cd docs && mdbook serve --open
+    uv run mkdocs serve
 
 # Run unit tests
 test:
