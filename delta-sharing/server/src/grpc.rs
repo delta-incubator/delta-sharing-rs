@@ -1,8 +1,6 @@
 use delta_sharing_common::models::v1::delta_sharing_service_server::DeltaSharingServiceServer;
-use delta_sharing_common::{Error, Result};
+use delta_sharing_common::{DeltaSharingHandler, Error, Result};
 use tonic::transport::Server;
-
-use crate::DeltaSharingHandler;
 
 // TODO(roeap)
 // - make auth configurable

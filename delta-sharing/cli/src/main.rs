@@ -3,9 +3,11 @@ use std::sync::Arc;
 
 use chrono::Days;
 use clap::{Parser, Subcommand};
-use delta_sharing_common::{ConstantPolicy, InMemoryConfig, InMemoryHandler, KernelQueryHandler};
+use delta_sharing_common::{
+    ConstantPolicy, DeltaSharingHandler, InMemoryConfig, InMemoryHandler, KernelQueryHandler,
+};
 use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
-use delta_sharing_server::{run_grpc_server, run_rest_server, DeltaSharingHandler};
+use delta_sharing_server::{run_grpc_server, run_rest_server};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::error::{Error, Result};

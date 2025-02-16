@@ -1,5 +1,5 @@
 use delta_sharing_common::rest::get_sharing_router;
-use delta_sharing_common::{Error, Result};
+use delta_sharing_common::{DeltaSharingHandler, Error, Result};
 use swagger_ui_dist::{ApiDefinition, OpenApiSource};
 use tokio::net::TcpListener;
 use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
@@ -8,7 +8,6 @@ use tracing::Level;
 
 use crate::rest::auth::{AnonymousAuthenticator, AuthenticationLayer};
 use crate::shutdown::shutdown_signal;
-use crate::DeltaSharingHandler;
 
 mod auth;
 #[cfg(test)]

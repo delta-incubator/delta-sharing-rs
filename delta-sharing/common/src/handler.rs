@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use delta_sharing_common::models::v1::*;
-use delta_sharing_common::{
+use crate::models::v1::*;
+use crate::{
     Decision, DiscoveryHandler, Permission, Policy, Recipient, Resource, Result, TableQueryHandler,
 };
 

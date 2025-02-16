@@ -5,6 +5,7 @@ use bytes::Bytes;
 pub mod error;
 #[cfg(feature = "grpc")]
 mod grpc;
+pub mod handler;
 #[cfg(feature = "memory")]
 mod in_memory;
 mod kernel;
@@ -14,6 +15,7 @@ pub mod policy;
 pub mod rest;
 
 pub use error::*;
+pub use handler::*;
 #[cfg(feature = "memory")]
 pub use in_memory::*;
 pub use kernel::*;
