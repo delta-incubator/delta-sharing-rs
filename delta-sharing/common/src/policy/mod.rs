@@ -7,7 +7,7 @@
 
 use std::sync::Arc;
 
-use crate::{Error, Recipient, ResourceIdent, Result};
+use crate::{Error, Recipient, ResourceRef, Result};
 
 pub use constant::*;
 
@@ -19,6 +19,7 @@ pub enum Permission {
     Read,
     Write,
     Manage,
+    Create,
 }
 
 impl AsRef<str> for Permission {
@@ -27,6 +28,7 @@ impl AsRef<str> for Permission {
             Self::Read => "read",
             Self::Write => "write",
             Self::Manage => "manage",
+            Self::Create => "create",
         }
     }
 }
@@ -40,27 +42,27 @@ impl From<Permission> for String {
 /// Resource that a policy can authorize.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Resource {
-    Share(ResourceIdent),
-    Schema(ResourceIdent),
-    Table(ResourceIdent),
-    File(ResourceIdent),
+    Share(ResourceRef),
+    Schema(ResourceRef),
+    Table(ResourceRef),
+    File(ResourceRef),
     Profiles,
 }
 
 impl Resource {
-    pub fn share(name: impl Into<ResourceIdent>) -> Self {
+    pub fn share(name: impl Into<ResourceRef>) -> Self {
         Self::Share(name.into())
     }
 
-    pub fn schema(name: impl Into<ResourceIdent>) -> Self {
+    pub fn schema(name: impl Into<ResourceRef>) -> Self {
         Self::Schema(name.into())
     }
 
-    pub fn table(name: impl Into<ResourceIdent>) -> Self {
+    pub fn table(name: impl Into<ResourceRef>) -> Self {
         Self::Table(name.into())
     }
 
-    pub fn file(name: impl Into<ResourceIdent>) -> Self {
+    pub fn file(name: impl Into<ResourceRef>) -> Self {
         Self::File(name.into())
     }
 }

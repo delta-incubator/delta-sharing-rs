@@ -1,6 +1,10 @@
 use serde::Serialize;
+use v1::GetShareRequest;
 
-use crate::policy::{AsResource, Permission, Resource, SecuredAction};
+use crate::{
+    policy::{AsResource, Permission, Resource, SecuredAction},
+    ResourceRef,
+};
 
 #[allow(clippy::empty_docs, clippy::large_enum_variant)]
 pub mod v1 {
@@ -91,8 +95,31 @@ impl_secured_action!(
         Permission::Read
     ),
     (
+        catalog::v1::CreateShareRequest,
+        |_| Resource::Share(ResourceRef::Undefined),
+        Permission::Create
+    ),
+    (
         catalog::v1::CreateSchemaRequest,
         |req| Resource::share(&req.share),
         Permission::Manage
     ),
 );
+
+impl From<GetShareRequest> for ResourceRef {
+    fn from(req: GetShareRequest) -> Self {
+        ResourceRef::from(req.name)
+    }
+}
+
+impl From<v1::ListShareTablesRequest> for ResourceRef {
+    fn from(req: v1::ListShareTablesRequest) -> Self {
+        ResourceRef::from(req.name)
+    }
+}
+
+impl From<v1::ListSchemasRequest> for ResourceRef {
+    fn from(req: v1::ListSchemasRequest) -> Self {
+        ResourceRef::from(req.share)
+    }
+}

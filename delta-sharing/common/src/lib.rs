@@ -11,6 +11,7 @@ mod in_memory;
 mod kernel;
 pub mod models;
 pub mod policy;
+pub mod repository;
 #[cfg(feature = "axum")]
 pub mod rest;
 
@@ -21,6 +22,7 @@ pub use in_memory::*;
 pub use kernel::*;
 pub use models::v1::*;
 pub use policy::*;
+pub use repository::*;
 
 #[derive(Clone, Debug)]
 pub enum Recipient {
@@ -44,16 +46,22 @@ impl Recipient {
 }
 
 /// Unique identifier for a resource.
-#[derive(Debug, Clone, PartialEq)]
-pub enum ResourceIdent {
-    Uunid(uuid::Uuid),
+#[derive(Debug, Clone, PartialEq, Hash, Eq)]
+pub enum ResourceRef {
+    Uuid(uuid::Uuid),
     Name(Vec<String>, String),
+    /// Not referencing a specific resource.
+    ///
+    /// This is used to represent a wildcard in a policy
+    /// which can be useful to check if a user can create
+    /// or manage resources at a specific level.
+    Undefined,
 }
 
-impl std::fmt::Display for ResourceIdent {
+impl std::fmt::Display for ResourceRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Uunid(u) => write!(f, "{}", u),
+            Self::Uuid(u) => write!(f, "{}", u),
             Self::Name(path, name) => {
                 if path.is_empty() {
                     write!(f, "{}", name)
@@ -61,35 +69,36 @@ impl std::fmt::Display for ResourceIdent {
                     write!(f, "{}.{}", path.join("."), name)
                 }
             }
+            Self::Undefined => write!(f, "*"),
         }
     }
 }
 
-impl From<uuid::Uuid> for ResourceIdent {
+impl From<uuid::Uuid> for ResourceRef {
     fn from(val: uuid::Uuid) -> Self {
-        Self::Uunid(val)
+        Self::Uuid(val)
     }
 }
 
-impl From<String> for ResourceIdent {
+impl From<String> for ResourceRef {
     fn from(val: String) -> Self {
         Self::Name(vec![], val)
     }
 }
 
-impl From<&String> for ResourceIdent {
+impl From<&String> for ResourceRef {
     fn from(val: &String) -> Self {
         Self::Name(vec![], val.clone())
     }
 }
 
-impl From<&str> for ResourceIdent {
+impl From<&str> for ResourceRef {
     fn from(val: &str) -> Self {
         Self::Name(vec![], val.to_string())
     }
 }
 
-impl<T: ToString + Sized, U: ToString, const N: usize> From<([T; N], U)> for ResourceIdent {
+impl<T: ToString + Sized, U: ToString, const N: usize> From<([T; N], U)> for ResourceRef {
     fn from(val: ([T; N], U)) -> Self {
         Self::Name(
             val.0.iter().map(|s| s.to_string()).collect(),
