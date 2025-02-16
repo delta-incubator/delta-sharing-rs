@@ -4,5 +4,6 @@
 .vscode
 
 /docs/book
+/book/book
 /dat
 /node_modules

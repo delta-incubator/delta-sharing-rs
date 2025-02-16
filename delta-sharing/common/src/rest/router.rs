@@ -9,6 +9,31 @@ use crate::{
     TableQueryHandler,
 };
 
+/// Create a new [Router] for the Delta Sharing REST API.
+pub fn get_router<T>(state: T) -> Router
+where
+    T: DiscoveryHandler + Policy + TableQueryHandler + Clone + Send + Sync + 'static,
+{
+    Router::new()
+        .route("/shares", get(list_shares::<T>))
+        .route("/shares/{share}", get(get_share::<T>))
+        .route("/shares/{share}/schemas", get(list_schemas::<T>))
+        .route("/shares/{share}/all-tables", get(list_share_tables::<T>))
+        .route(
+            "/shares/{share}/schemas/{schema}/tables",
+            get(list_schema_tables::<T>),
+        )
+        .route(
+            "/shares/{share}/schemas/{schema}/tables/{table}/version",
+            get(get_table_version::<T>),
+        )
+        .route(
+            "/shares/{share}/schemas/{schema}/tables/{table}/metadata",
+            get(get_table_metadata::<T>),
+        )
+        .with_state(state)
+}
+
 async fn list_shares<T: DiscoveryHandler + Policy>(
     State(handler): State<T>,
     Extension(recipient): Extension<Recipient>,
@@ -88,28 +113,4 @@ fn query_response_to_ndjson(response: impl IntoIterator<Item = Result<String>>) 
         .into_iter()
         .collect::<Result<Vec<String>>>()?
         .join("\n"))
-}
-
-pub fn get_router<T>(state: T) -> Router
-where
-    T: DiscoveryHandler + Policy + TableQueryHandler + Clone + Send + Sync + 'static,
-{
-    Router::new()
-        .route("/shares", get(list_shares::<T>))
-        .route("/shares/{share}", get(get_share::<T>))
-        .route("/shares/{share}/schemas", get(list_schemas::<T>))
-        .route("/shares/{share}/all-tables", get(list_share_tables::<T>))
-        .route(
-            "/shares/{share}/schemas/{schema}/tables",
-            get(list_schema_tables::<T>),
-        )
-        .route(
-            "/shares/{share}/schemas/{schema}/tables/{table}/version",
-            get(get_table_version::<T>),
-        )
-        .route(
-            "/shares/{share}/schemas/{schema}/tables/{table}/metadata",
-            get(get_table_metadata::<T>),
-        )
-        .with_state(state)
 }

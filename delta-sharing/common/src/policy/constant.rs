@@ -1,10 +1,3 @@
-//! Authorization policies.
-//!
-//! Policies are used to determine whether a recipient is allowed to perform a specific action on a
-//! resource. The action is represented by a [`Permission`] and the resource is represented by a
-//! [`Resource`]. The [`Decision`] represents whether the action is allowed or denied for the given
-//! recipient.
-
 use crate::error::Result;
 use crate::{Decision, Permission, Policy, Recipient, Resource};
 

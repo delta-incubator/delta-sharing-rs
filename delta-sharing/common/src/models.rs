@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::{Permission, Resource, SecuredAction};
+use crate::policy::{AsResource, Permission, Resource, SecuredAction};
 
 #[allow(clippy::empty_docs, clippy::large_enum_variant)]
 pub mod v1 {
@@ -28,16 +28,6 @@ pub struct TableRef {
     pub share: String,
     pub schema: String,
     pub table: String,
-}
-
-pub trait AsResource {
-    fn as_resource(&self) -> Resource;
-}
-
-impl<T: AsResource> AsResource for &T {
-    fn as_resource(&self) -> Resource {
-        (*self).as_resource()
-    }
 }
 
 impl AsResource for v1::Share {

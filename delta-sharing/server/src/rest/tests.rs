@@ -7,7 +7,7 @@ use delta_sharing_common::Result;
 use std::sync::Arc;
 
 use axum::http::{header, HeaderValue, Request, StatusCode};
-use delta_sharing_common::policies::ConstantPolicy;
+use delta_sharing_common::policy::ConstantPolicy;
 use delta_sharing_common::KernelQueryHandler;
 use delta_sharing_common::{
     DefaultInMemoryHandler, InMemoryConfig, SchemaConfig, ShareConfig, TableConfig,
