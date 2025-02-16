@@ -8,6 +8,7 @@ use std::sync::Arc;
 
 use axum::http::{header, HeaderValue, Request, StatusCode};
 use delta_sharing_common::policy::ConstantPolicy;
+use delta_sharing_common::rest::{AnonymousAuthenticator, AuthenticationLayer};
 use delta_sharing_common::KernelQueryHandler;
 use delta_sharing_common::{
     DefaultInMemoryHandler, DeltaSharingHandler, InMemoryConfig, SchemaConfig, ShareConfig,
@@ -17,7 +18,6 @@ use http_body_util::BodyExt;
 use tower::ServiceExt;
 use url::Url;
 
-use crate::rest::auth::{AnonymousAuthenticator, AuthenticationLayer};
 use crate::tests::maybe_skip_dat;
 
 pub(crate) fn test_config() -> InMemoryConfig {

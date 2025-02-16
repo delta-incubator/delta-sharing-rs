@@ -4,7 +4,8 @@ use std::sync::Arc;
 use chrono::Days;
 use clap::{Parser, Subcommand};
 use delta_sharing_common::{
-    ConstantPolicy, DeltaSharingHandler, InMemoryConfig, InMemoryHandler, KernelQueryHandler,
+    rest::AnonymousAuthenticator, ConstantPolicy, DeltaSharingHandler, InMemoryConfig,
+    InMemoryHandler, KernelQueryHandler,
 };
 use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
 use delta_sharing_server::{run_grpc_server, run_rest_server};
@@ -153,7 +154,7 @@ async fn handle_rest(args: ServerArgs) -> Result<()> {
 
     let handler = get_handler(args.config)?;
 
-    run_rest_server(args.host, args.port, handler)
+    run_rest_server(args.host, args.port, handler, AnonymousAuthenticator)
         .await
         .map_err(|_| Error::Generic("Server failed".to_string()))
 }

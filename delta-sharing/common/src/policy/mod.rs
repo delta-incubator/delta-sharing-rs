@@ -67,6 +67,18 @@ impl Resource {
     }
 }
 
+impl std::fmt::Display for Resource {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Resource::Share(r) => write!(f, "share::{}", r),
+            Resource::Schema(r) => write!(f, "schema::{}", r),
+            Resource::Table(r) => write!(f, "table::{}", r),
+            Resource::File(r) => write!(f, "file::{}", r),
+            Resource::Profiles => write!(f, "profiles"),
+        }
+    }
+}
+
 pub trait AsResource {
     fn as_resource(&self) -> Resource;
 }
@@ -80,18 +92,6 @@ impl<T: AsResource> AsResource for &T {
 impl AsResource for Resource {
     fn as_resource(&self) -> Resource {
         self.clone()
-    }
-}
-
-impl From<&Resource> for String {
-    fn from(val: &Resource) -> Self {
-        match val {
-            Resource::Share(s) => format!("share::{s}"),
-            Resource::Schema(s) => format!("schema::{s}"),
-            Resource::Table(t) => format!("table::{t}"),
-            Resource::File(f) => format!("file::{f}"),
-            Resource::Profiles => "profiles".to_string(),
-        }
     }
 }
 

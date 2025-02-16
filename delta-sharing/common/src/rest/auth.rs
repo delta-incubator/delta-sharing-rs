@@ -3,12 +3,13 @@ use std::task::{Context, Poll};
 
 use axum::extract::Request;
 use axum::response::{IntoResponse, Response};
-use delta_sharing_common::{Recipient, Result};
 use futures_util::{future::BoxFuture, FutureExt};
 use tower::{Layer, Service};
 
+use crate::{Recipient, Result};
+
 /// Authenticator for authenticating requests to a sharing server.
-pub trait Authenticator: Send + Sync {
+pub trait Authenticator: Send + Sync + 'static {
     /// Authenticate a request.
     ///
     /// This method should return the recipient of the request, or an error if the request

@@ -11,8 +11,7 @@ use delta_kernel::{Engine, Table};
 use crate::models::v1::{
     GetTableMetadataRequest, GetTableVersionRequest, GetTableVersionResponse, QueryResponse,
 };
-use crate::models::TableRef;
-use crate::{Result, TableLocationResover, TableQueryHandler};
+use crate::{ResourceRef, Result, TableLocationResover, TableQueryHandler};
 
 mod conversion;
 
@@ -98,7 +97,7 @@ impl KernelQueryHandler {
         Arc::new(Self::new(engine_factory, location_resolver))
     }
 
-    async fn get_snapshot(&self, table_ref: &TableRef) -> Result<Snapshot> {
+    async fn get_snapshot(&self, table_ref: &ResourceRef) -> Result<Snapshot> {
         let location = self.location_resolver.resolve(table_ref).await?;
         let table = Table::new(location);
         let engine = self.engine_factory.create(&table).await?;
@@ -113,14 +112,8 @@ impl TableQueryHandler for KernelQueryHandler {
         &self,
         request: GetTableVersionRequest,
     ) -> Result<GetTableVersionResponse> {
-        let snapshot = self
-            .get_snapshot(&TableRef {
-                share: request.share,
-                schema: request.schema,
-                table: request.name,
-            })
-            .await?;
-
+        // TODO handle optional timestamp
+        let snapshot = self.get_snapshot(&request.into()).await?;
         let version = snapshot.version();
         Ok(GetTableVersionResponse {
             version: version as i64,
@@ -128,13 +121,7 @@ impl TableQueryHandler for KernelQueryHandler {
     }
 
     async fn get_table_metadata(&self, request: GetTableMetadataRequest) -> Result<QueryResponse> {
-        let snapshot = self
-            .get_snapshot(&TableRef {
-                share: request.share,
-                schema: request.schema,
-                table: request.name,
-            })
-            .await?;
+        let snapshot = self.get_snapshot(&request.into()).await?;
         Ok([snapshot.metadata().into(), snapshot.protocol().into()].into())
     }
 }

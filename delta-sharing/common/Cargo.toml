@@ -18,10 +18,12 @@ prost = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 tonic = { workspace = true, optional = true }
+tower = { workspace = true, features = ["make"], optional = true }
 tracing = { workspace = true }
 url = { workspace = true }
 
 # server dependencies (in alphabetical order)
+pbjson-types = "0.7"
 serde_json = { version = "1.0" }
 tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
 
@@ -31,7 +33,7 @@ uuid = { version = "1.8", optional = true, features = ["v5"] }
 
 # axum handler dependencies (in alphabetical order)
 axum = { version = "0.8", optional = true }
-pbjson-types = "0.7"
+futures-util = { version = "0.3.28", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -41,7 +43,7 @@ testutils = { path = "../../testutils" }
 [features]
 default = ["memory", "axum", "grpc"]
 memory = ["dashmap", "uuid"]
-axum = ["dep:axum", "http"]
+axum = ["dep:axum", "http", "futures-util", "tower"]
 
 # The grpc features provides implementations to support
 # building a gPRC servers and clients.

@@ -63,7 +63,7 @@ pub enum ResourceRef {
 impl std::fmt::Display for ResourceRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Uuid(u) => write!(f, "{}", u),
+            Self::Uuid(u) => write!(f, "{}", u.hyphenated()),
             Self::Name(path, name) => {
                 if path.is_empty() {
                     write!(f, "{}", name)
@@ -166,12 +166,12 @@ impl<T: DiscoveryHandler> DiscoveryHandler for Arc<T> {
 /// Resolver for the storage location of a table.
 #[async_trait::async_trait]
 pub trait TableLocationResover: Send + Sync {
-    async fn resolve(&self, table: &models::TableRef) -> Result<url::Url>;
+    async fn resolve(&self, table: &ResourceRef) -> Result<url::Url>;
 }
 
 #[async_trait::async_trait]
 impl<T: TableLocationResover> TableLocationResover for Arc<T> {
-    async fn resolve(&self, table: &models::TableRef) -> Result<url::Url> {
+    async fn resolve(&self, table: &ResourceRef) -> Result<url::Url> {
         T::resolve(self, table).await
     }
 }

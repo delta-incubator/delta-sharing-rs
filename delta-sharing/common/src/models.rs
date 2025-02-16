@@ -28,12 +28,6 @@ pub struct ErrorResponse {
     pub message: String,
 }
 
-pub struct TableRef {
-    pub share: String,
-    pub schema: String,
-    pub table: String,
-}
-
 impl AsResource for v1::Share {
     fn as_resource(&self) -> Resource {
         self.id
@@ -106,26 +100,23 @@ impl_secured_action!(
     ),
 );
 
-impl From<GetShareRequest> for ResourceRef {
-    fn from(req: GetShareRequest) -> Self {
-        ResourceRef::from(req.name)
-    }
+macro_rules! impl_from_for_resource_ref {
+    ($($ty:ty => $body:expr),+ $(,)?) => {
+        $(
+            impl From<$ty> for ResourceRef {
+                fn from(req: $ty) -> Self {
+                    ResourceRef::from($body(req))
+                }
+            }
+        )+
+    };
 }
 
-impl From<v1::ListShareTablesRequest> for ResourceRef {
-    fn from(req: v1::ListShareTablesRequest) -> Self {
-        ResourceRef::from(req.name)
-    }
-}
-
-impl From<v1::ListSchemasRequest> for ResourceRef {
-    fn from(req: v1::ListSchemasRequest) -> Self {
-        ResourceRef::from(req.share)
-    }
-}
-
-impl From<v1::ListSchemaTablesRequest> for ResourceRef {
-    fn from(req: v1::ListSchemaTablesRequest) -> Self {
-        ResourceRef::from(([&req.share], &req.name))
-    }
+impl_from_for_resource_ref! {
+    GetShareRequest => |req: GetShareRequest| req.name,
+    v1::ListShareTablesRequest => |req: v1::ListShareTablesRequest| req.name,
+    v1::ListSchemasRequest => |req: v1::ListSchemasRequest| req.share,
+    v1::ListSchemaTablesRequest => |req: v1::ListSchemaTablesRequest| ([req.share], req.name),
+    v1::GetTableVersionRequest => |req: v1::GetTableVersionRequest| ([req.share, req.schema], req.name),
+    v1::GetTableMetadataRequest => |req: v1::GetTableMetadataRequest| ([req.share, req.schema], req.name),
 }

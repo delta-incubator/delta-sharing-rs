@@ -1,6 +1,8 @@
-use delta_sharing_common::rest::{get_sharing_repo_router, get_sharing_router};
+use delta_sharing_common::rest::{
+    get_sharing_repo_router, get_sharing_router, AuthenticationLayer, Authenticator,
+};
 use delta_sharing_common::{
-    DeltaSharingHandler, Error, Policy, Result, SharingRepository, TableQueryHandler,
+    DiscoveryManager, Error, Policy, Result, SharingRepository, TableQueryManager,
 };
 use swagger_ui_dist::{ApiDefinition, OpenApiSource};
 use tokio::net::TcpListener;
@@ -8,31 +10,39 @@ use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, Tr
 use tower_http::LatencyUnit;
 use tracing::Level;
 
-use crate::rest::auth::{AnonymousAuthenticator, AuthenticationLayer};
 use crate::shutdown::shutdown_signal;
 
-mod auth;
 #[cfg(test)]
 mod tests;
 
-pub async fn run_server(
+pub async fn run_server<T, A>(
     host: impl AsRef<str>,
     port: u16,
-    handler: DeltaSharingHandler,
-) -> Result<()> {
+    handler: T,
+    authenticator: A,
+) -> Result<()>
+where
+    T: DiscoveryManager + TableQueryManager + Clone,
+    A: Authenticator + Clone,
+{
     let api_def = ApiDefinition {
         uri_prefix: "/api",
         api_definition: OpenApiSource::Inline(include_str!("../../openapi.yaml")),
         title: Some("My Super Duper API"),
     };
-    let server =
-        get_sharing_router(handler).layer(AuthenticationLayer::new(AnonymousAuthenticator));
+    let server = get_sharing_router(handler).layer(AuthenticationLayer::new(authenticator));
     run(server, host, port, api_def).await
 }
 
-pub async fn run_server_full<T>(host: impl AsRef<str>, port: u16, handler: T) -> Result<()>
+pub async fn run_server_full<T, A>(
+    host: impl AsRef<str>,
+    port: u16,
+    handler: T,
+    authenticator: A,
+) -> Result<()>
 where
-    T: SharingRepository + TableQueryHandler + Policy + Clone + Send + Sync + 'static,
+    T: SharingRepository + TableQueryManager + Policy + Clone,
+    A: Authenticator + Clone,
 {
     let api_def = ApiDefinition {
         uri_prefix: "/api",
@@ -40,7 +50,7 @@ where
         title: Some("My Super Duper API"),
     };
     let router = get_sharing_router(handler.clone()).merge(get_sharing_repo_router(handler));
-    let server = router.layer(AuthenticationLayer::new(AnonymousAuthenticator));
+    let server = router.layer(AuthenticationLayer::new(authenticator));
     run(server, host, port, api_def).await
 }
 

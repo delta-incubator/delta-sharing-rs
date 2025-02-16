@@ -11,9 +11,11 @@ use crate::models::catalog::v1 as catalog;
 use crate::models::v1::*;
 use crate::Error;
 
+mod auth;
 mod repo;
 mod router;
 
+pub use auth::*;
 pub use repo::get_router as get_sharing_repo_router;
 pub use router::get_router as get_sharing_router;
 
