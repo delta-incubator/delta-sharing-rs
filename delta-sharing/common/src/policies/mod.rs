@@ -73,7 +73,7 @@ mod test {
 
         let resource = Resource::share("test_share");
         let permission = Permission::Read;
-        let recipient = &Recipient(bytes::Bytes::new());
+        let recipient = &Recipient::anonymous();
 
         let decision = policy
             .authorize(&resource, &permission, recipient)
@@ -88,7 +88,7 @@ mod test {
 
         let resource = Resource::share("test_share");
         let permission = Permission::Read;
-        let recipient = &Recipient(bytes::Bytes::new());
+        let recipient = &Recipient::anonymous();
 
         let decision = policy
             .authorize(&resource, &permission, recipient)
@@ -103,7 +103,7 @@ mod test {
 
         let resource = Resource::share("test_share");
         let permission = Permission::Read;
-        let recipient = &Recipient(bytes::Bytes::new());
+        let recipient = &Recipient::anonymous();
 
         let decision = policy
             .authorize(&resource, &permission, recipient)

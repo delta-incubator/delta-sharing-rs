@@ -20,7 +20,7 @@ pub enum DefaultRecipient<C: ProfileClaims> {
 
 impl<C: ProfileClaims> From<DefaultRecipient<C>> for Recipient {
     fn from(recipient: DefaultRecipient<C>) -> Self {
-        Recipient(Bytes::from(serde_json::to_vec(&recipient).unwrap()))
+        Recipient::custom(Bytes::from(serde_json::to_vec(&recipient).unwrap()))
     }
 }
 

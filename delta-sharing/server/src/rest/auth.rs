@@ -13,7 +13,7 @@ pub trait Authenticator: Send + Sync {
     ///
     /// This method should return the recipient of the request, or an error if the request
     /// is not authenticated or the recipient cannot be determined from the request.
-    fn authenticate(&self, request: &axum::extract::Request) -> Result<Recipient>;
+    fn authenticate(&self, request: &Request) -> Result<Recipient>;
 }
 
 /// Authenticator that always marks the recipient as anonymous.
@@ -112,7 +112,7 @@ mod tests {
     async fn check_recipient(req: Request) -> Result<Response<Body>> {
         assert!(matches!(
             req.extensions().get::<Recipient>(),
-            Some(&Recipient(_))
+            Some(Recipient::Anonymous) | Some(Recipient::Custom(_)) | Some(Recipient::User(_))
         ));
         Ok(Response::new(req.into_body()))
     }

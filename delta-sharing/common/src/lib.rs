@@ -22,11 +22,23 @@ use models::AsResource;
 pub use policies::*;
 
 #[derive(Clone, Debug)]
-pub struct Recipient(pub Bytes);
+pub enum Recipient {
+    Anonymous,
+    User(String),
+    Custom(Bytes),
+}
 
 impl Recipient {
     pub fn anonymous() -> Self {
-        Self(Bytes::new())
+        Self::Anonymous
+    }
+
+    pub fn user(name: impl Into<String>) -> Self {
+        Self::User(name.into())
+    }
+
+    pub fn custom(data: Bytes) -> Self {
+        Self::Custom(data)
     }
 }
 

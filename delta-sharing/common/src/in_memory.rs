@@ -237,7 +237,7 @@ mod tests {
             }],
         };
         let handler = DefaultInMemoryHandler::new(config);
-        let recipient = &Recipient(bytes::Bytes::new());
+        let recipient = &Recipient::anonymous();
 
         let shares = handler
             .list_shares(ListSharesRequest::default(), recipient)
