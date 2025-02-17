@@ -60,6 +60,14 @@ impl From<sqlx::Error> for Error {
 
 impl From<Error> for CommonError {
     fn from(e: Error) -> Self {
-        CommonError::Generic(e.to_string())
+        match e {
+            Error::Connection(e) => CommonError::generic(e.to_string()),
+            Error::Migration(e) => CommonError::generic(e.to_string()),
+            Error::InvalidUrl(e) => CommonError::InvalidArgument(e.to_string()),
+            Error::DecodePageToken(e) => CommonError::InvalidArgument(e.to_string()),
+            Error::Generic(e) => CommonError::Generic(e),
+            Error::EntityNotFound(_) => CommonError::NotFound,
+            Error::AlreadyExists(_) => CommonError::NotAllowed,
+        }
     }
 }
