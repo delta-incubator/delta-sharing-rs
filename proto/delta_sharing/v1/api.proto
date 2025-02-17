@@ -36,8 +36,8 @@ option (openapi.v3.document) = {
       description: "APIs which are part of published official document"
     },
     {
-      name: "proposed"
-      description: "APIs which are part proposed and may or may not be part of official"
+      name: "unofficial"
+      description: "APIs which are custom to delta-sharing-rs"
     }
   ]
 };
@@ -70,10 +70,10 @@ service DeltaSharingService {
 
   // List the schemas in a share.
   rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse) {
-    option (google.api.http) = {get: "/{parent=shares/*}/schemas"};
+    option (google.api.http) = {get: "/{share=shares/*}/schemas"};
     option (openapi.v3.operation) = {
       tags: [
-        "shares",
+        "schemas",
         "official"
       ]
       operation_id: "ListSchemas"
@@ -85,7 +85,7 @@ service DeltaSharingService {
     option (google.api.http) = {get: "/shares/{share}/schemas/{name}/tables"};
     option (openapi.v3.operation) = {
       tags: [
-        "shares",
+        "tables",
         "official"
       ]
       operation_id: "ListSchemaTables"
@@ -97,7 +97,7 @@ service DeltaSharingService {
     option (google.api.http) = {get: "/{name=shares/*}/all-tables"};
     option (openapi.v3.operation) = {
       tags: [
-        "shares",
+        "tables",
         "official"
       ]
       operation_id: "ListShareTables"

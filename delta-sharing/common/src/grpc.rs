@@ -1,10 +1,7 @@
 use tonic::{Request, Response, Status};
 
 use crate::models::v1::{delta_sharing_service_server::DeltaSharingService, *};
-use crate::{
-    process_resources, DiscoveryHandler, Error, Permission, Policy, Recipient, Result,
-    TableQueryHandler,
-};
+use crate::{DiscoveryManager, Error, Recipient, Result, TableQueryManager};
 
 fn extract_recipient<T>(request: &Request<T>) -> Result<Recipient> {
     request
@@ -17,15 +14,14 @@ fn extract_recipient<T>(request: &Request<T>) -> Result<Recipient> {
 #[async_trait::async_trait]
 impl<T> DeltaSharingService for T
 where
-    T: DiscoveryHandler + TableQueryHandler + Policy,
+    T: DiscoveryManager + TableQueryManager,
 {
     async fn list_shares(
         &self,
         request: Request<ListSharesRequest>,
     ) -> Result<Response<ListSharesResponse>, Status> {
         let recipient = extract_recipient(&request)?;
-        let mut result = T::list_shares(self, request.into_inner(), &recipient).await?;
-        process_resources(self, &recipient, &Permission::Read, &mut result.items).await?;
+        let result = T::list_shares(self, request.into_inner(), &recipient).await?;
         Ok(Response::new(result))
     }
 
@@ -34,9 +30,7 @@ where
         request: Request<GetShareRequest>,
     ) -> Result<Response<Share>, Status> {
         let recipient = extract_recipient(&request)?;
-        let req = request.into_inner();
-        self.check_required(&req, &recipient).await?;
-        let result = T::get_share(self, req).await?;
+        let result = T::get_share(self, request.into_inner(), &recipient).await?;
         Ok(Response::new(result))
     }
 
@@ -45,9 +39,7 @@ where
         request: Request<ListShareTablesRequest>,
     ) -> Result<Response<ListShareTablesResponse>, Status> {
         let recipient = extract_recipient(&request)?;
-        let req = request.into_inner();
-        self.check_required(&req, &recipient).await?;
-        let result = T::list_share_tables(self, req).await?;
+        let result = T::list_share_tables(self, request.into_inner(), &recipient).await?;
         Ok(Response::new(result))
     }
 
@@ -56,9 +48,7 @@ where
         request: Request<ListSchemasRequest>,
     ) -> Result<Response<ListSchemasResponse>, Status> {
         let recipient = extract_recipient(&request)?;
-        let req = request.into_inner();
-        self.check_required(&req, &recipient).await?;
-        let result = T::list_schemas(self, req).await?;
+        let result = T::list_schemas(self, request.into_inner(), &recipient).await?;
         Ok(Response::new(result))
     }
 
@@ -67,9 +57,7 @@ where
         request: Request<ListSchemaTablesRequest>,
     ) -> Result<Response<ListSchemaTablesResponse>, Status> {
         let recipient = extract_recipient(&request)?;
-        let req = request.into_inner();
-        self.check_required(&req, &recipient).await?;
-        let result = T::list_schema_tables(self, req).await?;
+        let result = T::list_schema_tables(self, request.into_inner(), &recipient).await?;
         Ok(Response::new(result))
     }
 
@@ -78,9 +66,7 @@ where
         request: Request<GetTableVersionRequest>,
     ) -> Result<Response<GetTableVersionResponse>, Status> {
         let recipient = extract_recipient(&request)?;
-        let req = request.into_inner();
-        self.check_required(&req, &recipient).await?;
-        let result = T::get_table_version(self, req).await?;
+        let result = T::get_table_version(self, request.into_inner(), &recipient).await?;
         Ok(Response::new(result))
     }
 
@@ -89,9 +75,7 @@ where
         request: Request<GetTableMetadataRequest>,
     ) -> Result<Response<QueryResponse>, Status> {
         let recipient = extract_recipient(&request)?;
-        let req = request.into_inner();
-        self.check_required(&req, &recipient).await?;
-        let result = T::get_table_metadata(self, req).await?;
+        let result = T::get_table_metadata(self, request.into_inner(), &recipient).await?;
         Ok(Response::new(result))
     }
 }

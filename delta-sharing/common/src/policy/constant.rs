@@ -1,10 +1,3 @@
-//! Authorization policies.
-//!
-//! Policies are used to determine whether a recipient is allowed to perform a specific action on a
-//! resource. The action is represented by a [`Permission`] and the resource is represented by a
-//! [`Resource`]. The [`Decision`] represents whether the action is allowed or denied for the given
-//! recipient.
-
 use crate::error::Result;
 use crate::{Decision, Permission, Policy, Recipient, Resource};
 
@@ -73,7 +66,7 @@ mod test {
 
         let resource = Resource::share("test_share");
         let permission = Permission::Read;
-        let recipient = &Recipient(bytes::Bytes::new());
+        let recipient = &Recipient::anonymous();
 
         let decision = policy
             .authorize(&resource, &permission, recipient)
@@ -88,7 +81,7 @@ mod test {
 
         let resource = Resource::share("test_share");
         let permission = Permission::Read;
-        let recipient = &Recipient(bytes::Bytes::new());
+        let recipient = &Recipient::anonymous();
 
         let decision = policy
             .authorize(&resource, &permission, recipient)
@@ -103,7 +96,7 @@ mod test {
 
         let resource = Resource::share("test_share");
         let permission = Permission::Read;
-        let recipient = &Recipient(bytes::Bytes::new());
+        let recipient = &Recipient::anonymous();
 
         let decision = policy
             .authorize(&resource, &permission, recipient)

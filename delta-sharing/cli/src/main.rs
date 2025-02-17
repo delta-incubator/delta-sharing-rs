@@ -3,9 +3,13 @@ use std::sync::Arc;
 
 use chrono::Days;
 use clap::{Parser, Subcommand};
-use delta_sharing_common::{ConstantPolicy, InMemoryConfig, InMemoryHandler, KernelQueryHandler};
+use delta_sharing_common::{
+    rest::AnonymousAuthenticator, ConstantPolicy, DeltaRepositoryHandler, DeltaSharingHandler,
+    InMemoryConfig, InMemoryHandler, KernelQueryHandler,
+};
+use delta_sharing_postgres::GraphStore;
 use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
-use delta_sharing_server::{run_grpc_server, run_rest_server, DeltaSharingHandler};
+use delta_sharing_server::{run_grpc_server, run_rest_server, run_rest_server_full};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::error::{Error, Result};
@@ -54,6 +58,9 @@ struct ServerArgs {
 
     #[arg(short, long, default_value = "config.yaml")]
     config: String,
+
+    #[clap(long, help = "use database", default_value_t = false)]
+    use_db: bool,
 }
 
 #[derive(Parser)]
@@ -126,6 +133,19 @@ fn get_handler(config: impl AsRef<Path>) -> Result<DeltaSharingHandler> {
     Ok(handler)
 }
 
+async fn get_db_handler() -> Result<DeltaRepositoryHandler> {
+    let db_url = std::env::var("DATABASE_URL")
+        .map_err(|_| Error::Generic("missing DATABASE_URL".to_string()))?;
+    let repo = Arc::new(GraphStore::connect(&db_url).await.unwrap());
+    repo.migrate().await.unwrap();
+    let handler = DeltaRepositoryHandler {
+        query: KernelQueryHandler::new_multi_thread(repo.clone(), Default::default()),
+        repo,
+        policy: Arc::new(ConstantPolicy::default()),
+    };
+    Ok(handler)
+}
+
 fn init_tracing() {
     tracing_subscriber::registry()
         .with(
@@ -149,11 +169,17 @@ fn init_tracing() {
 async fn handle_rest(args: ServerArgs) -> Result<()> {
     init_tracing();
 
-    let handler = get_handler(args.config)?;
-
-    run_rest_server(args.host, args.port, handler)
-        .await
-        .map_err(|_| Error::Generic("Server failed".to_string()))
+    if args.use_db {
+        let handler = get_db_handler().await?;
+        run_rest_server_full(args.host, args.port, handler, AnonymousAuthenticator)
+            .await
+            .map_err(|_| Error::Generic("Server failed".to_string()))
+    } else {
+        let handler = get_handler(args.config)?;
+        run_rest_server(args.host, args.port, handler, AnonymousAuthenticator)
+            .await
+            .map_err(|_| Error::Generic("Server failed".to_string()))
+    }
 }
 
 /// Handle the server command.

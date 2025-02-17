@@ -11,37 +11,25 @@ pub mod catalog_service_server {
         async fn create_share(
             &self,
             request: tonic::Request<super::CreateShareRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::super::super::v1::Share>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status>;
         /** Delete a Share in the Delta Sharing service.
 */
         async fn delete_share(
             &self,
             request: tonic::Request<super::DeleteShareRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::super::super::v1::Share>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status>;
         /** Create a new Schema in the Delta Sharing service.
 */
         async fn create_schema(
             &self,
             request: tonic::Request<super::CreateSchemaRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::super::super::v1::Schema>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
         /** Delete a Schema in the Delta Sharing service.
 */
         async fn delete_schema(
             &self,
             request: tonic::Request<super::DeleteSchemaRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::super::super::v1::Schema>,
-            tonic::Status,
-        >;
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
     }
     ///
     #[derive(Debug)]
@@ -127,7 +115,7 @@ pub mod catalog_service_server {
                         T: CatalogService,
                     > tonic::server::UnaryService<super::CreateShareRequest>
                     for CreateShareSvc<T> {
-                        type Response = super::super::super::v1::Share;
+                        type Response = super::ShareInfo;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
@@ -172,7 +160,7 @@ pub mod catalog_service_server {
                         T: CatalogService,
                     > tonic::server::UnaryService<super::DeleteShareRequest>
                     for DeleteShareSvc<T> {
-                        type Response = super::super::super::v1::Share;
+                        type Response = super::ShareInfo;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
@@ -217,7 +205,7 @@ pub mod catalog_service_server {
                         T: CatalogService,
                     > tonic::server::UnaryService<super::CreateSchemaRequest>
                     for CreateSchemaSvc<T> {
-                        type Response = super::super::super::v1::Schema;
+                        type Response = super::SchemaInfo;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
@@ -262,7 +250,7 @@ pub mod catalog_service_server {
                         T: CatalogService,
                     > tonic::server::UnaryService<super::DeleteSchemaRequest>
                     for DeleteSchemaSvc<T> {
-                        type Response = super::super::super::v1::Schema;
+                        type Response = super::SchemaInfo;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,

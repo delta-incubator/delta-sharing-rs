@@ -121,7 +121,7 @@ pub fn string_to_sign(
     let signed_start = start.to_rfc3339_opts(SecondsFormat::Secs, true);
     let signed_expiry = end.to_rfc3339_opts(SecondsFormat::Secs, true);
     let signed_permissions = permission.as_ref().to_string();
-    let signed_resource: String = resource.into();
+    let signed_resource = resource.to_string();
     let signed_host = url.host_str().unwrap_or_default();
 
     let string_to_sign = format!(

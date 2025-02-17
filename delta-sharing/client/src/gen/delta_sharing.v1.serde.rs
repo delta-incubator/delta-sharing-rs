@@ -2946,12 +2946,18 @@ impl serde::Serialize for Schema {
         if !self.share.is_empty() {
             len += 1;
         }
+        if self.id.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.v1.Schema", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
         }
         if !self.share.is_empty() {
             struct_ser.serialize_field("share", &self.share)?;
+        }
+        if let Some(v) = self.id.as_ref() {
+            struct_ser.serialize_field("id", v)?;
         }
         struct_ser.end()
     }
@@ -2965,12 +2971,14 @@ impl<'de> serde::Deserialize<'de> for Schema {
         const FIELDS: &[&str] = &[
             "name",
             "share",
+            "id",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Name,
             Share,
+            Id,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -2994,6 +3002,7 @@ impl<'de> serde::Deserialize<'de> for Schema {
                         match value {
                             "name" => Ok(GeneratedField::Name),
                             "share" => Ok(GeneratedField::Share),
+                            "id" => Ok(GeneratedField::Id),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -3015,6 +3024,7 @@ impl<'de> serde::Deserialize<'de> for Schema {
             {
                 let mut name__ = None;
                 let mut share__ = None;
+                let mut id__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Name => {
@@ -3029,11 +3039,18 @@ impl<'de> serde::Deserialize<'de> for Schema {
                             }
                             share__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::Id => {
+                            if id__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("id"));
+                            }
+                            id__ = map_.next_value()?;
+                        }
                     }
                 }
                 Ok(Schema {
                     name: name__.unwrap_or_default(),
                     share: share__.unwrap_or_default(),
+                    id: id__,
                 })
             }
         }

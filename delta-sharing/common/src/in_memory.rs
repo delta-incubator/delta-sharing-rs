@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::error::{Error, Result};
-use crate::models::{v1::*, TableRef};
-use crate::{DiscoveryHandler, Recipient, TableLocationResover};
+use crate::models::v1::*;
+use crate::{DiscoveryHandler, ResourceRef, TableLocationResover};
 
 pub type DefaultInMemoryHandler = InMemoryHandler;
 
@@ -72,11 +72,7 @@ impl InMemoryHandler {
 
 #[async_trait::async_trait]
 impl DiscoveryHandler for InMemoryHandler {
-    async fn list_shares(
-        &self,
-        _request: ListSharesRequest,
-        _recipient: &Recipient,
-    ) -> Result<ListSharesResponse> {
+    async fn list_shares(&self, _: ListSharesRequest) -> Result<ListSharesResponse> {
         let shares = self
             .shares
             .iter()
@@ -114,6 +110,7 @@ impl DiscoveryHandler for InMemoryHandler {
                     .map(|schema_ref| Schema {
                         name: schema_ref.clone(),
                         share: request.share.clone(),
+                        id: None,
                     })
                     .collect();
                 Ok(ListSchemasResponse {
@@ -197,22 +194,31 @@ impl DiscoveryHandler for InMemoryHandler {
 
 #[async_trait::async_trait]
 impl TableLocationResover for InMemoryHandler {
-    async fn resolve(&self, table_ref: &TableRef) -> Result<url::Url> {
-        let Some(schemas) = self.shares.get(&table_ref.share) else {
-            return Err(Error::NotFound);
-        };
-        if !schemas.contains(&table_ref.schema) {
-            return Err(Error::NotFound);
+    async fn resolve(&self, table_ref: &ResourceRef) -> Result<url::Url> {
+        match table_ref {
+            ResourceRef::Uuid(_) => Err(Error::NotFound),
+            ResourceRef::Undefined => Err(Error::NotFound),
+            ResourceRef::Name(ns, table) => {
+                if ns.len() != 2 {
+                    return Err(Error::NotFound);
+                }
+                let Some(schemas) = self.shares.get(&ns[0]) else {
+                    return Err(Error::NotFound);
+                };
+                if !schemas.contains(&ns[1]) {
+                    return Err(Error::NotFound);
+                }
+                let Some(tables) = self.schemas.get(&ns[1]) else {
+                    return Err(Error::NotFound);
+                };
+                if !tables.contains(table) {
+                    return Err(Error::NotFound);
+                }
+                let table = self.tables.get(table).ok_or(Error::NotFound)?;
+                Ok(url::Url::parse(&table.location)
+                    .map_err(|_| Error::InvalidTableLocation(table.location.clone()))?)
+            }
         }
-        let Some(tables) = self.schemas.get(&table_ref.schema) else {
-            return Err(Error::NotFound);
-        };
-        if !tables.contains(&table_ref.table) {
-            return Err(Error::NotFound);
-        }
-        let table = self.tables.get(&table_ref.table).ok_or(Error::NotFound)?;
-        Ok(url::Url::parse(&table.location)
-            .map_err(|_| Error::InvalidTableLocation(table.location.clone()))?)
     }
 }
 
@@ -237,10 +243,9 @@ mod tests {
             }],
         };
         let handler = DefaultInMemoryHandler::new(config);
-        let recipient = &Recipient(bytes::Bytes::new());
 
         let shares = handler
-            .list_shares(ListSharesRequest::default(), recipient)
+            .list_shares(ListSharesRequest::default())
             .await
             .unwrap();
         assert_eq!(shares.items.len(), 1);

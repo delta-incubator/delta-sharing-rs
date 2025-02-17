@@ -11,6 +11,7 @@ use crate::{error::Result, pagination::PaginateToken};
 
 static MIGRATOR: Migrator = sqlx::migrate!();
 
+#[derive(Debug, Clone)]
 pub struct Store {
     pool: Arc<PgPool>,
 }

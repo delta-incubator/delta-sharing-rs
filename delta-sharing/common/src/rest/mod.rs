@@ -8,11 +8,16 @@ use axum::{RequestExt, RequestPartsExt};
 use serde::Deserialize;
 
 use crate::models::catalog::v1 as catalog;
+use crate::models::catalog::v1::*;
 use crate::models::v1::*;
 use crate::Error;
 
+mod auth;
+mod repo;
 mod router;
 
+pub use auth::*;
+pub use repo::get_router as get_sharing_repo_router;
 pub use router::get_router as get_sharing_router;
 
 macro_rules! impl_get_request {
@@ -34,6 +39,11 @@ macro_rules! impl_get_request {
 }
 
 impl_get_request!(GetShareRequest { name: String });
+impl_get_request!(DeleteShareRequest { name: String });
+impl_get_request!(DeleteSchemaRequest {
+    share: String,
+    name: String
+});
 impl_get_request!(GetTableMetadataRequest {
     share: String,
     schema: String,
@@ -107,16 +117,16 @@ impl<S: Send + Sync> FromRequestParts<S> for GetTableVersionRequest {
     }
 }
 
-impl<S: Send + Sync> FromRequest<S> for catalog::CreateShareRequest {
+impl<S: Send + Sync> FromRequest<S> for CreateShareRequest {
     type Rejection = Response;
 
     async fn from_request(req: Request<Body>, _state: &S) -> Result<Self, Self::Rejection> {
         let Json(share) = req.extract().await.map_err(IntoResponse::into_response)?;
-        Ok(catalog::CreateShareRequest { share })
+        Ok(CreateShareRequest { share })
     }
 }
 
-impl<S: Send + Sync> FromRequest<S> for catalog::CreateSchemaRequest {
+impl<S: Send + Sync> FromRequest<S> for CreateSchemaRequest {
     type Rejection = Response;
 
     async fn from_request(req: Request<Body>, _state: &S) -> Result<Self, Self::Rejection> {

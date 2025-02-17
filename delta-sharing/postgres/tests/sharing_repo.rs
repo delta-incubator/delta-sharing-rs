@@ -2,9 +2,9 @@
 
 use std::sync::Arc;
 
+use delta_sharing_common::{Error, ResourceRef, SharingRepository};
 use uuid::Uuid;
 
-use delta_sharing_postgres::Error;
 use delta_sharing_postgres::*;
 
 #[sqlx::test]
@@ -17,32 +17,34 @@ async fn test_shares(pool: sqlx::PgPool) {
     assert_eq!(share.name, "test_share");
 
     let share = repo
-        .get_share(&ShareRef::Name("test_share".to_string()))
+        .get_share(&ResourceRef::from("test_share".to_string()))
         .await
         .unwrap();
     assert_eq!(share.name, "test_share");
 
     let share = repo
-        .get_share(&ShareRef::Uuid(share.id.unwrap().parse().unwrap()))
+        .get_share(&ResourceRef::Uuid(share.id.parse().unwrap()))
         .await
         .unwrap();
     assert_eq!(share.name, "test_share");
 
     // test get share with unknown id should fail
-    let res = repo.get_share(&ShareRef::Uuid(Uuid::new_v4())).await;
-    assert!(matches!(res, Err(Error::EntityNotFound(_))));
+    let res = repo.get_share(&ResourceRef::Uuid(Uuid::new_v4())).await;
+    assert!(matches!(res, Err(Error::NotFound)));
 
     // test get share with unknown name should fail
-    let res = repo.get_share(&ShareRef::Name("unknown".to_string())).await;
-    assert!(matches!(res, Err(Error::EntityNotFound(_))));
+    let res = repo
+        .get_share(&ResourceRef::from("unknown".to_string()))
+        .await;
+    assert!(matches!(res, Err(Error::NotFound)));
 
-    repo.delete_share(&ShareRef::Name("test_share".to_string()))
+    repo.delete_share(&ResourceRef::from("test_share".to_string()))
         .await
         .unwrap();
     let res = repo
-        .get_share(&ShareRef::Name("test_share".to_string()))
+        .get_share(&ResourceRef::from("test_share".to_string()))
         .await;
-    assert!(matches!(res, Err(Error::EntityNotFound(_))));
+    assert!(matches!(res, Err(Error::NotFound)));
 
     // list shares
     let shares = repo.list_shares(None, None).await.unwrap();
@@ -78,7 +80,7 @@ async fn test_schema(pool: sqlx::PgPool) {
 
     let schema = repo
         .add_schema(
-            &share.name,
+            &ResourceRef::from(&share.name),
             "test_schema",
             Some("test comment".to_string()),
             None,
@@ -89,8 +91,8 @@ async fn test_schema(pool: sqlx::PgPool) {
     assert_eq!(schema.name, "test_schema");
 
     let schema = repo
-        .get_schema(&SchemaRef::Name((
-            vec![share.name.clone()],
+        .get_schema(&ResourceRef::from((
+            [share.name.clone()],
             "test_schema".to_string(),
         )))
         .await
@@ -106,46 +108,52 @@ async fn test_schema(pool: sqlx::PgPool) {
     // assert_eq!(schema.name, "test_schema");
 
     // test get schema with unknown id should fail
-    let res = repo.get_schema(&SchemaRef::Uuid(Uuid::new_v4())).await;
-    assert!(matches!(res, Err(Error::EntityNotFound(_))));
+    let res = repo.get_schema(&ResourceRef::Uuid(Uuid::new_v4())).await;
+    assert!(matches!(res, Err(Error::NotFound)));
 
     // test get schema with unknown name should fail
     let res = repo
-        .get_schema(&SchemaRef::Name((
-            vec![share.name.clone()],
+        .get_schema(&ResourceRef::from((
+            [share.name.clone()],
             "unknown".to_string(),
         )))
         .await;
-    assert!(matches!(res, Err(Error::EntityNotFound(_))));
+    assert!(matches!(res, Err(Error::NotFound)));
 
-    repo.delete_schema(&SchemaRef::Name((
-        vec![share.name.clone()],
+    repo.delete_schema(&ResourceRef::from((
+        [share.name.clone()],
         "test_schema".to_string(),
     )))
     .await
     .unwrap();
     let res = repo
-        .get_schema(&SchemaRef::Name((
-            vec![share.name.clone()],
+        .get_schema(&ResourceRef::from((
+            [share.name.clone()],
             "test_schema".to_string(),
         )))
         .await;
-    assert!(matches!(res, Err(Error::EntityNotFound(_))));
+    assert!(matches!(res, Err(Error::NotFound)));
 
     // list schemas
-    let schemas = repo.list_schemas(&share.name, None, None).await.unwrap();
+    let schemas = repo
+        .list_schemas(&ResourceRef::from(&share.name), None, None)
+        .await
+        .unwrap();
     assert_eq!(schemas.0.len(), 0);
 
     let _schema = repo
         .add_schema(
-            &share.name,
+            &ResourceRef::from(&share.name),
             "test_schema",
             Some("test comment".to_string()),
             None,
         )
         .await
         .unwrap();
-    let schemas = repo.list_schemas(&share.name, None, None).await.unwrap();
+    let schemas = repo
+        .list_schemas(&ResourceRef::from(share.name), None, None)
+        .await
+        .unwrap();
     assert_eq!(schemas.0.len(), 1);
     assert_eq!(schemas.0[0].name, "test_schema");
 }

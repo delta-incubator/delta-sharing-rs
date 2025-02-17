@@ -90,10 +90,7 @@ pub mod catalog_service_client {
         pub async fn create_share(
             &mut self,
             request: impl tonic::IntoRequest<super::CreateShareRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::super::super::v1::Share>,
-            tonic::Status,
-        > {
+        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -122,10 +119,7 @@ pub mod catalog_service_client {
         pub async fn delete_share(
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteShareRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::super::super::v1::Share>,
-            tonic::Status,
-        > {
+        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -154,10 +148,7 @@ pub mod catalog_service_client {
         pub async fn create_schema(
             &mut self,
             request: impl tonic::IntoRequest<super::CreateSchemaRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::super::super::v1::Schema>,
-            tonic::Status,
-        > {
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -186,10 +177,7 @@ pub mod catalog_service_client {
         pub async fn delete_schema(
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteSchemaRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::super::super::v1::Schema>,
-            tonic::Status,
-        > {
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status> {
             self.inner
                 .ready()
                 .await

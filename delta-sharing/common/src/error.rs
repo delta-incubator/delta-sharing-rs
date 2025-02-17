@@ -23,6 +23,9 @@ pub enum Error {
     #[error("Invalid table location: {0}")]
     InvalidTableLocation(String),
 
+    #[error("Invalid Argument: {0}")]
+    InvalidArgument(String),
+
     #[error("Generic error: {0}")]
     Generic(String),
 
@@ -45,6 +48,10 @@ impl Error {
     pub fn generic(msg: impl Into<String>) -> Self {
         Self::Generic(msg.into())
     }
+
+    pub fn invalid_argument(msg: impl Into<String>) -> Self {
+        Self::InvalidArgument(msg.into())
+    }
 }
 
 #[cfg(feature = "grpc")]
@@ -66,6 +73,7 @@ impl From<Error> for Status {
             Error::MissingRecipient => {
                 Status::invalid_argument("Failed to extract recipient from request")
             }
+            Error::InvalidArgument(message) => Status::invalid_argument(message),
             Error::Generic(message) => Status::internal(message),
             #[cfg(feature = "axum")]
             Error::AxumPath(rejection) => Status::internal(format!("Axum path: {}", rejection)),
@@ -104,6 +112,11 @@ mod server {
         "The request is not handled correctly due to a server error.",
     );
 
+    const INVALID_ARGUMENT: (StatusCode, &str) = (
+        StatusCode::BAD_REQUEST,
+        "Invalid argument provided in the request.",
+    );
+
     impl IntoResponse for Error {
         fn into_response(self) -> Response {
             let (status, message) = match self {
@@ -128,6 +141,10 @@ mod server {
                     let message = format!("Invalid table location: {}", location);
                     error!("{}", message);
                     INTERNAL_ERROR
+                }
+                Error::InvalidArgument(message) => {
+                    error!("Invalid argument: {}", message);
+                    INVALID_ARGUMENT
                 }
                 Error::SerDe(_) => {
                     error!("Invalid table log encountered");

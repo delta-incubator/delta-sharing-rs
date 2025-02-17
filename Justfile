@@ -14,7 +14,7 @@ fix:
 
 # the the documentation (requires mdbook)
 docs:
-    cd docs && mdbook serve --open
+    uv run mkdocs serve
 
 # Run unit tests
 test:
@@ -66,6 +66,10 @@ local-setup: load-dat render-config
 
 rest:
     @RUST_LOG=INFO cargo run --bin delta-sharing rest --config {{ local_config }}
+
+rest-db:
+    DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres RUST_LOG=INFO \
+        cargo run --bin delta-sharing rest --config {{ local_config }} --use-db
 
 grpc:
     @RUST_LOG=INFO cargo run --bin delta-sharing grpc --config {{ local_config }}
