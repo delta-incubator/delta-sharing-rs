@@ -22,6 +22,7 @@ pub use handler::*;
 pub use in_memory::*;
 pub use kernel::*;
 pub use managers::*;
+pub use models::catalog::v1 as catalog;
 pub use models::v1::*;
 pub use policy::*;
 pub use repository::*;
@@ -199,4 +200,18 @@ impl<T: TableQueryHandler> TableQueryHandler for Arc<T> {
     async fn get_table_metadata(&self, request: GetTableMetadataRequest) -> Result<QueryResponse> {
         T::get_table_metadata(self, request).await
     }
+}
+
+#[async_trait::async_trait]
+pub trait RepositoryHandler: Send + Sync + 'static {
+    async fn create_share(
+        &self,
+        request: catalog::CreateShareRequest,
+    ) -> Result<catalog::ShareInfo>;
+    async fn delete_share(&self, request: catalog::DeleteShareRequest) -> Result<()>;
+    async fn create_schema(
+        &self,
+        request: catalog::CreateSchemaRequest,
+    ) -> Result<catalog::SchemaInfo>;
+    async fn delete_schema(&self, request: catalog::DeleteSchemaRequest) -> Result<()>;
 }

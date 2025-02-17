@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use delta_sharing_common::{
-    Error, ResourceRef, Result, Schema, Share, SharingRepository, Table, TableLocationResover,
+    catalog, Error, ResourceRef, Result, Schema, Share, SharingRepository, Table,
+    TableLocationResover,
 };
 
 use super::GraphStore;
@@ -14,22 +15,24 @@ impl SharingRepository for GraphStore {
         name: &str,
         comment: Option<String>,
         properties: Option<HashMap<String, serde_json::Value>>,
-    ) -> Result<Share> {
+    ) -> Result<catalog::ShareInfo> {
         let mut properties = properties.unwrap_or_default();
         if let Some(comment) = comment {
             properties.insert("comment".to_string(), serde_json::Value::String(comment));
-        }
+        };
         let json_map = serde_json::Map::from_iter(properties);
         let object = self
             .add_object(&ObjectLabel::Share, &[], name, Some(json_map.into()))
             .await?;
-        Ok(Share {
-            id: Some(object.id.hyphenated().to_string()),
+        Ok(catalog::ShareInfo {
+            id: object.id.hyphenated().to_string(),
             name: object.name,
+            properties: None,
+            description: None,
         })
     }
 
-    async fn get_share(&self, id: &ResourceRef) -> Result<Share> {
+    async fn get_share(&self, id: &ResourceRef) -> Result<catalog::ShareInfo> {
         let object = match id {
             ResourceRef::Uuid(uuid) => self.get_object(uuid).await?,
             ResourceRef::Name(namespace, name) => {
@@ -38,9 +41,11 @@ impl SharingRepository for GraphStore {
             }
             ResourceRef::Undefined => return Err(Error::generic("Cannot get undefined share")),
         };
-        Ok(Share {
-            id: Some(object.id.hyphenated().to_string()),
+        Ok(catalog::ShareInfo {
+            id: object.id.hyphenated().to_string(),
             name: object.name,
+            properties: None,
+            description: None,
         })
     }
 
@@ -84,7 +89,7 @@ impl SharingRepository for GraphStore {
         name: &str,
         comment: Option<String>,
         properties: Option<HashMap<String, serde_json::Value>>,
-    ) -> Result<Schema> {
+    ) -> Result<catalog::SchemaInfo> {
         let mut properties = properties.unwrap_or_default();
         if let Some(comment) = comment {
             properties.insert("comment".to_string(), serde_json::Value::String(comment));
@@ -99,14 +104,17 @@ impl SharingRepository for GraphStore {
                 Some(json_map.into()),
             )
             .await?;
-        Ok(Schema {
+        Ok(catalog::SchemaInfo {
             share: share.name,
             name: object.name,
-            id: Some(object.id.hyphenated().to_string()),
+            id: object.id.hyphenated().to_string(),
+            properties: None,
+            description: None,
+            share_id: Some(share.id),
         })
     }
 
-    async fn get_schema(&self, id: &ResourceRef) -> Result<Schema> {
+    async fn get_schema(&self, id: &ResourceRef) -> Result<catalog::SchemaInfo> {
         let object = match id {
             ResourceRef::Uuid(uuid) => self.get_object(uuid).await?,
             ResourceRef::Name(namespace, name) => {
@@ -121,10 +129,13 @@ impl SharingRepository for GraphStore {
                 object.id
             )));
         }
-        Ok(Schema {
+        Ok(catalog::SchemaInfo {
             share: object.namespace[0].clone(),
             name: object.name,
-            id: Some(object.id.hyphenated().to_string()),
+            id: object.id.hyphenated().to_string(),
+            properties: None,
+            description: None,
+            share_id: None,
         })
     }
 

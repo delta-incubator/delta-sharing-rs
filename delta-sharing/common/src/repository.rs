@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
+use crate::models::catalog::v1 as catalog;
 use crate::models::v1::*;
-use crate::{DiscoveryHandler, ResourceRef, Result, Schema, Share};
+use crate::{DiscoveryHandler, RepositoryHandler, ResourceRef, Result, Schema, Share};
 
 #[async_trait::async_trait]
 pub trait SharingRepository: Send + Sync + 'static {
@@ -10,9 +11,9 @@ pub trait SharingRepository: Send + Sync + 'static {
         name: &str,
         comment: Option<String>,
         properties: Option<HashMap<String, serde_json::Value>>,
-    ) -> Result<Share>;
+    ) -> Result<catalog::ShareInfo>;
 
-    async fn get_share(&self, id: &ResourceRef) -> Result<Share>;
+    async fn get_share(&self, id: &ResourceRef) -> Result<catalog::ShareInfo>;
     async fn delete_share(&self, id: &ResourceRef) -> Result<()>;
 
     /// List shares.
@@ -29,10 +30,10 @@ pub trait SharingRepository: Send + Sync + 'static {
         name: &str,
         comment: Option<String>,
         properties: Option<HashMap<String, serde_json::Value>>,
-    ) -> Result<Schema>;
+    ) -> Result<catalog::SchemaInfo>;
 
     /// Get a schema.
-    async fn get_schema(&self, id: &ResourceRef) -> Result<Schema>;
+    async fn get_schema(&self, id: &ResourceRef) -> Result<catalog::SchemaInfo>;
 
     /// Delete a schema.
     async fn delete_schema(&self, id: &ResourceRef) -> Result<()>;
@@ -80,7 +81,11 @@ impl<T: SharingRepository> DiscoveryHandler for T {
     }
 
     async fn get_share(&self, request: GetShareRequest) -> Result<Share> {
-        T::get_share(self, &request.into()).await
+        let info = T::get_share(self, &request.into()).await?;
+        Ok(Share {
+            id: Some(info.id),
+            name: info.name,
+        })
     }
 
     async fn list_schemas(&self, request: ListSchemasRequest) -> Result<ListSchemasResponse> {
@@ -120,5 +125,49 @@ impl<T: SharingRepository> DiscoveryHandler for T {
             items,
             next_page_token,
         })
+    }
+}
+
+#[async_trait::async_trait]
+impl<T: SharingRepository> RepositoryHandler for T {
+    async fn create_share(
+        &self,
+        request: catalog::CreateShareRequest,
+    ) -> Result<catalog::ShareInfo> {
+        let share = request
+            .share
+            .ok_or_else(|| crate::Error::invalid_argument("share is required".to_string()))?;
+        let properties = share.properties.map(|p| {
+            p.fields
+                .iter()
+                .map(|(field, value)| (field.clone(), serde_json::to_value(value).unwrap()))
+                .collect()
+        });
+        T::add_share(self, &share.name, share.description, properties).await
+    }
+
+    async fn delete_share(&self, request: catalog::DeleteShareRequest) -> Result<()> {
+        T::delete_share(self, &request.into()).await
+    }
+
+    async fn create_schema(
+        &self,
+        request: catalog::CreateSchemaRequest,
+    ) -> Result<catalog::SchemaInfo> {
+        let share = ResourceRef::from(&request.share);
+        let schema = request
+            .schema
+            .ok_or_else(|| crate::Error::invalid_argument("schema is required".to_string()))?;
+        let properties = schema.properties.map(|p| {
+            p.fields
+                .iter()
+                .map(|(field, value)| (field.clone(), serde_json::to_value(value).unwrap()))
+                .collect()
+        });
+        T::add_schema(self, &share, &schema.name, schema.description, properties).await
+    }
+
+    async fn delete_schema(&self, request: catalog::DeleteSchemaRequest) -> Result<()> {
+        T::delete_schema(self, &request.into()).await
     }
 }

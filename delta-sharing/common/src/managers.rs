@@ -1,6 +1,7 @@
+use crate::models::catalog::v1 as catalog;
 use crate::models::v1::*;
 use crate::policy::{process_resources, Permission, Policy};
-use crate::{DiscoveryHandler, Recipient, Result, TableQueryHandler};
+use crate::{DiscoveryHandler, Recipient, RepositoryHandler, Result, TableQueryHandler};
 
 #[async_trait::async_trait]
 pub trait DiscoveryManager: Send + Sync + 'static {
@@ -113,5 +114,68 @@ impl<T: TableQueryHandler + Policy> TableQueryManager for T {
     ) -> Result<QueryResponse> {
         self.check_required(&request, recipient).await?;
         Ok(self.get_table_metadata(request).await?)
+    }
+}
+
+#[async_trait::async_trait]
+pub trait RepositoryManager: Send + Sync + 'static {
+    async fn create_share(
+        &self,
+        request: catalog::CreateShareRequest,
+        recipient: &Recipient,
+    ) -> Result<catalog::ShareInfo>;
+    async fn delete_share(
+        &self,
+        request: catalog::DeleteShareRequest,
+        recipient: &Recipient,
+    ) -> Result<()>;
+    async fn create_schema(
+        &self,
+        request: catalog::CreateSchemaRequest,
+        recipient: &Recipient,
+    ) -> Result<catalog::SchemaInfo>;
+    async fn delete_schema(
+        &self,
+        request: catalog::DeleteSchemaRequest,
+        recipient: &Recipient,
+    ) -> Result<()>;
+}
+
+#[async_trait::async_trait]
+impl<T: RepositoryHandler + Policy> RepositoryManager for T {
+    async fn create_share(
+        &self,
+        request: catalog::CreateShareRequest,
+        recipient: &Recipient,
+    ) -> Result<catalog::ShareInfo> {
+        self.check_required(&request, recipient).await?;
+        Ok(self.create_share(request).await?)
+    }
+
+    async fn delete_share(
+        &self,
+        request: catalog::DeleteShareRequest,
+        recipient: &Recipient,
+    ) -> Result<()> {
+        self.check_required(&request, recipient).await?;
+        Ok(self.delete_share(request).await?)
+    }
+
+    async fn create_schema(
+        &self,
+        request: catalog::CreateSchemaRequest,
+        recipient: &Recipient,
+    ) -> Result<catalog::SchemaInfo> {
+        self.check_required(&request, recipient).await?;
+        Ok(self.create_schema(request).await?)
+    }
+
+    async fn delete_schema(
+        &self,
+        request: catalog::DeleteSchemaRequest,
+        recipient: &Recipient,
+    ) -> Result<()> {
+        self.check_required(&request, recipient).await?;
+        Ok(self.delete_schema(request).await?)
     }
 }

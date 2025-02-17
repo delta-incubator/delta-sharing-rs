@@ -70,7 +70,7 @@ service DeltaSharingService {
 
   // List the schemas in a share.
   rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse) {
-    option (google.api.http) = {get: "/{parent=shares/*}/schemas"};
+    option (google.api.http) = {get: "/{share=shares/*}/schemas"};
     option (openapi.v3.operation) = {
       tags: [
         "schemas",

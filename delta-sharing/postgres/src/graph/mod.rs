@@ -17,7 +17,7 @@ pub enum ObjectLabel {
     Principal,
 }
 
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, PartialEq, sqlx::FromRow)]
 pub struct Object {
     /// The globally unique identifier of the object.
     pub id: Uuid,

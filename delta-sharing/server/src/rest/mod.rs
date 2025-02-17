@@ -1,9 +1,7 @@
 use delta_sharing_common::rest::{
     get_sharing_repo_router, get_sharing_router, AuthenticationLayer, Authenticator,
 };
-use delta_sharing_common::{
-    DiscoveryManager, Error, Policy, Result, SharingRepository, TableQueryManager,
-};
+use delta_sharing_common::{DiscoveryManager, Error, RepositoryManager, Result, TableQueryManager};
 use swagger_ui_dist::{ApiDefinition, OpenApiSource};
 use tokio::net::TcpListener;
 use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer};
@@ -41,7 +39,7 @@ pub async fn run_server_full<T, A>(
     authenticator: A,
 ) -> Result<()>
 where
-    T: SharingRepository + TableQueryManager + Policy + Clone,
+    T: DiscoveryManager + RepositoryManager + TableQueryManager + Clone,
     A: Authenticator + Clone,
 {
     let api_def = ApiDefinition {

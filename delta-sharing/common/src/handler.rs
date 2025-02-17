@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use crate::models::catalog::v1 as catalog;
 use crate::models::v1::*;
 use crate::{
     Decision, DiscoveryHandler, Permission, Policy, Recipient, Resource, ResourceRef, Result,
@@ -83,11 +84,11 @@ impl SharingRepository for DeltaRepositoryHandler {
         name: &str,
         comment: Option<String>,
         properties: Option<HashMap<String, serde_json::Value>>,
-    ) -> Result<Share> {
+    ) -> Result<catalog::ShareInfo> {
         self.repo.add_share(name, comment, properties).await
     }
 
-    async fn get_share(&self, id: &ResourceRef) -> Result<Share> {
+    async fn get_share(&self, id: &ResourceRef) -> Result<catalog::ShareInfo> {
         self.repo.get_share(id).await
     }
 
@@ -109,11 +110,11 @@ impl SharingRepository for DeltaRepositoryHandler {
         name: &str,
         comment: Option<String>,
         properties: Option<HashMap<String, serde_json::Value>>,
-    ) -> Result<Schema> {
+    ) -> Result<catalog::SchemaInfo> {
         self.repo.add_schema(share, name, comment, properties).await
     }
 
-    async fn get_schema(&self, id: &ResourceRef) -> Result<Schema> {
+    async fn get_schema(&self, id: &ResourceRef) -> Result<catalog::SchemaInfo> {
         self.repo.get_schema(id).await
     }
 
