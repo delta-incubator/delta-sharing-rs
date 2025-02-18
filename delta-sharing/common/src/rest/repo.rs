@@ -8,10 +8,7 @@ use crate::models::catalog::v1::*;
 use crate::{Recipient, RepositoryManager, Result};
 
 /// Create a new [Router] for the Delta Sharing REST API.
-pub fn get_router<T>(handler: T) -> Router
-where
-    T: RepositoryManager + Clone,
-{
+pub fn get_router<T: RepositoryManager + Clone>(handler: T) -> Router {
     Router::new()
         .route("/shares", post(create_share::<T>))
         .route("/shares/{share}", delete(delete_share::<T>))

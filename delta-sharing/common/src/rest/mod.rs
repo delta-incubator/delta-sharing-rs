@@ -13,6 +13,7 @@ use crate::models::v1::*;
 use crate::Error;
 
 mod auth;
+mod credentials;
 mod repo;
 mod router;
 
@@ -131,8 +132,10 @@ impl<S: Send + Sync> FromRequest<S> for CreateSchemaRequest {
 
     async fn from_request(req: Request<Body>, _state: &S) -> Result<Self, Self::Rejection> {
         let (mut parts, body) = req.into_parts();
-        let Path((share)): Path<(String)> =
-            parts.extract().await.map_err(IntoResponse::into_response)?;
+        let Path((share)) = parts
+            .extract::<Path<(String)>>()
+            .await
+            .map_err(IntoResponse::into_response)?;
         let req = Request::from_parts(parts, body);
         let Json(schema) = req.extract().await.map_err(IntoResponse::into_response)?;
         Ok(catalog::CreateSchemaRequest { schema, share })

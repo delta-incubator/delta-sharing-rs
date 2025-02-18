@@ -12,3 +12,8 @@ The very basic server exposes just the official sharing APIs, it requires:
 -   A Discovery handler
 -   A table resolution service
 -   A policy for controlling access
+
+A set of managed sresources that goes beyond what the API surface exposes
+
+-   credentials / storage locations
+-   users

@@ -1,3 +1,4 @@
+use delta_sharing_common::AssociationLabel;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -11,10 +12,12 @@ pub use store::Store as GraphStore;
 #[sqlx(type_name = "object_label", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum ObjectLabel {
-    Share,
-    Schema,
+    DeltaShare,
+    DeltaSchema,
     Table,
     Principal,
+    Credential,
+    StorageLocation,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, sqlx::FromRow)]
@@ -41,32 +44,6 @@ pub struct Object {
 
     /// The time when the object was last updated.
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
-}
-
-// IMPORTANT: Any changes to the schema must be reflected in the migrations.
-#[derive(Debug, Clone, Deserialize, Serialize, sqlx::Type, PartialEq)]
-#[sqlx(type_name = "association_label", rename_all = "snake_case")]
-#[serde(rename_all = "snake_case")]
-pub enum AssociationLabel {
-    HasPart,
-    PartOf,
-    Created,
-    CreatedBy,
-}
-
-impl AssociationLabel {
-    /// Get the inverse of the association label.
-    ///
-    /// Associations may be bidirectional, either symetric or asymetric.
-    /// Symmetric types are their own inverse. Asymmetric types have a distinct inverse.
-    pub fn inverse(&self) -> Option<Self> {
-        match self {
-            AssociationLabel::HasPart => Some(AssociationLabel::PartOf),
-            AssociationLabel::PartOf => Some(AssociationLabel::HasPart),
-            AssociationLabel::Created => Some(AssociationLabel::CreatedBy),
-            AssociationLabel::CreatedBy => Some(AssociationLabel::Created),
-        }
-    }
 }
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow, PartialEq)]

@@ -20,11 +20,17 @@ pub enum Error {
     #[error("Recipient is not allowed to read the entity.")]
     NotAllowed,
 
+    #[error("Already exists")]
+    AlreadyExists,
+
     #[error("Invalid table location: {0}")]
     InvalidTableLocation(String),
 
     #[error("Invalid Argument: {0}")]
     InvalidArgument(String),
+
+    #[error("Invalid identifier: {0}")]
+    InvalidIdentifier(#[from] uuid::Error),
 
     #[error("Generic error: {0}")]
     Generic(String),
@@ -73,6 +79,8 @@ impl From<Error> for Status {
             Error::MissingRecipient => {
                 Status::invalid_argument("Failed to extract recipient from request")
             }
+            Error::AlreadyExists => Status::already_exists("The resource already exists."),
+            Error::InvalidIdentifier(_) => Status::internal("Invalid uuid identifier"),
             Error::InvalidArgument(message) => Status::invalid_argument(message),
             Error::Generic(message) => Status::internal(message),
             #[cfg(feature = "axum")]
@@ -128,6 +136,7 @@ mod server {
                     StatusCode::FORBIDDEN,
                     "The request is forbidden from being fulfilled.",
                 ),
+                Error::AlreadyExists => (StatusCode::CONFLICT, "The resource already exists."),
                 Error::Unauthenticated => (
                     StatusCode::UNAUTHORIZED,
                     "The request is unauthenticated. The bearer token is missing or incorrect.",
@@ -145,6 +154,10 @@ mod server {
                 Error::InvalidArgument(message) => {
                     error!("Invalid argument: {}", message);
                     INVALID_ARGUMENT
+                }
+                Error::InvalidIdentifier(_) => {
+                    error!("Invalid uuid identifier");
+                    INTERNAL_ERROR
                 }
                 Error::SerDe(_) => {
                     error!("Invalid table log encountered");

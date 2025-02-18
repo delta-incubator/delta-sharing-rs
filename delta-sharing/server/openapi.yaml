@@ -8,6 +8,10 @@ info:
   version: 0.0.0
 tags:
   - name: CatalogService
+  - name: CredentialService
+    description: |-
+      Manage credentials to access external data sources and services
+       as well as generate signed urls for the Delta Sharing service.
   - name: DeltaSharingService
     description: Service exposing the official APIs for Delta Sharing.
   - name: official
@@ -21,6 +25,193 @@ tags:
   - name: unofficial
     description: APIs which are custom to delta-sharing-rs
 paths:
+  /credentials:
+    post:
+      tags:
+        - CredentialService
+        - credentials
+        - unofficial
+      operationId: CreateCredential
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credential'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credential'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /credentials/{name}:
+    get:
+      tags:
+        - CredentialService
+        - credentials
+        - unofficial
+      operationId: GetCredential
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credential'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    delete:
+      tags:
+        - CredentialService
+        - credentials
+        - unofficial
+      operationId: DeleteCredential
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credential'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /locations:
+    get:
+      tags:
+        - CredentialService
+        - locations
+        - unofficial
+      operationId: ListStorageLocations
+      parameters:
+        - name: maxResults
+          in: query
+          description: The maximum number of results per page that should be returned.
+          schema:
+            type: integer
+            format: int32
+        - name: pageToken
+          in: query
+          description: |-
+            Specifies a page token to use. Set pageToken to the nextPageToken returned
+             by a previous list request to get the next page of results.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListStorageLocationsResponse'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    post:
+      tags:
+        - CredentialService
+        - locations
+        - unofficial
+      operationId: CreateStorageLocation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StorageLocation'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageLocation'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /locations/{name}:
+    get:
+      tags:
+        - CredentialService
+        - locations
+        - unofficial
+      operationId: GetStorageLocation
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageLocation'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    delete:
+      tags:
+        - CredentialService
+        - locations
+        - unofficial
+      operationId: DeleteStorageLocation
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageLocation'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
   /shares:
     get:
       tags:
@@ -433,6 +624,63 @@ components:
           $ref: '#/components/schemas/GoogleProtobufAny'
         yaml:
           type: string
+    AzureClientCredential:
+      required:
+        - tenantId
+        - clientId
+      type: object
+      properties:
+        tenantId:
+          type: string
+        clientId:
+          type: string
+        clientSecret:
+          type: string
+        clientCertificate:
+          type: string
+        federatedTokenFile:
+          type: string
+    AzureCredential:
+      type: object
+      properties:
+        accountKey:
+          $ref: '#/components/schemas/AzureKeyCredential'
+        sas:
+          $ref: '#/components/schemas/AzureSasCredential'
+        client:
+          $ref: '#/components/schemas/AzureClientCredential'
+    AzureKeyCredential:
+      required:
+        - accountName
+        - accountKey
+      type: object
+      properties:
+        accountName:
+          type: string
+        accountKey:
+          type: string
+    AzureSasCredential:
+      required:
+        - accountName
+        - sasToken
+      type: object
+      properties:
+        accountName:
+          type: string
+        sasToken:
+          type: string
+    Credential:
+      required:
+        - name
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: string
+        name:
+          type: string
+        azure:
+          $ref: '#/components/schemas/AzureCredential'
     DefaultType:
       type: object
       properties:
@@ -565,6 +813,15 @@ components:
           description: |-
             Token that can be used to retrieve the next page of shares.
              An empty or missing token means that no more shares are available for retrieval.
+    ListStorageLocationsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/StorageLocation'
+        nextPageToken:
+          type: string
     MetadatDelta:
       type: object
       properties:
@@ -894,6 +1151,30 @@ components:
             $ref: '#/components/schemas/GoogleProtobufAny'
           description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
       description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+    StorageLocation:
+      required:
+        - name
+        - url
+        - type
+        - credential
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: string
+        name:
+          type: string
+        url:
+          type: string
+        type:
+          type: integer
+          format: enum
+        credential:
+          type: string
+        description:
+          type: string
+        properties:
+          type: object
     Strings:
       type: object
       properties:

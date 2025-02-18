@@ -26,6 +26,7 @@ url = { workspace = true }
 pbjson-types = "0.7"
 serde_json = { version = "1.0" }
 tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
+paste = "1.0"
 
 # in-memory handler dependencies (in alphabetical order)
 dashmap = { version = "6", optional = true }
@@ -34,6 +35,13 @@ uuid = { version = "1.8", optional = true, features = ["v5"] }
 # axum handler dependencies (in alphabetical order)
 axum = { version = "0.8", optional = true }
 futures-util = { version = "0.3.28", optional = true }
+itertools = "0.14.0"
+sqlx = { version = "0.8", optional = true, features = [
+    "uuid",
+    "macros",
+    "chrono",
+    "json",
+] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -48,3 +56,6 @@ axum = ["dep:axum", "http", "futures-util", "tower"]
 # The grpc features provides implementations to support
 # building a gPRC servers and clients.
 grpc = ["dep:tonic"]
+
+# Derives sqlx traits for some types in this crate
+sqlx = ["dep:sqlx"]

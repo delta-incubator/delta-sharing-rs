@@ -5,6 +5,7 @@ mod constants;
 mod error;
 mod graph;
 mod pagination;
+mod resources;
 
 #[derive(Debug, Clone)]
 pub struct TableRecord {

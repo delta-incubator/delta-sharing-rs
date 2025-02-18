@@ -1,4 +1,11 @@
-CREATE TYPE object_label AS ENUM ('share', 'schema', 'table', 'principal');
+CREATE TYPE object_label AS ENUM (\
+    'delta_share',
+    'delta_schema',
+    'table',
+    'principal',
+    'credential',
+    'storage_location'
+);
 
 CREATE TABLE objects (
     id uuid primary key default uuidv7(),
@@ -14,8 +21,11 @@ select trigger_updated_at('objects');
 create index objects_label_index on objects (label, name);
 
 CREATE TYPE association_label AS ENUM (
+    'owned_by', 'owner_of',
+    'depends_on', 'dependency_of',
+    'parent_of', 'child_of',
     'has_part', 'part_of',
-    'created', 'created_by'
+    'references', 'referenced_by'
 );
 
 CREATE TABLE associations (

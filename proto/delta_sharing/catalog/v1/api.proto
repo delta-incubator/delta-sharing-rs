@@ -11,11 +11,11 @@ import "google/protobuf/struct.proto";
 import "openapiv3/annotations.proto";
 
 enum TableType {
-  UNSPECIFIED = 0;
-  DELTA = 1;
-  ICEBERG = 2;
-  HUDI = 3;
-  PARQUET = 4;
+  TABLE_TYPE_UNSPECIFIED = 0;
+  TABLE_TYPE_DELTA = 1;
+  TABLE_TYPE_ICEBERG = 2;
+  TABLE_TYPE_HUDI = 3;
+  TABLE_TYPE_PARQUET = 4;
 }
 
 message ShareInfo {
@@ -146,6 +146,193 @@ service CatalogService {
         "unofficial"
       ]
       operation_id: "DeleteSchema"
+    };
+  }
+}
+
+message AzureKeyCredential {
+  string account_name = 1 [(google.api.field_behavior) = REQUIRED];
+  string account_key = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message AzureSasCredential {
+  string account_name = 1 [(google.api.field_behavior) = REQUIRED];
+  string sas_token = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message AzureClientCredential {
+  string tenant_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string client_id = 2 [(google.api.field_behavior) = REQUIRED];
+  oneof credential {
+    option (buf.validate.oneof).required = true;
+
+    string client_secret = 3;
+    string client_certificate = 4;
+    string federated_token_file = 5;
+  }
+}
+
+message AzureCredential {
+  oneof credential {
+    option (buf.validate.oneof).required = true;
+
+    AzureKeyCredential account_key = 1;
+    AzureSasCredential sas = 2;
+    AzureClientCredential client = 3;
+  }
+}
+
+message Credential {
+  string id = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+  oneof credential {
+    option (buf.validate.oneof).required = true;
+
+    AzureCredential azure = 3;
+  }
+}
+
+message CreateCredentialRequest {
+  Credential credential = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteCredentialRequest {
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetCredentialRequest {
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+enum StorageType {
+  STORAGE_TYPE_UNSPECIFIED = 0;
+  STORAGE_TYPE_AZURE = 1;
+  STORAGE_TYPE_GOOGLE = 2;
+  STORAGE_TYPE_S3 = 3;
+}
+
+message StorageLocation {
+  string id = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+  string url = 3 [(google.api.field_behavior) = REQUIRED];
+  StorageType type = 4 [(google.api.field_behavior) = REQUIRED];
+  string credential = 5 [(google.api.field_behavior) = REQUIRED];
+  optional string description = 6 [(google.api.field_behavior) = OPTIONAL];
+  optional google.protobuf.Struct properties = 7 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message CreateStorageLocationRequest {
+  StorageLocation location = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteStorageLocationRequest {
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetStorageLocationRequest {
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ListStorageLocationsRequest {
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 2 [
+    (buf.validate.field).int32.gt = 0,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListStorageLocationsResponse {
+  repeated StorageLocation items = 1;
+  optional string next_page_token = 2;
+}
+
+// Manage credentials to access external data sources and services
+// as well as generate signed urls for the Delta Sharing service.
+service CredentialService {
+  rpc CreateCredential(CreateCredentialRequest) returns (Credential) {
+    option (google.api.http) = {
+      post: "/credentials"
+      body: "credential"
+    };
+    option (openapi.v3.operation) = {
+      tags: [
+        "credentials",
+        "unofficial"
+      ]
+      operation_id: "CreateCredential"
+    };
+  }
+
+  rpc GetCredential(GetCredentialRequest) returns (Credential) {
+    option (google.api.http) = {get: "/credentials/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "credentials",
+        "unofficial"
+      ]
+      operation_id: "GetCredential"
+    };
+  }
+
+  rpc DeleteCredential(DeleteCredentialRequest) returns (Credential) {
+    option (google.api.http) = {delete: "/credentials/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "credentials",
+        "unofficial"
+      ]
+      operation_id: "DeleteCredential"
+    };
+  }
+
+  rpc CreateStorageLocation(CreateStorageLocationRequest) returns (StorageLocation) {
+    option (google.api.http) = {
+      post: "/locations"
+      body: "location"
+    };
+    option (openapi.v3.operation) = {
+      tags: [
+        "locations",
+        "unofficial"
+      ]
+      operation_id: "CreateStorageLocation"
+    };
+  }
+
+  rpc GetStorageLocation(GetStorageLocationRequest) returns (StorageLocation) {
+    option (google.api.http) = {get: "/locations/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "locations",
+        "unofficial"
+      ]
+      operation_id: "GetStorageLocation"
+    };
+  }
+
+  rpc DeleteStorageLocation(DeleteStorageLocationRequest) returns (StorageLocation) {
+    option (google.api.http) = {delete: "/locations/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "locations",
+        "unofficial"
+      ]
+      operation_id: "DeleteStorageLocation"
+    };
+  }
+
+  rpc ListStorageLocations(ListStorageLocationsRequest) returns (ListStorageLocationsResponse) {
+    option (google.api.http) = {get: "/locations"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "locations",
+        "unofficial"
+      ]
+      operation_id: "ListStorageLocations"
     };
   }
 }

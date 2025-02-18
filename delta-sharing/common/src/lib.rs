@@ -5,7 +5,7 @@ use bytes::Bytes;
 pub mod error;
 #[cfg(feature = "grpc")]
 mod grpc;
-pub mod handler;
+pub mod handlers;
 #[cfg(feature = "memory")]
 mod in_memory;
 mod kernel;
@@ -13,19 +13,25 @@ pub mod managers;
 pub mod models;
 pub mod policy;
 pub mod repository;
+mod resources;
 #[cfg(feature = "axum")]
 pub mod rest;
 
 pub use error::*;
-pub use handler::*;
+pub use handlers::*;
 #[cfg(feature = "memory")]
 pub use in_memory::*;
 pub use kernel::*;
 pub use managers::*;
 pub use models::catalog::v1 as catalog;
+pub use models::catalog::v1::resource::Resource;
 pub use models::v1::*;
+pub use models::{
+    IntoJSONStruct, IntoJson, IntoProto, IntoProtoStruct, JsonValue, PropertyMapHandler,
+};
 pub use policy::*;
 pub use repository::*;
+pub use resources::*;
 
 #[derive(Clone, Debug)]
 pub enum Recipient {
@@ -214,4 +220,65 @@ pub trait RepositoryHandler: Send + Sync + 'static {
         request: catalog::CreateSchemaRequest,
     ) -> Result<catalog::SchemaInfo>;
     async fn delete_schema(&self, request: catalog::DeleteSchemaRequest) -> Result<()>;
+}
+
+#[async_trait::async_trait]
+pub trait CredentialsHandler: Send + Sync + 'static {
+    async fn create_credentials(
+        &self,
+        request: catalog::CreateCredentialRequest,
+    ) -> Result<catalog::Credential>;
+
+    async fn delete_credentials(
+        &self,
+        request: catalog::DeleteCredentialRequest,
+    ) -> Result<catalog::Credential>;
+
+    async fn get_credentials(
+        &self,
+        request: catalog::GetCredentialRequest,
+    ) -> Result<catalog::Credential>;
+
+    async fn create_storage_location(
+        &self,
+        request: catalog::CreateStorageLocationRequest,
+    ) -> Result<catalog::StorageLocation>;
+
+    async fn delete_storage_location(
+        &self,
+        request: catalog::DeleteStorageLocationRequest,
+    ) -> Result<catalog::StorageLocation>;
+
+    async fn get_storage_location(
+        &self,
+        request: catalog::GetStorageLocationRequest,
+    ) -> Result<catalog::StorageLocation>;
+
+    async fn list_storage_locations(
+        &self,
+        request: catalog::ListStorageLocationsRequest,
+    ) -> Result<catalog::ListStorageLocationsResponse>;
+}
+
+#[async_trait::async_trait]
+pub trait StorageLocationHandler: Send + Sync + 'static {
+    async fn create_storage_location(
+        &self,
+        request: catalog::CreateStorageLocationRequest,
+    ) -> Result<catalog::StorageLocation>;
+
+    async fn delete_storage_location(
+        &self,
+        request: catalog::DeleteStorageLocationRequest,
+    ) -> Result<catalog::StorageLocation>;
+
+    async fn get_storage_location(
+        &self,
+        request: catalog::GetStorageLocationRequest,
+    ) -> Result<catalog::StorageLocation>;
+
+    async fn list_storage_locations(
+        &self,
+        request: catalog::ListStorageLocationsRequest,
+    ) -> Result<catalog::ListStorageLocationsResponse>;
 }

@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::{Decision, Permission, Policy, Recipient, Resource};
+use crate::{Decision, Permission, Policy, Recipient, ResourceIdent};
 
 /// Policy that always returns a constant decision.
 ///
@@ -45,7 +45,12 @@ impl ConstantPolicy {
 
 #[async_trait::async_trait]
 impl Policy for ConstantPolicy {
-    async fn authorize(&self, _: &Resource, _: &Permission, _: &Recipient) -> Result<Decision> {
+    async fn authorize(
+        &self,
+        _: &ResourceIdent,
+        _: &Permission,
+        _: &Recipient,
+    ) -> Result<Decision> {
         Ok(self.decision)
     }
 }
@@ -64,7 +69,7 @@ mod test {
     async fn allow_by_default() {
         let policy = ConstantPolicy::default();
 
-        let resource = Resource::share("test_share");
+        let resource = ResourceIdent::share("test_share");
         let permission = Permission::Read;
         let recipient = &Recipient::anonymous();
 
@@ -79,7 +84,7 @@ mod test {
     async fn allow() {
         let policy = ConstantPolicy::new(Decision::Allow);
 
-        let resource = Resource::share("test_share");
+        let resource = ResourceIdent::share("test_share");
         let permission = Permission::Read;
         let recipient = &Recipient::anonymous();
 
@@ -94,7 +99,7 @@ mod test {
     async fn deny() {
         let policy = ConstantPolicy::new(Decision::Deny);
 
-        let resource = Resource::share("test_share");
+        let resource = ResourceIdent::share("test_share");
         let permission = Permission::Read;
         let recipient = &Recipient::anonymous();
 
