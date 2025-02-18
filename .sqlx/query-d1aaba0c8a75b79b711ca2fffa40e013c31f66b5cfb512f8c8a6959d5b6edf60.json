@@ -1,0 +1,132 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                id,\n                from_id,\n                label AS \"label: AssociationLabel\",\n                to_id,\n                properties,\n                created_at,\n                updated_at,\n                to_label as \"to_label: ObjectLabel\"\n            FROM associations\n            WHERE from_id = $1\n              AND label = $2\n              AND ( to_label = $3 OR $3 IS NULL )\n              -- Pagination\n              AND ( id < $4 OR $4 IS NULL )\n            ORDER BY id DESC\n            LIMIT $5\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "from_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "label: AssociationLabel",
+        "type_info": {
+          "Custom": {
+            "name": "association_label",
+            "kind": {
+              "Enum": [
+                "owned_by",
+                "owner_of",
+                "depends_on",
+                "dependency_of",
+                "parent_of",
+                "child_of",
+                "has_part",
+                "part_of",
+                "references",
+                "referenced_by"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "to_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "properties",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "to_label: ObjectLabel",
+        "type_info": {
+          "Custom": {
+            "name": "object_label",
+            "kind": {
+              "Enum": [
+                "delta_share",
+                "delta_schema",
+                "table",
+                "principal",
+                "credential",
+                "storage_location"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "association_label",
+            "kind": {
+              "Enum": [
+                "owned_by",
+                "owner_of",
+                "depends_on",
+                "dependency_of",
+                "parent_of",
+                "child_of",
+                "has_part",
+                "part_of",
+                "references",
+                "referenced_by"
+              ]
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "object_label",
+            "kind": {
+              "Enum": [
+                "delta_share",
+                "delta_schema",
+                "table",
+                "principal",
+                "credential",
+                "storage_location"
+              ]
+            }
+          }
+        },
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "d1aaba0c8a75b79b711ca2fffa40e013c31f66b5cfb512f8c8a6959d5b6edf60"
+}

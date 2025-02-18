@@ -89,6 +89,12 @@ impl From<uuid::Uuid> for ResourceRef {
     }
 }
 
+impl From<&uuid::Uuid> for ResourceRef {
+    fn from(val: &uuid::Uuid) -> Self {
+        Self::Uuid(val.clone())
+    }
+}
+
 impl From<String> for ResourceRef {
     fn from(val: String) -> Self {
         Self::Name(vec![], val)
@@ -116,6 +122,7 @@ impl<T: ToString + Sized, U: ToString, const N: usize> From<([T; N], U)> for Res
     }
 }
 
+// --8<-- [start:discovery-handler]
 /// Handler for discovering shares, schemas, and tables exposed by a Delta Sharing server.
 #[async_trait::async_trait]
 pub trait DiscoveryHandler: Send + Sync + 'static {
@@ -140,6 +147,7 @@ pub trait DiscoveryHandler: Send + Sync + 'static {
         request: ListShareTablesRequest,
     ) -> Result<ListShareTablesResponse>;
 }
+// --8<-- [end:discovery-handler]
 
 #[async_trait::async_trait]
 impl<T: DiscoveryHandler> DiscoveryHandler for Arc<T> {
@@ -183,6 +191,7 @@ impl<T: TableLocationResover> TableLocationResover for Arc<T> {
     }
 }
 
+// --8<-- [start:table-query-handler]
 /// Handler for querying tables exposed by a Delta Sharing server.
 #[async_trait::async_trait]
 pub trait TableQueryHandler: Send + Sync + 'static {
@@ -193,6 +202,7 @@ pub trait TableQueryHandler: Send + Sync + 'static {
 
     async fn get_table_metadata(&self, request: GetTableMetadataRequest) -> Result<QueryResponse>;
 }
+// --8<-- [end:table-query-handler]
 
 #[async_trait::async_trait]
 impl<T: TableQueryHandler> TableQueryHandler for Arc<T> {
@@ -208,19 +218,33 @@ impl<T: TableQueryHandler> TableQueryHandler for Arc<T> {
     }
 }
 
+// --8<-- [start:sharing-repository-handler]
+/// Manage resources that the Delta Sharing server exposes.
+///
+/// The delta-sharing protocol does not specofy endpoints for creating or deleting resources.
+/// Unless one is willing to accept a static setup, it is necessary to have a way to manage
+/// resources dynamically. This trait provides a way to manage resources dynamically.
 #[async_trait::async_trait]
 pub trait RepositoryHandler: Send + Sync + 'static {
+    /// Create a share.
     async fn create_share(
         &self,
         request: catalog::CreateShareRequest,
     ) -> Result<catalog::ShareInfo>;
+
+    /// Delete a share.
     async fn delete_share(&self, request: catalog::DeleteShareRequest) -> Result<()>;
+
+    /// Create a schema.
     async fn create_schema(
         &self,
         request: catalog::CreateSchemaRequest,
     ) -> Result<catalog::SchemaInfo>;
+
+    /// Delete a schema.
     async fn delete_schema(&self, request: catalog::DeleteSchemaRequest) -> Result<()>;
 }
+// --8<-- [end:sharing-repository-handler]
 
 #[async_trait::async_trait]
 pub trait CredentialsHandler: Send + Sync + 'static {

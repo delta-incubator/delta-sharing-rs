@@ -1,4 +1,4 @@
-CREATE TYPE object_label AS ENUM (\
+CREATE TYPE object_label AS ENUM (
     'delta_share',
     'delta_schema',
     'table',
@@ -33,6 +33,7 @@ CREATE TABLE associations (
     from_id uuid not null references objects (id),
     label association_label not null,
     to_id uuid not null references objects (id),
+    to_label object_label not null,
     properties jsonb,
     created_at timestamptz not null default now(),
     updated_at timestamptz,

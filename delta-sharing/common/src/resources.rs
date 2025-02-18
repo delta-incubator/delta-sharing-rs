@@ -93,7 +93,10 @@ pub trait ResourceStore: Send + Sync + 'static {
     /// The created resource.
     async fn create(&self, resource: Resource) -> Result<(Resource, ResourceRef)>;
 
-    /// Delete a resource by its identifier.
+    /// Delete a resource and all connected associations by its identifier.
+    ///
+    /// The implementing store should delete all associations of the resource
+    /// before deleting the resource itself.
     ///
     /// # Arguments
     /// - `id`: The identifier of the resource to delete.
@@ -127,6 +130,29 @@ pub trait ResourceStore: Send + Sync + 'static {
         to: &ResourceIdent,
         label: &AssociationLabel,
     ) -> Result<()>;
+
+    /// List associations of a resource.
+    ///
+    /// List associations of a resource with the given label.
+    ///
+    /// # Arguments
+    /// - `resource`: The resource to list associations of.
+    /// - `label`: The label of the associations to list.
+    /// - `target_label`: The label of the target resource of the associations to list.
+    /// - `max_results`: The maximum number of results to return.
+    /// - `page_token`: The token to use to get the next page of results.
+    ///
+    /// # Returns
+    /// The list of associations of the resource with the given label.
+    /// The token to use to get the next page of results.
+    async fn list_associations(
+        &self,
+        resource: &ResourceIdent,
+        label: &AssociationLabel,
+        target_label: Option<&ResourceIdent>,
+        max_results: Option<usize>,
+        page_token: Option<String>,
+    ) -> Result<(Vec<ResourceIdent>, Option<String>)>;
 }
 
 #[async_trait::async_trait]
@@ -193,7 +219,12 @@ impl<T: ResourceStore> SharingRepository for T {
             description: comment,
             share_id: None,
         };
-        self.create(schema_info.into()).await?.0.try_into()
+        let (schema, schema_ref) = self.create(schema_info.into()).await?;
+        let from = ResourceIdent::Share(share.clone());
+        let to = ResourceIdent::Schema(schema_ref);
+        self.add_association(&from, &to, &AssociationLabel::ParentOf, None)
+            .await?;
+        schema.try_into()
     }
 
     async fn get_schema(&self, id: &ResourceRef) -> Result<v1c::SchemaInfo> {
@@ -213,14 +244,22 @@ impl<T: ResourceStore> SharingRepository for T {
         max_results: Option<usize>,
         page_token: Option<String>,
     ) -> Result<(Vec<v1::Schema>, Option<String>)> {
-        let (resources, token) = self
-            .list(
-                &ResourceIdent::Schema(share.clone()),
+        let ident = ResourceIdent::Share(share.clone());
+        let (idents, token) = self
+            .list_associations(
+                &ident,
+                &AssociationLabel::ParentOf,
+                Some(&ResourceIdent::Schema(ResourceRef::Undefined)),
                 max_results,
                 page_token,
             )
             .await?;
-        let schemas = resources.into_iter().map(|r| r.try_into()).try_collect()?;
+        let schemas = self
+            .get_many(&idents)
+            .await?
+            .into_iter()
+            .map(|(r, _)| r.try_into())
+            .try_collect()?;
         Ok((schemas, token))
     }
 

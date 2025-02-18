@@ -11,11 +11,11 @@ use itertools::Itertools;
 use crate::{GraphStore, Object, ObjectLabel};
 
 pub trait IdentRefs {
-    fn indent(&self) -> (&ObjectLabel, &ResourceRef);
+    fn ident(&self) -> (&ObjectLabel, &ResourceRef);
 }
 
 impl IdentRefs for ResourceIdent {
-    fn indent(&self) -> (&ObjectLabel, &ResourceRef) {
+    fn ident(&self) -> (&ObjectLabel, &ResourceRef) {
         match self {
             ResourceIdent::Share(ident) => (&ObjectLabel::DeltaShare, ident),
             ResourceIdent::Schema(ident) => (&ObjectLabel::DeltaSchema, ident),
@@ -41,7 +41,7 @@ impl TryFrom<catalog::ShareInfo> for Object {
 
     fn try_from(share: catalog::ShareInfo) -> Result<Self, Self::Error> {
         Ok(Object {
-            id: uuid::Uuid::parse_str(&share.id)?,
+            id: uuid::Uuid::parse_str(&share.id).unwrap_or_else(|_| uuid::Uuid::nil()),
             namespace: vec![],
             name: share.name,
             label: ObjectLabel::DeltaShare,
@@ -59,7 +59,7 @@ impl TryFrom<catalog::SchemaInfo> for Object {
 
     fn try_from(schema: catalog::SchemaInfo) -> Result<Self, Self::Error> {
         Ok(Object {
-            id: uuid::Uuid::parse_str(&schema.id)?,
+            id: uuid::Uuid::parse_str(&schema.id).unwrap_or_else(|_| uuid::Uuid::nil()),
             namespace: vec![schema.share],
             name: schema.name,
             label: ObjectLabel::DeltaSchema,
@@ -85,7 +85,7 @@ impl TryFrom<StorageLocation> for Object {
         props.insert("type".to_string(), storage_location.r#type.into());
 
         Ok(Object {
-            id: uuid::Uuid::parse_str(&storage_location.id)?,
+            id: uuid::Uuid::parse_str(&storage_location.id).unwrap_or_else(|_| uuid::Uuid::nil()),
             namespace: vec![],
             name: storage_location.name,
             label: ObjectLabel::StorageLocation,
@@ -203,7 +203,7 @@ impl ResourceStore for GraphStore {
     /// # Returns
     /// The resource with the given identifier.
     async fn get(&self, id: &ResourceIdent) -> Result<(Resource, ResourceRef)> {
-        let (label, ident) = id.indent();
+        let (label, ident) = id.ident();
         match ident {
             ResourceRef::Uuid(uuid) => {
                 Ok((self.get_object(uuid).await?.try_into()?, ident.clone()))
@@ -233,7 +233,7 @@ impl ResourceStore for GraphStore {
         max_results: Option<usize>,
         page_token: Option<String>,
     ) -> Result<(Vec<Resource>, Option<String>)> {
-        let (label, ident) = root.indent();
+        let (label, ident) = root.ident();
         match ident {
             ResourceRef::Undefined => {
                 let objects = self
@@ -278,7 +278,7 @@ impl ResourceStore for GraphStore {
     /// # Arguments
     /// - `id`: The identifier of the resource to delete.
     async fn delete(&self, id: &ResourceIdent) -> Result<()> {
-        let (label, ident) = id.indent();
+        let (label, ident) = id.ident();
         match ident {
             ResourceRef::Uuid(uuid) => self.delete_object(uuid).await?,
             ResourceRef::Name(namespace, name) => {
@@ -300,8 +300,8 @@ impl ResourceStore for GraphStore {
         label: &AssociationLabel,
         properties: Option<PropertyMap>,
     ) -> Result<()> {
-        let (from_label, from_ident) = from.indent();
-        let (to_label, to_ident) = to.indent();
+        let (from_label, from_ident) = from.ident();
+        let (to_label, to_ident) = to.ident();
         let from_id = match from_ident {
             ResourceRef::Uuid(uuid) => *uuid,
             ResourceRef::Name(namespace, name) => {
@@ -337,6 +337,32 @@ impl ResourceStore for GraphStore {
         to: &ResourceIdent,
         label: &AssociationLabel,
     ) -> Result<()> {
-        todo!()
+        todo!("remove_association")
+    }
+
+    async fn list_associations(
+        &self,
+        resource: &ResourceIdent,
+        label: &AssociationLabel,
+        target_label: Option<&ResourceIdent>,
+        max_results: Option<usize>,
+        page_token: Option<String>,
+    ) -> Result<(Vec<ResourceIdent>, Option<String>)> {
+        let target_label = target_label.map(|r| r.ident().0);
+        let target_id = self.ident_to_uuid(resource).await?;
+        let (associations, token) = self
+            .list_associations(
+                &target_id,
+                label,
+                target_label,
+                page_token.as_deref(),
+                max_results,
+            )
+            .await?;
+        let idents = associations
+            .into_iter()
+            .map(|assoc| assoc.to_label.to_ident(&assoc.to_id))
+            .collect();
+        Ok((idents, token))
     }
 }

@@ -1,4 +1,4 @@
-use delta_sharing_common::AssociationLabel;
+use delta_sharing_common::{AssociationLabel, ResourceIdent, ResourceRef};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -18,6 +18,20 @@ pub enum ObjectLabel {
     Principal,
     Credential,
     StorageLocation,
+}
+
+impl ObjectLabel {
+    pub fn to_ident(&self, id: impl Into<ResourceRef>) -> ResourceIdent {
+        let id = id.into();
+        match self {
+            ObjectLabel::DeltaShare => ResourceIdent::Share(id),
+            ObjectLabel::DeltaSchema => ResourceIdent::Schema(id),
+            ObjectLabel::Table => ResourceIdent::Table(id),
+            ObjectLabel::Principal => todo!(),
+            ObjectLabel::Credential => ResourceIdent::Credential(id),
+            ObjectLabel::StorageLocation => ResourceIdent::StorageLocation(id),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, sqlx::FromRow)]
@@ -46,6 +60,20 @@ pub struct Object {
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
+impl Object {
+    pub fn resource_ident(&self) -> ResourceIdent {
+        let id = ResourceRef::Uuid(self.id.clone());
+        match self.label {
+            ObjectLabel::DeltaShare => ResourceIdent::Share(id),
+            ObjectLabel::DeltaSchema => ResourceIdent::Schema(id),
+            ObjectLabel::Table => ResourceIdent::Table(id),
+            ObjectLabel::Credential => ResourceIdent::Credential(id),
+            ObjectLabel::StorageLocation => ResourceIdent::StorageLocation(id),
+            ObjectLabel::Principal => todo!(),
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow, PartialEq)]
 pub struct Association {
     id: Uuid,
@@ -58,6 +86,9 @@ pub struct Association {
 
     /// Target object identifier.
     pub to_id: uuid::Uuid,
+
+    /// The label / type of the target object.
+    pub to_label: ObjectLabel,
 
     /// The properties of the association.
     pub properties: Option<serde_json::Value>,

@@ -96,7 +96,7 @@ impl_secured_action!(
     ),
     (
         catalog::v1::DeleteShareRequest,
-        |_| ResourceIdent::share(ResourceRef::Undefined),
+        |req| ResourceIdent::share(&req.name),
         Permission::Manage
     ),
     (
@@ -106,7 +106,7 @@ impl_secured_action!(
     ),
     (
         catalog::v1::DeleteSchemaRequest,
-        |req| ResourceIdent::share(&req.share),
+        |req| ResourceIdent::schema(([&req.share], &req.name)),
         Permission::Manage
     ),
     (
