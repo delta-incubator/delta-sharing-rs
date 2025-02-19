@@ -12,12 +12,24 @@ pub use store::Store as GraphStore;
 #[sqlx(type_name = "object_label", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum ObjectLabel {
+    /// A share in the delta shaing service.
     DeltaShare,
+
+    /// A schema in the delta sharing service.
     DeltaSchema,
+
+    /// A data table.
     Table,
-    Principal,
+
+    /// A credential for accessing an external resource or storage location.
     Credential,
+
+    /// A storage location where data is stored.
+    ///
+    /// THe stored data may represent a table, a file, a model, etc.
     StorageLocation,
+
+    Principal,
 }
 
 impl ObjectLabel {
@@ -74,6 +86,7 @@ impl Object {
     }
 }
 
+/// Associations describe relationships between two objects.
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow, PartialEq)]
 pub struct Association {
     id: Uuid,
@@ -98,4 +111,15 @@ pub struct Association {
 
     /// The time when the association was last updated.
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+impl Association {
+    pub fn target_ident(&self) -> ResourceIdent {
+        self.to_label
+            .to_ident(ResourceRef::Uuid(self.to_id.clone()))
+    }
+
+    pub fn target_ref(&self) -> ResourceRef {
+        ResourceRef::Uuid(self.to_id.clone())
+    }
 }

@@ -91,20 +91,6 @@ impl From<Error> for Status {
     }
 }
 
-// impl From<JwtError> for Error {
-//     fn from(e: JwtError) -> Self {
-//         match e.kind() {
-//             JwtErrorKind::InvalidToken
-//             | JwtErrorKind::InvalidIssuer
-//             | JwtErrorKind::InvalidSubject
-//             | JwtErrorKind::ExpiredSignature
-//             | JwtErrorKind::ImmatureSignature
-//             | JwtErrorKind::InvalidSignature => Error::Unauthenticated,
-//             _ => Error::Generic(e.to_string()),
-//         }
-//     }
-// }
-
 #[cfg(feature = "axum")]
 mod server {
     use axum::extract::Json;

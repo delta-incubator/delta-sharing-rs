@@ -456,6 +456,7 @@ impl Store {
             WHERE from_id = $1
               AND label = $2
               AND to_id = ANY($3)
+              -- Pagination
               AND ( id < $4 OR $4 IS NULL )
             ORDER BY id DESC
             LIMIT $5

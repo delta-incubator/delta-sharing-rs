@@ -106,6 +106,9 @@ pub trait ResourceStore: Send + Sync + 'static {
     ///
     /// Assosications are directed edges between resources with a label and optional properties.
     /// Between two resources must be at most one association with a given label.
+    /// Associations are bi-directional, meaning that if an association is added from A to B,
+    /// there is also an association from B to A with the inverse label. Some labels are symmetric,
+    /// meaning that the inverse label is the same as the label.
     ///
     /// # Arguments
     /// - `from`: The source resource of the association.
@@ -124,6 +127,16 @@ pub trait ResourceStore: Send + Sync + 'static {
     ) -> Result<()>;
 
     /// Remove an association between two resources.
+    ///
+    /// Implementations must remove the inverse association as well.
+    ///
+    /// # Arguments
+    /// - `from`: The source resource of the association.
+    /// - `to`: The target resource of the association.
+    /// - `label`: The label of the association.
+    ///
+    /// # Errors
+    /// - [NotFound](crate::Error::NotFound) If the association does not exist.
     async fn remove_association(
         &self,
         from: &ResourceIdent,
