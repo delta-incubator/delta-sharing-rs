@@ -74,7 +74,7 @@ pub struct Object {
 
 impl Object {
     pub fn resource_ident(&self) -> ResourceIdent {
-        let id = ResourceRef::Uuid(self.id.clone());
+        let id = ResourceRef::Uuid(self.id);
         match self.label {
             ObjectLabel::DeltaShare => ResourceIdent::Share(id),
             ObjectLabel::DeltaSchema => ResourceIdent::Schema(id),
@@ -116,10 +116,10 @@ pub struct Association {
 impl Association {
     pub fn target_ident(&self) -> ResourceIdent {
         self.to_label
-            .to_ident(ResourceRef::Uuid(self.to_id.clone()))
+            .to_ident(ResourceRef::Uuid(self.to_id))
     }
 
     pub fn target_ref(&self) -> ResourceRef {
-        ResourceRef::Uuid(self.to_id.clone())
+        ResourceRef::Uuid(self.to_id)
     }
 }

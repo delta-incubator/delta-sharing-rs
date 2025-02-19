@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package delta_sharing.internal;
+
+import "delta_sharing/catalog/v1/api.proto";
+
+message Resource {
+  oneof resource {
+    delta_sharing.catalog.v1.ShareInfo share_info = 1;
+    delta_sharing.catalog.v1.SchemaInfo schema_info = 2;
+    delta_sharing.catalog.v1.Credential credential = 3;
+    delta_sharing.catalog.v1.StorageLocation storage_location = 4;
+  }
+}

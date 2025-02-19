@@ -17,6 +17,7 @@ mod resources;
 #[cfg(feature = "axum")]
 pub mod rest;
 
+pub use self::resources::*;
 pub use error::*;
 pub use handlers::*;
 #[cfg(feature = "memory")]
@@ -24,14 +25,13 @@ pub use in_memory::*;
 pub use kernel::*;
 pub use managers::*;
 pub use models::catalog::v1 as catalog;
-pub use models::catalog::v1::resource::Resource;
-pub use models::v1::*;
+pub use models::Resource;
+pub use models::*;
 pub use models::{
     IntoJSONStruct, IntoJson, IntoProto, IntoProtoStruct, JsonValue, PropertyMapHandler,
 };
 pub use policy::*;
 pub use repository::*;
-pub use resources::*;
 
 #[derive(Clone, Debug)]
 pub enum Recipient {
@@ -91,7 +91,7 @@ impl From<uuid::Uuid> for ResourceRef {
 
 impl From<&uuid::Uuid> for ResourceRef {
     fn from(val: &uuid::Uuid) -> Self {
-        Self::Uuid(val.clone())
+        Self::Uuid(*val)
     }
 }
 

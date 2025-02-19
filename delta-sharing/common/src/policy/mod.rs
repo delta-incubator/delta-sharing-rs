@@ -7,6 +7,7 @@
 
 use std::sync::Arc;
 
+use crate::models::SecuredAction;
 use crate::{Error, Recipient, ResourceRef, Result};
 
 pub use constant::*;
@@ -95,6 +96,18 @@ impl AsRef<ResourceRef> for ResourceIdent {
     }
 }
 
+impl From<ResourceIdent> for ResourceRef {
+    fn from(ident: ResourceIdent) -> Self {
+        match ident {
+            ResourceIdent::Share(r) => r,
+            ResourceIdent::Schema(r) => r,
+            ResourceIdent::Table(r) => r,
+            ResourceIdent::Credential(r) => r,
+            ResourceIdent::StorageLocation(r) => r,
+        }
+    }
+}
+
 pub trait AsResource {
     fn as_resource(&self) -> ResourceIdent;
 }
@@ -120,16 +133,11 @@ pub enum Decision {
     Deny,
 }
 
-pub trait SecuredAction: Send + Sync {
-    fn resource(&self) -> ResourceIdent;
-    fn permission(&self) -> Permission;
-}
-
 /// Policy for access control.
 #[async_trait::async_trait]
 pub trait Policy: Send + Sync + 'static {
     async fn check(&self, obj: &dyn SecuredAction, recipient: &Recipient) -> Result<Decision> {
-        self.authorize(&obj.resource(), &obj.permission(), recipient)
+        self.authorize(&obj.resource(), obj.permission(), recipient)
             .await
     }
 

@@ -1,11 +1,11 @@
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::catalog::resource::Resource;
 use crate::models::catalog::v1 as v1c;
 use crate::models::v1;
 use crate::models::IntoProtoStruct;
 use crate::models::PropertyMap;
+use crate::models::Resource;
 use crate::Error;
 use crate::{ResourceIdent, ResourceRef, Result, SharingRepository};
 

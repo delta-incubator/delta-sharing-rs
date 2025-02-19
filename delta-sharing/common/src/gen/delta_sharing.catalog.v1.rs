@@ -291,26 +291,5 @@ impl StorageType {
         }
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Resource {
-    #[prost(oneof="resource::Resource", tags="1, 2, 3, 4")]
-    pub resource: ::core::option::Option<resource::Resource>,
-}
-/// Nested message and enum types in `Resource`.
-pub mod resource {
-    #[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Oneof)]
-    pub enum Resource {
-        #[prost(message, tag="1")]
-        ShareInfo(super::ShareInfo),
-        #[prost(message, tag="2")]
-        SchemaInfo(super::SchemaInfo),
-        #[prost(message, tag="3")]
-        Credential(super::Credential),
-        #[prost(message, tag="4")]
-        StorageLocation(super::StorageLocation),
-    }
-}
 include!("delta_sharing.catalog.v1.serde.rs");
 // @@protoc_insertion_point(module)

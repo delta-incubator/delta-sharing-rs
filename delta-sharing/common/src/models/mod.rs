@@ -3,14 +3,20 @@ use paste::paste;
 use serde::Serialize;
 
 use crate::{
-    policy::{AsResource, Permission, ResourceIdent, SecuredAction},
+    policy::{AsResource, ResourceIdent},
     Error, ResourceRef,
 };
 
-pub use catalog::v1::{resource::Resource, Credential, StorageLocation};
-pub use conversions::*;
+pub use catalog::v1::{Credential, StorageLocation};
+pub use properties::*;
+pub use requests::*;
 
-mod conversions;
+pub use internal::resource::{ObjectLabel, Resource};
+
+mod properties;
+pub(crate) mod requests;
+
+pub use v1::{Profile, Schema, Share};
 
 #[allow(clippy::empty_docs, clippy::large_enum_variant)]
 pub mod v1 {
@@ -25,6 +31,10 @@ pub mod catalog {
         #[cfg(feature = "grpc")]
         include!("../gen/delta_sharing.catalog.v1.tonic.rs");
     }
+}
+
+mod internal {
+    include!("../gen/delta_sharing.internal.rs");
 }
 
 #[derive(Serialize)]
@@ -43,111 +53,6 @@ impl AsResource for v1::Share {
     }
 }
 
-macro_rules! impl_secured_action {
-    ($(($type:ty, $resource:expr, $permission:expr)),* $(,)?) => {
-        $(
-            impl SecuredAction for $type {
-                fn resource(&self) -> ResourceIdent {
-                    let f: fn(&$type) -> ResourceIdent = $resource;
-                    f(self)
-                }
-                fn permission(&self) -> Permission {
-                    $permission
-                }
-            }
-        )*
-    };
-}
-impl_secured_action!(
-    (
-        v1::GetShareRequest,
-        |req| ResourceIdent::share(&req.name),
-        Permission::Read
-    ),
-    (
-        v1::ListShareTablesRequest,
-        |req| ResourceIdent::share(&req.name),
-        Permission::Read
-    ),
-    (
-        v1::ListSchemasRequest,
-        |req| ResourceIdent::share(&req.share),
-        Permission::Read
-    ),
-    (
-        v1::ListSchemaTablesRequest,
-        |req| ResourceIdent::schema(([&req.share], &req.name)),
-        Permission::Read
-    ),
-    (
-        v1::GetTableVersionRequest,
-        |req| ResourceIdent::table(([&req.share, &req.schema], &req.name)),
-        Permission::Read
-    ),
-    (
-        v1::GetTableMetadataRequest,
-        |req| ResourceIdent::table(([&req.share, &req.schema], &req.name)),
-        Permission::Read
-    ),
-    (
-        catalog::v1::CreateShareRequest,
-        |_| ResourceIdent::Share(ResourceRef::Undefined),
-        Permission::Create
-    ),
-    (
-        catalog::v1::DeleteShareRequest,
-        |req| ResourceIdent::share(&req.name),
-        Permission::Manage
-    ),
-    (
-        catalog::v1::CreateSchemaRequest,
-        |req| ResourceIdent::share(&req.share),
-        Permission::Manage
-    ),
-    (
-        catalog::v1::DeleteSchemaRequest,
-        |req| ResourceIdent::schema(([&req.share], &req.name)),
-        Permission::Manage
-    ),
-    (
-        catalog::v1::CreateCredentialRequest,
-        |_| ResourceIdent::Credential(ResourceRef::Undefined),
-        Permission::Create
-    ),
-    (
-        catalog::v1::DeleteCredentialRequest,
-        |req| ResourceIdent::credential(&req.name),
-        Permission::Manage
-    ),
-    (
-        catalog::v1::CreateStorageLocationRequest,
-        |_| ResourceIdent::StorageLocation(ResourceRef::Undefined),
-        Permission::Create
-    ),
-    (
-        catalog::v1::DeleteStorageLocationRequest,
-        |req| ResourceIdent::storage_location(&req.name),
-        Permission::Manage
-    ),
-    (
-        catalog::v1::ListStorageLocationsRequest,
-        |_| ResourceIdent::StorageLocation(ResourceRef::Undefined),
-        Permission::Read
-    ),
-);
-
-impl From<ResourceIdent> for ResourceRef {
-    fn from(ident: ResourceIdent) -> Self {
-        match ident {
-            ResourceIdent::Share(r) => r,
-            ResourceIdent::Schema(r) => r,
-            ResourceIdent::Table(r) => r,
-            ResourceIdent::Credential(r) => r,
-            ResourceIdent::StorageLocation(r) => r,
-        }
-    }
-}
-
 impl<T: SecuredAction> From<T> for ResourceRef {
     fn from(action: T) -> Self {
         action.resource().into()
@@ -158,18 +63,18 @@ impl<T: SecuredAction> From<T> for ResourceRef {
 macro_rules! impl_resource_conversions {
     ($($type:ty),* $(,)?) => {
         $(
-            impl From<$type> for catalog::v1::resource::Resource {
+            impl From<$type> for Resource {
                 fn from(value: $type) -> Self {
-                    paste!{ catalog::v1::resource::Resource::[<$type>](value) }
+                    paste!{ Resource::[<$type>](value) }
                 }
             }
 
-            impl TryFrom<catalog::v1::resource::Resource> for $type {
+            impl TryFrom<Resource> for $type {
                 type Error = Error;
 
-                fn try_from(resource: catalog::v1::resource::Resource) -> Result<Self, Self::Error> {
+                fn try_from(resource: Resource) -> Result<Self, Self::Error> {
                     match resource {
-                        paste!{ catalog::v1::resource::Resource::[<$type>](value) } => Ok(value),
+                        paste!{ Resource::[<$type>](value) } => Ok(value),
                         _ => Err(Error::generic(concat!("Resource is not a ", stringify!($type)))),
                     }
                 }
@@ -180,10 +85,10 @@ macro_rules! impl_resource_conversions {
 impl_resource_conversions!(ShareInfo, SchemaInfo, Credential, StorageLocation);
 
 /// Conversions from more specific types to reduced info sharing API types
-impl TryFrom<catalog::v1::resource::Resource> for v1::Share {
+impl TryFrom<Resource> for v1::Share {
     type Error = Error;
 
-    fn try_from(resource: catalog::v1::resource::Resource) -> Result<Self, Self::Error> {
+    fn try_from(resource: Resource) -> Result<Self, Self::Error> {
         let info = ShareInfo::try_from(resource)?;
         Ok(v1::Share {
             id: Some(info.id),
@@ -192,15 +97,33 @@ impl TryFrom<catalog::v1::resource::Resource> for v1::Share {
     }
 }
 
-impl TryFrom<catalog::v1::resource::Resource> for v1::Schema {
+impl TryFrom<Resource> for v1::Schema {
     type Error = Error;
 
-    fn try_from(resource: catalog::v1::resource::Resource) -> Result<Self, Self::Error> {
+    fn try_from(resource: Resource) -> Result<Self, Self::Error> {
         let info = SchemaInfo::try_from(resource)?;
         Ok(v1::Schema {
             share: info.share,
             name: info.name,
             id: Some(info.id),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use strum::IntoEnumIterator;
+
+    #[test]
+    fn test_object_label() {
+        for label in ObjectLabel::iter() {
+            match label {
+                ObjectLabel::ShareInfo => assert_eq!(label.as_ref(), "share_info"),
+                ObjectLabel::SchemaInfo => assert_eq!(label.as_ref(), "schema_info"),
+                ObjectLabel::Credential => assert_eq!(label.as_ref(), "credential"),
+                ObjectLabel::StorageLocation => assert_eq!(label.as_ref(), "storage_location"),
+            }
+        }
     }
 }

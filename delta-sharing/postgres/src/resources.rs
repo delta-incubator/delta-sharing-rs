@@ -210,7 +210,7 @@ impl ResourceStore for GraphStore {
             }
             ResourceRef::Name(namespace, name) => {
                 let object = self.get_object_by_name(label, namespace, name).await?;
-                let id_new = ResourceRef::Uuid(object.id.clone());
+                let id_new = ResourceRef::Uuid(object.id);
                 Ok((object.try_into()?, id_new))
             }
             ResourceRef::Undefined => Err(Error::generic("Cannot get undefined resource")),
@@ -269,7 +269,7 @@ impl ResourceStore for GraphStore {
                 object.properties,
             )
             .await?;
-        let id = ResourceRef::Uuid(object.id.clone());
+        let id = ResourceRef::Uuid(object.id);
         Ok((object.try_into()?, id))
     }
 
@@ -361,7 +361,7 @@ impl ResourceStore for GraphStore {
             .await?;
         let idents = associations
             .into_iter()
-            .map(|assoc| assoc.to_label.to_ident(&assoc.to_id))
+            .map(|assoc| assoc.to_label.to_ident(assoc.to_id))
             .collect();
         Ok((idents, token))
     }
