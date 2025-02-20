@@ -2,7 +2,8 @@
 
 use std::sync::Arc;
 
-use delta_sharing_postgres::{AssociationLabel, Error, GraphStore, ObjectLabel};
+use delta_sharing_common::{AssociationLabel, ObjectLabel};
+use delta_sharing_postgres::{Error, GraphStore};
 use uuid::Uuid;
 
 #[sqlx::test]
@@ -11,20 +12,20 @@ async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Erro
 
     let object = store
         .add_object(
-            &ObjectLabel::Table,
+            &ObjectLabel::SharingTable,
             &["namespace".to_string()],
             "table_name",
             Some(serde_json::json!({ "key": "value" })),
         )
         .await?;
-    assert_eq!(object.label, ObjectLabel::Table);
+    assert_eq!(object.label, ObjectLabel::SharingTable);
     assert_eq!(object.namespace, vec!["namespace".to_string()]);
     assert_eq!(object.name, "table_name");
 
     // Adding the same object should fail.
     let res = store
         .add_object(
-            &ObjectLabel::Table,
+            &ObjectLabel::SharingTable,
             &["namespace".to_string()],
             "table_name",
             Some(serde_json::json!({ "key": "value" })),
@@ -33,7 +34,7 @@ async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Erro
     assert!(matches!(res, Err(Error::AlreadyExists(_))));
 
     let object = store.get_object(&object.id).await?;
-    assert_eq!(object.label, ObjectLabel::Table);
+    assert_eq!(object.label, ObjectLabel::SharingTable);
     assert_eq!(object.namespace, vec!["namespace".to_string()]);
     assert_eq!(object.name, "table_name");
     assert_eq!(
@@ -44,12 +45,12 @@ async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Erro
     // Test get_object_by_name
     let object = store
         .get_object_by_name(
-            &ObjectLabel::Table,
+            &ObjectLabel::SharingTable,
             &["namespace".to_string()],
             "table_name",
         )
         .await?;
-    assert_eq!(object.label, ObjectLabel::Table);
+    assert_eq!(object.label, ObjectLabel::SharingTable);
     assert_eq!(object.namespace, vec!["namespace".to_string()]);
     assert_eq!(object.name, "table_name");
 
@@ -80,7 +81,7 @@ async fn test_associations(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error:
 
     let object1 = store
         .add_object(
-            &ObjectLabel::Table,
+            &ObjectLabel::SharingTable,
             &["namespace".to_string()],
             "table_name1",
             Some(serde_json::json!({ "key": "value" })),
@@ -88,7 +89,7 @@ async fn test_associations(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error:
         .await?;
     let object2 = store
         .add_object(
-            &ObjectLabel::Table,
+            &ObjectLabel::SharingTable,
             &["namespace".to_string()],
             "table_name2",
             Some(serde_json::json!({ "key": "value" })),
