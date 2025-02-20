@@ -79,24 +79,6 @@ pub mod credential {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CreateCredentialRequest {
-    #[prost(message, optional, tag="1")]
-    pub credential: ::core::option::Option<Credential>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeleteCredentialRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GetCredentialRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StorageLocation {
     #[prost(string, tag="1")]
     pub id: ::prost::alloc::string::String,
@@ -113,43 +95,7 @@ pub struct StorageLocation {
     #[prost(message, optional, tag="7")]
     pub properties: ::core::option::Option<::pbjson_types::Struct>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CreateStorageLocationRequest {
-    #[prost(message, optional, tag="1")]
-    pub location: ::core::option::Option<StorageLocation>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeleteStorageLocationRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GetStorageLocationRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListStorageLocationsRequest {
-    /// The maximum number of results per page that should be returned.
-    #[prost(int32, optional, tag="2")]
-    pub max_results: ::core::option::Option<i32>,
-    /// Specifies a page token to use. Set pageToken to the nextPageToken returned
-    /// by a previous list request to get the next page of results.
-    #[prost(string, optional, tag="3")]
-    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListStorageLocationsResponse {
-    #[prost(message, repeated, tag="1")]
-    pub items: ::prost::alloc::vec::Vec<StorageLocation>,
-    #[prost(string, optional, tag="2")]
-    pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
-}
+/// The type of storage service to use.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum StorageType {
@@ -181,6 +127,77 @@ impl StorageType {
             _ => None,
         }
     }
+}
+/// Create a new credential
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateCredentialRequest {
+    /// Credential to create.
+    #[prost(message, optional, tag="1")]
+    pub credential: ::core::option::Option<Credential>,
+}
+/// Delete a credential
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteCredentialRequest {
+    /// Name of credential.
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Get a credential
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetCredentialRequest {
+    /// Name of credential.
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Create a new storage location
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateStorageLocationRequest {
+    /// Storage location to create.
+    #[prost(message, optional, tag="1")]
+    pub location: ::core::option::Option<StorageLocation>,
+}
+/// Delete a storage location
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteStorageLocationRequest {
+    /// Name of storage location.
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// Get a storage location
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetStorageLocationRequest {
+    /// Name of storage location.
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+}
+/// List storage locations
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListStorageLocationsRequest {
+    /// The maximum number of results per page that should be returned.
+    #[prost(int32, optional, tag="2")]
+    pub max_results: ::core::option::Option<i32>,
+    /// Specifies a page token to use. Set pageToken to the nextPageToken returned
+    /// by a previous list request to get the next page of results.
+    #[prost(string, optional, tag="3")]
+    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// List storage locations response.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListStorageLocationsResponse {
+    /// The storage locations returned.
+    #[prost(message, repeated, tag="1")]
+    pub storage_locations: ::prost::alloc::vec::Vec<StorageLocation>,
+    /// The next_page_token value to include in the next List request.
+    #[prost(string, optional, tag="2")]
+    pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
 include!("delta_sharing.credentials.v1.serde.rs");
 // @@protoc_insertion_point(module)

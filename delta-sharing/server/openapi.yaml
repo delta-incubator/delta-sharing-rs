@@ -8,6 +8,7 @@ info:
   version: 0.0.0
 tags:
   - name: CatalogService
+    description: Manage catalogs and schemas in the service.
   - name: CredentialService
     description: |-
       Manage credentials to access external data sources and services
@@ -40,12 +41,12 @@ paths:
       parameters:
         - name: pageToken
           in: query
-          description: / The next_page_token value returned from a previous List request, if any.
+          description: The next_page_token value returned from a previous List request, if any.
           schema:
             type: string
         - name: maxResults
           in: query
-          description: / The maximum number of items to return.
+          description: The maximum number of items to return.
           schema:
             type: integer
             format: int32
@@ -99,7 +100,7 @@ paths:
       parameters:
         - name: name
           in: path
-          description: / Name of catalog.
+          description: Name of catalog.
           required: true
           schema:
             type: string
@@ -126,13 +127,13 @@ paths:
       parameters:
         - name: name
           in: path
-          description: / Name of catalog.
+          description: Name of catalog.
           required: true
           schema:
             type: string
         - name: force
           in: query
-          description: / Force deletion even if the catalog is not empty.
+          description: Force deletion even if the catalog is not empty.
           schema:
             type: boolean
       responses:
@@ -155,7 +156,7 @@ paths:
       parameters:
         - name: name
           in: path
-          description: / Name of catalog.
+          description: Name of catalog.
           required: true
           schema:
             type: string
@@ -214,6 +215,7 @@ paths:
       parameters:
         - name: name
           in: path
+          description: Name of credential.
           required: true
           schema:
             type: string
@@ -239,6 +241,7 @@ paths:
       parameters:
         - name: name
           in: path
+          description: Name of credential.
           required: true
           schema:
             type: string
@@ -324,6 +327,7 @@ paths:
       parameters:
         - name: name
           in: path
+          description: Name of storage location.
           required: true
           schema:
             type: string
@@ -349,6 +353,7 @@ paths:
       parameters:
         - name: name
           in: path
+          description: Name of storage location.
           required: true
           schema:
             type: string
@@ -376,17 +381,17 @@ paths:
       parameters:
         - name: catalogName
           in: query
-          description: / Name of parent catalog.
+          description: Name of parent catalog.
           schema:
             type: string
         - name: pageToken
           in: query
-          description: / The next_page_token value returned from a previous List request, if any.
+          description: The next_page_token value returned from a previous List request, if any.
           schema:
             type: string
         - name: maxResults
           in: query
-          description: / The maximum number of items to return.
+          description: The maximum number of items to return.
           schema:
             type: integer
             format: int32
@@ -440,7 +445,7 @@ paths:
       parameters:
         - name: fullName
           in: path
-          description: / Full name of schema, in form of catalog_name.schema_name.
+          description: Full name of schema, in form of catalog_name.schema_name.
           required: true
           schema:
             type: string
@@ -474,7 +479,7 @@ paths:
       parameters:
         - name: name
           in: path
-          description: / Name of schema.
+          description: Name of schema.
           required: true
           schema:
             type: string
@@ -501,7 +506,7 @@ paths:
       parameters:
         - name: name
           in: path
-          description: / Name of schema.
+          description: Name of schema.
           required: true
           schema:
             type: string
@@ -999,7 +1004,7 @@ components:
           readOnly: true
           type: string
           description: Unique identifier for the catalog.
-      description: Creates a new catalog instance.
+      description: A catalog is a root-level namespace that contains schemas.
     Credential:
       required:
         - name
@@ -1019,6 +1024,7 @@ components:
           $ref: '#/components/schemas/ProtocolDelta'
         metadata:
           $ref: '#/components/schemas/MetadatDelta'
+      description: Log message for Delta response.
     DeltaResponse:
       type: object
       properties:
@@ -1026,6 +1032,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DeltaLogMessage'
+      description: Response for a query against a table in Delta format.
     Format:
       type: object
       properties:
@@ -1037,12 +1044,14 @@ components:
           additionalProperties:
             type: string
           description: A map containing configuration options for the format
+      description: File format for data files in a table
     GetTableVersionResponse:
       type: object
       properties:
         version:
           type: string
           description: The table version that was requested.
+      description: Response for GetTableVersionRequest.
     GoogleProtobufAny:
       type: object
       properties:
@@ -1058,10 +1067,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CatalogInfo'
-          description: / The catalogs returned.
+          description: The catalogs returned.
         nextPageToken:
           type: string
-          description: / The next_page_token value to include in the next List request.
+          description: The next_page_token value to include in the next List request.
+      description: List catalogs response.
     ListSchemaTablesResponse:
       type: object
       properties:
@@ -1075,6 +1085,7 @@ components:
           description: |-
             Token that can be used to retrieve the next page of tables.
              An empty or missing token means that no more tables are available for retrieval.
+      description: Response for ListSchemaTablesRequest.
     ListSchemasResponse:
       type: object
       properties:
@@ -1082,10 +1093,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SchemaInfo'
-          description: / The schemas returned.
+          description: The schemas returned.
         nextPageToken:
           type: string
-          description: / The next_page_token value to include in the next List request.
+          description: The next_page_token value to include in the next List request.
+      description: List Schemas response.
     ListShareTablesResponse:
       type: object
       properties:
@@ -1099,6 +1111,7 @@ components:
           description: |-
             Token that can be used to retrieve the next page of tables.
              An empty or missing token means that no more tables are available for retrieval.
+      description: Response for ListShareTablesRequest.
     ListSharesResponse:
       type: object
       properties:
@@ -1112,6 +1125,7 @@ components:
           description: |-
             Token that can be used to retrieve the next page of shares.
              An empty or missing token means that no more shares are available for retrieval.
+      description: Response for ListSharesRequest.
     ListSharingSchemasResponse:
       type: object
       properties:
@@ -1125,15 +1139,19 @@ components:
           description: |-
             Token that can be used to retrieve the next page of schemas.
              An empty or missing token means that no more schemas are available for retrieval.
+      description: Response for ListSharingSchemasRequest.
     ListStorageLocationsResponse:
       type: object
       properties:
-        items:
+        storageLocations:
           type: array
           items:
             $ref: '#/components/schemas/StorageLocation'
+          description: The storage locations returned.
         nextPageToken:
           type: string
+          description: The next_page_token value to include in the next List request.
+      description: List storage locations response.
     MetadatDelta:
       type: object
       properties:
@@ -1153,6 +1171,7 @@ components:
         numFiles:
           type: string
           description: The number of files in the table, will be returned if available in the delta log.
+      description: Metadata for Delta response.
     Metadata:
       type: object
       properties:
@@ -1187,6 +1206,7 @@ components:
           additionalProperties:
             type: string
           description: A map containing configuration options for the metadata action
+      description: Metadata for a table
     MetadataParquet:
       type: object
       properties:
@@ -1211,6 +1231,7 @@ components:
           items:
             type: string
           description: An array containing the names of columns by which the data should be partitioned
+      description: Metadata for Parquet response.
     ParquetLogMessage:
       type: object
       properties:
@@ -1218,6 +1239,7 @@ components:
           $ref: '#/components/schemas/ProtocolParquet'
         metadata:
           $ref: '#/components/schemas/MetadataParquet'
+      description: Log message for Parquet response.
     ParquetResponse:
       type: object
       properties:
@@ -1225,6 +1247,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ParquetLogMessage'
+      description: Response for a query against a table in Parquet format.
     ProtocolDelta:
       type: object
       properties:
@@ -1237,6 +1260,7 @@ components:
         minWriterVersion:
           type: integer
           format: int32
+      description: Protocol for Delta response.
     ProtocolParquet:
       type: object
       properties:
@@ -1246,6 +1270,7 @@ components:
             The minimum version of the protocol that a client must implement
              in order to correctly read a Delta Lake table.
           format: int32
+      description: Protocol for Parquet response.
     QueryResponse:
       type: object
       properties:
@@ -1257,6 +1282,7 @@ components:
           allOf:
             - $ref: '#/components/schemas/DeltaResponse'
           description: Delta response format
+      description: Response for a query against a table.
     SchemaInfo:
       required:
         - name
@@ -1303,6 +1329,7 @@ components:
           readOnly: true
           type: string
           description: Unique identifier for the schema.
+      description: A schema is a namespace within a catalog that contains tables.
     Share:
       type: object
       properties:
@@ -1328,6 +1355,11 @@ components:
           type: string
         properties:
           type: object
+      description: |-
+        A share in a delta sharing service.
+
+         A share is a logical grouping to share with recipients.
+         It may contain multiple schemas and tables.
     SharingSchema:
       type: object
       properties:
@@ -1348,18 +1380,29 @@ components:
         id:
           readOnly: true
           type: string
+          description: Unique identifier for the schema.
         name:
           type: string
+          description: The name of the schema.
         share:
           readOnly: true
           type: string
+          description: The share name that the schema belongs to.
         shareId:
           readOnly: true
           type: string
+          description: The unique identifier for the share this schema belongs to.
         description:
           type: string
+          description: User-provided free-form text description.
         properties:
           type: object
+          description: A map of key-value properties attached to the securable.
+      description: |-
+        A schema in a delta sharing service.
+
+         A schema is a logical grouping of tables.
+         It may contain multiple tables.
     SharingTable:
       type: object
       properties:
@@ -1428,16 +1471,17 @@ components:
       properties:
         name:
           type: string
-          description: / Name of catalog.
+          description: Name of catalog.
         comment:
           type: string
-          description: / User-provided free-form text description.
+          description: User-provided free-form text description.
         properties:
           type: object
-          description: / A map of key-value properties attached to the securable.
+          description: A map of key-value properties attached to the securable.
         newName:
           type: string
-          description: / Name of catalog.
+          description: Name of catalog.
+      description: Update a catalog
     UpdateSchemaRequest:
       required:
         - fullName
@@ -1445,13 +1489,14 @@ components:
       properties:
         fullName:
           type: string
-          description: / Full name of schema, in form of catalog_name.schema_name.
+          description: Full name of schema, in form of catalog_name.schema_name.
         comment:
           type: string
-          description: / User-provided free-form text description.
+          description: User-provided free-form text description.
         properties:
           type: object
-          description: / A map of key-value properties attached to the securable.
+          description: A map of key-value properties attached to the securable.
         newName:
           type: string
-          description: / Name of schema.
+          description: Name of schema.
+      description: Update a Schema

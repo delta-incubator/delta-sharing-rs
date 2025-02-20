@@ -20,6 +20,7 @@ pub struct Profile {
     #[prost(string, optional, tag="4")]
     pub expiration_time: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Create a new profile
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateProfileRequest {
@@ -27,6 +28,7 @@ pub struct CreateProfileRequest {
     #[prost(bytes="bytes", tag="1")]
     pub claims: ::prost::bytes::Bytes,
 }
+/// Create a new profile response
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateProfileResponse {

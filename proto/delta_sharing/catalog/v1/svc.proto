@@ -12,106 +12,115 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 import "openapiv3/annotations.proto";
 
-/// Create a new catalog
+// Create a new catalog
 message CreateCatalogRequest {
-  /// Catalog to create.
+  // Catalog to create.
   CatalogInfo catalog = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-/// Delete a catalog
+// Delete a catalog
 message DeleteCatalogRequest {
-  /// Name of catalog.
+  // Name of catalog.
   string name = 1 [(google.api.field_behavior) = REQUIRED];
 
-  /// Force deletion even if the catalog is not empty.
+  // Force deletion even if the catalog is not empty.
   optional bool force = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
-/// Get a catalog
+// Get a catalog
 message GetCatalogRequest {
-  /// Name of catalog.
+  // Name of catalog.
   string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-/// List catalogs
+// List catalogs
 message ListCatalogsRequest {
-  /// The next_page_token value returned from a previous List request, if any.
+  // The next_page_token value returned from a previous List request, if any.
   optional string page_token = 1 [(google.api.field_behavior) = OPTIONAL];
 
-  /// The maximum number of items to return.
+  // The maximum number of items to return.
   optional int32 max_results = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// List catalogs response.
 message ListCatalogsResponse {
-  /// The catalogs returned.
+  // The catalogs returned.
   repeated CatalogInfo catalogs = 1;
 
-  /// The next_page_token value to include in the next List request.
+  // The next_page_token value to include in the next List request.
   optional string next_page_token = 2;
 }
 
+// Update a catalog
 message UpdateCatalogRequest {
-  /// Name of catalog.
+  // Name of catalog.
   string name = 1 [(google.api.field_behavior) = REQUIRED];
 
-  /// User-provided free-form text description.
+  // User-provided free-form text description.
   optional string comment = 2 [(google.api.field_behavior) = OPTIONAL];
 
-  /// A map of key-value properties attached to the securable.
+  // A map of key-value properties attached to the securable.
   optional google.protobuf.Struct properties = 3 [(google.api.field_behavior) = OPTIONAL];
 
-  /// Name of catalog.
+  // Name of catalog.
   string new_name = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// Create a new Schema
 message CreateSchemaRequest {
-  /// Schema to create.
+  // Schema to create.
   SchemaInfo schema = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
+// Delete a Schema
 message DeleteSchemaRequest {
-  /// Name of schema.
+  // Name of schema.
   string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
+// Get a Schema
 message GetSchemaRequest {
-  /// Name of schema.
+  // Name of schema.
   string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
+// List Schemas in a catalog
 message ListSchemasRequest {
-  /// Name of parent catalog.
+  // Name of parent catalog.
   string catalog_name = 1 [(google.api.field_behavior) = REQUIRED];
 
-  /// The next_page_token value returned from a previous List request, if any.
+  // The next_page_token value returned from a previous List request, if any.
   optional string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
 
-  /// The maximum number of items to return.
+  // The maximum number of items to return.
   optional int32 max_results = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// List Schemas response.
 message ListSchemasResponse {
-  /// The schemas returned.
+  // The schemas returned.
   repeated SchemaInfo schemas = 1;
 
-  /// The next_page_token value to include in the next List request.
+  // The next_page_token value to include in the next List request.
   optional string next_page_token = 2;
 }
 
+// Update a Schema
 message UpdateSchemaRequest {
-  /// Full name of schema, in form of catalog_name.schema_name.
+  // Full name of schema, in form of catalog_name.schema_name.
   string full_name = 1 [(google.api.field_behavior) = REQUIRED];
 
-  /// User-provided free-form text description.
+  // User-provided free-form text description.
   optional string comment = 2 [(google.api.field_behavior) = OPTIONAL];
 
-  /// A map of key-value properties attached to the securable.
+  // A map of key-value properties attached to the securable.
   optional google.protobuf.Struct properties = 3 [(google.api.field_behavior) = OPTIONAL];
 
-  /// Name of schema.
+  // Name of schema.
   string new_name = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// Manage catalogs and schemas in the service.
 service CatalogService {
   // Create a new catalog
   rpc CreateCatalog(CreateCatalogRequest) returns (CatalogInfo) {

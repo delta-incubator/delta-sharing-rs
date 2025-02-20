@@ -20,11 +20,13 @@ message Profile {
   optional string expiration_time = 4;
 }
 
+// Create a new profile
 message CreateProfileRequest {
   // serialized profile claims
   bytes claims = 1;
 }
 
+// Create a new profile response
 message CreateProfileResponse {
   // the profile file
   Profile profile = 1;

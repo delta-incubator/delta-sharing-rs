@@ -1344,15 +1344,15 @@ impl serde::Serialize for ListStorageLocationsResponse {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if !self.items.is_empty() {
+        if !self.storage_locations.is_empty() {
             len += 1;
         }
         if self.next_page_token.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.ListStorageLocationsResponse", len)?;
-        if !self.items.is_empty() {
-            struct_ser.serialize_field("items", &self.items)?;
+        if !self.storage_locations.is_empty() {
+            struct_ser.serialize_field("storageLocations", &self.storage_locations)?;
         }
         if let Some(v) = self.next_page_token.as_ref() {
             struct_ser.serialize_field("nextPageToken", v)?;
@@ -1367,14 +1367,15 @@ impl<'de> serde::Deserialize<'de> for ListStorageLocationsResponse {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "items",
+            "storage_locations",
+            "storageLocations",
             "next_page_token",
             "nextPageToken",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Items,
+            StorageLocations,
             NextPageToken,
             __SkipField__,
         }
@@ -1398,7 +1399,7 @@ impl<'de> serde::Deserialize<'de> for ListStorageLocationsResponse {
                         E: serde::de::Error,
                     {
                         match value {
-                            "items" => Ok(GeneratedField::Items),
+                            "storageLocations" | "storage_locations" => Ok(GeneratedField::StorageLocations),
                             "nextPageToken" | "next_page_token" => Ok(GeneratedField::NextPageToken),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
@@ -1419,15 +1420,15 @@ impl<'de> serde::Deserialize<'de> for ListStorageLocationsResponse {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut items__ = None;
+                let mut storage_locations__ = None;
                 let mut next_page_token__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Items => {
-                            if items__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("items"));
+                        GeneratedField::StorageLocations => {
+                            if storage_locations__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("storageLocations"));
                             }
-                            items__ = Some(map_.next_value()?);
+                            storage_locations__ = Some(map_.next_value()?);
                         }
                         GeneratedField::NextPageToken => {
                             if next_page_token__.is_some() {
@@ -1441,7 +1442,7 @@ impl<'de> serde::Deserialize<'de> for ListStorageLocationsResponse {
                     }
                 }
                 Ok(ListStorageLocationsResponse {
-                    items: items__.unwrap_or_default(),
+                    storage_locations: storage_locations__.unwrap_or_default(),
                     next_page_token: next_page_token__,
                 })
             }

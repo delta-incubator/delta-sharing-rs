@@ -92,6 +92,10 @@ message SharingTable {
   optional string share_id = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
+// A share in a delta sharing service.
+//
+// A share is a logical grouping to share with recipients.
+// It may contain multiple schemas and tables.
 message ShareInfo {
   string id = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 
@@ -105,22 +109,32 @@ message ShareInfo {
   optional google.protobuf.Struct properties = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// A schema in a delta sharing service.
+//
+// A schema is a logical grouping of tables.
+// It may contain multiple tables.
 message SharingSchemaInfo {
+  // Unique identifier for the schema.
   string id = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
 
+  // The name of the schema.
   string name = 2 [
     (buf.validate.field).string.min_len = 1,
     (google.api.field_behavior) = IDENTIFIER
   ];
 
+  // The share name that the schema belongs to.
   string share = 3 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
 
+  // The unique identifier for the share this schema belongs to.
   optional string share_id = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
 
+  // User-provided free-form text description.
   optional string description = 5 [(google.api.field_behavior) = OPTIONAL];
 
+  // A map of key-value properties attached to the securable.
   optional google.protobuf.Struct properties = 6 [(google.api.field_behavior) = OPTIONAL];
 }

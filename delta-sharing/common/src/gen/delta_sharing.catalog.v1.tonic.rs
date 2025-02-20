@@ -73,7 +73,8 @@ pub mod catalog_service_server {
             request: tonic::Request<super::UpdateSchemaRequest>,
         ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
     }
-    ///
+    /** Manage catalogs and schemas in the service.
+*/
     #[derive(Debug)]
     pub struct CatalogServiceServer<T: CatalogService> {
         inner: Arc<T>,

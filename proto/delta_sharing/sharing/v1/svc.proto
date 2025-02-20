@@ -44,6 +44,7 @@ option (openapi.v3.document) = {
   ]
 };
 
+// Request to list shares.
 message ListSharesRequest {
   // The maximum number of results per page that should be returned.
   optional int32 max_results = 1 [
@@ -56,6 +57,7 @@ message ListSharesRequest {
   optional string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// Response for ListSharesRequest.
 message ListSharesResponse {
   // The shares that were requested.
   repeated Share items = 1;
@@ -65,6 +67,7 @@ message ListSharesResponse {
   optional string next_page_token = 2;
 }
 
+// Get a share by name.
 message GetShareRequest {
   // The share name to query. It's case-insensitive.
   string name = 1 [
@@ -75,6 +78,7 @@ message GetShareRequest {
   ];
 }
 
+// List schemas in a share.
 message ListSharingSchemasRequest {
   // The share name to query. It's case-insensitive.
   string share = 1 [
@@ -95,6 +99,7 @@ message ListSharingSchemasRequest {
   optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// Response for ListSharingSchemasRequest.
 message ListSharingSchemasResponse {
   // The schemas that were requested.
   repeated SharingSchema items = 1;
@@ -104,6 +109,7 @@ message ListSharingSchemasResponse {
   optional string next_page_token = 2;
 }
 
+// List tables in a schema.
 message ListSchemaTablesRequest {
   // The schema name to query. It's case-insensitive.
   string name = 1 [
@@ -132,6 +138,7 @@ message ListSchemaTablesRequest {
   optional string page_token = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// Response for ListSchemaTablesRequest.
 message ListSchemaTablesResponse {
   // The tables that were requested.
   repeated SharingTable items = 1;
@@ -140,6 +147,7 @@ message ListSchemaTablesResponse {
   optional string next_page_token = 2;
 }
 
+// List tables in a share.
 message ListShareTablesRequest {
   // The share name to query. It's case-insensitive.
   string name = 1 [
@@ -160,6 +168,7 @@ message ListShareTablesRequest {
   optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// Response for ListShareTablesRequest.
 message ListShareTablesResponse {
   // The tables that were requested.
   repeated SharingTable items = 1;
@@ -255,10 +264,12 @@ service DeltaSharingService {
   }
 }
 
+// Create a new Share in the Delta Sharing service.
 message CreateShareRequest {
   ShareInfo share = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
+// Delete a Share in the Delta Sharing service.
 message DeleteShareRequest {
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
@@ -266,6 +277,7 @@ message DeleteShareRequest {
   ];
 }
 
+// Create a new Schema in the Delta Sharing service.
 message CreateSharingSchemaRequest {
   string share = 1 [
     (google.api.field_behavior) = REQUIRED,
@@ -274,6 +286,7 @@ message CreateSharingSchemaRequest {
   SharingSchemaInfo schema = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
+// Delete a Schema in the Delta Sharing service.
 message DeleteSharingSchemaRequest {
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,

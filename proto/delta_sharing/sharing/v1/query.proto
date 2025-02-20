@@ -7,6 +7,7 @@ import "delta_sharing/sharing/v1/protocol.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 
+// Get the version of a table.
 message GetTableVersionRequest {
   // The table name to query. It's case-insensitive.
   string name = 1 [
@@ -38,11 +39,13 @@ message GetTableVersionRequest {
   ];
 }
 
+// Response for GetTableVersionRequest.
 message GetTableVersionResponse {
   // The table version that was requested.
   int64 version = 1;
 }
 
+// Get metadata of a table.
 message GetTableMetadataRequest {
   // The table name to query. It's case-insensitive.
   string name = 1 [
@@ -66,6 +69,7 @@ message GetTableMetadataRequest {
   ];
 }
 
+// Response for a query against a table.
 message QueryResponse {
   oneof response {
     // Parquet response format
@@ -75,10 +79,12 @@ message QueryResponse {
   }
 }
 
+// Response for a query against a table in Parquet format.
 message ParquetResponse {
   repeated ParquetLogMessage entries = 1;
 }
 
+// Log message for Parquet response.
 message ParquetLogMessage {
   oneof entry {
     ProtocolParquet protocol = 1;
@@ -86,12 +92,14 @@ message ParquetLogMessage {
   }
 }
 
+// Protocol for Parquet response.
 message ProtocolParquet {
   // The minimum version of the protocol that a client must implement
   // in order to correctly read a Delta Lake table.
   int32 min_reader_version = 1;
 }
 
+// Metadata for Parquet response.
 message MetadataParquet {
   // Unique identifier for this table
   string id = 1;
@@ -112,10 +120,12 @@ message MetadataParquet {
   repeated string partition_columns = 6;
 }
 
+// Response for a query against a table in Delta format.
 message DeltaResponse {
   repeated DeltaLogMessage entries = 1;
 }
 
+// Log message for Delta response.
 message DeltaLogMessage {
   oneof entry {
     ProtocolDelta protocol = 1;
@@ -123,6 +133,7 @@ message DeltaLogMessage {
   }
 }
 
+// Protocol for Delta response.
 message ProtocolDelta {
   // The minimum version of the protocol that a client must implement
   // in order to correctly read a Delta Lake table.
@@ -131,6 +142,7 @@ message ProtocolDelta {
   int32 min_writer_version = 2;
 }
 
+// Metadata for Delta response.
 message MetadatDelta {
   // Metadata from Delta protocol
   Metadata delta_metadata = 1;

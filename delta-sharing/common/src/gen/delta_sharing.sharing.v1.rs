@@ -46,6 +46,10 @@ pub struct SharingTable {
     #[prost(string, optional, tag="5")]
     pub share_id: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// A share in a delta sharing service.
+///
+/// A share is a logical grouping to share with recipients.
+/// It may contain multiple schemas and tables.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ShareInfo {
@@ -58,22 +62,33 @@ pub struct ShareInfo {
     #[prost(message, optional, tag="4")]
     pub properties: ::core::option::Option<::pbjson_types::Struct>,
 }
+/// A schema in a delta sharing service.
+///
+/// A schema is a logical grouping of tables.
+/// It may contain multiple tables.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SharingSchemaInfo {
+    /// Unique identifier for the schema.
     #[prost(string, tag="1")]
     pub id: ::prost::alloc::string::String,
+    /// The name of the schema.
     #[prost(string, tag="2")]
     pub name: ::prost::alloc::string::String,
+    /// The share name that the schema belongs to.
     #[prost(string, tag="3")]
     pub share: ::prost::alloc::string::String,
+    /// The unique identifier for the share this schema belongs to.
     #[prost(string, optional, tag="4")]
     pub share_id: ::core::option::Option<::prost::alloc::string::String>,
+    /// User-provided free-form text description.
     #[prost(string, optional, tag="5")]
     pub description: ::core::option::Option<::prost::alloc::string::String>,
+    /// A map of key-value properties attached to the securable.
     #[prost(message, optional, tag="6")]
     pub properties: ::core::option::Option<::pbjson_types::Struct>,
 }
+/// File format for data files in a table
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Format {
@@ -84,6 +99,7 @@ pub struct Format {
     #[prost(map="string, string", tag="2")]
     pub options: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
 }
+/// Metadata for a table
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Metadata {
@@ -113,6 +129,7 @@ pub struct Metadata {
     #[prost(map="string, string", tag="8")]
     pub options: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
 }
+/// Get the version of a table.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetTableVersionRequest {
@@ -131,6 +148,7 @@ pub struct GetTableVersionRequest {
     #[prost(string, optional, tag="4")]
     pub starting_timestamp: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Response for GetTableVersionRequest.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GetTableVersionResponse {
@@ -138,6 +156,7 @@ pub struct GetTableVersionResponse {
     #[prost(int64, tag="1")]
     pub version: i64,
 }
+/// Get metadata of a table.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetTableMetadataRequest {
@@ -151,6 +170,7 @@ pub struct GetTableMetadataRequest {
     #[prost(string, tag="3")]
     pub schema: ::prost::alloc::string::String,
 }
+/// Response for a query against a table.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct QueryResponse {
@@ -170,12 +190,14 @@ pub mod query_response {
         Delta(super::DeltaResponse),
     }
 }
+/// Response for a query against a table in Parquet format.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ParquetResponse {
     #[prost(message, repeated, tag="1")]
     pub entries: ::prost::alloc::vec::Vec<ParquetLogMessage>,
 }
+/// Log message for Parquet response.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ParquetLogMessage {
@@ -193,6 +215,7 @@ pub mod parquet_log_message {
         Metadata(super::MetadataParquet),
     }
 }
+/// Protocol for Parquet response.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ProtocolParquet {
@@ -201,6 +224,7 @@ pub struct ProtocolParquet {
     #[prost(int32, tag="1")]
     pub min_reader_version: i32,
 }
+/// Metadata for Parquet response.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MetadataParquet {
@@ -223,12 +247,14 @@ pub struct MetadataParquet {
     #[prost(string, repeated, tag="6")]
     pub partition_columns: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
+/// Response for a query against a table in Delta format.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeltaResponse {
     #[prost(message, repeated, tag="1")]
     pub entries: ::prost::alloc::vec::Vec<DeltaLogMessage>,
 }
+/// Log message for Delta response.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeltaLogMessage {
@@ -246,6 +272,7 @@ pub mod delta_log_message {
         Metadata(super::MetadatDelta),
     }
 }
+/// Protocol for Delta response.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct ProtocolDelta {
@@ -256,6 +283,7 @@ pub struct ProtocolDelta {
     #[prost(int32, tag="2")]
     pub min_writer_version: i32,
 }
+/// Metadata for Delta response.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MetadatDelta {
@@ -274,6 +302,7 @@ pub struct MetadatDelta {
     #[prost(int64, optional, tag="4")]
     pub num_files: ::core::option::Option<i64>,
 }
+/// Request to list shares.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSharesRequest {
@@ -285,6 +314,7 @@ pub struct ListSharesRequest {
     #[prost(string, optional, tag="2")]
     pub page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Response for ListSharesRequest.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSharesResponse {
@@ -296,6 +326,7 @@ pub struct ListSharesResponse {
     #[prost(string, optional, tag="2")]
     pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Get a share by name.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetShareRequest {
@@ -303,6 +334,7 @@ pub struct GetShareRequest {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
 }
+/// List schemas in a share.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSharingSchemasRequest {
@@ -317,6 +349,7 @@ pub struct ListSharingSchemasRequest {
     #[prost(string, optional, tag="3")]
     pub page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Response for ListSharingSchemasRequest.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSharingSchemasResponse {
@@ -328,6 +361,7 @@ pub struct ListSharingSchemasResponse {
     #[prost(string, optional, tag="2")]
     pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// List tables in a schema.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSchemaTablesRequest {
@@ -345,6 +379,7 @@ pub struct ListSchemaTablesRequest {
     #[prost(string, optional, tag="4")]
     pub page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Response for ListSchemaTablesRequest.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListSchemaTablesResponse {
@@ -356,6 +391,7 @@ pub struct ListSchemaTablesResponse {
     #[prost(string, optional, tag="2")]
     pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// List tables in a share.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListShareTablesRequest {
@@ -370,6 +406,7 @@ pub struct ListShareTablesRequest {
     #[prost(string, optional, tag="3")]
     pub page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Response for ListShareTablesRequest.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ListShareTablesResponse {
@@ -381,18 +418,21 @@ pub struct ListShareTablesResponse {
     #[prost(string, optional, tag="2")]
     pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// Create a new Share in the Delta Sharing service.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateShareRequest {
     #[prost(message, optional, tag="1")]
     pub share: ::core::option::Option<ShareInfo>,
 }
+/// Delete a Share in the Delta Sharing service.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteShareRequest {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
 }
+/// Create a new Schema in the Delta Sharing service.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateSharingSchemaRequest {
@@ -401,6 +441,7 @@ pub struct CreateSharingSchemaRequest {
     #[prost(message, optional, tag="2")]
     pub schema: ::core::option::Option<SharingSchemaInfo>,
 }
+/// Delete a Schema in the Delta Sharing service.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteSharingSchemaRequest {
