@@ -248,10 +248,7 @@ paths:
       responses:
         '200':
           description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Credential'
+          content: {}
         default:
           description: Default error response
           content:
@@ -513,10 +510,7 @@ paths:
       responses:
         '200':
           description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SchemaInfo'
+          content: {}
         default:
           description: Default error response
           content:
@@ -601,10 +595,7 @@ paths:
       responses:
         '200':
           description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ShareInfo'
+          content: {}
         default:
           description: Default error response
           content:

@@ -414,7 +414,7 @@ pub mod delta_sharing_extension_service_client {
         pub async fn delete_share(
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteShareRequest>,
-        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
             self.inner
                 .ready()
                 .await

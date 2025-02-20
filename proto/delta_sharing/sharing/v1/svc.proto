@@ -8,6 +8,7 @@ import "delta_sharing/sharing/v1/query.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
 import "openapiv3/annotations.proto";
 
 option (openapi.v3.document) = {
@@ -318,7 +319,7 @@ service DeltaSharingExtensionService {
   }
 
   // Delete a Share in the Delta Sharing service.
-  rpc DeleteShare(DeleteShareRequest) returns (ShareInfo) {
+  rpc DeleteShare(DeleteShareRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/shares/{name}"};
     option (openapi.v3.operation) = {
       tags: [

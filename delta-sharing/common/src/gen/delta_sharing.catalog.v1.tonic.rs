@@ -50,7 +50,7 @@ pub mod catalog_service_server {
         async fn delete_schema(
             &self,
             request: tonic::Request<super::DeleteSchemaRequest>,
-        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status>;
         /** Get a Schema
 */
         async fn get_schema(
@@ -428,7 +428,7 @@ pub mod catalog_service_server {
                         T: CatalogService,
                     > tonic::server::UnaryService<super::DeleteSchemaRequest>
                     for DeleteSchemaSvc<T> {
-                        type Response = super::SchemaInfo;
+                        type Response = ();
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,

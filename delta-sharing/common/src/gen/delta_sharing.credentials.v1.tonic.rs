@@ -20,7 +20,7 @@ pub mod credential_service_server {
         async fn delete_credential(
             &self,
             request: tonic::Request<super::DeleteCredentialRequest>,
-        ) -> std::result::Result<tonic::Response<super::Credential>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status>;
         ///
         async fn create_storage_location(
             &self,
@@ -223,7 +223,7 @@ pub mod credential_service_server {
                         T: CredentialService,
                     > tonic::server::UnaryService<super::DeleteCredentialRequest>
                     for DeleteCredentialSvc<T> {
-                        type Response = super::Credential;
+                        type Response = ();
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,

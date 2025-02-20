@@ -147,7 +147,7 @@ pub mod credential_service_client {
         pub async fn delete_credential(
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteCredentialRequest>,
-        ) -> std::result::Result<tonic::Response<super::Credential>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
             self.inner
                 .ready()
                 .await

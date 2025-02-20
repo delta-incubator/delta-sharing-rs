@@ -204,7 +204,7 @@ service CatalogService {
   }
 
   // Delete a Schema
-  rpc DeleteSchema(DeleteSchemaRequest) returns (SchemaInfo) {
+  rpc DeleteSchema(DeleteSchemaRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/schemas/{name}"};
     option (openapi.v3.operation) = {
       tags: [

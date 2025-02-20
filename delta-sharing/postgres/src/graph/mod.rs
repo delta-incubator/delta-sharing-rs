@@ -62,13 +62,13 @@ pub struct Association {
     id: Uuid,
 
     /// Source object identifier.
-    pub from_id: uuid::Uuid,
+    pub from_id: Uuid,
 
     /// The label / type of the association.
     pub label: AssociationLabel,
 
     /// Target object identifier.
-    pub to_id: uuid::Uuid,
+    pub to_id: Uuid,
 
     /// The label / type of the target object.
     pub to_label: ObjectLabel,
