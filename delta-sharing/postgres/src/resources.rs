@@ -1,4 +1,5 @@
 use std::vec;
+use uuid::Uuid;
 
 use delta_sharing_common::models::catalog::v1 as catalog;
 use delta_sharing_common::models::credentials::v1 as credentials;
@@ -48,7 +49,7 @@ impl TryFrom<sharing::ShareInfo> for Object {
 
     fn try_from(share: sharing::ShareInfo) -> Result<Self, Self::Error> {
         Ok(Object {
-            id: uuid::Uuid::parse_str(&share.id).unwrap_or_else(|_| uuid::Uuid::nil()),
+            id: Uuid::parse_str(&share.id).unwrap_or_else(|_| Uuid::nil()),
             namespace: vec![],
             name: share.name,
             label: ObjectLabel::ShareInfo,
@@ -66,7 +67,7 @@ impl TryFrom<sharing::SharingSchemaInfo> for Object {
 
     fn try_from(schema: sharing::SharingSchemaInfo) -> Result<Self, Self::Error> {
         Ok(Object {
-            id: uuid::Uuid::parse_str(&schema.id).unwrap_or_else(|_| uuid::Uuid::nil()),
+            id: Uuid::parse_str(&schema.id).unwrap_or_else(|_| Uuid::nil()),
             namespace: vec![schema.share],
             name: schema.name,
             label: ObjectLabel::SharingSchemaInfo,
@@ -86,8 +87,8 @@ impl TryFrom<sharing::SharingTable> for Object {
         Ok(Object {
             id: table
                 .id
-                .and_then(|id| uuid::Uuid::parse_str(&id).ok())
-                .unwrap_or_else(uuid::Uuid::nil),
+                .and_then(|id| Uuid::parse_str(&id).ok())
+                .unwrap_or_else(Uuid::nil),
             namespace: vec![table.share, table.schema],
             name: table.name,
             label: ObjectLabel::SharingTable,
@@ -111,7 +112,7 @@ impl TryFrom<credentials::StorageLocation> for Object {
         props.insert("type".to_string(), storage_location.r#type.into());
 
         Ok(Object {
-            id: uuid::Uuid::parse_str(&storage_location.id).unwrap_or_else(|_| uuid::Uuid::nil()),
+            id: Uuid::parse_str(&storage_location.id).unwrap_or_else(|_| Uuid::nil()),
             namespace: vec![],
             name: storage_location.name,
             label: ObjectLabel::StorageLocation,
@@ -129,8 +130,8 @@ impl TryFrom<catalog::CatalogInfo> for Object {
         Ok(Object {
             id: catalog
                 .id
-                .and_then(|id| uuid::Uuid::parse_str(&id).ok())
-                .unwrap_or_else(uuid::Uuid::nil),
+                .and_then(|id| Uuid::parse_str(&id).ok())
+                .unwrap_or_else(Uuid::nil),
             namespace: vec![],
             name: catalog.name,
             label: ObjectLabel::CatalogInfo,
@@ -150,8 +151,8 @@ impl TryFrom<catalog::SchemaInfo> for Object {
         Ok(Object {
             id: schema
                 .schema_id
-                .and_then(|id| uuid::Uuid::parse_str(&id).ok())
-                .unwrap_or_else(uuid::Uuid::nil),
+                .and_then(|id| Uuid::parse_str(&id).ok())
+                .unwrap_or_else(Uuid::nil),
             namespace: vec![schema.catalog_name],
             name: schema.name,
             label: ObjectLabel::SchemaInfo,
@@ -171,8 +172,8 @@ impl TryFrom<tables::TableInfo> for Object {
         Ok(Object {
             id: table
                 .table_id
-                .and_then(|id| uuid::Uuid::parse_str(&id).ok())
-                .unwrap_or_else(uuid::Uuid::nil),
+                .and_then(|id| Uuid::parse_str(&id).ok())
+                .unwrap_or_else(Uuid::nil),
             namespace: vec![table.catalog_name, table.schema_name],
             name: table.name,
             label: ObjectLabel::TableInfo,

@@ -235,21 +235,21 @@ impl<T: ResourceStore> SharingRepository for T {
         };
         let (schema, schema_ref) = self.create(schema_info.into()).await?;
         let from = ResourceIdent::Share(share.clone());
-        let to = ResourceIdent::Schema(schema_ref);
+        let to = ResourceIdent::SharingSchema(schema_ref);
         self.add_association(&from, &to, &AssociationLabel::ParentOf, None)
             .await?;
         schema.try_into()
     }
 
     async fn get_schema(&self, id: &ResourceRef) -> Result<SharingSchemaInfo> {
-        self.get(&ResourceIdent::Schema(id.clone()))
+        self.get(&ResourceIdent::SharingSchema(id.clone()))
             .await?
             .0
             .try_into()
     }
 
     async fn delete_schema(&self, id: &ResourceRef) -> Result<()> {
-        self.delete(&ResourceIdent::Schema(id.clone())).await
+        self.delete(&ResourceIdent::SharingSchema(id.clone())).await
     }
 
     async fn list_schemas(
@@ -263,7 +263,7 @@ impl<T: ResourceStore> SharingRepository for T {
             .list_associations(
                 &ident,
                 &AssociationLabel::ParentOf,
-                Some(&ResourceIdent::Schema(ResourceRef::Undefined)),
+                Some(&ResourceIdent::SharingSchema(ResourceRef::Undefined)),
                 max_results,
                 page_token,
             )

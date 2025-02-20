@@ -1,6 +1,7 @@
 use paste::paste;
 use serde::Serialize;
 use sharing::v1::{ShareInfo, SharingSchemaInfo};
+use uuid::Uuid;
 
 use crate::{
     policy::{AsResource, ResourceIdent},
@@ -90,7 +91,7 @@ impl AsResource for Share {
     fn as_resource(&self) -> ResourceIdent {
         self.id
             .as_ref()
-            .and_then(|id| uuid::Uuid::parse_str(id).ok().map(ResourceIdent::share))
+            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::share))
             .unwrap_or_else(|| ResourceIdent::share(&self.name))
     }
 }

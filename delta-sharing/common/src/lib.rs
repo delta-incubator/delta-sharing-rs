@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
+use uuid::Uuid;
 
 pub mod error;
 #[cfg(feature = "grpc")]
@@ -57,7 +58,7 @@ impl Recipient {
 /// Unique identifier for a resource.
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum ResourceRef {
-    Uuid(uuid::Uuid),
+    Uuid(Uuid),
     Name(Vec<String>, String),
     /// Not referencing a specific resource.
     ///
@@ -83,14 +84,14 @@ impl std::fmt::Display for ResourceRef {
     }
 }
 
-impl From<uuid::Uuid> for ResourceRef {
-    fn from(val: uuid::Uuid) -> Self {
+impl From<Uuid> for ResourceRef {
+    fn from(val: Uuid) -> Self {
         Self::Uuid(val)
     }
 }
 
-impl From<&uuid::Uuid> for ResourceRef {
-    fn from(val: &uuid::Uuid) -> Self {
+impl From<&Uuid> for ResourceRef {
+    fn from(val: &Uuid) -> Self {
         Self::Uuid(*val)
     }
 }

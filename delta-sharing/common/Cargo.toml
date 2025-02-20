@@ -31,11 +31,11 @@ paste = "1.0"
 
 # in-memory handler dependencies (in alphabetical order)
 dashmap = { version = "6", optional = true }
-uuid = { version = "1.8", optional = true, features = ["v5"] }
+uuid = { version = "1.8", features = ["v5"] }
 
 # axum handler dependencies (in alphabetical order)
 axum = { version = "0.8", optional = true }
-futures-util = { version = "0.3.28", optional = true }
+futures-util = { version = "0.3.28" }
 itertools = "0.14.0"
 sqlx = { version = "0.8", optional = true, features = [
     "uuid",
@@ -48,11 +48,12 @@ sqlx = { version = "0.8", optional = true, features = [
 tokio = { version = "1", features = ["full"] }
 serde_json = "*"
 testutils = { path = "../../testutils" }
+uuid = { version = "1.8", features = ["v4"] }
 
 [features]
 default = ["memory", "axum", "grpc"]
-memory = ["dashmap", "uuid"]
-axum = ["dep:axum", "http", "futures-util", "tower"]
+memory = ["dashmap", "uuid/v5"]
+axum = ["dep:axum", "http", "tower"]
 
 # The grpc features provides implementations to support
 # building a gPRC servers and clients.
