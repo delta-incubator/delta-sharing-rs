@@ -298,7 +298,8 @@ impl TryFrom<Object> for sharing::SharingTable {
             .cloned()
             .ok_or_else(|| Error::generic("Table must have a schema as a parent resource"))?;
         let share = object
-            .namespace.first()
+            .namespace
+            .first()
             .cloned()
             .ok_or_else(|| Error::generic("Table must have a share as a parent resource"))?;
         Ok(sharing::SharingTable {
