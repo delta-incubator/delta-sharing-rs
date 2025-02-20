@@ -1,6 +1,6 @@
 use axum::body::Body;
 use axum::Router;
-use delta_sharing_common::models::v1::*;
+use delta_sharing_common::models::sharing::v1::*;
 use delta_sharing_common::rest::get_sharing_router;
 use delta_sharing_common::Result;
 
@@ -164,7 +164,7 @@ async fn test_list_schemas() {
     assert!(response.status().is_success());
 
     let body = response.into_body().collect().await.unwrap().to_bytes();
-    let result = serde_json::from_slice::<ListSchemasResponse>(&body).unwrap();
+    let result = serde_json::from_slice::<ListSharingSchemasResponse>(&body).unwrap();
     assert_eq!(result.items.len(), 1);
 }
 

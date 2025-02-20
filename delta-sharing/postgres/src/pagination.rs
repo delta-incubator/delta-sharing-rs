@@ -73,17 +73,18 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use uuid::Uuid;
 
     #[test]
     fn test_paginate_token() {
         let created_at = Utc::now();
         let token = PaginateToken::V1(V1PaginateToken {
             created_at,
-            id: uuid::Uuid::nil(),
+            id: Uuid::nil(),
         });
 
         let token_str = token.to_string();
-        let token: PaginateToken<uuid::Uuid> = PaginateToken::try_from(token_str.as_str()).unwrap();
+        let token: PaginateToken<Uuid> = PaginateToken::try_from(token_str.as_str()).unwrap();
         // we lose some precision while serializing the timestamp making tests flaky
         let created_at =
             chrono::DateTime::from_timestamp_micros(created_at.timestamp_micros()).unwrap();
@@ -91,7 +92,7 @@ mod test {
             token,
             PaginateToken::V1(V1PaginateToken {
                 created_at,
-                id: uuid::Uuid::nil(),
+                id: Uuid::nil(),
             })
         );
     }

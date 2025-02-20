@@ -16,10 +16,12 @@
             "name": "object_label",
             "kind": {
               "Enum": [
-                "share",
-                "schema",
+                "delta_share",
+                "delta_schema",
                 "table",
-                "principal"
+                "principal",
+                "credential",
+                "storage_location"
               ]
             }
           }

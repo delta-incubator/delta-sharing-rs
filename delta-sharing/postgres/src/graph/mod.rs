@@ -1,3 +1,5 @@
+use delta_sharing_common::models::internal::resource::ObjectLabel;
+use delta_sharing_common::{AssociationLabel, ResourceIdent, ResourceRef};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -5,17 +7,6 @@ mod sharing;
 mod store;
 
 pub use store::Store as GraphStore;
-
-// IMPORTANT: Any changes to the schema must be reflected in the migrations.
-#[derive(Debug, Clone, Deserialize, Serialize, sqlx::Type, PartialEq)]
-#[sqlx(type_name = "object_label", rename_all = "snake_case")]
-#[serde(rename_all = "snake_case")]
-pub enum ObjectLabel {
-    Share,
-    Schema,
-    Table,
-    Principal,
-}
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, sqlx::FromRow)]
 pub struct Object {
@@ -43,32 +34,29 @@ pub struct Object {
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
-// IMPORTANT: Any changes to the schema must be reflected in the migrations.
-#[derive(Debug, Clone, Deserialize, Serialize, sqlx::Type, PartialEq)]
-#[sqlx(type_name = "association_label", rename_all = "snake_case")]
-#[serde(rename_all = "snake_case")]
-pub enum AssociationLabel {
-    HasPart,
-    PartOf,
-    Created,
-    CreatedBy,
+pub struct ObjectRelations {
+    pub owner: Option<Uuid>,
+    pub created_by: Option<Uuid>,
+    pub updated_by: Option<Uuid>,
 }
 
-impl AssociationLabel {
-    /// Get the inverse of the association label.
-    ///
-    /// Associations may be bidirectional, either symetric or asymetric.
-    /// Symmetric types are their own inverse. Asymmetric types have a distinct inverse.
-    pub fn inverse(&self) -> Option<Self> {
-        match self {
-            AssociationLabel::HasPart => Some(AssociationLabel::PartOf),
-            AssociationLabel::PartOf => Some(AssociationLabel::HasPart),
-            AssociationLabel::Created => Some(AssociationLabel::CreatedBy),
-            AssociationLabel::CreatedBy => Some(AssociationLabel::Created),
+impl Object {
+    pub fn resource_ident(&self) -> ResourceIdent {
+        let id = ResourceRef::Uuid(self.id);
+        match self.label {
+            ObjectLabel::ShareInfo => ResourceIdent::Share(id),
+            ObjectLabel::SharingSchemaInfo => ResourceIdent::Schema(id),
+            ObjectLabel::SharingTable => ResourceIdent::SharingTable(id),
+            ObjectLabel::Credential => ResourceIdent::Credential(id),
+            ObjectLabel::StorageLocation => ResourceIdent::StorageLocation(id),
+            ObjectLabel::CatalogInfo => ResourceIdent::Catalog(id),
+            ObjectLabel::SchemaInfo => ResourceIdent::Schema(id),
+            ObjectLabel::TableInfo => ResourceIdent::Table(id),
         }
     }
 }
 
+/// Associations describe relationships between two objects.
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow, PartialEq)]
 pub struct Association {
     id: Uuid,
@@ -82,6 +70,9 @@ pub struct Association {
     /// Target object identifier.
     pub to_id: uuid::Uuid,
 
+    /// The label / type of the target object.
+    pub to_label: ObjectLabel,
+
     /// The properties of the association.
     pub properties: Option<serde_json::Value>,
 
@@ -90,4 +81,14 @@ pub struct Association {
 
     /// The time when the association was last updated.
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+impl Association {
+    pub fn target_ident(&self) -> ResourceIdent {
+        self.to_label.to_ident(ResourceRef::Uuid(self.to_id))
+    }
+
+    pub fn target_ref(&self) -> ResourceRef {
+        ResourceRef::Uuid(self.to_id)
+    }
 }

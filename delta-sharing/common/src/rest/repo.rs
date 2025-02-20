@@ -4,14 +4,11 @@ use axum::{
     Json, Router,
 };
 
-use crate::models::catalog::v1::*;
+use crate::models::sharing::v1::*;
 use crate::{Recipient, RepositoryManager, Result};
 
 /// Create a new [Router] for the Delta Sharing REST API.
-pub fn get_router<T>(handler: T) -> Router
-where
-    T: RepositoryManager + Clone,
-{
+pub fn get_router<T: RepositoryManager + Clone>(handler: T) -> Router {
     Router::new()
         .route("/shares", post(create_share::<T>))
         .route("/shares/{share}", delete(delete_share::<T>))
@@ -41,8 +38,8 @@ async fn delete_share<T: RepositoryManager>(
 async fn create_schema<T: RepositoryManager>(
     State(handler): State<T>,
     Extension(recipient): Extension<Recipient>,
-    request: CreateSchemaRequest,
-) -> Result<Json<SchemaInfo>> {
+    request: CreateSharingSchemaRequest,
+) -> Result<Json<SharingSchemaInfo>> {
     let schema = handler.create_schema(request, &recipient).await?;
     Ok(Json(schema))
 }
@@ -50,7 +47,7 @@ async fn create_schema<T: RepositoryManager>(
 async fn delete_schema<T: RepositoryManager>(
     State(handler): State<T>,
     Extension(recipient): Extension<Recipient>,
-    request: DeleteSchemaRequest,
+    request: DeleteSharingSchemaRequest,
 ) -> Result<Json<()>> {
     handler.delete_schema(request, &recipient).await?;
     Ok(Json(()))

@@ -6,32 +6,75 @@ pub mod catalog_service_server {
     /// Generated trait containing gRPC methods that should be implemented for use with CatalogServiceServer.
     #[async_trait]
     pub trait CatalogService: Send + Sync + 'static {
-        /** Create a new Share in the Delta Sharing service.
+        /** Create a new catalog
 */
-        async fn create_share(
+        async fn create_catalog(
             &self,
-            request: tonic::Request<super::CreateShareRequest>,
-        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status>;
-        /** Delete a Share in the Delta Sharing service.
+            request: tonic::Request<super::CreateCatalogRequest>,
+        ) -> std::result::Result<tonic::Response<super::CatalogInfo>, tonic::Status>;
+        /** Get a catalog
 */
-        async fn delete_share(
+        async fn get_catalog(
             &self,
-            request: tonic::Request<super::DeleteShareRequest>,
-        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status>;
-        /** Create a new Schema in the Delta Sharing service.
+            request: tonic::Request<super::GetCatalogRequest>,
+        ) -> std::result::Result<tonic::Response<super::CatalogInfo>, tonic::Status>;
+        /** List catalogs
+*/
+        async fn list_catalogs(
+            &self,
+            request: tonic::Request<super::ListCatalogsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListCatalogsResponse>,
+            tonic::Status,
+        >;
+        /** Delete a catalog
+*/
+        async fn delete_catalog(
+            &self,
+            request: tonic::Request<super::DeleteCatalogRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status>;
+        /** Update a catalog
+*/
+        async fn update_catalog(
+            &self,
+            request: tonic::Request<super::UpdateCatalogRequest>,
+        ) -> std::result::Result<tonic::Response<super::CatalogInfo>, tonic::Status>;
+        /** Create a new Schema
 */
         async fn create_schema(
             &self,
             request: tonic::Request<super::CreateSchemaRequest>,
         ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
-        /** Delete a Schema in the Delta Sharing service.
+        /** Delete a Schema
 */
         async fn delete_schema(
             &self,
             request: tonic::Request<super::DeleteSchemaRequest>,
         ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
+        /** Get a Schema
+*/
+        async fn get_schema(
+            &self,
+            request: tonic::Request<super::GetSchemaRequest>,
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
+        /** List Schemas
+*/
+        async fn list_schemas(
+            &self,
+            request: tonic::Request<super::ListSchemasRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListSchemasResponse>,
+            tonic::Status,
+        >;
+        /** Update a Schema
+*/
+        async fn update_schema(
+            &self,
+            request: tonic::Request<super::UpdateSchemaRequest>,
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
     }
-    ///
+    /** Manage catalogs and schemas in the service.
+*/
     #[derive(Debug)]
     pub struct CatalogServiceServer<T: CatalogService> {
         inner: Arc<T>,
@@ -108,25 +151,25 @@ pub mod catalog_service_server {
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             match req.uri().path() {
-                "/delta_sharing.catalog.v1.CatalogService/CreateShare" => {
+                "/delta_sharing.catalog.v1.CatalogService/CreateCatalog" => {
                     #[allow(non_camel_case_types)]
-                    struct CreateShareSvc<T: CatalogService>(pub Arc<T>);
+                    struct CreateCatalogSvc<T: CatalogService>(pub Arc<T>);
                     impl<
                         T: CatalogService,
-                    > tonic::server::UnaryService<super::CreateShareRequest>
-                    for CreateShareSvc<T> {
-                        type Response = super::ShareInfo;
+                    > tonic::server::UnaryService<super::CreateCatalogRequest>
+                    for CreateCatalogSvc<T> {
+                        type Response = super::CatalogInfo;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::CreateShareRequest>,
+                            request: tonic::Request<super::CreateCatalogRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as CatalogService>::create_share(&inner, request).await
+                                <T as CatalogService>::create_catalog(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -137,7 +180,7 @@ pub mod catalog_service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let method = CreateShareSvc(inner);
+                        let method = CreateCatalogSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -153,25 +196,25 @@ pub mod catalog_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/delta_sharing.catalog.v1.CatalogService/DeleteShare" => {
+                "/delta_sharing.catalog.v1.CatalogService/GetCatalog" => {
                     #[allow(non_camel_case_types)]
-                    struct DeleteShareSvc<T: CatalogService>(pub Arc<T>);
+                    struct GetCatalogSvc<T: CatalogService>(pub Arc<T>);
                     impl<
                         T: CatalogService,
-                    > tonic::server::UnaryService<super::DeleteShareRequest>
-                    for DeleteShareSvc<T> {
-                        type Response = super::ShareInfo;
+                    > tonic::server::UnaryService<super::GetCatalogRequest>
+                    for GetCatalogSvc<T> {
+                        type Response = super::CatalogInfo;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::DeleteShareRequest>,
+                            request: tonic::Request<super::GetCatalogRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as CatalogService>::delete_share(&inner, request).await
+                                <T as CatalogService>::get_catalog(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -182,7 +225,142 @@ pub mod catalog_service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let method = DeleteShareSvc(inner);
+                        let method = GetCatalogSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.catalog.v1.CatalogService/ListCatalogs" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListCatalogsSvc<T: CatalogService>(pub Arc<T>);
+                    impl<
+                        T: CatalogService,
+                    > tonic::server::UnaryService<super::ListCatalogsRequest>
+                    for ListCatalogsSvc<T> {
+                        type Response = super::ListCatalogsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListCatalogsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as CatalogService>::list_catalogs(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ListCatalogsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.catalog.v1.CatalogService/DeleteCatalog" => {
+                    #[allow(non_camel_case_types)]
+                    struct DeleteCatalogSvc<T: CatalogService>(pub Arc<T>);
+                    impl<
+                        T: CatalogService,
+                    > tonic::server::UnaryService<super::DeleteCatalogRequest>
+                    for DeleteCatalogSvc<T> {
+                        type Response = ();
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::DeleteCatalogRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as CatalogService>::delete_catalog(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = DeleteCatalogSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.catalog.v1.CatalogService/UpdateCatalog" => {
+                    #[allow(non_camel_case_types)]
+                    struct UpdateCatalogSvc<T: CatalogService>(pub Arc<T>);
+                    impl<
+                        T: CatalogService,
+                    > tonic::server::UnaryService<super::UpdateCatalogRequest>
+                    for UpdateCatalogSvc<T> {
+                        type Response = super::CatalogInfo;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::UpdateCatalogRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as CatalogService>::update_catalog(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = UpdateCatalogSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -273,6 +451,141 @@ pub mod catalog_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = DeleteSchemaSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.catalog.v1.CatalogService/GetSchema" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetSchemaSvc<T: CatalogService>(pub Arc<T>);
+                    impl<
+                        T: CatalogService,
+                    > tonic::server::UnaryService<super::GetSchemaRequest>
+                    for GetSchemaSvc<T> {
+                        type Response = super::SchemaInfo;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetSchemaRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as CatalogService>::get_schema(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetSchemaSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.catalog.v1.CatalogService/ListSchemas" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListSchemasSvc<T: CatalogService>(pub Arc<T>);
+                    impl<
+                        T: CatalogService,
+                    > tonic::server::UnaryService<super::ListSchemasRequest>
+                    for ListSchemasSvc<T> {
+                        type Response = super::ListSchemasResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListSchemasRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as CatalogService>::list_schemas(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ListSchemasSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.catalog.v1.CatalogService/UpdateSchema" => {
+                    #[allow(non_camel_case_types)]
+                    struct UpdateSchemaSvc<T: CatalogService>(pub Arc<T>);
+                    impl<
+                        T: CatalogService,
+                    > tonic::server::UnaryService<super::UpdateSchemaRequest>
+                    for UpdateSchemaSvc<T> {
+                        type Response = super::SchemaInfo;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::UpdateSchemaRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as CatalogService>::update_schema(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = UpdateSchemaSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

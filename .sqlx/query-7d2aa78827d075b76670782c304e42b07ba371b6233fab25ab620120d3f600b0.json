@@ -1,0 +1,50 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO associations ( from_id, label, to_id, to_label, properties )\n                VALUES ( $1, $2, $3, $4, $5 )\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "association_label",
+            "kind": {
+              "Enum": [
+                "owned_by",
+                "owner_of",
+                "depends_on",
+                "dependency_of",
+                "parent_of",
+                "child_of",
+                "has_part",
+                "part_of",
+                "references",
+                "referenced_by"
+              ]
+            }
+          }
+        },
+        "Uuid",
+        {
+          "Custom": {
+            "name": "object_label",
+            "kind": {
+              "Enum": [
+                "delta_share",
+                "delta_schema",
+                "table",
+                "principal",
+                "credential",
+                "storage_location"
+              ]
+            }
+          }
+        },
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7d2aa78827d075b76670782c304e42b07ba371b6233fab25ab620120d3f600b0"
+}

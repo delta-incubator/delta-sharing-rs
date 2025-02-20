@@ -4,7 +4,8 @@ pub mod catalog_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
-    ///
+    /** Manage catalogs and schemas in the service.
+*/
     #[derive(Debug, Clone)]
     pub struct CatalogServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -85,12 +86,12 @@ pub mod catalog_service_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        /** Create a new Share in the Delta Sharing service.
+        /** Create a new catalog
 */
-        pub async fn create_share(
+        pub async fn create_catalog(
             &mut self,
-            request: impl tonic::IntoRequest<super::CreateShareRequest>,
-        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status> {
+            request: impl tonic::IntoRequest<super::CreateCatalogRequest>,
+        ) -> std::result::Result<tonic::Response<super::CatalogInfo>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -102,24 +103,24 @@ pub mod catalog_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.catalog.v1.CatalogService/CreateShare",
+                "/delta_sharing.catalog.v1.CatalogService/CreateCatalog",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
                         "delta_sharing.catalog.v1.CatalogService",
-                        "CreateShare",
+                        "CreateCatalog",
                     ),
                 );
             self.inner.unary(req, path, codec).await
         }
-        /** Delete a Share in the Delta Sharing service.
+        /** Get a catalog
 */
-        pub async fn delete_share(
+        pub async fn get_catalog(
             &mut self,
-            request: impl tonic::IntoRequest<super::DeleteShareRequest>,
-        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status> {
+            request: impl tonic::IntoRequest<super::GetCatalogRequest>,
+        ) -> std::result::Result<tonic::Response<super::CatalogInfo>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -131,19 +132,109 @@ pub mod catalog_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.catalog.v1.CatalogService/DeleteShare",
+                "/delta_sharing.catalog.v1.CatalogService/GetCatalog",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
                         "delta_sharing.catalog.v1.CatalogService",
-                        "DeleteShare",
+                        "GetCatalog",
                     ),
                 );
             self.inner.unary(req, path, codec).await
         }
-        /** Create a new Schema in the Delta Sharing service.
+        /** List catalogs
+*/
+        pub async fn list_catalogs(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListCatalogsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListCatalogsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.catalog.v1.CatalogService/ListCatalogs",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.catalog.v1.CatalogService",
+                        "ListCatalogs",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Delete a catalog
+*/
+        pub async fn delete_catalog(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteCatalogRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.catalog.v1.CatalogService/DeleteCatalog",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.catalog.v1.CatalogService",
+                        "DeleteCatalog",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Update a catalog
+*/
+        pub async fn update_catalog(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateCatalogRequest>,
+        ) -> std::result::Result<tonic::Response<super::CatalogInfo>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.catalog.v1.CatalogService/UpdateCatalog",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.catalog.v1.CatalogService",
+                        "UpdateCatalog",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Create a new Schema
 */
         pub async fn create_schema(
             &mut self,
@@ -172,7 +263,7 @@ pub mod catalog_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        /** Delete a Schema in the Delta Sharing service.
+        /** Delete a Schema
 */
         pub async fn delete_schema(
             &mut self,
@@ -197,6 +288,96 @@ pub mod catalog_service_client {
                     GrpcMethod::new(
                         "delta_sharing.catalog.v1.CatalogService",
                         "DeleteSchema",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Get a Schema
+*/
+        pub async fn get_schema(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetSchemaRequest>,
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.catalog.v1.CatalogService/GetSchema",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.catalog.v1.CatalogService",
+                        "GetSchema",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** List Schemas
+*/
+        pub async fn list_schemas(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListSchemasRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListSchemasResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.catalog.v1.CatalogService/ListSchemas",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.catalog.v1.CatalogService",
+                        "ListSchemas",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Update a Schema
+*/
+        pub async fn update_schema(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateSchemaRequest>,
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.catalog.v1.CatalogService/UpdateSchema",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.catalog.v1.CatalogService",
+                        "UpdateSchema",
                     ),
                 );
             self.inner.unary(req, path, codec).await

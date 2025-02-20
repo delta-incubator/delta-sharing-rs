@@ -1,0 +1,43 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id, label AS \"label: ObjectLabel\"\n            FROM objects\n            WHERE id = $1 OR id = $2\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "label: ObjectLabel",
+        "type_info": {
+          "Custom": {
+            "name": "object_label",
+            "kind": {
+              "Enum": [
+                "delta_share",
+                "delta_schema",
+                "table",
+                "principal",
+                "credential",
+                "storage_location"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "0a462e30309516b3674cc732710a4af0d5d85ec60fcc45dc5fd52925524e32e0"
+}

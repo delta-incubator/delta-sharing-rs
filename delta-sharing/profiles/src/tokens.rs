@@ -24,7 +24,7 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation}
 use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
 
-use delta_sharing_common::{Error, Permission, Resource, Result};
+use delta_sharing_common::{Error, Permission, ResourceIdent, Result};
 
 /// A pair of encoding and decoding keys.
 #[derive(Clone)]
@@ -114,7 +114,7 @@ pub(crate) fn hmac_sha256(secret: impl AsRef<[u8]>, bytes: impl AsRef<[u8]>) -> 
 pub fn string_to_sign(
     url: &Url,
     permission: &Permission,
-    resource: &Resource,
+    resource: &ResourceIdent,
     start: &DateTime<Utc>,
     end: &DateTime<Utc>,
 ) -> (String, HashMap<&'static str, String>) {

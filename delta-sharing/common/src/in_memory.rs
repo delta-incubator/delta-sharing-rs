@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::error::{Error, Result};
-use crate::models::v1::*;
+use crate::models::sharing::v1::*;
 use crate::{DiscoveryHandler, ResourceRef, TableLocationResover};
 
 pub type DefaultInMemoryHandler = InMemoryHandler;
@@ -102,18 +102,21 @@ impl DiscoveryHandler for InMemoryHandler {
         }
     }
 
-    async fn list_schemas(&self, request: ListSchemasRequest) -> Result<ListSchemasResponse> {
+    async fn list_schemas(
+        &self,
+        request: ListSharingSchemasRequest,
+    ) -> Result<ListSharingSchemasResponse> {
         match self.shares.get(&request.share) {
             Some(schema_refs) => {
                 let schemas = schema_refs
                     .iter()
-                    .map(|schema_ref| Schema {
+                    .map(|schema_ref| SharingSchema {
                         name: schema_ref.clone(),
                         share: request.share.clone(),
                         id: None,
                     })
                     .collect();
-                Ok(ListSchemasResponse {
+                Ok(ListSharingSchemasResponse {
                     items: schemas,
                     next_page_token: None,
                 })
@@ -136,7 +139,7 @@ impl DiscoveryHandler for InMemoryHandler {
                 let tables = tables
                     .iter()
                     .flat_map(|table_ref| {
-                        self.tables.get(table_ref).map(|v| Table {
+                        self.tables.get(table_ref).map(|v| SharingTable {
                             id: Some(Uuid::new_v5(&share_id, v.name.as_bytes()).to_string()),
                             name: v.name.clone(),
                             share: request.share.clone(),
@@ -167,7 +170,7 @@ impl DiscoveryHandler for InMemoryHandler {
                         self.schemas.get(schema_ref).map(|v| {
                             v.iter()
                                 .flat_map(|table_ref| {
-                                    self.tables.get(table_ref).map(|v| Table {
+                                    self.tables.get(table_ref).map(|v| SharingTable {
                                         id: Some(
                                             Uuid::new_v5(&share_id, v.name.as_bytes()).to_string(),
                                         ),
@@ -260,7 +263,7 @@ mod tests {
         assert_eq!(share.name, "share1");
 
         let schemas = handler
-            .list_schemas(ListSchemasRequest {
+            .list_schemas(ListSharingSchemasRequest {
                 share: "share1".to_string(),
                 max_results: None,
                 page_token: None,

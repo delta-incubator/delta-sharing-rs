@@ -1,0 +1,132 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO associations ( from_id, label, to_id, to_label, properties )\n            VALUES ( $1, $2, $3, $4, $5 )\n            RETURNING\n                id,\n                from_id,\n                label AS \"label: AssociationLabel\",\n                to_id,\n                to_label as \"to_label: ObjectLabel\",\n                properties,\n                created_at,\n                updated_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "from_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "label: AssociationLabel",
+        "type_info": {
+          "Custom": {
+            "name": "association_label",
+            "kind": {
+              "Enum": [
+                "owned_by",
+                "owner_of",
+                "depends_on",
+                "dependency_of",
+                "parent_of",
+                "child_of",
+                "has_part",
+                "part_of",
+                "references",
+                "referenced_by"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "to_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "to_label: ObjectLabel",
+        "type_info": {
+          "Custom": {
+            "name": "object_label",
+            "kind": {
+              "Enum": [
+                "delta_share",
+                "delta_schema",
+                "table",
+                "principal",
+                "credential",
+                "storage_location"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "properties",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "association_label",
+            "kind": {
+              "Enum": [
+                "owned_by",
+                "owner_of",
+                "depends_on",
+                "dependency_of",
+                "parent_of",
+                "child_of",
+                "has_part",
+                "part_of",
+                "references",
+                "referenced_by"
+              ]
+            }
+          }
+        },
+        "Uuid",
+        {
+          "Custom": {
+            "name": "object_label",
+            "kind": {
+              "Enum": [
+                "delta_share",
+                "delta_schema",
+                "table",
+                "principal",
+                "credential",
+                "storage_location"
+              ]
+            }
+          }
+        },
+        "Jsonb"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "287fb239e6657215c585073bdd065c282136d192faa11079d15315fd8681d710"
+}

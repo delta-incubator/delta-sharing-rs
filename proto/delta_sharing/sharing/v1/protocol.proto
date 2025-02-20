@@ -1,9 +1,10 @@
 syntax = "proto3";
 
-package delta_sharing.v1;
+package delta_sharing.sharing.v1;
 
 import "buf/validate/validate.proto";
 
+// File format for data files in a table
 message Format {
   // Name of the encoding for files in this table
   string provider = 1;
@@ -12,6 +13,7 @@ message Format {
   map<string, string> options = 2;
 }
 
+// Metadata for a table
 message Metadata {
   // Unique identifier for this table
   // Validate GUID

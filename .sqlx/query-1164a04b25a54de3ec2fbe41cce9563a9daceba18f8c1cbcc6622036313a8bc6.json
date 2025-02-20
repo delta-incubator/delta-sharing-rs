@@ -11,10 +11,16 @@
             "name": "association_label",
             "kind": {
               "Enum": [
+                "owned_by",
+                "owner_of",
+                "depends_on",
+                "dependency_of",
+                "parent_of",
+                "child_of",
                 "has_part",
                 "part_of",
-                "created",
-                "created_by"
+                "references",
+                "referenced_by"
               ]
             }
           }

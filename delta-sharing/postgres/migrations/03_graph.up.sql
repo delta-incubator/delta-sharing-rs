@@ -1,4 +1,13 @@
-CREATE TYPE object_label AS ENUM ('share', 'schema', 'table', 'principal');
+CREATE TYPE object_label AS ENUM (
+    'share_info',
+    'sharing_schema_info',
+    'sharing_table',
+    'credential',
+    'storage_location',
+    'catalog_info',
+    'schema_info',
+    'table_info'
+);
 
 CREATE TABLE objects (
     id uuid primary key default uuidv7(),
@@ -14,8 +23,11 @@ select trigger_updated_at('objects');
 create index objects_label_index on objects (label, name);
 
 CREATE TYPE association_label AS ENUM (
+    'owned_by', 'owner_of',
+    'depends_on', 'dependency_of',
+    'parent_of', 'child_of',
     'has_part', 'part_of',
-    'created', 'created_by'
+    'references', 'referenced_by'
 );
 
 CREATE TABLE associations (
@@ -23,6 +35,7 @@ CREATE TABLE associations (
     from_id uuid not null references objects (id),
     label association_label not null,
     to_id uuid not null references objects (id),
+    to_label object_label not null,
     properties jsonb,
     created_at timestamptz not null default now(),
     updated_at timestamptz,

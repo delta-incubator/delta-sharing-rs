@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use delta_sharing_common::{ResourceIdent, ResourceRef};
 use sqlx::migrate::Migrator;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -7,6 +8,7 @@ use uuid::Uuid;
 use super::{Association, AssociationLabel, Object, ObjectLabel};
 use crate::constants::MAX_PAGE_SIZE;
 use crate::pagination::V1PaginateToken;
+use crate::resources::IdentRefs as _;
 use crate::{error::Result, pagination::PaginateToken};
 
 static MIGRATOR: Migrator = sqlx::migrate!();
@@ -29,6 +31,18 @@ impl Store {
     pub async fn migrate(&self) -> Result<()> {
         MIGRATOR.run(&*self.pool).await?;
         Ok(())
+    }
+
+    pub async fn ident_to_uuid(&self, reference: &ResourceIdent) -> Result<Uuid> {
+        let (label, ident) = reference.ident();
+        match ident {
+            ResourceRef::Uuid(id) => Ok(*id),
+            ResourceRef::Name(namespace, name) => {
+                let object = self.get_object_by_name(label, namespace, name).await?;
+                Ok(object.id)
+            }
+            ResourceRef::Undefined => Err(crate::Error::entity_not_found("undefined")),
+        }
     }
 
     /// Add an object to the store.
@@ -315,18 +329,41 @@ impl Store {
     ) -> Result<Association> {
         let mut txn = self.pool.begin().await?;
         let properties = properties.into();
+        let to_label = sqlx::query!(
+            r#"
+            SELECT id, label AS "label: ObjectLabel"
+            FROM objects
+            WHERE id = $1 OR id = $2
+            "#,
+            from_id,
+            to_id
+        )
+        .fetch_all(&mut *txn)
+        .await?;
+
+        let id_map = to_label
+            .into_iter()
+            .map(|o| (o.id, o.label))
+            .collect::<std::collections::HashMap<_, _>>();
+        let to_label = id_map
+            .get(to_id)
+            .ok_or(crate::Error::entity_not_found("to_id"))?;
+        let from_label = id_map
+            .get(from_id)
+            .ok_or(crate::Error::entity_not_found("from_id"))?;
 
         // Add the association.
         let association = sqlx::query_as!(
             Association,
             r#"
-            INSERT INTO associations ( from_id, label, to_id, properties )
-            VALUES ( $1, $2, $3, $4 )
+            INSERT INTO associations ( from_id, label, to_id, to_label, properties )
+            VALUES ( $1, $2, $3, $4, $5 )
             RETURNING
                 id,
                 from_id,
                 label AS "label: AssociationLabel",
                 to_id,
+                to_label as "to_label: ObjectLabel",
                 properties,
                 created_at,
                 updated_at
@@ -334,6 +371,7 @@ impl Store {
             from_id,
             label as &AssociationLabel,
             to_id,
+            to_label as &ObjectLabel,
             properties.clone()
         )
         .fetch_one(&mut *txn)
@@ -343,12 +381,13 @@ impl Store {
         if let Some(inverse_label) = label.inverse() {
             sqlx::query!(
                 r#"
-                INSERT INTO associations ( from_id, label, to_id, properties )
-                VALUES ( $1, $2, $3, $4 )
+                INSERT INTO associations ( from_id, label, to_id, to_label, properties )
+                VALUES ( $1, $2, $3, $4, $5 )
                 "#,
                 to_id,
                 inverse_label as AssociationLabel,
                 from_id,
+                from_label as &ObjectLabel,
                 properties
             )
             .execute(&mut *txn)
@@ -411,11 +450,13 @@ impl Store {
                 to_id,
                 properties,
                 created_at,
-                updated_at
+                updated_at,
+                to_label as "to_label: ObjectLabel"
             FROM associations
             WHERE from_id = $1
               AND label = $2
               AND to_id = ANY($3)
+              -- Pagination
               AND ( id < $4 OR $4 IS NULL )
             ORDER BY id DESC
             LIMIT $5
@@ -449,6 +490,7 @@ impl Store {
         &self,
         from_id: &Uuid,
         label: &AssociationLabel,
+        target_label: Option<&ObjectLabel>,
         page_token: Option<&str>,
         max_page_size: Option<usize>,
     ) -> Result<(Vec<Association>, Option<String>)> {
@@ -475,17 +517,20 @@ impl Store {
                 to_id,
                 properties,
                 created_at,
-                updated_at
+                updated_at,
+                to_label as "to_label: ObjectLabel"
             FROM associations
             WHERE from_id = $1
               AND label = $2
+              AND ( to_label = $3 OR $3 IS NULL )
               -- Pagination
-              AND ( id < $3 OR $3 IS NULL )
+              AND ( id < $4 OR $4 IS NULL )
             ORDER BY id DESC
-            LIMIT $4
+            LIMIT $5
             "#,
             from_id,
             label as &AssociationLabel,
+            target_label as Option<&ObjectLabel>,
             token_id,
             max_page_size as i64
         )

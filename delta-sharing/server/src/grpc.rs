@@ -1,4 +1,4 @@
-use delta_sharing_common::models::v1::delta_sharing_service_server::DeltaSharingServiceServer;
+use delta_sharing_common::models::sharing::v1::delta_sharing_service_server::DeltaSharingServiceServer;
 use delta_sharing_common::{DeltaSharingHandler, Error, Result};
 use tonic::transport::Server;
 

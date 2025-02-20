@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package delta_sharing.profiles.v1;
+
+message Profile {
+  // The file format version of the profile file. This version will be increased whenever
+  // non-forward-compatible changes are made to the profile format. When a client is running
+  // an unsupported profile file format version, it should show an error message instructing
+  // the user to upgrade to a newer version of their client.
+  int32 share_credentials_version = 1;
+
+  // The url of the sharing server.
+  string endpoint = 2;
+
+  // The bearer token to access the server.
+  string bearer_token = 3;
+
+  // The expiration time of the bearer token in ISO 8601 format. This field is optional
+  // and if it is not provided, the bearer token can be seen as never expire.
+  optional string expiration_time = 4;
+}
+
+// Create a new profile
+message CreateProfileRequest {
+  // serialized profile claims
+  bytes claims = 1;
+}
+
+// Create a new profile response
+message CreateProfileResponse {
+  // the profile file
+  Profile profile = 1;
+}

@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package delta_sharing.tables.v1;
+
+import "google/protobuf/struct.proto";
+
+// The type of the table.
+enum TableType {
+  // A table that is stored in a file format.
+  MANAGED = 0;
+
+  // A table that is stored in a stream format.
+  EXTERNAL = 1;
+}
+
+enum DataSourceFormat {
+  DATA_SOURCE_FORMAT_UNSPECIFIED = 0;
+  DATA_SOURCE_FORMAT_DELTA = 1;
+  DATA_SOURCE_FORMAT_ICEBERG = 2;
+  DATA_SOURCE_FORMAT_HUDI = 3;
+  DATA_SOURCE_FORMAT_PARQUET = 4;
+  DATA_SOURCE_FORMAT_CSV = 5;
+  DATA_SOURCE_FORMAT_JSON = 6;
+  DATA_SOURCE_FORMAT_ORC = 7;
+  DATA_SOURCE_FORMAT_AVRO = 8;
+  DATA_SOURCE_FORMAT_TEXT = 9;
+}
+
+message TableInfo {
+  // Name of table, relative to parent schema.
+  string name = 1;
+
+  // Name of parent schema.
+  string schema_name = 2;
+
+  // Name of parent catalog.
+  string catalog_name = 3;
+
+  TableType table_type = 4;
+
+  // Data source format of the table.
+  DataSourceFormat data_source_format = 5;
+
+  // User-provided free-form text description.
+  optional string comment = 7;
+
+  // A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 8;
+
+  // Full name of table, in form of catalog_name.schema_name.table_name.
+  optional string full_name = 9;
+
+  // Username of current owner of table.
+  optional string owner = 10;
+
+  // Time at which this table was created, in epoch milliseconds.
+  optional int64 create_at = 11;
+
+  // Username of table creator.
+  optional string created_by = 12;
+
+  // Time at which this table was last updated, in epoch milliseconds.
+  optional int64 update_at = 13;
+
+  // Username of user who last modified table.
+  optional string updated_by = 14;
+
+  // Unique identifier for the table.
+  optional string table_id = 15;
+}
