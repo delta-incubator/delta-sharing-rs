@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package delta_sharing.v1;
+package delta_sharing.sharing.v1;
 
 import "buf/validate/validate.proto";
 

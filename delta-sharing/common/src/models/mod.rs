@@ -1,13 +1,13 @@
-use catalog::v1::{SchemaInfo, ShareInfo};
 use paste::paste;
 use serde::Serialize;
+use sharing::v1::{ShareInfo, SharingSchemaInfo};
 
 use crate::{
     policy::{AsResource, ResourceIdent},
     Error, ResourceRef,
 };
 
-pub use catalog::v1::{Credential, StorageLocation};
+pub use credentials::v1::{Credential, StorageLocation};
 pub use properties::*;
 pub use requests::*;
 
@@ -16,13 +16,16 @@ pub use internal::resource::{ObjectLabel, Resource};
 mod properties;
 pub(crate) mod requests;
 
-pub use v1::{Profile, Schema, Share};
+pub use profiles::v1::Profile;
+pub use sharing::v1::{Share, SharingSchema};
 
 #[allow(clippy::empty_docs, clippy::large_enum_variant)]
-pub mod v1 {
-    include!("../gen/delta_sharing.v1.rs");
-    #[cfg(feature = "grpc")]
-    include!("../gen/delta_sharing.v1.tonic.rs");
+pub mod sharing {
+    pub mod v1 {
+        include!("../gen/delta_sharing.sharing.v1.rs");
+        #[cfg(feature = "grpc")]
+        include!("../gen/delta_sharing.sharing.v1.tonic.rs");
+    }
 }
 
 pub mod catalog {
@@ -33,8 +36,47 @@ pub mod catalog {
     }
 }
 
-mod internal {
+pub mod credentials {
+    pub mod v1 {
+        include!("../gen/delta_sharing.credentials.v1.rs");
+        #[cfg(feature = "grpc")]
+        include!("../gen/delta_sharing.credentials.v1.tonic.rs");
+    }
+}
+
+pub mod tables {
+    pub mod v1 {
+        include!("../gen/delta_sharing.tables.v1.rs");
+        // #[cfg(feature = "grpc")]
+        // include!("../gen/delta_sharing.tables.v1.tonic.rs");
+    }
+}
+
+pub mod profiles {
+    pub mod v1 {
+        include!("../gen/delta_sharing.profiles.v1.rs");
+        // #[cfg(feature = "grpc")]
+        // include!("../gen/delta_sharing.profiles.v1.tonic.rs");
+    }
+}
+
+pub mod internal {
     include!("../gen/delta_sharing.internal.rs");
+}
+
+impl ObjectLabel {
+    pub fn to_ident(&self, id: impl Into<ResourceRef>) -> ResourceIdent {
+        match self {
+            ObjectLabel::ShareInfo => ResourceIdent::share(id),
+            ObjectLabel::SharingSchemaInfo => ResourceIdent::schema(id),
+            ObjectLabel::SharingTable => ResourceIdent::sharing_table(id),
+            ObjectLabel::Credential => ResourceIdent::credential(id),
+            ObjectLabel::StorageLocation => ResourceIdent::storage_location(id),
+            ObjectLabel::CatalogInfo => ResourceIdent::catalog(id),
+            ObjectLabel::SchemaInfo => ResourceIdent::schema(id),
+            ObjectLabel::TableInfo => ResourceIdent::table(id),
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -44,7 +86,7 @@ pub struct ErrorResponse {
     pub message: String,
 }
 
-impl AsResource for v1::Share {
+impl AsResource for Share {
     fn as_resource(&self) -> ResourceIdent {
         self.id
             .as_ref()
@@ -82,27 +124,27 @@ macro_rules! impl_resource_conversions {
         )*
     };
 }
-impl_resource_conversions!(ShareInfo, SchemaInfo, Credential, StorageLocation);
+impl_resource_conversions!(ShareInfo, SharingSchemaInfo, Credential, StorageLocation);
 
 /// Conversions from more specific types to reduced info sharing API types
-impl TryFrom<Resource> for v1::Share {
+impl TryFrom<Resource> for Share {
     type Error = Error;
 
     fn try_from(resource: Resource) -> Result<Self, Self::Error> {
         let info = ShareInfo::try_from(resource)?;
-        Ok(v1::Share {
+        Ok(Share {
             id: Some(info.id),
             name: info.name,
         })
     }
 }
 
-impl TryFrom<Resource> for v1::Schema {
+impl TryFrom<Resource> for SharingSchema {
     type Error = Error;
 
     fn try_from(resource: Resource) -> Result<Self, Self::Error> {
-        let info = SchemaInfo::try_from(resource)?;
-        Ok(v1::Schema {
+        let info = SharingSchemaInfo::try_from(resource)?;
+        Ok(SharingSchema {
             share: info.share,
             name: info.name,
             id: Some(info.id),
@@ -120,9 +162,13 @@ mod tests {
         for label in ObjectLabel::iter() {
             match label {
                 ObjectLabel::ShareInfo => assert_eq!(label.as_ref(), "share_info"),
-                ObjectLabel::SchemaInfo => assert_eq!(label.as_ref(), "schema_info"),
+                ObjectLabel::SharingSchemaInfo => assert_eq!(label.as_ref(), "sharing_schema_info"),
                 ObjectLabel::Credential => assert_eq!(label.as_ref(), "credential"),
                 ObjectLabel::StorageLocation => assert_eq!(label.as_ref(), "storage_location"),
+                ObjectLabel::CatalogInfo => assert_eq!(label.as_ref(), "catalog_info"),
+                ObjectLabel::SchemaInfo => assert_eq!(label.as_ref(), "schema_info"),
+                ObjectLabel::TableInfo => assert_eq!(label.as_ref(), "table_info"),
+                ObjectLabel::SharingTable => assert_eq!(label.as_ref(), "sharing_table"),
             }
         }
     }

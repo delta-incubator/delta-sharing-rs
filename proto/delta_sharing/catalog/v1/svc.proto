@@ -1,0 +1,247 @@
+syntax = "proto3";
+
+package delta_sharing.catalog.v1;
+
+import "buf/validate/validate.proto";
+import "delta_sharing/catalog/v1/models.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+import "openapiv3/annotations.proto";
+
+/// Create a new catalog
+message CreateCatalogRequest {
+  /// Catalog to create.
+  CatalogInfo catalog = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+/// Delete a catalog
+message DeleteCatalogRequest {
+  /// Name of catalog.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  /// Force deletion even if the catalog is not empty.
+  optional bool force = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+/// Get a catalog
+message GetCatalogRequest {
+  /// Name of catalog.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+/// List catalogs
+message ListCatalogsRequest {
+  /// The next_page_token value returned from a previous List request, if any.
+  optional string page_token = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  /// The maximum number of items to return.
+  optional int32 max_results = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListCatalogsResponse {
+  /// The catalogs returned.
+  repeated CatalogInfo catalogs = 1;
+
+  /// The next_page_token value to include in the next List request.
+  optional string next_page_token = 2;
+}
+
+message UpdateCatalogRequest {
+  /// Name of catalog.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  /// User-provided free-form text description.
+  optional string comment = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  /// A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  /// Name of catalog.
+  string new_name = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message CreateSchemaRequest {
+  /// Schema to create.
+  SchemaInfo schema = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteSchemaRequest {
+  /// Name of schema.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetSchemaRequest {
+  /// Name of schema.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ListSchemasRequest {
+  /// Name of parent catalog.
+  string catalog_name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  /// The next_page_token value returned from a previous List request, if any.
+  optional string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  /// The maximum number of items to return.
+  optional int32 max_results = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListSchemasResponse {
+  /// The schemas returned.
+  repeated SchemaInfo schemas = 1;
+
+  /// The next_page_token value to include in the next List request.
+  optional string next_page_token = 2;
+}
+
+message UpdateSchemaRequest {
+  /// Full name of schema, in form of catalog_name.schema_name.
+  string full_name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  /// User-provided free-form text description.
+  optional string comment = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  /// A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  /// Name of schema.
+  string new_name = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+service CatalogService {
+  // Create a new catalog
+  rpc CreateCatalog(CreateCatalogRequest) returns (CatalogInfo) {
+    option (google.api.http) = {
+      post: "/catalogs"
+      body: "catalog"
+    };
+    option (openapi.v3.operation) = {
+      tags: [
+        "catalogs",
+        "unity"
+      ]
+      operation_id: "CreateCatalog"
+    };
+  }
+
+  // Get a catalog
+  rpc GetCatalog(GetCatalogRequest) returns (CatalogInfo) {
+    option (google.api.http) = {get: "/catalogs/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "catalogs",
+        "unity"
+      ]
+      operation_id: "GetCatalog"
+    };
+  }
+
+  // List catalogs
+  rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
+    option (google.api.http) = {get: "/catalogs"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "catalogs",
+        "unity"
+      ]
+      operation_id: "ListCatalogs"
+    };
+  }
+
+  // Delete a catalog
+  rpc DeleteCatalog(DeleteCatalogRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/catalogs/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "catalogs",
+        "unity"
+      ]
+      operation_id: "DeleteCatalog"
+    };
+  }
+
+  // Update a catalog
+  rpc UpdateCatalog(UpdateCatalogRequest) returns (CatalogInfo) {
+    option (google.api.http) = {
+      patch: "/catalogs/{name}"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {
+      tags: [
+        "catalogs",
+        "unity"
+      ]
+      operation_id: "UpdateCatalog"
+    };
+  }
+
+  // Create a new Schema
+  rpc CreateSchema(CreateSchemaRequest) returns (SchemaInfo) {
+    option (google.api.http) = {
+      post: "/schemas"
+      body: "schema"
+    };
+    option (openapi.v3.operation) = {
+      tags: [
+        "schemas",
+        "unity"
+      ]
+      operation_id: "CreateSchema"
+    };
+  }
+
+  // Delete a Schema
+  rpc DeleteSchema(DeleteSchemaRequest) returns (SchemaInfo) {
+    option (google.api.http) = {delete: "/schemas/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "schemas",
+        "unity"
+      ]
+      operation_id: "DeleteSchema"
+    };
+  }
+
+  // Get a Schema
+  rpc GetSchema(GetSchemaRequest) returns (SchemaInfo) {
+    option (google.api.http) = {get: "/schemas/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "schemas",
+        "unity"
+      ]
+      operation_id: "GetSchema"
+    };
+  }
+
+  // List Schemas
+  rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse) {
+    option (google.api.http) = {get: "/schemas"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "schemas",
+        "unity"
+      ]
+      operation_id: "ListSchemas"
+    };
+  }
+
+  // Update a Schema
+  rpc UpdateSchema(UpdateSchemaRequest) returns (SchemaInfo) {
+    option (google.api.http) = {
+      patch: "/schemas/{full_name}"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {
+      tags: [
+        "schemas",
+        "unity"
+      ]
+      operation_id: "UpdateSchema"
+    };
+  }
+}

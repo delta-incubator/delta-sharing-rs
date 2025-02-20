@@ -1,6 +1,6 @@
 use tonic::{Request, Response, Status};
 
-use crate::models::v1::{delta_sharing_service_server::DeltaSharingService, *};
+use crate::models::sharing::v1::{delta_sharing_service_server::DeltaSharingService, *};
 use crate::{DiscoveryManager, Error, Recipient, Result, TableQueryManager};
 
 fn extract_recipient<T>(request: &Request<T>) -> Result<Recipient> {
@@ -43,10 +43,10 @@ where
         Ok(Response::new(result))
     }
 
-    async fn list_schemas(
+    async fn list_sharing_schemas(
         &self,
-        request: Request<ListSchemasRequest>,
-    ) -> Result<Response<ListSchemasResponse>, Status> {
+        request: Request<ListSharingSchemasRequest>,
+    ) -> Result<Response<ListSharingSchemasResponse>, Status> {
         let recipient = extract_recipient(&request)?;
         let result = T::list_schemas(self, request.into_inner(), &recipient).await?;
         Ok(Response::new(result))

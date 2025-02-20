@@ -133,7 +133,10 @@ pub trait DiscoveryHandler: Send + Sync + 'static {
     async fn get_share(&self, request: GetShareRequest) -> Result<Share>;
 
     /// List all schemas in a share.
-    async fn list_schemas(&self, request: ListSchemasRequest) -> Result<ListSchemasResponse>;
+    async fn list_schemas(
+        &self,
+        request: ListSharingSchemasRequest,
+    ) -> Result<ListSharingSchemasResponse>;
 
     /// List all tables in a schema.
     async fn list_schema_tables(
@@ -159,7 +162,10 @@ impl<T: DiscoveryHandler> DiscoveryHandler for Arc<T> {
         T::get_share(self, request).await
     }
 
-    async fn list_schemas(&self, request: ListSchemasRequest) -> Result<ListSchemasResponse> {
+    async fn list_schemas(
+        &self,
+        request: ListSharingSchemasRequest,
+    ) -> Result<ListSharingSchemasResponse> {
         T::list_schemas(self, request).await
     }
 
@@ -229,20 +235,20 @@ pub trait RepositoryHandler: Send + Sync + 'static {
     /// Create a share.
     async fn create_share(
         &self,
-        request: catalog::CreateShareRequest,
-    ) -> Result<catalog::ShareInfo>;
+        request: CreateShareRequest,
+    ) -> Result<crate::models::sharing::v1::ShareInfo>;
 
     /// Delete a share.
-    async fn delete_share(&self, request: catalog::DeleteShareRequest) -> Result<()>;
+    async fn delete_share(&self, request: DeleteShareRequest) -> Result<()>;
 
     /// Create a schema.
     async fn create_schema(
         &self,
-        request: catalog::CreateSchemaRequest,
-    ) -> Result<catalog::SchemaInfo>;
+        request: CreateSharingSchemaRequest,
+    ) -> Result<crate::models::sharing::v1::SharingSchemaInfo>;
 
     /// Delete a schema.
-    async fn delete_schema(&self, request: catalog::DeleteSchemaRequest) -> Result<()>;
+    async fn delete_schema(&self, request: DeleteSharingSchemaRequest) -> Result<()>;
 }
 // --8<-- [end:sharing-repository-handler]
 
@@ -250,59 +256,39 @@ pub trait RepositoryHandler: Send + Sync + 'static {
 pub trait CredentialsHandler: Send + Sync + 'static {
     async fn create_credentials(
         &self,
-        request: catalog::CreateCredentialRequest,
-    ) -> Result<catalog::Credential>;
+        request: crate::models::credentials::v1::CreateCredentialRequest,
+    ) -> Result<crate::models::credentials::v1::Credential>;
 
     async fn delete_credentials(
         &self,
-        request: catalog::DeleteCredentialRequest,
-    ) -> Result<catalog::Credential>;
+        request: crate::models::credentials::v1::DeleteCredentialRequest,
+    ) -> Result<crate::models::credentials::v1::Credential>;
 
     async fn get_credentials(
         &self,
-        request: catalog::GetCredentialRequest,
-    ) -> Result<catalog::Credential>;
-
-    async fn create_storage_location(
-        &self,
-        request: catalog::CreateStorageLocationRequest,
-    ) -> Result<catalog::StorageLocation>;
-
-    async fn delete_storage_location(
-        &self,
-        request: catalog::DeleteStorageLocationRequest,
-    ) -> Result<catalog::StorageLocation>;
-
-    async fn get_storage_location(
-        &self,
-        request: catalog::GetStorageLocationRequest,
-    ) -> Result<catalog::StorageLocation>;
-
-    async fn list_storage_locations(
-        &self,
-        request: catalog::ListStorageLocationsRequest,
-    ) -> Result<catalog::ListStorageLocationsResponse>;
+        request: crate::models::credentials::v1::GetCredentialRequest,
+    ) -> Result<crate::models::credentials::v1::Credential>;
 }
 
 #[async_trait::async_trait]
 pub trait StorageLocationHandler: Send + Sync + 'static {
     async fn create_storage_location(
         &self,
-        request: catalog::CreateStorageLocationRequest,
-    ) -> Result<catalog::StorageLocation>;
+        request: crate::models::credentials::v1::CreateStorageLocationRequest,
+    ) -> Result<crate::models::credentials::v1::StorageLocation>;
 
     async fn delete_storage_location(
         &self,
-        request: catalog::DeleteStorageLocationRequest,
-    ) -> Result<catalog::StorageLocation>;
+        request: crate::models::credentials::v1::DeleteStorageLocationRequest,
+    ) -> Result<crate::models::credentials::v1::StorageLocation>;
 
     async fn get_storage_location(
         &self,
-        request: catalog::GetStorageLocationRequest,
-    ) -> Result<catalog::StorageLocation>;
+        request: crate::models::credentials::v1::GetStorageLocationRequest,
+    ) -> Result<crate::models::credentials::v1::StorageLocation>;
 
     async fn list_storage_locations(
         &self,
-        request: catalog::ListStorageLocationsRequest,
-    ) -> Result<catalog::ListStorageLocationsResponse>;
+        request: crate::models::credentials::v1::ListStorageLocationsRequest,
+    ) -> Result<crate::models::credentials::v1::ListStorageLocationsResponse>;
 }

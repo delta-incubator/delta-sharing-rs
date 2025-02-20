@@ -12,6 +12,10 @@ tags:
     description: |-
       Manage credentials to access external data sources and services
        as well as generate signed urls for the Delta Sharing service.
+  - name: DeltaSharingExtensionService
+    description: |-
+      Services exposing the unofficial APIs for Delta Sharing.
+       Mainly used to manage resoureces exposed by the Delta Sharing service.
   - name: DeltaSharingService
     description: Service exposing the official APIs for Delta Sharing.
   - name: official
@@ -25,6 +29,155 @@ tags:
   - name: unofficial
     description: APIs which are custom to delta-sharing-rs
 paths:
+  /catalogs:
+    get:
+      tags:
+        - CatalogService
+        - catalogs
+        - unity
+      description: List catalogs
+      operationId: ListCatalogs
+      parameters:
+        - name: pageToken
+          in: query
+          description: / The next_page_token value returned from a previous List request, if any.
+          schema:
+            type: string
+        - name: maxResults
+          in: query
+          description: / The maximum number of items to return.
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCatalogsResponse'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    post:
+      tags:
+        - CatalogService
+        - catalogs
+        - unity
+      description: Create a new catalog
+      operationId: CreateCatalog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CatalogInfo'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /catalogs/{name}:
+    get:
+      tags:
+        - CatalogService
+        - catalogs
+        - unity
+      description: Get a catalog
+      operationId: GetCatalog
+      parameters:
+        - name: name
+          in: path
+          description: / Name of catalog.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    delete:
+      tags:
+        - CatalogService
+        - catalogs
+        - unity
+      description: Delete a catalog
+      operationId: DeleteCatalog
+      parameters:
+        - name: name
+          in: path
+          description: / Name of catalog.
+          required: true
+          schema:
+            type: string
+        - name: force
+          in: query
+          description: / Force deletion even if the catalog is not empty.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content: {}
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    patch:
+      tags:
+        - CatalogService
+        - catalogs
+        - unity
+      description: Update a catalog
+      operationId: UpdateCatalog
+      parameters:
+        - name: name
+          in: path
+          description: / Name of catalog.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCatalogRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
   /credentials:
     post:
       tags:
@@ -212,6 +365,159 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
+  /schemas:
+    get:
+      tags:
+        - CatalogService
+        - schemas
+        - unity
+      description: List Schemas
+      operationId: ListSchemas
+      parameters:
+        - name: catalogName
+          in: query
+          description: / Name of parent catalog.
+          schema:
+            type: string
+        - name: pageToken
+          in: query
+          description: / The next_page_token value returned from a previous List request, if any.
+          schema:
+            type: string
+        - name: maxResults
+          in: query
+          description: / The maximum number of items to return.
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSchemasResponse'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    post:
+      tags:
+        - CatalogService
+        - schemas
+        - unity
+      description: Create a new Schema
+      operationId: CreateSchema
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaInfo'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /schemas/{fullName}:
+    patch:
+      tags:
+        - CatalogService
+        - schemas
+        - unity
+      description: Update a Schema
+      operationId: UpdateSchema
+      parameters:
+        - name: fullName
+          in: path
+          description: / Full name of schema, in form of catalog_name.schema_name.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSchemaRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /schemas/{name}:
+    get:
+      tags:
+        - CatalogService
+        - schemas
+        - unity
+      description: Get a Schema
+      operationId: GetSchema
+      parameters:
+        - name: name
+          in: path
+          description: / Name of schema.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    delete:
+      tags:
+        - CatalogService
+        - schemas
+        - unity
+      description: Delete a Schema
+      operationId: DeleteSchema
+      parameters:
+        - name: name
+          in: path
+          description: / Name of schema.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
   /shares:
     get:
       tags:
@@ -249,7 +555,7 @@ paths:
                 $ref: '#/components/schemas/Status'
     post:
       tags:
-        - CatalogService
+        - DeltaSharingExtensionService
         - shares
         - unofficial
       description: Create a new Share in the Delta Sharing service.
@@ -276,7 +582,7 @@ paths:
   /shares/{name}:
     delete:
       tags:
-        - CatalogService
+        - DeltaSharingExtensionService
         - shares
         - unofficial
       description: Delete a Share in the Delta Sharing service.
@@ -376,7 +682,7 @@ paths:
         - schemas
         - official
       description: List the schemas in a share.
-      operationId: ListSchemas
+      operationId: ListSharingSchemas
       parameters:
         - name: share
           in: path
@@ -403,7 +709,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListSchemasResponse'
+                $ref: '#/components/schemas/ListSharingSchemasResponse'
         default:
           description: Default error response
           content:
@@ -412,7 +718,7 @@ paths:
                 $ref: '#/components/schemas/Status'
     post:
       tags:
-        - CatalogService
+        - DeltaSharingExtensionService
         - schemas
         - unofficial
       description: Create a new Schema in the Delta Sharing service.
@@ -427,7 +733,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SchemaInfo'
+              $ref: '#/components/schemas/SharingSchemaInfo'
         required: true
       responses:
         '200':
@@ -435,7 +741,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaInfo'
+                $ref: '#/components/schemas/SharingSchemaInfo'
         default:
           description: Default error response
           content:
@@ -445,7 +751,7 @@ paths:
   /shares/{share}/schemas/{name}:
     delete:
       tags:
-        - CatalogService
+        - DeltaSharingExtensionService
         - schemas
         - unofficial
       description: Delete a Schema in the Delta Sharing service.
@@ -467,7 +773,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaInfo'
+                $ref: '#/components/schemas/SharingSchemaInfo'
         default:
           description: Default error response
           content:
@@ -610,20 +916,6 @@ paths:
                 $ref: '#/components/schemas/Status'
 components:
   schemas:
-    AdditionalPropertiesItem:
-      type: object
-      properties:
-        schemaOrReference:
-          $ref: '#/components/schemas/SchemaOrReference'
-        boolean:
-          type: boolean
-    Any:
-      type: object
-      properties:
-        value:
-          $ref: '#/components/schemas/GoogleProtobufAny'
-        yaml:
-          type: string
     AzureClientCredential:
       required:
         - tenantId
@@ -669,6 +961,45 @@ components:
           type: string
         sasToken:
           type: string
+    CatalogInfo:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of catalog.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        properties:
+          type: object
+          description: A map of key-value properties attached to the securable.
+        owner:
+          readOnly: true
+          type: string
+          description: Username of current owner of catalog.
+        createAt:
+          readOnly: true
+          type: string
+          description: Time at which this catalog was created, in epoch milliseconds.
+        createdBy:
+          readOnly: true
+          type: string
+          description: Username of catalog creator.
+        updateAt:
+          readOnly: true
+          type: string
+          description: Time at which this catalog was last updated, in epoch milliseconds.
+        updatedBy:
+          readOnly: true
+          type: string
+          description: Username of user who last modified catalog.
+        id:
+          readOnly: true
+          type: string
+          description: Unique identifier for the catalog.
+      description: Creates a new catalog instance.
     Credential:
       required:
         - name
@@ -681,16 +1012,6 @@ components:
           type: string
         azure:
           $ref: '#/components/schemas/AzureCredential'
-    DefaultType:
-      type: object
-      properties:
-        number:
-          type: number
-          format: double
-        boolean:
-          type: boolean
-        string:
-          type: string
     DeltaLogMessage:
       type: object
       properties:
@@ -705,30 +1026,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DeltaLogMessage'
-    Discriminator:
-      type: object
-      properties:
-        propertyName:
-          type: string
-        mapping:
-          $ref: '#/components/schemas/Strings'
-        specificationExtension:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedAny'
-      description: When request bodies or response payloads may be one of a number of different schemas, a `discriminator` object can be used to aid in serialization, deserialization, and validation.  The discriminator is a specific object in a schema which is used to inform the consumer of the specification of an alternative schema based on the value associated with it.  When using the discriminator, _inline_ schemas will not be considered.
-    ExternalDocs:
-      type: object
-      properties:
-        description:
-          type: string
-        url:
-          type: string
-        specificationExtension:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedAny'
-      description: Allows referencing an external resource for extended documentation.
     Format:
       type: object
       properties:
@@ -754,20 +1051,24 @@ components:
           description: The type of the serialized message.
       additionalProperties: true
       description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
-    ItemsItem:
+    ListCatalogsResponse:
       type: object
       properties:
-        schemaOrReference:
+        catalogs:
           type: array
           items:
-            $ref: '#/components/schemas/SchemaOrReference'
+            $ref: '#/components/schemas/CatalogInfo'
+          description: / The catalogs returned.
+        nextPageToken:
+          type: string
+          description: / The next_page_token value to include in the next List request.
     ListSchemaTablesResponse:
       type: object
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/Table'
+            $ref: '#/components/schemas/SharingTable'
           description: The tables that were requested.
         nextPageToken:
           type: string
@@ -777,23 +1078,21 @@ components:
     ListSchemasResponse:
       type: object
       properties:
-        items:
+        schemas:
           type: array
           items:
-            $ref: '#/components/schemas/Schema'
-          description: The schemas that were requested.
+            $ref: '#/components/schemas/SchemaInfo'
+          description: / The schemas returned.
         nextPageToken:
           type: string
-          description: |-
-            Token that can be used to retrieve the next page of schemas.
-             An empty or missing token means that no more schemas are available for retrieval.
+          description: / The next_page_token value to include in the next List request.
     ListShareTablesResponse:
       type: object
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/Table'
+            $ref: '#/components/schemas/SharingTable'
           description: The tables that were requested.
         nextPageToken:
           type: string
@@ -813,6 +1112,19 @@ components:
           description: |-
             Token that can be used to retrieve the next page of shares.
              An empty or missing token means that no more shares are available for retrieval.
+    ListSharingSchemasResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SharingSchema'
+          description: The schemas that were requested.
+        nextPageToken:
+          type: string
+          description: |-
+            Token that can be used to retrieve the next page of schemas.
+             An empty or missing token means that no more schemas are available for retrieval.
     ListStorageLocationsResponse:
       type: object
       properties:
@@ -899,38 +1211,6 @@ components:
           items:
             type: string
           description: An array containing the names of columns by which the data should be partitioned
-    NamedAny:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Map key
-        value:
-          allOf:
-            - $ref: '#/components/schemas/Any'
-          description: Mapped value
-      description: Automatically-generated message used to represent maps of Any as ordered (name,value) pairs.
-    NamedSchemaOrReference:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Map key
-        value:
-          allOf:
-            - $ref: '#/components/schemas/SchemaOrReference'
-          description: Mapped value
-      description: Automatically-generated message used to represent maps of SchemaOrReference as ordered (name,value) pairs.
-    NamedString:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Map key
-        value:
-          type: string
-          description: Mapped value
-      description: Automatically-generated message used to represent maps of string as ordered (name,value) pairs.
     ParquetLogMessage:
       type: object
       properties:
@@ -945,13 +1225,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ParquetLogMessage'
-    Properties:
-      type: object
-      properties:
-        additionalProperties:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedSchemaOrReference'
     ProtocolDelta:
       type: object
       properties:
@@ -984,132 +1257,52 @@ components:
           allOf:
             - $ref: '#/components/schemas/DeltaResponse'
           description: Delta response format
-    Reference:
-      type: object
-      properties:
-        Ref:
-          type: string
-        summary:
-          type: string
-        description:
-          type: string
-      description: A simple object to allow referencing other components in the specification, internally and externally.  The Reference Object is defined by JSON Reference and follows the same structure, behavior and rules.   For this specification, reference resolution is accomplished as defined by the JSON Reference specification and not by the JSON Schema specification.
-    Schema:
-      type: object
-      properties:
-        nullable:
-          type: boolean
-        discriminator:
-          $ref: '#/components/schemas/Discriminator'
-        readOnly:
-          type: boolean
-        writeOnly:
-          type: boolean
-        xml:
-          $ref: '#/components/schemas/Xml'
-        externalDocs:
-          $ref: '#/components/schemas/ExternalDocs'
-        example:
-          $ref: '#/components/schemas/Any'
-        deprecated:
-          type: boolean
-        title:
-          type: string
-        multipleOf:
-          type: number
-          format: double
-        maximum:
-          type: number
-          format: double
-        exclusiveMaximum:
-          type: boolean
-        minimum:
-          type: number
-          format: double
-        exclusiveMinimum:
-          type: boolean
-        maxLength:
-          type: string
-        minLength:
-          type: string
-        pattern:
-          type: string
-        maxItems:
-          type: string
-        minItems:
-          type: string
-        uniqueItems:
-          type: boolean
-        maxProperties:
-          type: string
-        minProperties:
-          type: string
-        required:
-          type: array
-          items:
-            type: string
-        enum:
-          type: array
-          items:
-            $ref: '#/components/schemas/Any'
-        type:
-          type: string
-        allOf:
-          type: array
-          items:
-            $ref: '#/components/schemas/SchemaOrReference'
-        oneOf:
-          type: array
-          items:
-            $ref: '#/components/schemas/SchemaOrReference'
-        anyOf:
-          type: array
-          items:
-            $ref: '#/components/schemas/SchemaOrReference'
-        not:
-          $ref: '#/components/schemas/Schema'
-        items:
-          $ref: '#/components/schemas/ItemsItem'
-        properties:
-          $ref: '#/components/schemas/Properties'
-        additionalProperties:
-          $ref: '#/components/schemas/AdditionalPropertiesItem'
-        default:
-          $ref: '#/components/schemas/DefaultType'
-        description:
-          type: string
-        format:
-          type: string
-        specificationExtension:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedAny'
-      description: The Schema Object allows the definition of input and output data types. These types can be objects, but also primitives and arrays. This object is an extended subset of the JSON Schema Specification Wright Draft 00.  For more information about the properties, see JSON Schema Core and JSON Schema Validation. Unless stated otherwise, the property definitions follow the JSON Schema.
     SchemaInfo:
+      required:
+        - name
+        - catalogName
       type: object
       properties:
-        id:
-          readOnly: true
-          type: string
         name:
           type: string
-        share:
-          readOnly: true
+          description: Name of schema, relative to parent catalog.
+        catalogName:
           type: string
-        shareId:
-          readOnly: true
+          description: Name of parent catalog.
+        comment:
           type: string
-        description:
-          type: string
+          description: User-provided free-form text description.
         properties:
           type: object
-    SchemaOrReference:
-      type: object
-      properties:
-        schema:
-          $ref: '#/components/schemas/Schema'
-        reference:
-          $ref: '#/components/schemas/Reference'
+          description: A map of key-value properties attached to the securable.
+        fullName:
+          readOnly: true
+          type: string
+          description: Full name of schema, in form of catalog_name.schema_name.
+        owner:
+          readOnly: true
+          type: string
+          description: Username of current owner of schema.
+        createAt:
+          readOnly: true
+          type: string
+          description: Time at which this schema was created, in epoch milliseconds.
+        createdBy:
+          readOnly: true
+          type: string
+          description: Username of schema creator.
+        updateAt:
+          readOnly: true
+          type: string
+          description: Time at which this schema was last updated, in epoch milliseconds.
+        updatedBy:
+          readOnly: true
+          type: string
+          description: Username of user who last modified schema.
+        schemaId:
+          readOnly: true
+          type: string
+          description: Unique identifier for the schema.
     Share:
       type: object
       properties:
@@ -1135,6 +1328,59 @@ components:
           type: string
         properties:
           type: object
+    SharingSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the schama
+        share:
+          type: string
+          description: The share name that the schema belongs to.
+        id:
+          readOnly: true
+          type: string
+          description: Unique identifier for the schema.
+      description: A schema is a logical grouping of tables. A schema may contain multiple tables.
+    SharingSchemaInfo:
+      type: object
+      properties:
+        id:
+          readOnly: true
+          type: string
+        name:
+          type: string
+        share:
+          readOnly: true
+          type: string
+        shareId:
+          readOnly: true
+          type: string
+        description:
+          type: string
+        properties:
+          type: object
+    SharingTable:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the table.
+        schema:
+          type: string
+          description: The schema name that the table belongs to.
+        share:
+          type: string
+          description: The share name that the table belongs to.
+        id:
+          readOnly: true
+          type: string
+          description: Unique identifier for the table.
+        shareId:
+          readOnly: true
+          type: string
+          description: A unique identifier for the share this table belongs to.
+      description: A table is a Delta Lake table or a view on top of a Delta Lake table.
     Status:
       type: object
       properties:
@@ -1175,49 +1421,37 @@ components:
           type: string
         properties:
           type: object
-    Strings:
-      type: object
-      properties:
-        additionalProperties:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedString'
-    Table:
+    UpdateCatalogRequest:
+      required:
+        - name
       type: object
       properties:
         name:
           type: string
-          description: The name of the table.
-        schema:
+          description: / Name of catalog.
+        comment:
           type: string
-          description: The schema name that the table belongs to.
-        share:
+          description: / User-provided free-form text description.
+        properties:
+          type: object
+          description: / A map of key-value properties attached to the securable.
+        newName:
           type: string
-          description: The share name that the table belongs to.
-        id:
-          readOnly: true
-          type: string
-          description: Unique identifier for the table.
-        shareId:
-          readOnly: true
-          type: string
-          description: A unique identifier for the share this table belongs to.
-      description: A table is a Delta Lake table or a view on top of a Delta Lake table.
-    Xml:
+          description: / Name of catalog.
+    UpdateSchemaRequest:
+      required:
+        - fullName
       type: object
       properties:
-        name:
+        fullName:
           type: string
-        namespace:
+          description: / Full name of schema, in form of catalog_name.schema_name.
+        comment:
           type: string
-        prefix:
+          description: / User-provided free-form text description.
+        properties:
+          type: object
+          description: / A map of key-value properties attached to the securable.
+        newName:
           type: string
-        attribute:
-          type: boolean
-        wrapped:
-          type: boolean
-        specificationExtension:
-          type: array
-          items:
-            $ref: '#/components/schemas/NamedAny'
-      description: A metadata object that allows for more fine-tuned XML model definitions.  When using arrays, XML element names are *not* inferred (for singular/plural forms) and the `name` property SHOULD be used to add that information. See examples for expected behavior.
+          description: / Name of schema.

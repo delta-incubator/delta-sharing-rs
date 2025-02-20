@@ -7,9 +7,7 @@ use axum::response::{IntoResponse, Response};
 use axum::{RequestExt, RequestPartsExt};
 use serde::Deserialize;
 
-use crate::models::catalog::v1 as catalog;
-use crate::models::catalog::v1::*;
-use crate::models::v1::*;
+use crate::models::sharing::v1::*;
 use crate::Error;
 
 mod auth;
@@ -41,7 +39,7 @@ macro_rules! impl_get_request {
 
 impl_get_request!(GetShareRequest { name: String });
 impl_get_request!(DeleteShareRequest { name: String });
-impl_get_request!(DeleteSchemaRequest {
+impl_get_request!(DeleteSharingSchemaRequest {
     share: String,
     name: String
 });
@@ -91,7 +89,7 @@ macro_rules! impl_list_request {
 }
 
 impl_list_request!(ListSharesRequest {});
-impl_list_request!(ListSchemasRequest { share: String });
+impl_list_request!(ListSharingSchemasRequest { share: String });
 impl_list_request!(ListShareTablesRequest { name: String });
 impl_list_request!(ListSchemaTablesRequest {
     share: String,
@@ -127,7 +125,7 @@ impl<S: Send + Sync> FromRequest<S> for CreateShareRequest {
     }
 }
 
-impl<S: Send + Sync> FromRequest<S> for CreateSchemaRequest {
+impl<S: Send + Sync> FromRequest<S> for CreateSharingSchemaRequest {
     type Rejection = Response;
 
     async fn from_request(req: Request<Body>, _state: &S) -> Result<Self, Self::Rejection> {
@@ -138,6 +136,6 @@ impl<S: Send + Sync> FromRequest<S> for CreateSchemaRequest {
             .map_err(IntoResponse::into_response)?;
         let req = Request::from_parts(parts, body);
         let Json(schema) = req.extract().await.map_err(IntoResponse::into_response)?;
-        Ok(catalog::CreateSchemaRequest { schema, share })
+        Ok(CreateSharingSchemaRequest { schema, share })
     }
 }

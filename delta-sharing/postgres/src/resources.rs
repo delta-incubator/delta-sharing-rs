@@ -1,6 +1,10 @@
 use std::vec;
 
-use delta_sharing_common::catalog::{self, StorageLocation};
+use delta_sharing_common::models::catalog::v1 as catalog;
+use delta_sharing_common::models::credentials::v1 as credentials;
+use delta_sharing_common::models::internal::resource::ObjectLabel;
+use delta_sharing_common::models::sharing::v1 as sharing;
+use delta_sharing_common::models::tables::v1 as tables;
 use delta_sharing_common::models::{IntoJSONStruct, PropertyMap};
 use delta_sharing_common::{
     AssociationLabel, Error, IntoJson, PropertyMapHandler, Resource, ResourceIdent, ResourceRef,
@@ -8,7 +12,7 @@ use delta_sharing_common::{
 };
 use itertools::Itertools;
 
-use crate::{GraphStore, Object, ObjectLabel};
+use crate::{GraphStore, Object};
 
 pub trait IdentRefs {
     fn ident(&self) -> (&ObjectLabel, &ResourceRef);
@@ -17,11 +21,14 @@ pub trait IdentRefs {
 impl IdentRefs for ResourceIdent {
     fn ident(&self) -> (&ObjectLabel, &ResourceRef) {
         match self {
-            ResourceIdent::Share(ident) => (&ObjectLabel::DeltaShare, ident),
-            ResourceIdent::Schema(ident) => (&ObjectLabel::DeltaSchema, ident),
+            ResourceIdent::Share(ident) => (&ObjectLabel::ShareInfo, ident),
+            ResourceIdent::SharingSchema(ident) => (&ObjectLabel::SharingSchemaInfo, ident),
+            ResourceIdent::SharingTable(ident) => (&ObjectLabel::SharingTable, ident),
             ResourceIdent::Credential(ident) => (&ObjectLabel::Credential, ident),
-            ResourceIdent::Table(ident) => (&ObjectLabel::Table, ident),
             ResourceIdent::StorageLocation(ident) => (&ObjectLabel::StorageLocation, ident),
+            ResourceIdent::Catalog(ident) => (&ObjectLabel::CatalogInfo, ident),
+            ResourceIdent::Schema(ident) => (&ObjectLabel::SchemaInfo, ident),
+            ResourceIdent::Table(ident) => (&ObjectLabel::TableInfo, ident),
         }
     }
 }
@@ -36,15 +43,15 @@ fn extract_comment(properties: &Option<serde_json::Value>) -> Option<String> {
         })
 }
 
-impl TryFrom<catalog::ShareInfo> for Object {
+impl TryFrom<sharing::ShareInfo> for Object {
     type Error = Error;
 
-    fn try_from(share: catalog::ShareInfo) -> Result<Self, Self::Error> {
+    fn try_from(share: sharing::ShareInfo) -> Result<Self, Self::Error> {
         Ok(Object {
             id: uuid::Uuid::parse_str(&share.id).unwrap_or_else(|_| uuid::Uuid::nil()),
             namespace: vec![],
             name: share.name,
-            label: ObjectLabel::DeltaShare,
+            label: ObjectLabel::ShareInfo,
             properties: share
                 .properties
                 .map(PropertyMapHandler::proto_struct_to_json),
@@ -54,15 +61,15 @@ impl TryFrom<catalog::ShareInfo> for Object {
     }
 }
 
-impl TryFrom<catalog::SchemaInfo> for Object {
+impl TryFrom<sharing::SharingSchemaInfo> for Object {
     type Error = Error;
 
-    fn try_from(schema: catalog::SchemaInfo) -> Result<Self, Self::Error> {
+    fn try_from(schema: sharing::SharingSchemaInfo) -> Result<Self, Self::Error> {
         Ok(Object {
             id: uuid::Uuid::parse_str(&schema.id).unwrap_or_else(|_| uuid::Uuid::nil()),
             namespace: vec![schema.share],
             name: schema.name,
-            label: ObjectLabel::DeltaSchema,
+            label: ObjectLabel::SharingSchemaInfo,
             properties: schema
                 .properties
                 .map(PropertyMapHandler::proto_struct_to_json),
@@ -72,10 +79,29 @@ impl TryFrom<catalog::SchemaInfo> for Object {
     }
 }
 
-impl TryFrom<StorageLocation> for Object {
+impl TryFrom<sharing::SharingTable> for Object {
     type Error = Error;
 
-    fn try_from(storage_location: StorageLocation) -> Result<Self, Self::Error> {
+    fn try_from(table: sharing::SharingTable) -> Result<Self, Self::Error> {
+        Ok(Object {
+            id: table
+                .id
+                .and_then(|id| uuid::Uuid::parse_str(&id).ok())
+                .unwrap_or_else(uuid::Uuid::nil),
+            namespace: vec![table.share, table.schema],
+            name: table.name,
+            label: ObjectLabel::SharingTable,
+            properties: None,
+            updated_at: None,
+            created_at: chrono::Utc::now(),
+        })
+    }
+}
+
+impl TryFrom<credentials::StorageLocation> for Object {
+    type Error = Error;
+
+    fn try_from(storage_location: credentials::StorageLocation) -> Result<Self, Self::Error> {
         let mut props = match storage_location.properties {
             Some(properties) => properties.into_json_struct(),
             None => serde_json::Map::new(),
@@ -96,15 +122,82 @@ impl TryFrom<StorageLocation> for Object {
     }
 }
 
+impl TryFrom<catalog::CatalogInfo> for Object {
+    type Error = Error;
+
+    fn try_from(catalog: catalog::CatalogInfo) -> Result<Self, Self::Error> {
+        Ok(Object {
+            id: catalog
+                .id
+                .and_then(|id| uuid::Uuid::parse_str(&id).ok())
+                .unwrap_or_else(uuid::Uuid::nil),
+            namespace: vec![],
+            name: catalog.name,
+            label: ObjectLabel::CatalogInfo,
+            properties: catalog
+                .properties
+                .map(PropertyMapHandler::proto_struct_to_json),
+            updated_at: None,
+            created_at: chrono::Utc::now(),
+        })
+    }
+}
+
+impl TryFrom<catalog::SchemaInfo> for Object {
+    type Error = Error;
+
+    fn try_from(schema: catalog::SchemaInfo) -> Result<Self, Self::Error> {
+        Ok(Object {
+            id: schema
+                .schema_id
+                .and_then(|id| uuid::Uuid::parse_str(&id).ok())
+                .unwrap_or_else(uuid::Uuid::nil),
+            namespace: vec![schema.catalog_name],
+            name: schema.name,
+            label: ObjectLabel::SchemaInfo,
+            properties: schema
+                .properties
+                .map(PropertyMapHandler::proto_struct_to_json),
+            updated_at: None,
+            created_at: chrono::Utc::now(),
+        })
+    }
+}
+
+impl TryFrom<tables::TableInfo> for Object {
+    type Error = Error;
+
+    fn try_from(table: tables::TableInfo) -> Result<Self, Self::Error> {
+        Ok(Object {
+            id: table
+                .table_id
+                .and_then(|id| uuid::Uuid::parse_str(&id).ok())
+                .unwrap_or_else(uuid::Uuid::nil),
+            namespace: vec![table.catalog_name, table.schema_name],
+            name: table.name,
+            label: ObjectLabel::TableInfo,
+            properties: table
+                .properties
+                .map(PropertyMapHandler::proto_struct_to_json),
+            updated_at: None,
+            created_at: chrono::Utc::now(),
+        })
+    }
+}
+
 impl TryFrom<Resource> for Object {
     type Error = Error;
 
     fn try_from(resource: Resource) -> Result<Self, Self::Error> {
         match resource {
             Resource::ShareInfo(share) => share.try_into(),
-            Resource::SchemaInfo(schema) => schema.try_into(),
+            Resource::SharingSchemaInfo(schema) => schema.try_into(),
+            Resource::SharingTable(table) => table.try_into(),
             Resource::Credential(_) => Err(Error::generic("Cannot convert credential to object")),
             Resource::StorageLocation(storage_location) => storage_location.try_into(),
+            Resource::CatalogInfo(catalog) => catalog.try_into(),
+            Resource::SchemaInfo(schema) => schema.try_into(),
+            Resource::TableInfo(table) => table.try_into(),
         }
     }
 }
@@ -114,21 +207,23 @@ impl TryFrom<Object> for Resource {
 
     fn try_from(object: Object) -> Result<Self, Self::Error> {
         match object.label {
-            ObjectLabel::DeltaShare => Ok(Resource::ShareInfo(object.try_into()?)),
-            ObjectLabel::DeltaSchema => Ok(Resource::SchemaInfo(object.try_into()?)),
+            ObjectLabel::ShareInfo => Ok(Resource::ShareInfo(object.try_into()?)),
+            ObjectLabel::SharingSchemaInfo => Ok(Resource::SharingSchemaInfo(object.try_into()?)),
+            ObjectLabel::SharingTable => todo!("Convert Object to Resource"),
             ObjectLabel::Credential => todo!("Convert Object to Resource"),
-            ObjectLabel::Table => todo!("Convert Object to Resource"),
             ObjectLabel::StorageLocation => Ok(Resource::StorageLocation(object.try_into()?)),
-            ObjectLabel::Principal => Err(Error::generic("Cannot convert principal to resource")),
+            ObjectLabel::CatalogInfo => Ok(Resource::CatalogInfo(object.try_into()?)),
+            ObjectLabel::SchemaInfo => Ok(Resource::SchemaInfo(object.try_into()?)),
+            ObjectLabel::TableInfo => Ok(Resource::TableInfo(object.try_into()?)),
         }
     }
 }
 
-impl TryFrom<Object> for StorageLocation {
+impl TryFrom<Object> for credentials::StorageLocation {
     type Error = Error;
 
     fn try_from(object: Object) -> Result<Self, Self::Error> {
-        let mut storage_location = StorageLocation {
+        let mut storage_location = credentials::StorageLocation {
             id: object.id.hyphenated().to_string(),
             name: object.name,
             ..Default::default()
@@ -155,11 +250,11 @@ impl TryFrom<Object> for StorageLocation {
     }
 }
 
-impl TryFrom<Object> for catalog::ShareInfo {
+impl TryFrom<Object> for sharing::ShareInfo {
     type Error = Error;
 
     fn try_from(object: Object) -> Result<Self, Self::Error> {
-        Ok(catalog::ShareInfo {
+        Ok(sharing::ShareInfo {
             id: object.id.hyphenated().to_string(),
             name: object.name,
             description: extract_comment(&object.properties),
@@ -171,11 +266,11 @@ impl TryFrom<Object> for catalog::ShareInfo {
     }
 }
 
-impl TryFrom<Object> for catalog::SchemaInfo {
+impl TryFrom<Object> for sharing::SharingSchemaInfo {
     type Error = Error;
 
     fn try_from(object: Object) -> Result<Self, Self::Error> {
-        Ok(catalog::SchemaInfo {
+        Ok(sharing::SharingSchemaInfo {
             id: object.id.hyphenated().to_string(),
             share_id: None,
             name: object.name,
@@ -189,6 +284,99 @@ impl TryFrom<Object> for catalog::SchemaInfo {
                 .properties
                 .map(PropertyMapHandler::json_to_proto_struct)
                 .transpose()?,
+        })
+    }
+}
+
+impl TryFrom<Object> for sharing::SharingTable {
+    type Error = Error;
+
+    fn try_from(object: Object) -> Result<Self, Self::Error> {
+        let schema = object
+            .namespace
+            .get(1)
+            .cloned()
+            .ok_or_else(|| Error::generic("Table must have a schema as a parent resource"))?;
+        let share = object
+            .namespace.first()
+            .cloned()
+            .ok_or_else(|| Error::generic("Table must have a share as a parent resource"))?;
+        Ok(sharing::SharingTable {
+            id: Some(object.id.hyphenated().to_string()),
+            name: object.name,
+            share,
+            schema,
+            share_id: None,
+        })
+    }
+}
+
+impl TryFrom<Object> for catalog::CatalogInfo {
+    type Error = Error;
+
+    fn try_from(object: Object) -> Result<Self, Self::Error> {
+        Ok(catalog::CatalogInfo {
+            id: Some(object.id.hyphenated().to_string()),
+            name: object.name,
+            comment: extract_comment(&object.properties),
+            properties: object
+                .properties
+                .map(PropertyMapHandler::json_to_proto_struct)
+                .transpose()?,
+            owner: None,
+            created_by: None,
+            updated_by: None,
+            create_at: None,
+            update_at: None,
+        })
+    }
+}
+
+impl TryFrom<Object> for catalog::SchemaInfo {
+    type Error = Error;
+
+    fn try_from(object: Object) -> Result<Self, Self::Error> {
+        Ok(catalog::SchemaInfo {
+            schema_id: Some(object.id.hyphenated().to_string()),
+            catalog_name: object.namespace.first().cloned().unwrap_or_default(),
+            name: object.name,
+            comment: extract_comment(&object.properties),
+            properties: object
+                .properties
+                .map(PropertyMapHandler::json_to_proto_struct)
+                .transpose()?,
+            full_name: None,
+            owner: None,
+            created_by: None,
+            updated_by: None,
+            create_at: None,
+            update_at: None,
+        })
+    }
+}
+
+impl TryFrom<Object> for tables::TableInfo {
+    type Error = Error;
+
+    fn try_from(object: Object) -> Result<Self, Self::Error> {
+        Ok(tables::TableInfo {
+            table_id: Some(object.id.hyphenated().to_string()),
+            catalog_name: object.namespace.first().cloned().unwrap_or_default(),
+            schema_name: object.namespace.get(1).cloned().unwrap_or_default(),
+            name: object.name,
+            comment: extract_comment(&object.properties),
+            properties: object
+                .properties
+                .map(PropertyMapHandler::json_to_proto_struct)
+                .transpose()?,
+            table_type: 0,
+            data_source_format: 0,
+            full_name: None,
+            owner: None,
+            created_by: None,
+            updated_by: None,
+            create_at: None,
+            update_at: None,
         })
     }
 }

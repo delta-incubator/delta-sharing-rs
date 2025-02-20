@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::models::catalog::v1 as catalog;
-use crate::models::v1::*;
+use crate::models::sharing::v1::*;
 use crate::{
     Decision, DiscoveryHandler, Permission, Policy, Recipient, ResourceIdent, ResourceRef, Result,
     SharingRepository, TableQueryHandler,
@@ -25,7 +24,10 @@ impl DiscoveryHandler for DeltaSharingHandler {
         self.discovery.get_share(request).await
     }
 
-    async fn list_schemas(&self, request: ListSchemasRequest) -> Result<ListSchemasResponse> {
+    async fn list_schemas(
+        &self,
+        request: ListSharingSchemasRequest,
+    ) -> Result<ListSharingSchemasResponse> {
         self.discovery.list_schemas(request).await
     }
 
@@ -84,11 +86,11 @@ impl SharingRepository for DeltaRepositoryHandler {
         name: &str,
         comment: Option<String>,
         properties: Option<HashMap<String, serde_json::Value>>,
-    ) -> Result<catalog::ShareInfo> {
+    ) -> Result<ShareInfo> {
         self.repo.add_share(name, comment, properties).await
     }
 
-    async fn get_share(&self, id: &ResourceRef) -> Result<catalog::ShareInfo> {
+    async fn get_share(&self, id: &ResourceRef) -> Result<ShareInfo> {
         self.repo.get_share(id).await
     }
 
@@ -110,11 +112,11 @@ impl SharingRepository for DeltaRepositoryHandler {
         name: &str,
         comment: Option<String>,
         properties: Option<HashMap<String, serde_json::Value>>,
-    ) -> Result<catalog::SchemaInfo> {
+    ) -> Result<SharingSchemaInfo> {
         self.repo.add_schema(share, name, comment, properties).await
     }
 
-    async fn get_schema(&self, id: &ResourceRef) -> Result<catalog::SchemaInfo> {
+    async fn get_schema(&self, id: &ResourceRef) -> Result<SharingSchemaInfo> {
         self.repo.get_schema(id).await
     }
 
@@ -127,7 +129,7 @@ impl SharingRepository for DeltaRepositoryHandler {
         share: &ResourceRef,
         max_results: Option<usize>,
         page_token: Option<String>,
-    ) -> Result<(Vec<Schema>, Option<String>)> {
+    ) -> Result<(Vec<SharingSchema>, Option<String>)> {
         self.repo.list_schemas(share, max_results, page_token).await
     }
 
@@ -136,7 +138,7 @@ impl SharingRepository for DeltaRepositoryHandler {
         schema: &ResourceRef,
         max_results: Option<usize>,
         page_token: Option<String>,
-    ) -> Result<(Vec<Table>, Option<String>)> {
+    ) -> Result<(Vec<SharingTable>, Option<String>)> {
         self.repo
             .list_schema_tables(schema, max_results, page_token)
             .await
@@ -147,7 +149,7 @@ impl SharingRepository for DeltaRepositoryHandler {
         share: &ResourceRef,
         max_results: Option<usize>,
         page_token: Option<String>,
-    ) -> Result<(Vec<Table>, Option<String>)> {
+    ) -> Result<(Vec<SharingTable>, Option<String>)> {
         self.repo
             .list_share_tables(share, max_results, page_token)
             .await

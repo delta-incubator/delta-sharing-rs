@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 
-use crate::models::catalog::v1 as catalog;
-use crate::models::v1::*;
-use crate::{DiscoveryHandler, RepositoryHandler, ResourceRef, Result, Schema, Share};
+use crate::models::sharing::v1::*;
+use crate::{DiscoveryHandler, RepositoryHandler, ResourceRef, Result};
 
 #[async_trait::async_trait]
 pub trait SharingRepository: Send + Sync + 'static {
@@ -11,9 +10,9 @@ pub trait SharingRepository: Send + Sync + 'static {
         name: &str,
         comment: Option<String>,
         properties: Option<HashMap<String, serde_json::Value>>,
-    ) -> Result<catalog::ShareInfo>;
+    ) -> Result<ShareInfo>;
 
-    async fn get_share(&self, id: &ResourceRef) -> Result<catalog::ShareInfo>;
+    async fn get_share(&self, id: &ResourceRef) -> Result<ShareInfo>;
     async fn delete_share(&self, id: &ResourceRef) -> Result<()>;
 
     /// List shares.
@@ -30,10 +29,10 @@ pub trait SharingRepository: Send + Sync + 'static {
         name: &str,
         comment: Option<String>,
         properties: Option<HashMap<String, serde_json::Value>>,
-    ) -> Result<catalog::SchemaInfo>;
+    ) -> Result<SharingSchemaInfo>;
 
     /// Get a schema.
-    async fn get_schema(&self, id: &ResourceRef) -> Result<catalog::SchemaInfo>;
+    async fn get_schema(&self, id: &ResourceRef) -> Result<SharingSchemaInfo>;
 
     /// Delete a schema.
     async fn delete_schema(&self, id: &ResourceRef) -> Result<()>;
@@ -44,21 +43,21 @@ pub trait SharingRepository: Send + Sync + 'static {
         share: &ResourceRef,
         max_results: Option<usize>,
         page_token: Option<String>,
-    ) -> Result<(Vec<Schema>, Option<String>)>;
+    ) -> Result<(Vec<SharingSchema>, Option<String>)>;
 
     async fn list_schema_tables(
         &self,
         schema: &ResourceRef,
         max_results: Option<usize>,
         page_token: Option<String>,
-    ) -> Result<(Vec<Table>, Option<String>)>;
+    ) -> Result<(Vec<SharingTable>, Option<String>)>;
 
     async fn list_share_tables(
         &self,
         share: &ResourceRef,
         max_results: Option<usize>,
         page_token: Option<String>,
-    ) -> Result<(Vec<Table>, Option<String>)>;
+    ) -> Result<(Vec<SharingTable>, Option<String>)>;
 
     // async fn add_table(&self, name: &str, location: &str) -> Result<TableRecord>;
     // async fn get_table(&self, id: &uuid::Uuid) -> Result<TableRecord>;
@@ -88,12 +87,15 @@ impl<T: SharingRepository> DiscoveryHandler for T {
         })
     }
 
-    async fn list_schemas(&self, request: ListSchemasRequest) -> Result<ListSchemasResponse> {
+    async fn list_schemas(
+        &self,
+        request: ListSharingSchemasRequest,
+    ) -> Result<ListSharingSchemasResponse> {
         let max_results = request.max_results.as_ref().map(|v| *v as usize);
         let page_token = request.page_token.clone();
         let (items, next_page_token) =
             T::list_schemas(self, &request.into(), max_results, page_token).await?;
-        Ok(ListSchemasResponse {
+        Ok(ListSharingSchemasResponse {
             items,
             next_page_token,
         })
@@ -130,10 +132,7 @@ impl<T: SharingRepository> DiscoveryHandler for T {
 
 #[async_trait::async_trait]
 impl<T: SharingRepository> RepositoryHandler for T {
-    async fn create_share(
-        &self,
-        request: catalog::CreateShareRequest,
-    ) -> Result<catalog::ShareInfo> {
+    async fn create_share(&self, request: CreateShareRequest) -> Result<ShareInfo> {
         let share = request
             .share
             .ok_or_else(|| crate::Error::invalid_argument("share is required".to_string()))?;
@@ -146,14 +145,14 @@ impl<T: SharingRepository> RepositoryHandler for T {
         T::add_share(self, &share.name, share.description, properties).await
     }
 
-    async fn delete_share(&self, request: catalog::DeleteShareRequest) -> Result<()> {
+    async fn delete_share(&self, request: DeleteShareRequest) -> Result<()> {
         T::delete_share(self, &request.into()).await
     }
 
     async fn create_schema(
         &self,
-        request: catalog::CreateSchemaRequest,
-    ) -> Result<catalog::SchemaInfo> {
+        request: CreateSharingSchemaRequest,
+    ) -> Result<SharingSchemaInfo> {
         let share = ResourceRef::from(&request.share);
         let schema = request
             .schema
@@ -167,7 +166,7 @@ impl<T: SharingRepository> RepositoryHandler for T {
         T::add_schema(self, &share, &schema.name, schema.description, properties).await
     }
 
-    async fn delete_schema(&self, request: catalog::DeleteSchemaRequest) -> Result<()> {
+    async fn delete_schema(&self, request: DeleteSharingSchemaRequest) -> Result<()> {
         T::delete_schema(self, &request.into()).await
     }
 }

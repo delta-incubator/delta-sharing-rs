@@ -1,8 +1,9 @@
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::models::catalog::v1 as v1c;
-use crate::models::v1;
+use crate::models::sharing::v1::{
+    Share, ShareInfo, SharingSchema, SharingSchemaInfo, SharingTable,
+};
 use crate::models::IntoProtoStruct;
 use crate::models::PropertyMap;
 use crate::models::Resource;
@@ -175,8 +176,8 @@ impl<T: ResourceStore> SharingRepository for T {
         name: &str,
         comment: Option<String>,
         properties: Option<PropertyMap>,
-    ) -> Result<v1c::ShareInfo> {
-        let share_info = v1c::ShareInfo {
+    ) -> Result<ShareInfo> {
+        let share_info = ShareInfo {
             id: "".to_string(),
             name: name.to_string(),
             properties: properties.map(|p| p.into_proto_struct()),
@@ -185,7 +186,7 @@ impl<T: ResourceStore> SharingRepository for T {
         self.create(share_info.into()).await?.0.try_into()
     }
 
-    async fn get_share(&self, id: &ResourceRef) -> Result<v1c::ShareInfo> {
+    async fn get_share(&self, id: &ResourceRef) -> Result<ShareInfo> {
         self.get(&ResourceIdent::Share(id.clone()))
             .await?
             .0
@@ -200,7 +201,7 @@ impl<T: ResourceStore> SharingRepository for T {
         &self,
         max_results: Option<usize>,
         page_token: Option<String>,
-    ) -> Result<(Vec<v1::Share>, Option<String>)> {
+    ) -> Result<(Vec<Share>, Option<String>)> {
         let (resources, token) = self
             .list(
                 &ResourceIdent::Share(ResourceRef::Undefined),
@@ -218,13 +219,13 @@ impl<T: ResourceStore> SharingRepository for T {
         name: &str,
         comment: Option<String>,
         properties: Option<PropertyMap>,
-    ) -> Result<v1c::SchemaInfo> {
+    ) -> Result<SharingSchemaInfo> {
         let ResourceRef::Name(_, share_name) = share else {
             return Err(Error::invalid_argument(
                 "Only namespace / name references are allowed for create.",
             ));
         };
-        let schema_info = v1c::SchemaInfo {
+        let schema_info = SharingSchemaInfo {
             id: "".to_string(),
             share: share_name.clone(),
             name: name.to_string(),
@@ -240,7 +241,7 @@ impl<T: ResourceStore> SharingRepository for T {
         schema.try_into()
     }
 
-    async fn get_schema(&self, id: &ResourceRef) -> Result<v1c::SchemaInfo> {
+    async fn get_schema(&self, id: &ResourceRef) -> Result<SharingSchemaInfo> {
         self.get(&ResourceIdent::Schema(id.clone()))
             .await?
             .0
@@ -256,7 +257,7 @@ impl<T: ResourceStore> SharingRepository for T {
         share: &ResourceRef,
         max_results: Option<usize>,
         page_token: Option<String>,
-    ) -> Result<(Vec<v1::Schema>, Option<String>)> {
+    ) -> Result<(Vec<SharingSchema>, Option<String>)> {
         let ident = ResourceIdent::Share(share.clone());
         let (idents, token) = self
             .list_associations(
@@ -281,7 +282,7 @@ impl<T: ResourceStore> SharingRepository for T {
         _schema: &ResourceRef,
         _max_results: Option<usize>,
         _page_token: Option<String>,
-    ) -> Result<(Vec<v1::Table>, Option<String>)> {
+    ) -> Result<(Vec<SharingTable>, Option<String>)> {
         todo!();
     }
 
@@ -290,7 +291,7 @@ impl<T: ResourceStore> SharingRepository for T {
         _share: &ResourceRef,
         _max_results: Option<usize>,
         _page_token: Option<String>,
-    ) -> Result<(Vec<v1::Table>, Option<String>)> {
+    ) -> Result<(Vec<SharingTable>, Option<String>)> {
         todo!();
     }
 }

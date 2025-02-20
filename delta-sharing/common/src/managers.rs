@@ -1,5 +1,4 @@
-use crate::models::catalog::v1 as catalog;
-use crate::models::v1::*;
+use crate::models::sharing::v1::*;
 use crate::policy::{process_resources, Permission, Policy};
 use crate::{DiscoveryHandler, Recipient, RepositoryHandler, Result, TableQueryHandler};
 
@@ -17,9 +16,9 @@ pub trait DiscoveryManager: Send + Sync + 'static {
     /// List all schemas in a share.
     async fn list_schemas(
         &self,
-        request: ListSchemasRequest,
+        request: ListSharingSchemasRequest,
         recipient: &Recipient,
-    ) -> Result<ListSchemasResponse>;
+    ) -> Result<ListSharingSchemasResponse>;
 
     /// List all tables in a schema.
     async fn list_schema_tables(
@@ -55,9 +54,9 @@ impl<T: DiscoveryHandler + Policy> DiscoveryManager for T {
 
     async fn list_schemas(
         &self,
-        request: ListSchemasRequest,
+        request: ListSharingSchemasRequest,
         recipient: &Recipient,
-    ) -> Result<ListSchemasResponse> {
+    ) -> Result<ListSharingSchemasResponse> {
         self.check_required(&request, recipient).await?;
         Ok(self.list_schemas(request).await?)
     }
@@ -121,22 +120,18 @@ impl<T: TableQueryHandler + Policy> TableQueryManager for T {
 pub trait RepositoryManager: Send + Sync + 'static {
     async fn create_share(
         &self,
-        request: catalog::CreateShareRequest,
+        request: CreateShareRequest,
         recipient: &Recipient,
-    ) -> Result<catalog::ShareInfo>;
-    async fn delete_share(
-        &self,
-        request: catalog::DeleteShareRequest,
-        recipient: &Recipient,
-    ) -> Result<()>;
+    ) -> Result<ShareInfo>;
+    async fn delete_share(&self, request: DeleteShareRequest, recipient: &Recipient) -> Result<()>;
     async fn create_schema(
         &self,
-        request: catalog::CreateSchemaRequest,
+        request: CreateSharingSchemaRequest,
         recipient: &Recipient,
-    ) -> Result<catalog::SchemaInfo>;
+    ) -> Result<SharingSchemaInfo>;
     async fn delete_schema(
         &self,
-        request: catalog::DeleteSchemaRequest,
+        request: DeleteSharingSchemaRequest,
         recipient: &Recipient,
     ) -> Result<()>;
 }
@@ -145,34 +140,30 @@ pub trait RepositoryManager: Send + Sync + 'static {
 impl<T: RepositoryHandler + Policy> RepositoryManager for T {
     async fn create_share(
         &self,
-        request: catalog::CreateShareRequest,
+        request: CreateShareRequest,
         recipient: &Recipient,
-    ) -> Result<catalog::ShareInfo> {
+    ) -> Result<ShareInfo> {
         self.check_required(&request, recipient).await?;
         Ok(self.create_share(request).await?)
     }
 
-    async fn delete_share(
-        &self,
-        request: catalog::DeleteShareRequest,
-        recipient: &Recipient,
-    ) -> Result<()> {
+    async fn delete_share(&self, request: DeleteShareRequest, recipient: &Recipient) -> Result<()> {
         self.check_required(&request, recipient).await?;
         Ok(self.delete_share(request).await?)
     }
 
     async fn create_schema(
         &self,
-        request: catalog::CreateSchemaRequest,
+        request: CreateSharingSchemaRequest,
         recipient: &Recipient,
-    ) -> Result<catalog::SchemaInfo> {
+    ) -> Result<SharingSchemaInfo> {
         self.check_required(&request, recipient).await?;
         Ok(self.create_schema(request).await?)
     }
 
     async fn delete_schema(
         &self,
-        request: catalog::DeleteSchemaRequest,
+        request: DeleteSharingSchemaRequest,
         recipient: &Recipient,
     ) -> Result<()> {
         self.check_required(&request, recipient).await?;

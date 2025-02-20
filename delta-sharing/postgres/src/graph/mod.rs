@@ -1,3 +1,4 @@
+use delta_sharing_common::models::internal::resource::ObjectLabel;
 use delta_sharing_common::{AssociationLabel, ResourceIdent, ResourceRef};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -6,45 +7,6 @@ mod sharing;
 mod store;
 
 pub use store::Store as GraphStore;
-
-// IMPORTANT: Any changes to the schema must be reflected in the migrations.
-#[derive(Debug, Clone, Deserialize, Serialize, sqlx::Type, PartialEq)]
-#[sqlx(type_name = "object_label", rename_all = "snake_case")]
-#[serde(rename_all = "snake_case")]
-pub enum ObjectLabel {
-    /// A share in the delta shaing service.
-    DeltaShare,
-
-    /// A schema in the delta sharing service.
-    DeltaSchema,
-
-    /// A data table.
-    Table,
-
-    /// A credential for accessing an external resource or storage location.
-    Credential,
-
-    /// A storage location where data is stored.
-    ///
-    /// THe stored data may represent a table, a file, a model, etc.
-    StorageLocation,
-
-    Principal,
-}
-
-impl ObjectLabel {
-    pub fn to_ident(&self, id: impl Into<ResourceRef>) -> ResourceIdent {
-        let id = id.into();
-        match self {
-            ObjectLabel::DeltaShare => ResourceIdent::Share(id),
-            ObjectLabel::DeltaSchema => ResourceIdent::Schema(id),
-            ObjectLabel::Table => ResourceIdent::Table(id),
-            ObjectLabel::Principal => todo!(),
-            ObjectLabel::Credential => ResourceIdent::Credential(id),
-            ObjectLabel::StorageLocation => ResourceIdent::StorageLocation(id),
-        }
-    }
-}
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, sqlx::FromRow)]
 pub struct Object {
@@ -72,16 +34,24 @@ pub struct Object {
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
+pub struct ObjectRelations {
+    pub owner: Option<Uuid>,
+    pub created_by: Option<Uuid>,
+    pub updated_by: Option<Uuid>,
+}
+
 impl Object {
     pub fn resource_ident(&self) -> ResourceIdent {
         let id = ResourceRef::Uuid(self.id);
         match self.label {
-            ObjectLabel::DeltaShare => ResourceIdent::Share(id),
-            ObjectLabel::DeltaSchema => ResourceIdent::Schema(id),
-            ObjectLabel::Table => ResourceIdent::Table(id),
+            ObjectLabel::ShareInfo => ResourceIdent::Share(id),
+            ObjectLabel::SharingSchemaInfo => ResourceIdent::Schema(id),
+            ObjectLabel::SharingTable => ResourceIdent::SharingTable(id),
             ObjectLabel::Credential => ResourceIdent::Credential(id),
             ObjectLabel::StorageLocation => ResourceIdent::StorageLocation(id),
-            ObjectLabel::Principal => todo!(),
+            ObjectLabel::CatalogInfo => ResourceIdent::Catalog(id),
+            ObjectLabel::SchemaInfo => ResourceIdent::Schema(id),
+            ObjectLabel::TableInfo => ResourceIdent::Table(id),
         }
     }
 }
@@ -115,8 +85,7 @@ pub struct Association {
 
 impl Association {
     pub fn target_ident(&self) -> ResourceIdent {
-        self.to_label
-            .to_ident(ResourceRef::Uuid(self.to_id))
+        self.to_label.to_ident(ResourceRef::Uuid(self.to_id))
     }
 
     pub fn target_ref(&self) -> ResourceRef {

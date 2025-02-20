@@ -1,16 +1,16 @@
 use crate::policy::{Permission, ResourceIdent};
 use crate::ResourceRef;
 
-pub use super::catalog::v1::{
-    CreateCredentialRequest, CreateSchemaRequest, CreateShareRequest, CreateStorageLocationRequest,
-    DeleteCredentialRequest, DeleteSchemaRequest, DeleteShareRequest, DeleteStorageLocationRequest,
-    ListStorageLocationsRequest,
+pub use super::credentials::v1::{
+    CreateCredentialRequest, CreateStorageLocationRequest, DeleteCredentialRequest,
+    DeleteStorageLocationRequest, ListStorageLocationsRequest,
 };
-pub use super::v1::{
+pub use super::sharing::v1::{
+    CreateShareRequest, CreateSharingSchemaRequest, DeleteShareRequest, DeleteSharingSchemaRequest,
     GetShareRequest, GetTableMetadataRequest, GetTableVersionRequest, GetTableVersionResponse,
-    ListSchemaTablesRequest, ListSchemaTablesResponse, ListSchemasRequest, ListSchemasResponse,
-    ListShareTablesRequest, ListShareTablesResponse, ListSharesRequest, ListSharesResponse,
-    QueryResponse,
+    ListSchemaTablesRequest, ListSchemaTablesResponse, ListShareTablesRequest,
+    ListShareTablesResponse, ListSharesRequest, ListSharesResponse, ListSharingSchemasRequest,
+    ListSharingSchemasResponse, QueryResponse,
 };
 
 pub trait SecuredAction: Send + Sync {
@@ -49,7 +49,7 @@ impl_secured_action!(
         Permission::Read
     ),
     (
-        ListSchemasRequest,
+        ListSharingSchemasRequest,
         |req| ResourceIdent::share(&req.share),
         Permission::Read
     ),
@@ -84,12 +84,12 @@ impl_secured_action!(
         Permission::Manage
     ),
     (
-        CreateSchemaRequest,
+        CreateSharingSchemaRequest,
         |req| ResourceIdent::share(&req.share),
         Permission::Manage
     ),
     (
-        DeleteSchemaRequest,
+        DeleteSharingSchemaRequest,
         |req| ResourceIdent::schema(([&req.share], &req.name)),
         Permission::Manage
     ),

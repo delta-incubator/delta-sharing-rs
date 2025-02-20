@@ -1,0 +1,345 @@
+syntax = "proto3";
+
+package delta_sharing.sharing.v1;
+
+import "buf/validate/validate.proto";
+import "delta_sharing/sharing/v1/models.proto";
+import "delta_sharing/sharing/v1/query.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "openapiv3/annotations.proto";
+
+option (openapi.v3.document) = {
+  info: {
+    title: "Delta Sharing API"
+    version: "0.0.0"
+    description: "An Open Protocol for Secure Data Sharing"
+    license: {
+      name: "AGPL v3.0"
+      url: "https://www.gnu.org/licenses/agpl-3.0.en.html"
+    }
+  }
+  tags: [
+    {
+      name: "shares"
+      description: "Share discovery APIs"
+    },
+    {
+      name: "schemas"
+      description: "Schema discovery APIs"
+    },
+    {
+      name: "tables"
+      description: "Table query and inspection APIs"
+    },
+    {
+      name: "official"
+      description: "APIs which are part of published official document"
+    },
+    {
+      name: "unofficial"
+      description: "APIs which are custom to delta-sharing-rs"
+    }
+  ]
+};
+
+message ListSharesRequest {
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 1 [
+    (buf.validate.field).int32.gt = 0,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  optional string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListSharesResponse {
+  // The shares that were requested.
+  repeated Share items = 1;
+
+  // Token that can be used to retrieve the next page of shares.
+  // An empty or missing token means that no more shares are available for retrieval.
+  optional string next_page_token = 2;
+}
+
+message GetShareRequest {
+  // The share name to query. It's case-insensitive.
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+}
+
+message ListSharingSchemasRequest {
+  // The share name to query. It's case-insensitive.
+  string share = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 2 [
+    (buf.validate.field).int32.gt = 0,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListSharingSchemasResponse {
+  // The schemas that were requested.
+  repeated SharingSchema items = 1;
+
+  // Token that can be used to retrieve the next page of schemas.
+  // An empty or missing token means that no more schemas are available for retrieval.
+  optional string next_page_token = 2;
+}
+
+message ListSchemaTablesRequest {
+  // The schema name to query. It's case-insensitive.
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+  ];
+
+  // The share name to query. It's case-insensitive.
+  string share = 2 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 3 [
+    (buf.validate.field).int32.gt = 0,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  optional string page_token = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListSchemaTablesResponse {
+  // The tables that were requested.
+  repeated SharingTable items = 1;
+  // Token that can be used to retrieve the next page of tables.
+  // An empty or missing token means that no more tables are available for retrieval.
+  optional string next_page_token = 2;
+}
+
+message ListShareTablesRequest {
+  // The share name to query. It's case-insensitive.
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 2 [
+    (buf.validate.field).int32.gt = 0,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Specifies a page token to use. Set pageToken to the nextPageToken returned
+  // by a previous list request to get the next page of results.
+  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListShareTablesResponse {
+  // The tables that were requested.
+  repeated SharingTable items = 1;
+
+  // Token that can be used to retrieve the next page of tables.
+  // An empty or missing token means that no more tables are available for retrieval.
+  optional string next_page_token = 2;
+}
+
+// Service exposing the official APIs for Delta Sharing.
+service DeltaSharingService {
+  // List shares accessible to a recipient.
+  rpc ListShares(ListSharesRequest) returns (ListSharesResponse) {
+    option (google.api.http) = {get: "/shares"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "shares",
+        "official"
+      ]
+      operation_id: "ListShares"
+    };
+  }
+
+  // Get the metadata for a specific share.
+  rpc GetShare(GetShareRequest) returns (Share) {
+    option (google.api.http) = {get: "/{name=shares/*}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "shares",
+        "official"
+      ]
+      operation_id: "GetShare"
+    };
+  }
+
+  // List the schemas in a share.
+  rpc ListSharingSchemas(ListSharingSchemasRequest) returns (ListSharingSchemasResponse) {
+    option (google.api.http) = {get: "/{share=shares/*}/schemas"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "schemas",
+        "official"
+      ]
+      operation_id: "ListSharingSchemas"
+    };
+  }
+
+  // List the tables in a given share's schema.
+  rpc ListSchemaTables(ListSchemaTablesRequest) returns (ListSchemaTablesResponse) {
+    option (google.api.http) = {get: "/shares/{share}/schemas/{name}/tables"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "tables",
+        "official"
+      ]
+      operation_id: "ListSchemaTables"
+    };
+  }
+
+  // List all the tables under all schemas in a share.
+  rpc ListShareTables(ListShareTablesRequest) returns (ListShareTablesResponse) {
+    option (google.api.http) = {get: "/{name=shares/*}/all-tables"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "tables",
+        "official"
+      ]
+      operation_id: "ListShareTables"
+    };
+  }
+
+  // Get the current version for a table within a schema.
+  rpc GetTableVersion(GetTableVersionRequest) returns (GetTableVersionResponse) {
+    option (google.api.http) = {get: "/shares/{share}/schemas/{schema}/tables/{name}/version"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "tables",
+        "official"
+      ]
+      operation_id: "GetTableVersion"
+    };
+  }
+
+  rpc GetTableMetadata(GetTableMetadataRequest) returns (QueryResponse) {
+    option (google.api.http) = {get: "/shares/{share}/schemas/{schema}/tables/{name}/metadata"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "tables",
+        "official"
+      ]
+      operation_id: "GetTableMetadata"
+    };
+  }
+}
+
+message CreateShareRequest {
+  ShareInfo share = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteShareRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+}
+
+message CreateSharingSchemaRequest {
+  string share = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+  SharingSchemaInfo schema = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeleteSharingSchemaRequest {
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+  ];
+
+  string share = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+  ];
+}
+
+// Services exposing the unofficial APIs for Delta Sharing.
+// Mainly used to manage resoureces exposed by the Delta Sharing service.
+service DeltaSharingExtensionService {
+  // Create a new Share in the Delta Sharing service.
+  rpc CreateShare(CreateShareRequest) returns (ShareInfo) {
+    option (google.api.http) = {
+      post: "/shares"
+      body: "share"
+    };
+    option (openapi.v3.operation) = {
+      tags: [
+        "shares",
+        "unofficial"
+      ]
+      operation_id: "CreateShare"
+    };
+  }
+
+  // Delete a Share in the Delta Sharing service.
+  rpc DeleteShare(DeleteShareRequest) returns (ShareInfo) {
+    option (google.api.http) = {delete: "/shares/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "shares",
+        "unofficial"
+      ]
+      operation_id: "DeleteShare"
+    };
+  }
+
+  // Create a new Schema in the Delta Sharing service.
+  rpc CreateSchema(CreateSharingSchemaRequest) returns (SharingSchemaInfo) {
+    option (google.api.http) = {
+      post: "/shares/{share}/schemas"
+      body: "schema"
+    };
+    option (openapi.v3.operation) = {
+      tags: [
+        "schemas",
+        "unofficial"
+      ]
+      operation_id: "CreateSchema"
+    };
+  }
+
+  // Delete a Schema in the Delta Sharing service.
+  rpc DeleteSchema(DeleteSharingSchemaRequest) returns (SharingSchemaInfo) {
+    option (google.api.http) = {delete: "/shares/{share}/schemas/{name}"};
+    option (openapi.v3.operation) = {
+      tags: [
+        "schemas",
+        "unofficial"
+      ]
+      operation_id: "DeleteSchema"
+    };
+  }
+}

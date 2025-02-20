@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package delta_sharing.v1;
+package delta_sharing.sharing.v1;
 
 import "buf/validate/validate.proto";
-import "delta_sharing/v1/protocol.proto";
+import "delta_sharing/sharing/v1/protocol.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 

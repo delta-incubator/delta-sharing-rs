@@ -8,7 +8,7 @@ use delta_kernel::engine::default::{executor::TaskExecutor, DefaultEngine};
 use delta_kernel::snapshot::Snapshot;
 use delta_kernel::{Engine, Table};
 
-use crate::models::v1::{
+use crate::models::sharing::v1::{
     GetTableMetadataRequest, GetTableVersionRequest, GetTableVersionResponse, QueryResponse,
 };
 use crate::{ResourceRef, Result, TableLocationResover, TableQueryHandler};

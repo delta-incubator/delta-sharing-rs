@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+package delta_sharing.tables.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";

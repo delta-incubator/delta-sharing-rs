@@ -3,7 +3,7 @@ use axum::extract::{Extension, State};
 use axum::{response::Response, routing::get, Json, Router};
 use http::header::CONTENT_TYPE;
 
-use crate::models::v1::*;
+use crate::models::sharing::v1::*;
 use crate::{DiscoveryManager, Error, Recipient, Result, TableQueryManager};
 
 /// Create a new [Router] for the Delta Sharing REST API.
@@ -47,8 +47,8 @@ async fn get_share<T: DiscoveryManager>(
 async fn list_schemas<T: DiscoveryManager>(
     State(handler): State<T>,
     Extension(recipient): Extension<Recipient>,
-    request: ListSchemasRequest,
-) -> Result<Json<ListSchemasResponse>> {
+    request: ListSharingSchemasRequest,
+) -> Result<Json<ListSharingSchemasResponse>> {
     Ok(Json(handler.list_schemas(request, &recipient).await?))
 }
 
