@@ -1,4 +1,3 @@
-use std::vec;
 use uuid::Uuid;
 
 use delta_sharing_common::models::catalog::v1 as catalog;
@@ -8,8 +7,8 @@ use delta_sharing_common::models::sharing::v1 as sharing;
 use delta_sharing_common::models::tables::v1 as tables;
 use delta_sharing_common::models::{IntoJSONStruct, PropertyMap};
 use delta_sharing_common::{
-    AssociationLabel, Error, IntoJson, PropertyMapHandler, Resource, ResourceIdent, ResourceRef,
-    ResourceStore, Result,
+    AssociationLabel, Error, IntoJson, PropertyMapHandler, Resource, ResourceIdent, ResourceName,
+    ResourceRef, ResourceStore, Result,
 };
 use itertools::Itertools;
 
@@ -50,8 +49,7 @@ impl TryFrom<sharing::ShareInfo> for Object {
     fn try_from(share: sharing::ShareInfo) -> Result<Self, Self::Error> {
         Ok(Object {
             id: Uuid::parse_str(&share.id).unwrap_or_else(|_| Uuid::nil()),
-            namespace: vec![],
-            name: share.name,
+            name: ResourceName::new([share.name]),
             label: ObjectLabel::ShareInfo,
             properties: share
                 .properties
@@ -68,8 +66,7 @@ impl TryFrom<sharing::SharingSchemaInfo> for Object {
     fn try_from(schema: sharing::SharingSchemaInfo) -> Result<Self, Self::Error> {
         Ok(Object {
             id: Uuid::parse_str(&schema.id).unwrap_or_else(|_| Uuid::nil()),
-            namespace: vec![schema.share],
-            name: schema.name,
+            name: ResourceName::new([schema.share, schema.name]),
             label: ObjectLabel::SharingSchemaInfo,
             properties: schema
                 .properties
@@ -89,8 +86,7 @@ impl TryFrom<sharing::SharingTable> for Object {
                 .id
                 .and_then(|id| Uuid::parse_str(&id).ok())
                 .unwrap_or_else(Uuid::nil),
-            namespace: vec![table.share, table.schema],
-            name: table.name,
+            name: ResourceName::new([table.share, table.schema, table.name]),
             label: ObjectLabel::SharingTable,
             properties: None,
             updated_at: None,
@@ -113,8 +109,7 @@ impl TryFrom<credentials::StorageLocation> for Object {
 
         Ok(Object {
             id: Uuid::parse_str(&storage_location.id).unwrap_or_else(|_| Uuid::nil()),
-            namespace: vec![],
-            name: storage_location.name,
+            name: ResourceName::new([storage_location.name]),
             label: ObjectLabel::StorageLocation,
             properties: Some(props.into()),
             updated_at: None,
@@ -132,8 +127,7 @@ impl TryFrom<catalog::CatalogInfo> for Object {
                 .id
                 .and_then(|id| Uuid::parse_str(&id).ok())
                 .unwrap_or_else(Uuid::nil),
-            namespace: vec![],
-            name: catalog.name,
+            name: ResourceName::new([catalog.name]),
             label: ObjectLabel::CatalogInfo,
             properties: catalog
                 .properties
@@ -153,8 +147,7 @@ impl TryFrom<catalog::SchemaInfo> for Object {
                 .schema_id
                 .and_then(|id| Uuid::parse_str(&id).ok())
                 .unwrap_or_else(Uuid::nil),
-            namespace: vec![schema.catalog_name],
-            name: schema.name,
+            name: ResourceName::new([schema.catalog_name, schema.name]),
             label: ObjectLabel::SchemaInfo,
             properties: schema
                 .properties
@@ -174,8 +167,7 @@ impl TryFrom<tables::TableInfo> for Object {
                 .table_id
                 .and_then(|id| Uuid::parse_str(&id).ok())
                 .unwrap_or_else(Uuid::nil),
-            namespace: vec![table.catalog_name, table.schema_name],
-            name: table.name,
+            name: ResourceName::new([table.catalog_name, table.schema_name, table.name]),
             label: ObjectLabel::TableInfo,
             properties: table
                 .properties
@@ -226,7 +218,7 @@ impl TryFrom<Object> for credentials::StorageLocation {
     fn try_from(object: Object) -> Result<Self, Self::Error> {
         let mut storage_location = credentials::StorageLocation {
             id: object.id.hyphenated().to_string(),
-            name: object.name,
+            name: object.name.to_string(),
             ..Default::default()
         };
         match object.properties {
@@ -257,7 +249,7 @@ impl TryFrom<Object> for sharing::ShareInfo {
     fn try_from(object: Object) -> Result<Self, Self::Error> {
         Ok(sharing::ShareInfo {
             id: object.id.hyphenated().to_string(),
-            name: object.name,
+            name: object.name.to_string(),
             description: extract_comment(&object.properties),
             properties: object
                 .properties
@@ -271,15 +263,15 @@ impl TryFrom<Object> for sharing::SharingSchemaInfo {
     type Error = Error;
 
     fn try_from(object: Object) -> Result<Self, Self::Error> {
+        let (share, name) = match object.name.as_ref() {
+            [share, name] => (share.clone(), name.clone()),
+            _ => return Err(Error::generic("Schema name must have two parts")),
+        };
         Ok(sharing::SharingSchemaInfo {
             id: object.id.hyphenated().to_string(),
             share_id: None,
-            name: object.name,
-            share: object
-                .namespace
-                .last()
-                .cloned()
-                .ok_or_else(|| Error::generic("Schema must have a share as a parent resource"))?,
+            name,
+            share,
             description: extract_comment(&object.properties),
             properties: object
                 .properties
@@ -293,19 +285,13 @@ impl TryFrom<Object> for sharing::SharingTable {
     type Error = Error;
 
     fn try_from(object: Object) -> Result<Self, Self::Error> {
-        let schema = object
-            .namespace
-            .get(1)
-            .cloned()
-            .ok_or_else(|| Error::generic("Table must have a schema as a parent resource"))?;
-        let share = object
-            .namespace
-            .first()
-            .cloned()
-            .ok_or_else(|| Error::generic("Table must have a share as a parent resource"))?;
+        let (share, schema, name) = match object.name.as_ref() {
+            [share, schema, name] => (share.clone(), schema.clone(), name.clone()),
+            _ => return Err(Error::generic("Table name must have three parts")),
+        };
         Ok(sharing::SharingTable {
             id: Some(object.id.hyphenated().to_string()),
-            name: object.name,
+            name,
             share,
             schema,
             share_id: None,
@@ -317,9 +303,13 @@ impl TryFrom<Object> for catalog::CatalogInfo {
     type Error = Error;
 
     fn try_from(object: Object) -> Result<Self, Self::Error> {
+        let name = match object.name.as_ref() {
+            [name] => name.clone(),
+            _ => return Err(Error::generic("Catalog name must have one part")),
+        };
         Ok(catalog::CatalogInfo {
             id: Some(object.id.hyphenated().to_string()),
-            name: object.name,
+            name,
             comment: extract_comment(&object.properties),
             properties: object
                 .properties
@@ -338,10 +328,14 @@ impl TryFrom<Object> for catalog::SchemaInfo {
     type Error = Error;
 
     fn try_from(object: Object) -> Result<Self, Self::Error> {
+        let (catalog_name, name) = match object.name.as_ref() {
+            [catalog_name, name] => (catalog_name.clone(), name.clone()),
+            _ => return Err(Error::generic("Schema name must have two parts")),
+        };
         Ok(catalog::SchemaInfo {
             schema_id: Some(object.id.hyphenated().to_string()),
-            catalog_name: object.namespace.first().cloned().unwrap_or_default(),
-            name: object.name,
+            catalog_name,
+            name,
             comment: extract_comment(&object.properties),
             properties: object
                 .properties
@@ -361,11 +355,17 @@ impl TryFrom<Object> for tables::TableInfo {
     type Error = Error;
 
     fn try_from(object: Object) -> Result<Self, Self::Error> {
+        let (catalog_name, schema_name, name) = match object.name.as_ref() {
+            [catalog_name, schema_name, name] => {
+                (catalog_name.clone(), schema_name.clone(), name.clone())
+            }
+            _ => return Err(Error::generic("Table name must have three parts")),
+        };
         Ok(tables::TableInfo {
             table_id: Some(object.id.hyphenated().to_string()),
-            catalog_name: object.namespace.first().cloned().unwrap_or_default(),
-            schema_name: object.namespace.get(1).cloned().unwrap_or_default(),
-            name: object.name,
+            catalog_name,
+            schema_name,
+            name,
             comment: extract_comment(&object.properties),
             properties: object
                 .properties
@@ -398,8 +398,8 @@ impl ResourceStore for GraphStore {
             ResourceRef::Uuid(uuid) => {
                 Ok((self.get_object(uuid).await?.try_into()?, ident.clone()))
             }
-            ResourceRef::Name(namespace, name) => {
-                let object = self.get_object_by_name(label, namespace, name).await?;
+            ResourceRef::Name(name) => {
+                let object = self.get_object_by_name(label, name).await?;
                 let id_new = ResourceRef::Uuid(object.id);
                 Ok((object.try_into()?, id_new))
             }
@@ -452,12 +452,7 @@ impl ResourceStore for GraphStore {
     async fn create(&self, resource: Resource) -> Result<(Resource, ResourceRef)> {
         let object: Object = resource.try_into()?;
         let object = self
-            .add_object(
-                &object.label,
-                &object.namespace,
-                &object.name,
-                object.properties,
-            )
+            .add_object(&object.label, &object.name, object.properties)
             .await?;
         let id = ResourceRef::Uuid(object.id);
         Ok((object.try_into()?, id))
@@ -471,8 +466,8 @@ impl ResourceStore for GraphStore {
         let (label, ident) = id.ident();
         match ident {
             ResourceRef::Uuid(uuid) => self.delete_object(uuid).await?,
-            ResourceRef::Name(namespace, name) => {
-                let obj = self.get_object_by_name(label, namespace, name).await?;
+            ResourceRef::Name(name) => {
+                let obj = self.get_object_by_name(label, name).await?;
                 self.delete_object(&obj.id).await?;
             }
             ResourceRef::Undefined => {
@@ -494,8 +489,8 @@ impl ResourceStore for GraphStore {
         let (to_label, to_ident) = to.ident();
         let from_id = match from_ident {
             ResourceRef::Uuid(uuid) => *uuid,
-            ResourceRef::Name(namespace, name) => {
-                let object = self.get_object_by_name(from_label, namespace, name).await?;
+            ResourceRef::Name(name) => {
+                let object = self.get_object_by_name(from_label, name).await?;
                 object.id
             }
             ResourceRef::Undefined => {
@@ -506,8 +501,8 @@ impl ResourceStore for GraphStore {
         };
         let to_id = match to_ident {
             ResourceRef::Uuid(uuid) => *uuid,
-            ResourceRef::Name(namespace, name) => {
-                let object = self.get_object_by_name(to_label, namespace, name).await?;
+            ResourceRef::Name(name) => {
+                let object = self.get_object_by_name(to_label, name).await?;
                 object.id
             }
             ResourceRef::Undefined => {

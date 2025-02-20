@@ -74,7 +74,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CatalogInfo'
+              $ref: '#/components/schemas/CreateCatalogRequest'
         required: true
       responses:
         '200':
@@ -190,7 +190,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Credential'
+              $ref: '#/components/schemas/CreateCredentialRequest'
         required: true
       responses:
         '200':
@@ -416,7 +416,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SchemaInfo'
+              $ref: '#/components/schemas/CreateSchemaRequest'
         required: true
       responses:
         '200':
@@ -476,8 +476,15 @@ paths:
       parameters:
         - name: name
           in: path
-          description: Name of schema.
           required: true
+          schema:
+            type: string
+        - name: fullName
+          in: query
+          description: |-
+            Full name of schema.
+
+             Format: catalog_name.schema_name
           schema:
             type: string
       responses:
@@ -503,10 +510,22 @@ paths:
       parameters:
         - name: name
           in: path
-          description: Name of schema.
           required: true
           schema:
             type: string
+        - name: fullName
+          in: query
+          description: |-
+            Full name of schema to delete.
+
+             Format: catalog_name.schema_name
+          schema:
+            type: string
+        - name: force
+          in: query
+          description: Force deletion even if the schema is not empty.
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -996,6 +1015,50 @@ components:
           type: string
           description: Unique identifier for the catalog.
       description: A catalog is a root-level namespace that contains schemas.
+    CreateCatalogRequest:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of catalog.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        properties:
+          type: object
+          description: A map of key-value properties attached to the securable.
+      description: Create a new catalog
+    CreateCredentialRequest:
+      required:
+        - credential
+      type: object
+      properties:
+        credential:
+          allOf:
+            - $ref: '#/components/schemas/Credential'
+          description: Credential to create.
+      description: Create a new credential
+    CreateSchemaRequest:
+      required:
+        - name
+        - catalogName
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of schema, relative to parent catalog.
+        catalogName:
+          type: string
+          description: Name of parent catalog.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        properties:
+          type: object
+          description: A map of key-value properties attached to the securable.
+      description: Create a new Schema
     Credential:
       required:
         - name
@@ -1008,6 +1071,26 @@ components:
           type: string
         azure:
           $ref: '#/components/schemas/AzureCredential'
+        owner:
+          readOnly: true
+          type: string
+          description: Username of current owner of catalog.
+        createAt:
+          readOnly: true
+          type: string
+          description: Time at which this catalog was created, in epoch milliseconds.
+        createdBy:
+          readOnly: true
+          type: string
+          description: Username of catalog creator.
+        updateAt:
+          readOnly: true
+          type: string
+          description: Time at which this catalog was last updated, in epoch milliseconds.
+        updatedBy:
+          readOnly: true
+          type: string
+          description: Username of user who last modified catalog.
     DeltaLogMessage:
       type: object
       properties:

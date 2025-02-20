@@ -843,6 +843,7 @@ dependencies = [
  "bytes",
  "chrono",
  "dashmap",
+ "delta-sharing-derive",
  "delta_kernel",
  "futures-util",
  "http",
@@ -864,6 +865,15 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
+]
+
+[[package]]
+name = "delta-sharing-derive"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.98",
 ]
 
 [[package]]

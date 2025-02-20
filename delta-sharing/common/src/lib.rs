@@ -19,6 +19,7 @@ mod resources;
 pub mod rest;
 
 pub use self::resources::*;
+pub use delta_sharing_derive;
 pub use error::*;
 pub use handlers::*;
 #[cfg(feature = "memory")]
@@ -59,7 +60,7 @@ impl Recipient {
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum ResourceRef {
     Uuid(Uuid),
-    Name(Vec<String>, String),
+    Name(ResourceName),
     /// Not referencing a specific resource.
     ///
     /// This is used to represent a wildcard in a policy
@@ -72,12 +73,8 @@ impl std::fmt::Display for ResourceRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Uuid(u) => write!(f, "{}", u.hyphenated()),
-            Self::Name(path, name) => {
-                if path.is_empty() {
-                    write!(f, "{}", name)
-                } else {
-                    write!(f, "{}.{}", path.join("."), name)
-                }
+            Self::Name(name) => {
+                write!(f, "{}", name)
             }
             Self::Undefined => write!(f, "*"),
         }
@@ -96,30 +93,9 @@ impl From<&Uuid> for ResourceRef {
     }
 }
 
-impl From<String> for ResourceRef {
-    fn from(val: String) -> Self {
-        Self::Name(vec![], val)
-    }
-}
-
-impl From<&String> for ResourceRef {
-    fn from(val: &String) -> Self {
-        Self::Name(vec![], val.clone())
-    }
-}
-
-impl From<&str> for ResourceRef {
-    fn from(val: &str) -> Self {
-        Self::Name(vec![], val.to_string())
-    }
-}
-
-impl<T: ToString + Sized, U: ToString, const N: usize> From<([T; N], U)> for ResourceRef {
-    fn from(val: ([T; N], U)) -> Self {
-        Self::Name(
-            val.0.iter().map(|s| s.to_string()).collect(),
-            val.1.to_string(),
-        )
+impl From<ResourceName> for ResourceRef {
+    fn from(val: ResourceName) -> Self {
+        Self::Name(val)
     }
 }
 

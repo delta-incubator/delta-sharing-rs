@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::models::sharing::v1::*;
+use crate::ResourceName;
 use crate::{DiscoveryHandler, RepositoryHandler, ResourceRef, Result};
 
 #[async_trait::async_trait]
@@ -153,7 +154,7 @@ impl<T: SharingRepository> RepositoryHandler for T {
         &self,
         request: CreateSharingSchemaRequest,
     ) -> Result<SharingSchemaInfo> {
-        let share = ResourceRef::from(&request.share);
+        let share = ResourceRef::Name(ResourceName::new([&request.share]));
         let schema = request
             .schema
             .ok_or_else(|| crate::Error::invalid_argument("schema is required".to_string()))?;

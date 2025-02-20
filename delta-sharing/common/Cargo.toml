@@ -6,6 +6,8 @@ authors = ["Robert Pack <robstar.pack@gmail.com>"]
 rust-version = "1.81"
 
 [dependencies]
+delta-sharing-derive = { path = "../derive" }
+
 # workspace dependencies (in alphabetical order)
 async-trait = { workspace = true }
 bytes = { workspace = true }

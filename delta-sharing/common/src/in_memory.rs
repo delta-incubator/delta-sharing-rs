@@ -201,23 +201,23 @@ impl TableLocationResover for InMemoryHandler {
         match table_ref {
             ResourceRef::Uuid(_) => Err(Error::NotFound),
             ResourceRef::Undefined => Err(Error::NotFound),
-            ResourceRef::Name(ns, table) => {
-                if ns.len() != 2 {
+            ResourceRef::Name(name) => {
+                if name.len() != 3 {
                     return Err(Error::NotFound);
                 }
-                let Some(schemas) = self.shares.get(&ns[0]) else {
+                let Some(schemas) = self.shares.get(&name[0]) else {
                     return Err(Error::NotFound);
                 };
-                if !schemas.contains(&ns[1]) {
+                if !schemas.contains(&name[1]) {
                     return Err(Error::NotFound);
                 }
-                let Some(tables) = self.schemas.get(&ns[1]) else {
+                let Some(tables) = self.schemas.get(&name[1]) else {
                     return Err(Error::NotFound);
                 };
-                if !tables.contains(table) {
+                if !tables.contains(&name[2]) {
                     return Err(Error::NotFound);
                 }
-                let table = self.tables.get(table).ok_or(Error::NotFound)?;
+                let table = self.tables.get(&name[2]).ok_or(Error::NotFound)?;
                 Ok(url::Url::parse(&table.location)
                     .map_err(|_| Error::InvalidTableLocation(table.location.clone()))?)
             }

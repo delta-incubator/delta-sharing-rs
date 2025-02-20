@@ -8,7 +8,7 @@
 use std::sync::Arc;
 
 use crate::models::SecuredAction;
-use crate::{Error, Recipient, ResourceRef, Result};
+use crate::{Error, Recipient, ResourceName, ResourceRef, Result};
 
 pub use constant::*;
 
@@ -214,8 +214,12 @@ pub trait Policy: Send + Sync + 'static {
         permission: &Permission,
         recipient: &Recipient,
     ) -> Result<()> {
-        self.authorize_checked(&ResourceIdent::share(share), permission, recipient)
-            .await
+        self.authorize_checked(
+            &ResourceIdent::share(ResourceName::new([share])),
+            permission,
+            recipient,
+        )
+        .await
     }
 }
 

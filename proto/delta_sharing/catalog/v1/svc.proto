@@ -14,8 +14,14 @@ import "openapiv3/annotations.proto";
 
 // Create a new catalog
 message CreateCatalogRequest {
-  // Catalog to create.
-  CatalogInfo catalog = 2 [(google.api.field_behavior) = REQUIRED];
+  // Name of catalog.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // User-provided free-form text description.
+  optional string comment = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // Delete a catalog
@@ -68,20 +74,36 @@ message UpdateCatalogRequest {
 
 // Create a new Schema
 message CreateSchemaRequest {
-  // Schema to create.
-  SchemaInfo schema = 2 [(google.api.field_behavior) = REQUIRED];
+  // Name of schema, relative to parent catalog.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Name of parent catalog.
+  string catalog_name = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // User-provided free-form text description.
+  optional string comment = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 4 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // Delete a Schema
 message DeleteSchemaRequest {
-  // Name of schema.
-  string name = 1 [(google.api.field_behavior) = REQUIRED];
+  // Full name of schema to delete.
+  //
+  // Format: catalog_name.schema_name
+  string full_name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Force deletion even if the schema is not empty.
+  optional bool force = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // Get a Schema
 message GetSchemaRequest {
-  // Name of schema.
-  string name = 1 [(google.api.field_behavior) = REQUIRED];
+  // Full name of schema.
+  //
+  // Format: catalog_name.schema_name
+  string full_name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // List Schemas in a catalog
@@ -126,7 +148,7 @@ service CatalogService {
   rpc CreateCatalog(CreateCatalogRequest) returns (CatalogInfo) {
     option (google.api.http) = {
       post: "/catalogs"
-      body: "catalog"
+      body: "*"
     };
     option (openapi.v3.operation) = {
       tags: [
@@ -192,7 +214,7 @@ service CatalogService {
   rpc CreateSchema(CreateSchemaRequest) returns (SchemaInfo) {
     option (google.api.http) = {
       post: "/schemas"
-      body: "schema"
+      body: "*"
     };
     option (openapi.v3.operation) = {
       tags: [

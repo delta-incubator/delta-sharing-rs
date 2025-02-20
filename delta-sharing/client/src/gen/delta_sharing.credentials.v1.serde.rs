@@ -696,6 +696,21 @@ impl serde::Serialize for Credential {
         if !self.name.is_empty() {
             len += 1;
         }
+        if self.owner.is_some() {
+            len += 1;
+        }
+        if self.create_at.is_some() {
+            len += 1;
+        }
+        if self.created_by.is_some() {
+            len += 1;
+        }
+        if self.update_at.is_some() {
+            len += 1;
+        }
+        if self.updated_by.is_some() {
+            len += 1;
+        }
         if self.credential.is_some() {
             len += 1;
         }
@@ -705,6 +720,25 @@ impl serde::Serialize for Credential {
         }
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.owner.as_ref() {
+            struct_ser.serialize_field("owner", v)?;
+        }
+        if let Some(v) = self.create_at.as_ref() {
+            #[allow(clippy::needless_borrow)]
+            #[allow(clippy::needless_borrows_for_generic_args)]
+            struct_ser.serialize_field("createAt", ToString::to_string(&v).as_str())?;
+        }
+        if let Some(v) = self.created_by.as_ref() {
+            struct_ser.serialize_field("createdBy", v)?;
+        }
+        if let Some(v) = self.update_at.as_ref() {
+            #[allow(clippy::needless_borrow)]
+            #[allow(clippy::needless_borrows_for_generic_args)]
+            struct_ser.serialize_field("updateAt", ToString::to_string(&v).as_str())?;
+        }
+        if let Some(v) = self.updated_by.as_ref() {
+            struct_ser.serialize_field("updatedBy", v)?;
         }
         if let Some(v) = self.credential.as_ref() {
             match v {
@@ -725,6 +759,15 @@ impl<'de> serde::Deserialize<'de> for Credential {
         const FIELDS: &[&str] = &[
             "id",
             "name",
+            "owner",
+            "create_at",
+            "createAt",
+            "created_by",
+            "createdBy",
+            "update_at",
+            "updateAt",
+            "updated_by",
+            "updatedBy",
             "azure",
         ];
 
@@ -732,6 +775,11 @@ impl<'de> serde::Deserialize<'de> for Credential {
         enum GeneratedField {
             Id,
             Name,
+            Owner,
+            CreateAt,
+            CreatedBy,
+            UpdateAt,
+            UpdatedBy,
             Azure,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -756,6 +804,11 @@ impl<'de> serde::Deserialize<'de> for Credential {
                         match value {
                             "id" => Ok(GeneratedField::Id),
                             "name" => Ok(GeneratedField::Name),
+                            "owner" => Ok(GeneratedField::Owner),
+                            "createAt" | "create_at" => Ok(GeneratedField::CreateAt),
+                            "createdBy" | "created_by" => Ok(GeneratedField::CreatedBy),
+                            "updateAt" | "update_at" => Ok(GeneratedField::UpdateAt),
+                            "updatedBy" | "updated_by" => Ok(GeneratedField::UpdatedBy),
                             "azure" => Ok(GeneratedField::Azure),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
@@ -778,6 +831,11 @@ impl<'de> serde::Deserialize<'de> for Credential {
             {
                 let mut id__ = None;
                 let mut name__ = None;
+                let mut owner__ = None;
+                let mut create_at__ = None;
+                let mut created_by__ = None;
+                let mut update_at__ = None;
+                let mut updated_by__ = None;
                 let mut credential__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
@@ -793,6 +851,40 @@ impl<'de> serde::Deserialize<'de> for Credential {
                             }
                             name__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::Owner => {
+                            if owner__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("owner"));
+                            }
+                            owner__ = map_.next_value()?;
+                        }
+                        GeneratedField::CreateAt => {
+                            if create_at__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("createAt"));
+                            }
+                            create_at__ = 
+                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
+                            ;
+                        }
+                        GeneratedField::CreatedBy => {
+                            if created_by__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("createdBy"));
+                            }
+                            created_by__ = map_.next_value()?;
+                        }
+                        GeneratedField::UpdateAt => {
+                            if update_at__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("updateAt"));
+                            }
+                            update_at__ = 
+                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
+                            ;
+                        }
+                        GeneratedField::UpdatedBy => {
+                            if updated_by__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("updatedBy"));
+                            }
+                            updated_by__ = map_.next_value()?;
+                        }
                         GeneratedField::Azure => {
                             if credential__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("azure"));
@@ -805,6 +897,11 @@ impl<'de> serde::Deserialize<'de> for Credential {
                 Ok(Credential {
                     id: id__.unwrap_or_default(),
                     name: name__.unwrap_or_default(),
+                    owner: owner__,
+                    create_at: create_at__,
+                    created_by: created_by__,
+                    update_at: update_at__,
+                    updated_by: updated_by__,
                     credential: credential__,
                 })
             }

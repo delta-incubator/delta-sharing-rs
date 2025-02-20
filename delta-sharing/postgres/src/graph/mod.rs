@@ -1,5 +1,5 @@
 use delta_sharing_common::models::internal::resource::ObjectLabel;
-use delta_sharing_common::{AssociationLabel, ResourceIdent, ResourceRef};
+use delta_sharing_common::{AssociationLabel, ResourceIdent, ResourceName, ResourceRef};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -16,13 +16,8 @@ pub struct Object {
     /// The label / tyoe of the object.
     pub label: ObjectLabel,
 
-    /// The namespace of the object.
-    pub namespace: Vec<String>,
-
-    /// The name of the object.
-    ///
-    /// The name of the object is unique within the namespace.
-    pub name: String,
+    /// The namespaced name of the object.
+    pub name: ResourceName,
 
     /// The properties of the object.
     pub properties: Option<serde_json::Value>,

@@ -1,6 +1,11 @@
 use crate::policy::{Permission, ResourceIdent};
-use crate::ResourceRef;
+use crate::{ResourceName, ResourceRef};
 
+pub use super::catalog::v1::{
+    CreateCatalogRequest, CreateSchemaRequest, DeleteCatalogRequest, DeleteSchemaRequest,
+    GetCatalogRequest, GetSchemaRequest, ListCatalogsRequest, ListCatalogsResponse,
+    ListSchemasRequest, ListSchemasResponse, UpdateCatalogRequest,
+};
 pub use super::credentials::v1::{
     CreateCredentialRequest, CreateStorageLocationRequest, DeleteCredentialRequest,
     DeleteStorageLocationRequest, ListStorageLocationsRequest,
@@ -40,32 +45,32 @@ macro_rules! impl_secured_action {
 impl_secured_action!(
     (
         GetShareRequest,
-        |req| ResourceIdent::share(&req.name),
+        |req| ResourceIdent::share(ResourceName::new([&req.name])),
         Permission::Read
     ),
     (
         ListShareTablesRequest,
-        |req| ResourceIdent::share(&req.name),
+        |req| ResourceIdent::share(ResourceName::new([&req.name])),
         Permission::Read
     ),
     (
         ListSharingSchemasRequest,
-        |req| ResourceIdent::share(&req.share),
+        |req| ResourceIdent::share(ResourceName::new([&req.share])),
         Permission::Read
     ),
     (
         ListSchemaTablesRequest,
-        |req| ResourceIdent::schema(([&req.share], &req.name)),
+        |req| ResourceIdent::schema(ResourceName::new([&req.share, &req.name])),
         Permission::Read
     ),
     (
         GetTableVersionRequest,
-        |req| ResourceIdent::table(([&req.share, &req.schema], &req.name)),
+        |req| ResourceIdent::sharing_table(ResourceName::new([&req.share, &req.schema, &req.name])),
         Permission::Read
     ),
     (
         GetTableMetadataRequest,
-        |req| ResourceIdent::table(([&req.share, &req.schema], &req.name)),
+        |req| ResourceIdent::sharing_table(ResourceName::new([&req.share, &req.schema, &req.name])),
         Permission::Read
     ),
     (
@@ -80,17 +85,17 @@ impl_secured_action!(
     ),
     (
         DeleteShareRequest,
-        |req| ResourceIdent::share(&req.name),
+        |req| ResourceIdent::share(ResourceName::new([&req.name])),
         Permission::Manage
     ),
     (
         CreateSharingSchemaRequest,
-        |req| ResourceIdent::share(&req.share),
+        |req| ResourceIdent::share(ResourceName::new([&req.share])),
         Permission::Manage
     ),
     (
         DeleteSharingSchemaRequest,
-        |req| ResourceIdent::schema(([&req.share], &req.name)),
+        |req| ResourceIdent::schema(ResourceName::new([&req.share, &req.name])),
         Permission::Manage
     ),
     (
@@ -100,7 +105,7 @@ impl_secured_action!(
     ),
     (
         DeleteCredentialRequest,
-        |req| ResourceIdent::credential(&req.name),
+        |req| ResourceIdent::credential(ResourceName::new([&req.name])),
         Permission::Manage
     ),
     (
@@ -110,7 +115,7 @@ impl_secured_action!(
     ),
     (
         DeleteStorageLocationRequest,
-        |req| ResourceIdent::storage_location(&req.name),
+        |req| ResourceIdent::storage_location(ResourceName::new([&req.name])),
         Permission::Manage
     ),
     (
@@ -118,4 +123,49 @@ impl_secured_action!(
         |_| ResourceIdent::StorageLocation(ResourceRef::Undefined),
         Permission::Read
     ),
+    (
+        CreateCatalogRequest,
+        |_| ResourceIdent::Catalog(ResourceRef::Undefined),
+        Permission::Create
+    ),
+    (
+        DeleteCatalogRequest,
+        |req| ResourceIdent::catalog(ResourceName::new([&req.name])),
+        Permission::Manage
+    ),
+    (
+        UpdateCatalogRequest,
+        |req| ResourceIdent::catalog(ResourceName::new([&req.name])),
+        Permission::Manage
+    ),
+    (
+        GetCatalogRequest,
+        |req| ResourceIdent::catalog(ResourceName::new([&req.name])),
+        Permission::Read
+    ),
+    (
+        ListCatalogsRequest,
+        |_| ResourceIdent::Catalog(ResourceRef::Undefined),
+        Permission::Read
+    ),
+    (
+        CreateSchemaRequest,
+        |req| ResourceIdent::schema(ResourceName::new([&req.catalog_name, &req.name])),
+        Permission::Create
+    ),
+    (
+        DeleteSchemaRequest,
+        |req| ResourceIdent::schema(ResourceName::from_naive_str_split(&req.full_name)),
+        Permission::Manage
+    ),
+    (
+        GetSchemaRequest,
+        |req| ResourceIdent::schema(ResourceName::from_naive_str_split(&req.full_name)),
+        Permission::Read
+    ),
+    (
+        ListSchemasRequest,
+        |req| ResourceIdent::catalog(ResourceName::new([&req.catalog_name])),
+        Permission::Read
+    )
 );

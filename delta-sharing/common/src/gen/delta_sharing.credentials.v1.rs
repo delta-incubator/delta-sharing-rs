@@ -65,6 +65,21 @@ pub struct Credential {
     pub id: ::prost::alloc::string::String,
     #[prost(string, tag="2")]
     pub name: ::prost::alloc::string::String,
+    /// Username of current owner of catalog.
+    #[prost(string, optional, tag="4")]
+    pub owner: ::core::option::Option<::prost::alloc::string::String>,
+    /// Time at which this catalog was created, in epoch milliseconds.
+    #[prost(int64, optional, tag="5")]
+    pub create_at: ::core::option::Option<i64>,
+    /// Username of catalog creator.
+    #[prost(string, optional, tag="6")]
+    pub created_by: ::core::option::Option<::prost::alloc::string::String>,
+    /// Time at which this catalog was last updated, in epoch milliseconds.
+    #[prost(int64, optional, tag="7")]
+    pub update_at: ::core::option::Option<i64>,
+    /// Username of user who last modified catalog.
+    #[prost(string, optional, tag="8")]
+    pub updated_by: ::core::option::Option<::prost::alloc::string::String>,
     #[prost(oneof="credential::Credential", tags="3")]
     pub credential: ::core::option::Option<credential::Credential>,
 }

@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     policy::{AsResource, ResourceIdent},
-    Error, ResourceRef,
+    Error, ResourceName, ResourceRef,
 };
 
 pub use credentials::v1::{Credential, StorageLocation};
@@ -17,6 +17,7 @@ pub use internal::resource::{ObjectLabel, Resource};
 mod properties;
 pub(crate) mod requests;
 
+pub use catalog::v1::{CatalogInfo, SchemaInfo};
 pub use profiles::v1::Profile;
 pub use sharing::v1::{Share, SharingSchema};
 
@@ -92,7 +93,7 @@ impl AsResource for Share {
         self.id
             .as_ref()
             .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::share))
-            .unwrap_or_else(|| ResourceIdent::share(&self.name))
+            .unwrap_or_else(|| ResourceIdent::share(ResourceName::new([&self.name])))
     }
 }
 
@@ -125,7 +126,14 @@ macro_rules! impl_resource_conversions {
         )*
     };
 }
-impl_resource_conversions!(ShareInfo, SharingSchemaInfo, Credential, StorageLocation);
+impl_resource_conversions!(
+    ShareInfo,
+    SharingSchemaInfo,
+    Credential,
+    StorageLocation,
+    CatalogInfo,
+    SchemaInfo
+);
 
 /// Conversions from more specific types to reduced info sharing API types
 impl TryFrom<Resource> for Share {

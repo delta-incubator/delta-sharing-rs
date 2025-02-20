@@ -37,8 +37,8 @@ impl Store {
         let (label, ident) = reference.ident();
         match ident {
             ResourceRef::Uuid(id) => Ok(*id),
-            ResourceRef::Name(namespace, name) => {
-                let object = self.get_object_by_name(label, namespace, name).await?;
+            ResourceRef::Name(name) => {
+                let object = self.get_object_by_name(label, name).await?;
                 Ok(object.id)
             }
             ResourceRef::Undefined => Err(crate::Error::entity_not_found("undefined")),
@@ -49,7 +49,7 @@ impl Store {
     ///
     /// # Parameters
     /// - `label`: The label of the object.
-    /// - `namespace`: The namespace of the object.
+    /// - `name`: The namespaced name of the object.
     /// - `name`: The name of the object.
     /// - `properties`: The properties of the object.
     ///
@@ -62,27 +62,24 @@ impl Store {
     pub async fn add_object(
         &self,
         label: &ObjectLabel,
-        namespace: &[String],
-        name: impl AsRef<str>,
+        name: &[String],
         properties: Option<serde_json::Value>,
     ) -> Result<Object> {
         Ok(sqlx::query_as!(
             Object,
             r#"
-            INSERT INTO objects ( label, namespace, name, properties )
-            VALUES ( $1, $2, $3, $4 )
+            INSERT INTO objects ( label, name, properties )
+            VALUES ( $1, $2, $3 )
             RETURNING
                 id,
                 label AS "label: ObjectLabel",
-                namespace,
                 name,
                 properties,
                 created_at,
                 updated_at
             "#,
             label as &ObjectLabel,
-            namespace,
-            name.as_ref(),
+            name,
             properties
         )
         .fetch_one(&*self.pool)
@@ -106,7 +103,6 @@ impl Store {
             SELECT
                 id,
                 label AS "label: ObjectLabel",
-                namespace,
                 name,
                 properties,
                 created_at,
@@ -134,31 +130,23 @@ impl Store {
     ///
     /// # Errors
     /// - [EntityNotFound](crate::Error::EntityNotFound): If the object does not exist.
-    pub async fn get_object_by_name(
-        &self,
-        label: &ObjectLabel,
-        namespace: &[String],
-        name: impl AsRef<str>,
-    ) -> Result<Object> {
+    pub async fn get_object_by_name(&self, label: &ObjectLabel, name: &[String]) -> Result<Object> {
         Ok(sqlx::query_as!(
             Object,
             r#"
             SELECT
                 id,
                 label AS "label: ObjectLabel",
-                namespace,
                 name,
                 properties,
                 created_at,
                 updated_at
             FROM objects
             WHERE label = $1
-              AND namespace = $2
-              AND name = $3
+              AND name = $2
             "#,
             label as &ObjectLabel,
-            namespace,
-            name.as_ref()
+            name
         )
         .fetch_one(&*self.pool)
         .await?)
@@ -189,7 +177,6 @@ impl Store {
             RETURNING
                 id,
                 label AS "label: ObjectLabel",
-                namespace,
                 name,
                 properties,
                 created_at,
@@ -268,14 +255,13 @@ impl Store {
             SELECT
                 id,
                 label AS "label: ObjectLabel",
-                namespace,
                 name,
                 properties,
                 created_at,
                 updated_at
             FROM objects
             WHERE label = $1
-              AND namespace = $2
+              AND name = $2
               AND ( id < $3 OR $3 IS NULL )
             ORDER BY id DESC
             LIMIT $4
