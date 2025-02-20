@@ -1,10 +1,12 @@
 CREATE TYPE object_label AS ENUM (
-    'delta_share',
-    'delta_schema',
-    'table',
-    'principal',
+    'share_info',
+    'sharing_schema_info',
+    'sharing_table',
     'credential',
-    'storage_location'
+    'storage_location',
+    'catalog_info',
+    'schema_info',
+    'table_info'
 );
 
 CREATE TABLE objects (
