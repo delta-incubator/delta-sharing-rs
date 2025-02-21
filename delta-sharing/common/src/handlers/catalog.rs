@@ -1,77 +1,130 @@
+use super::ServerHandler;
+use crate::api::{CatalogHandler, RequestContext};
 use crate::models::catalog::v1::*;
-use crate::Result;
-
-use super::RequestContext;
+use crate::{Result, SecuredAction};
 
 #[async_trait::async_trait]
-pub trait CatalogHandler: Send + Sync + 'static {
-    /// Create a new catalog.
+impl CatalogHandler for ServerHandler {
     async fn create_catalog(
         &self,
         request: CreateCatalogRequest,
         context: RequestContext,
-    ) -> Result<CatalogInfo>;
+    ) -> Result<CatalogInfo> {
+        self.policy
+            .check_required(&request, context.recipient())
+            .await?;
+        let resource = CatalogInfo {
+            name: request.name,
+            comment: request.comment,
+            properties: request.properties,
+            ..Default::default()
+        };
+        self.store.create(resource.into()).await?.0.try_into()
+    }
 
-    /// Delete a catalog.
     async fn delete_catalog(
         &self,
         request: DeleteCatalogRequest,
         context: RequestContext,
-    ) -> Result<()>;
+    ) -> Result<()> {
+        self.policy
+            .check_required(&request, context.recipient())
+            .await?;
+        self.store.delete(&request.resource()).await
+    }
 
-    /// Get a catalog.
     async fn get_catalog(
         &self,
         request: GetCatalogRequest,
         context: RequestContext,
-    ) -> Result<CatalogInfo>;
+    ) -> Result<CatalogInfo> {
+        self.policy
+            .check_required(&request, context.recipient())
+            .await?;
+        self.store.get(&request.resource()).await?.0.try_into()
+    }
 
-    /// List catalogs.
     async fn list_catalogs(
         &self,
         request: ListCatalogsRequest,
         context: RequestContext,
-    ) -> Result<ListCatalogsResponse>;
+    ) -> Result<ListCatalogsResponse> {
+        self.policy
+            .check_required(&request, context.recipient())
+            .await?;
+        todo!()
+    }
 
-    /// Update a catalog.
     async fn update_catalog(
         &self,
         request: UpdateCatalogRequest,
         context: RequestContext,
-    ) -> Result<CatalogInfo>;
+    ) -> Result<CatalogInfo> {
+        self.policy
+            .check_required(&request, context.recipient())
+            .await?;
+        todo!()
+    }
 
-    /// Create a new schema.
     async fn create_schema(
         &self,
         request: CreateSchemaRequest,
         context: RequestContext,
-    ) -> Result<SchemaInfo>;
+    ) -> Result<SchemaInfo> {
+        self.policy
+            .check_required(&request, context.recipient())
+            .await?;
+        let resource = SchemaInfo {
+            name: request.name,
+            catalog_name: request.catalog_name,
+            comment: request.comment,
+            properties: request.properties,
+            ..Default::default()
+        };
+        self.store.create(resource.into()).await?.0.try_into()
+    }
 
-    /// Delete a schema.
     async fn delete_schema(
         &self,
         request: DeleteSchemaRequest,
         context: RequestContext,
-    ) -> Result<()>;
+    ) -> Result<()> {
+        self.policy
+            .check_required(&request, context.recipient())
+            .await?;
+        self.store.delete(&request.resource()).await
+    }
 
-    /// Get a schema.
-    async fn get_schema(
-        &self,
-        request: GetSchemaRequest,
-        context: RequestContext,
-    ) -> Result<SchemaInfo>;
-
-    /// List schemas.
     async fn list_schemas(
         &self,
         request: ListSchemasRequest,
         context: RequestContext,
-    ) -> Result<ListSchemasResponse>;
+    ) -> Result<ListSchemasResponse> {
+        self.policy
+            .check_required(&request, context.recipient())
+            .await?;
+        todo!()
+    }
 
-    /// Update a schema.
+    async fn get_schema(
+        &self,
+        request: GetSchemaRequest,
+        context: RequestContext,
+    ) -> Result<SchemaInfo> {
+        self.policy
+            .check_required(&request, context.recipient())
+            .await?;
+        self.store.get(&request.resource()).await?.0.try_into()
+    }
+
     async fn update_schema(
         &self,
         request: UpdateSchemaRequest,
         context: RequestContext,
-    ) -> Result<SchemaInfo>;
+    ) -> Result<SchemaInfo> {
+        self.policy
+            .check_required(&request, context.recipient())
+            .await?;
+        todo!()
+    }
 }

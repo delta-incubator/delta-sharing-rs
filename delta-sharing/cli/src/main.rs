@@ -5,11 +5,13 @@ use chrono::Days;
 use clap::{Parser, Subcommand};
 use delta_sharing_common::{
     rest::AnonymousAuthenticator, ConstantPolicy, DeltaRepositoryHandler, DeltaSharingHandler,
-    InMemoryConfig, InMemoryHandler, KernelQueryHandler,
+    InMemoryConfig, InMemoryHandler, KernelQueryHandler, ServerHandler,
 };
 use delta_sharing_postgres::GraphStore;
 use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
-use delta_sharing_server::{run_grpc_server, run_rest_server, run_rest_server_full};
+use delta_sharing_server::{
+    run_grpc_server, run_rest_server, run_rest_server_full, run_rest_server_full2,
+};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::error::{Error, Result};
@@ -133,14 +135,14 @@ fn get_handler(config: impl AsRef<Path>) -> Result<DeltaSharingHandler> {
     Ok(handler)
 }
 
-async fn get_db_handler() -> Result<DeltaRepositoryHandler> {
+async fn get_db_handler() -> Result<ServerHandler> {
     let db_url = std::env::var("DATABASE_URL")
         .map_err(|_| Error::Generic("missing DATABASE_URL".to_string()))?;
-    let repo = Arc::new(GraphStore::connect(&db_url).await.unwrap());
-    repo.migrate().await.unwrap();
-    let handler = DeltaRepositoryHandler {
-        query: KernelQueryHandler::new_multi_thread(repo.clone(), Default::default()),
-        repo,
+    let store = Arc::new(GraphStore::connect(&db_url).await.unwrap());
+    store.migrate().await.unwrap();
+    let handler = ServerHandler {
+        query: KernelQueryHandler::new_multi_thread(store.clone(), Default::default()),
+        store,
         policy: Arc::new(ConstantPolicy::default()),
     };
     Ok(handler)
@@ -171,7 +173,7 @@ async fn handle_rest(args: ServerArgs) -> Result<()> {
 
     if args.use_db {
         let handler = get_db_handler().await?;
-        run_rest_server_full(args.host, args.port, handler, AnonymousAuthenticator)
+        run_rest_server_full2(args.host, args.port, handler, AnonymousAuthenticator)
             .await
             .map_err(|_| Error::Generic("Server failed".to_string()))
     } else {

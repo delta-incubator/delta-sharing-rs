@@ -4,7 +4,7 @@ use crate::{ResourceName, ResourceRef};
 pub use super::catalog::v1::{
     CreateCatalogRequest, CreateSchemaRequest, DeleteCatalogRequest, DeleteSchemaRequest,
     GetCatalogRequest, GetSchemaRequest, ListCatalogsRequest, ListCatalogsResponse,
-    ListSchemasRequest, ListSchemasResponse, UpdateCatalogRequest,
+    ListSchemasRequest, ListSchemasResponse, UpdateCatalogRequest, UpdateSchemaRequest,
 };
 pub use super::credentials::v1::{
     CreateCredentialRequest, CreateStorageLocationRequest, DeleteCredentialRequest,
@@ -167,5 +167,10 @@ impl_secured_action!(
         ListSchemasRequest,
         |req| ResourceIdent::catalog(ResourceName::new([&req.catalog_name])),
         Permission::Read
+    ),
+    (
+        UpdateSchemaRequest,
+        |req| ResourceIdent::schema(ResourceName::from_naive_str_split(&req.full_name)),
+        Permission::Manage
     )
 );

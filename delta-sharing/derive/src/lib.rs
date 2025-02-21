@@ -1,6 +1,10 @@
+use proc_macro2::{Ident, Span, TokenStream};
+use quote::quote;
 use quote::quote_spanned;
 use syn::spanned::Spanned;
-use syn::Error;
+use syn::{
+    parse_macro_input, Data, DataStruct, DeriveInput, Error, Fields, Meta, PathArguments, Type,
+};
 
 /// Parses a dot-delimited column name into an array of field names. See
 /// `delta_kernel::expressions::column_name::column_name` macro for details.

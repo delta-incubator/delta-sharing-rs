@@ -1,6 +1,8 @@
 use delta_sharing_common::rest::{
-    get_sharing_repo_router, get_sharing_router, AuthenticationLayer, Authenticator,
+    get_catalog_router, get_sharing_repo_router, get_sharing_router, AuthenticationLayer,
+    Authenticator,
 };
+use delta_sharing_common::CatalogHandler;
 use delta_sharing_common::{DiscoveryManager, Error, RepositoryManager, Result, TableQueryManager};
 use swagger_ui_dist::{ApiDefinition, OpenApiSource};
 use tokio::net::TcpListener;
@@ -29,6 +31,26 @@ where
         title: Some("My Super Duper API"),
     };
     let server = get_sharing_router(handler).layer(AuthenticationLayer::new(authenticator));
+    run(server, host, port, api_def).await
+}
+
+pub async fn run_server_full2<T, A>(
+    host: impl AsRef<str>,
+    port: u16,
+    handler: T,
+    authenticator: A,
+) -> Result<()>
+where
+    T: CatalogHandler + Clone,
+    A: Authenticator + Clone,
+{
+    let api_def = ApiDefinition {
+        uri_prefix: "/api",
+        api_definition: OpenApiSource::Inline(include_str!("../../openapi.yaml")),
+        title: Some("My Super Duper API"),
+    };
+    let router = get_catalog_router(handler);
+    let server = router.layer(AuthenticationLayer::new(authenticator));
     run(server, host, port, api_def).await
 }
 

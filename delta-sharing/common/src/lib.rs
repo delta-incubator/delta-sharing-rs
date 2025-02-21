@@ -3,6 +3,7 @@ use std::sync::Arc;
 use bytes::Bytes;
 use uuid::Uuid;
 
+mod api;
 pub mod error;
 #[cfg(feature = "grpc")]
 mod grpc;
@@ -19,6 +20,7 @@ mod resources;
 pub mod rest;
 
 pub use self::resources::*;
+pub use api::*;
 pub use delta_sharing_derive;
 pub use error::*;
 pub use handlers::*;
