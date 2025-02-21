@@ -9,13 +9,17 @@ use serde::Deserialize;
 
 use crate::models::sharing::v1::*;
 use crate::models::{
-    CreateCatalogRequest, CreateSchemaRequest, DeleteCatalogRequest, DeleteSchemaRequest,
-    ListCatalogsRequest, ListSchemasRequest, UpdateCatalogRequest, UpdateSchemaRequest,
+    CreateCatalogRequest, CreateCredentialRequest, CreateSchemaRequest,
+    CreateStorageLocationRequest, DeleteCatalogRequest, DeleteCredentialRequest,
+    DeleteSchemaRequest, DeleteStorageLocationRequest, GetCredentialRequest,
+    GetStorageLocationRequest, ListCatalogsRequest, ListSchemasRequest,
+    ListStorageLocationsRequest, UpdateCatalogRequest, UpdateSchemaRequest,
 };
 use crate::{Error, GetCatalogRequest};
 
 pub use auth::*;
 pub use catalog::get_router as get_catalog_router;
+pub use credentials::get_router as get_credentials_router;
 pub use repo::get_router as get_sharing_repo_router;
 pub use router::get_router as get_sharing_router;
 
@@ -142,6 +146,10 @@ impl_path_request!(GetTableMetadataRequest {
     name: String
 });
 impl_path_request!(GetCatalogRequest { name: String });
+impl_path_request!(GetStorageLocationRequest { name: String });
+impl_path_request!(DeleteStorageLocationRequest { name: String });
+impl_path_request!(GetCredentialRequest { name: String });
+impl_path_request!(DeleteCredentialRequest { name: String });
 
 // Implement for paginated requests
 impl_paginated_request!(ListSharesRequest {});
@@ -155,12 +163,16 @@ impl_paginated_request!(ListCatalogsRequest {});
 impl_paginated_request!(ListSchemasRequest {
     catalog_name: String
 });
+impl_paginated_request!(ListStorageLocationsRequest {});
 
 // Implement for JSON body requests
 impl_json_request!(CreateCatalogRequest);
 impl_json_request!(UpdateCatalogRequest);
 impl_json_request!(CreateShareRequest);
 impl_json_request!(CreateSharingSchemaRequest { share: String });
+impl_json_request!(CreateCredentialRequest);
+impl_json_request!(CreateStorageLocationRequest);
+impl_json_request!(CreateSchemaRequest);
 
 #[derive(Deserialize)]
 struct GetTableVersionQuery {
@@ -196,15 +208,6 @@ impl<S: Send + Sync> FromRequestParts<S> for DeleteCatalogRequest {
             name,
             force: params.force,
         })
-    }
-}
-
-impl<S: Send + Sync> FromRequest<S> for CreateSchemaRequest {
-    type Rejection = Response;
-
-    async fn from_request(req: Request<Body>, _state: &S) -> Result<Self, Self::Rejection> {
-        let Json(request) = req.extract().await.map_err(IntoResponse::into_response)?;
-        Ok(request)
     }
 }
 

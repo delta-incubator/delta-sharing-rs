@@ -1,8 +1,8 @@
 use delta_sharing_common::rest::{
-    get_catalog_router, get_sharing_repo_router, get_sharing_router, AuthenticationLayer,
-    Authenticator,
+    get_catalog_router, get_credentials_router, get_sharing_repo_router, get_sharing_router,
+    AuthenticationLayer, Authenticator,
 };
-use delta_sharing_common::CatalogHandler;
+use delta_sharing_common::{CatalogHandler, CredentialsHandler};
 use delta_sharing_common::{DiscoveryManager, Error, RepositoryManager, Result, TableQueryManager};
 use swagger_ui_dist::{ApiDefinition, OpenApiSource};
 use tokio::net::TcpListener;
@@ -41,7 +41,7 @@ pub async fn run_server_full2<T, A>(
     authenticator: A,
 ) -> Result<()>
 where
-    T: CatalogHandler + Clone,
+    T: CatalogHandler + CredentialsHandler + Clone,
     A: Authenticator + Clone,
 {
     let api_def = ApiDefinition {
@@ -49,7 +49,7 @@ where
         api_definition: OpenApiSource::Inline(include_str!("../../openapi.yaml")),
         title: Some("My Super Duper API"),
     };
-    let router = get_catalog_router(handler);
+    let router = get_catalog_router(handler.clone()).merge(get_credentials_router(handler));
     let server = router.layer(AuthenticationLayer::new(authenticator));
     run(server, host, port, api_def).await
 }

@@ -4,14 +4,12 @@ use std::sync::Arc;
 use chrono::Days;
 use clap::{Parser, Subcommand};
 use delta_sharing_common::{
-    rest::AnonymousAuthenticator, ConstantPolicy, DeltaRepositoryHandler, DeltaSharingHandler,
-    InMemoryConfig, InMemoryHandler, KernelQueryHandler, ServerHandler,
+    rest::AnonymousAuthenticator, ConstantPolicy, DeltaSharingHandler, InMemoryConfig,
+    InMemoryHandler, KernelQueryHandler, ServerHandler,
 };
 use delta_sharing_postgres::GraphStore;
 use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
-use delta_sharing_server::{
-    run_grpc_server, run_rest_server, run_rest_server_full, run_rest_server_full2,
-};
+use delta_sharing_server::{run_grpc_server, run_rest_server, run_rest_server_full2};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::error::{Error, Result};

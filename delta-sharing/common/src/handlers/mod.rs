@@ -8,6 +8,7 @@ use crate::{
 };
 
 mod catalog;
+mod credentials;
 mod sharing;
 
 pub use sharing::*;
@@ -42,6 +43,17 @@ impl Policy for ServerHandler {
         recipient: &Recipient,
     ) -> Result<Decision> {
         self.policy.authorize(resource, permission, recipient).await
+    }
+
+    async fn authorize_many(
+        &self,
+        resources: &[ResourceIdent],
+        permission: &Permission,
+        recipient: &Recipient,
+    ) -> Result<Vec<Decision>> {
+        self.policy
+            .authorize_many(resources, permission, recipient)
+            .await
     }
 }
 

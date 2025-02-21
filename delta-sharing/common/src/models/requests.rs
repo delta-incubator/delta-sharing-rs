@@ -8,7 +8,8 @@ pub use super::catalog::v1::{
 };
 pub use super::credentials::v1::{
     CreateCredentialRequest, CreateStorageLocationRequest, DeleteCredentialRequest,
-    DeleteStorageLocationRequest, ListStorageLocationsRequest,
+    DeleteStorageLocationRequest, GetCredentialRequest, GetStorageLocationRequest,
+    ListStorageLocationsRequest,
 };
 pub use super::sharing::v1::{
     CreateShareRequest, CreateSharingSchemaRequest, DeleteShareRequest, DeleteSharingSchemaRequest,
@@ -104,6 +105,11 @@ impl_secured_action!(
         Permission::Create
     ),
     (
+        GetCredentialRequest,
+        |req| ResourceIdent::credential(ResourceName::new([&req.name])),
+        Permission::Read
+    ),
+    (
         DeleteCredentialRequest,
         |req| ResourceIdent::credential(ResourceName::new([&req.name])),
         Permission::Manage
@@ -112,6 +118,11 @@ impl_secured_action!(
         CreateStorageLocationRequest,
         |_| ResourceIdent::StorageLocation(ResourceRef::Undefined),
         Permission::Create
+    ),
+    (
+        GetStorageLocationRequest,
+        |req| ResourceIdent::storage_location(ResourceName::new([&req.name])),
+        Permission::Read
     ),
     (
         DeleteStorageLocationRequest,

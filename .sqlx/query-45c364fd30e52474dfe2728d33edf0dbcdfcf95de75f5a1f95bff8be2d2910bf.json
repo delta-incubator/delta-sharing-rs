@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                id,\n                label AS \"label: ObjectLabel\",\n                name,\n                properties,\n                created_at,\n                updated_at\n            FROM objects\n            WHERE label = $1\n              AND name = $2\n              AND ( id < $3 OR $3 IS NULL )\n            ORDER BY id DESC\n            LIMIT $4\n            ",
+  "query": "\n            SELECT\n                id,\n                label AS \"label: ObjectLabel\",\n                name,\n                properties,\n                created_at,\n                updated_at\n            FROM objects\n            WHERE label = $1\n                AND ( $2 = 0 OR name[1:$2] = $3)\n                AND ( id < $4 OR $4 IS NULL )\n            ORDER BY id DESC\n            LIMIT $5\n            ",
   "describe": {
     "columns": [
       {
@@ -69,6 +69,7 @@
             }
           }
         },
+        "Int4",
         "TextArray",
         "Uuid",
         "Int8"
@@ -83,5 +84,5 @@
       true
     ]
   },
-  "hash": "ab3eaf0059f05a8de375a2aed831f3d66c4459ba32a1fa77fa60fb0cda8ab09f"
+  "hash": "45c364fd30e52474dfe2728d33edf0dbcdfcf95de75f5a1f95bff8be2d2910bf"
 }

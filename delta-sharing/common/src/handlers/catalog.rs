@@ -1,7 +1,9 @@
+use itertools::Itertools;
+
 use super::ServerHandler;
 use crate::api::{CatalogHandler, RequestContext};
 use crate::models::catalog::v1::*;
-use crate::{Result, SecuredAction};
+use crate::{ResourceIdent, ResourceName, ResourceRef, Result, SecuredAction};
 
 #[async_trait::async_trait]
 impl CatalogHandler for ServerHandler {
@@ -52,7 +54,18 @@ impl CatalogHandler for ServerHandler {
         self.policy
             .check_required(&request, context.recipient())
             .await?;
-        todo!()
+        let (resources, next_page_token) = self
+            .store
+            .list(
+                &ResourceIdent::catalog(ResourceRef::Undefined),
+                request.max_results.map(|v| v as usize),
+                request.page_token,
+            )
+            .await?;
+        Ok(ListCatalogsResponse {
+            catalogs: resources.into_iter().map(|r| r.try_into()).try_collect()?,
+            next_page_token,
+        })
     }
 
     async fn update_catalog(
@@ -103,7 +116,18 @@ impl CatalogHandler for ServerHandler {
         self.policy
             .check_required(&request, context.recipient())
             .await?;
-        todo!()
+        let (resources, next_page_token) = self
+            .store
+            .list(
+                &ResourceIdent::catalog(ResourceName::new([&request.catalog_name])),
+                request.max_results.map(|v| v as usize),
+                request.page_token,
+            )
+            .await?;
+        Ok(ListSchemasResponse {
+            schemas: resources.into_iter().map(|r| r.try_into()).try_collect()?,
+            next_page_token,
+        })
     }
 
     async fn get_schema(

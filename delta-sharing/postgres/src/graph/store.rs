@@ -261,12 +261,13 @@ impl Store {
                 updated_at
             FROM objects
             WHERE label = $1
-              AND name = $2
-              AND ( id < $3 OR $3 IS NULL )
+                AND ( $2 = 0 OR name[1:$2] = $3)
+                AND ( id < $4 OR $4 IS NULL )
             ORDER BY id DESC
-            LIMIT $4
+            LIMIT $5
             "#,
             label as &ObjectLabel,
+            namespace.len() as i32,
             namespace,
             token_id,
             max_page_size as i64
