@@ -1,10 +1,13 @@
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::quote;
-use quote::quote_spanned;
-use syn::spanned::Spanned;
-use syn::{
-    parse_macro_input, Data, DataStruct, DeriveInput, Error, Fields, Meta, PathArguments, Type,
-};
+use proc_macro2::Ident;
+use quote::{quote, quote_spanned};
+use syn::{bracketed, parse_macro_input, Error, Type};
+
+use parsing::HandlerParams;
+use rest_handlers::{to_handler, to_request_impl};
+
+/// Parser for macro parameters
+mod parsing;
+mod rest_handlers;
 
 /// Parses a dot-delimited column name into an array of field names. See
 /// `delta_kernel::expressions::column_name::column_name` macro for details.
@@ -24,4 +27,26 @@ pub fn parse_column_name(input: proc_macro::TokenStream) -> proc_macro::TokenStr
         Err(err) => err,
     };
     err.into_compile_error().into()
+}
+
+#[proc_macro]
+pub fn rest_handlers(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as HandlerParams);
+    let handler_type = input.handler_type;
+
+    // Generate handler functions
+    let handlers = input
+        .handlers
+        .iter()
+        .map(|handler| to_handler(handler, &handler_type));
+
+    // Generate FromRequest/FromRequestParts implementations
+    let request_impls = input.handlers.iter().map(to_request_impl);
+
+    let expanded = quote! {
+        #(#handlers)*
+        #(#request_impls)*
+    };
+
+    proc_macro::TokenStream::from(expanded)
 }

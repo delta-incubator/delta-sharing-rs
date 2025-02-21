@@ -13,7 +13,7 @@ impl CatalogHandler for ServerHandler {
         context: RequestContext,
     ) -> Result<CatalogInfo> {
         self.policy
-            .check_required(&request, context.recipient())
+            .check_required(&request, context.as_ref())
             .await?;
         let resource = CatalogInfo {
             name: request.name,
@@ -30,7 +30,7 @@ impl CatalogHandler for ServerHandler {
         context: RequestContext,
     ) -> Result<()> {
         self.policy
-            .check_required(&request, context.recipient())
+            .check_required(&request, context.as_ref())
             .await?;
         self.store.delete(&request.resource()).await
     }
@@ -52,7 +52,7 @@ impl CatalogHandler for ServerHandler {
         context: RequestContext,
     ) -> Result<ListCatalogsResponse> {
         self.policy
-            .check_required(&request, context.recipient())
+            .check_required(&request, context.as_ref())
             .await?;
         let (resources, next_page_token) = self
             .store
@@ -74,7 +74,7 @@ impl CatalogHandler for ServerHandler {
         context: RequestContext,
     ) -> Result<CatalogInfo> {
         self.policy
-            .check_required(&request, context.recipient())
+            .check_required(&request, context.as_ref())
             .await?;
         todo!()
     }
@@ -85,7 +85,7 @@ impl CatalogHandler for ServerHandler {
         context: RequestContext,
     ) -> Result<SchemaInfo> {
         self.policy
-            .check_required(&request, context.recipient())
+            .check_required(&request, context.as_ref())
             .await?;
         let resource = SchemaInfo {
             name: request.name,
@@ -103,7 +103,7 @@ impl CatalogHandler for ServerHandler {
         context: RequestContext,
     ) -> Result<()> {
         self.policy
-            .check_required(&request, context.recipient())
+            .check_required(&request, context.as_ref())
             .await?;
         self.store.delete(&request.resource()).await
     }
@@ -114,7 +114,7 @@ impl CatalogHandler for ServerHandler {
         context: RequestContext,
     ) -> Result<ListSchemasResponse> {
         self.policy
-            .check_required(&request, context.recipient())
+            .check_required(&request, context.as_ref())
             .await?;
         let (resources, next_page_token) = self
             .store
@@ -136,7 +136,7 @@ impl CatalogHandler for ServerHandler {
         context: RequestContext,
     ) -> Result<SchemaInfo> {
         self.policy
-            .check_required(&request, context.recipient())
+            .check_required(&request, context.as_ref())
             .await?;
         self.store.get(&request.resource()).await?.0.try_into()
     }
@@ -147,7 +147,7 @@ impl CatalogHandler for ServerHandler {
         context: RequestContext,
     ) -> Result<SchemaInfo> {
         self.policy
-            .check_required(&request, context.recipient())
+            .check_required(&request, context.as_ref())
             .await?;
         todo!()
     }

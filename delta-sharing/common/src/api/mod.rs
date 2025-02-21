@@ -15,3 +15,9 @@ impl RequestContext {
         &self.recipient
     }
 }
+
+impl AsRef<Recipient> for RequestContext {
+    fn as_ref(&self) -> &Recipient {
+        &self.recipient
+    }
+}

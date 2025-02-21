@@ -8,14 +8,7 @@ use axum::{RequestExt, RequestPartsExt};
 use serde::Deserialize;
 
 use crate::models::sharing::v1::*;
-use crate::models::{
-    CreateCatalogRequest, CreateCredentialRequest, CreateSchemaRequest,
-    CreateStorageLocationRequest, DeleteCatalogRequest, DeleteCredentialRequest,
-    DeleteSchemaRequest, DeleteStorageLocationRequest, GetCredentialRequest,
-    GetStorageLocationRequest, ListCatalogsRequest, ListSchemasRequest,
-    ListStorageLocationsRequest, UpdateCatalogRequest, UpdateSchemaRequest,
-};
-use crate::{Error, GetCatalogRequest};
+use crate::Error;
 
 pub use auth::*;
 pub use catalog::get_router as get_catalog_router;
@@ -145,11 +138,6 @@ impl_path_request!(GetTableMetadataRequest {
     schema: String,
     name: String
 });
-impl_path_request!(GetCatalogRequest { name: String });
-impl_path_request!(GetStorageLocationRequest { name: String });
-impl_path_request!(DeleteStorageLocationRequest { name: String });
-impl_path_request!(GetCredentialRequest { name: String });
-impl_path_request!(DeleteCredentialRequest { name: String });
 
 // Implement for paginated requests
 impl_paginated_request!(ListSharesRequest {});
@@ -159,20 +147,10 @@ impl_paginated_request!(ListSchemaTablesRequest {
     share: String,
     name: String
 });
-impl_paginated_request!(ListCatalogsRequest {});
-impl_paginated_request!(ListSchemasRequest {
-    catalog_name: String
-});
-impl_paginated_request!(ListStorageLocationsRequest {});
 
 // Implement for JSON body requests
-impl_json_request!(CreateCatalogRequest);
-impl_json_request!(UpdateCatalogRequest);
 impl_json_request!(CreateShareRequest);
 impl_json_request!(CreateSharingSchemaRequest { share: String });
-impl_json_request!(CreateCredentialRequest);
-impl_json_request!(CreateStorageLocationRequest);
-impl_json_request!(CreateSchemaRequest);
 
 #[derive(Deserialize)]
 struct GetTableVersionQuery {
@@ -190,63 +168,6 @@ impl<S: Send + Sync> FromRequestParts<S> for GetTableVersionRequest {
             schema,
             name,
             starting_timestamp: query.starting_timestamp,
-        })
-    }
-}
-
-impl<S: Send + Sync> FromRequestParts<S> for DeleteCatalogRequest {
-    type Rejection = Error;
-
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let Path((name)) = parts.extract::<Path<(String)>>().await?;
-        #[derive(Deserialize)]
-        struct QueryParams {
-            force: Option<bool>,
-        }
-        let Query(params) = parts.extract::<Query<QueryParams>>().await?;
-        Ok(DeleteCatalogRequest {
-            name,
-            force: params.force,
-        })
-    }
-}
-
-impl<S: Send + Sync> FromRequest<S> for UpdateSchemaRequest {
-    type Rejection = Response;
-
-    async fn from_request(req: Request<Body>, _state: &S) -> Result<Self, Self::Rejection> {
-        let (mut parts, body) = req.into_parts();
-        let Path((full_name)) = parts
-            .extract::<Path<(String)>>()
-            .await
-            .map_err(IntoResponse::into_response)?;
-        let req = Request::from_parts(parts, body);
-        let Json(payload) = req
-            .extract::<Json<UpdateSchemaRequest>, _>()
-            .await
-            .map_err(IntoResponse::into_response)?;
-        Ok(UpdateSchemaRequest {
-            full_name,
-            comment: payload.comment,
-            properties: payload.properties,
-            new_name: payload.new_name,
-        })
-    }
-}
-
-impl<S: Send + Sync> FromRequestParts<S> for DeleteSchemaRequest {
-    type Rejection = Error;
-
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let Path((full_name)) = parts.extract::<Path<(String)>>().await?;
-        #[derive(Deserialize)]
-        struct QueryParams {
-            force: Option<bool>,
-        }
-        let Query(params) = parts.extract::<Query<QueryParams>>().await?;
-        Ok(DeleteSchemaRequest {
-            full_name,
-            force: params.force,
         })
     }
 }
