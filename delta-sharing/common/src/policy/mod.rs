@@ -5,14 +5,38 @@
 //! [`Resource`]. The [`Decision`] represents whether the action is allowed or denied for the given
 //! recipient.
 
+use bytes::Bytes;
+use std::borrow::Borrow;
+use std::ops::Deref;
 use std::sync::Arc;
 
 use crate::models::SecuredAction;
-use crate::{Error, Recipient, ResourceName, ResourceRef, Result};
+use crate::{Error, ObjectLabel, ResourceRef, Result};
 
 pub use constant::*;
 
 mod constant;
+
+#[derive(Clone, Debug)]
+pub enum Recipient {
+    Anonymous,
+    User(String),
+    Custom(Bytes),
+}
+
+impl Recipient {
+    pub fn anonymous() -> Self {
+        Self::Anonymous
+    }
+
+    pub fn user(name: impl Into<String>) -> Self {
+        Self::User(name.into())
+    }
+
+    pub fn custom(data: Bytes) -> Self {
+        Self::Custom(data)
+    }
+}
 
 /// Permission that a policy can authorize.
 #[derive(Debug, Clone)]
@@ -43,7 +67,7 @@ impl From<Permission> for String {
 }
 
 /// Resource that a policy can authorize.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ResourceIdent {
     Share(ResourceRef),
     SharingSchema(ResourceRef),
@@ -56,6 +80,14 @@ pub enum ResourceIdent {
 }
 
 impl ResourceIdent {
+    pub fn label(&self) -> &ObjectLabel {
+        self.as_ref()
+    }
+
+    pub fn reference(&self) -> &ResourceRef {
+        self.as_ref()
+    }
+
     pub fn share(name: impl Into<ResourceRef>) -> Self {
         Self::Share(name.into())
     }
@@ -119,6 +151,41 @@ impl AsRef<ResourceRef> for ResourceIdent {
     }
 }
 
+impl AsRef<ObjectLabel> for ResourceIdent {
+    fn as_ref(&self) -> &ObjectLabel {
+        match self {
+            ResourceIdent::Share(_) => &ObjectLabel::ShareInfo,
+            ResourceIdent::SharingSchema(_) => &ObjectLabel::SharingSchemaInfo,
+            ResourceIdent::SharingTable(_) => &ObjectLabel::SharingTable,
+            ResourceIdent::Credential(_) => &ObjectLabel::Credential,
+            ResourceIdent::StorageLocation(_) => &ObjectLabel::StorageLocation,
+            ResourceIdent::Catalog(_) => &ObjectLabel::CatalogInfo,
+            ResourceIdent::Schema(_) => &ObjectLabel::SchemaInfo,
+            ResourceIdent::Table(_) => &ObjectLabel::TableInfo,
+        }
+    }
+}
+
+impl Deref for ResourceIdent {
+    type Target = ResourceRef;
+
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
+    }
+}
+
+impl Borrow<ResourceRef> for ResourceIdent {
+    fn borrow(&self) -> &ResourceRef {
+        self.as_ref()
+    }
+}
+
+impl Borrow<ResourceRef> for &ResourceIdent {
+    fn borrow(&self) -> &ResourceRef {
+        self.as_ref()
+    }
+}
+
 impl From<ResourceIdent> for ResourceRef {
     fn from(ident: ResourceIdent) -> Self {
         match ident {
@@ -131,6 +198,24 @@ impl From<ResourceIdent> for ResourceRef {
             ResourceIdent::Schema(r) => r,
             ResourceIdent::Table(r) => r,
         }
+    }
+}
+
+impl From<&ResourceIdent> for ResourceRef {
+    fn from(ident: &ResourceIdent) -> Self {
+        (ident as &dyn AsRef<ResourceRef>).as_ref().clone()
+    }
+}
+
+impl From<&ResourceIdent> for ObjectLabel {
+    fn from(ident: &ResourceIdent) -> Self {
+        (ident as &dyn AsRef<ObjectLabel>).as_ref().clone()
+    }
+}
+
+impl From<ResourceIdent> for ObjectLabel {
+    fn from(ident: ResourceIdent) -> Self {
+        (&ident).into()
     }
 }
 
@@ -198,6 +283,7 @@ pub trait Policy: Send + Sync + 'static {
         Ok(decisions)
     }
 
+    /// Check if the policy allows the action, and return an error if denied.
     async fn authorize_checked(
         &self,
         resource: &ResourceIdent,
@@ -209,20 +295,10 @@ pub trait Policy: Send + Sync + 'static {
             Decision::Deny => Err(Error::NotAllowed),
         }
     }
+}
 
-    async fn authorize_share(
-        &self,
-        share: String,
-        permission: &Permission,
-        recipient: &Recipient,
-    ) -> Result<()> {
-        self.authorize_checked(
-            &ResourceIdent::share(ResourceName::new([share])),
-            permission,
-            recipient,
-        )
-        .await
-    }
+pub trait HasPolicy: Send + Sync + 'static {
+    fn policy(&self) -> &Arc<dyn Policy>;
 }
 
 #[async_trait::async_trait]
@@ -234,6 +310,40 @@ impl<T: Policy> Policy for Arc<T> {
         recipient: &Recipient,
     ) -> Result<Decision> {
         T::authorize(self, resource, permission, recipient).await
+    }
+
+    async fn authorize_many(
+        &self,
+        resources: &[ResourceIdent],
+        permission: &Permission,
+        recipient: &Recipient,
+    ) -> Result<Vec<Decision>> {
+        T::authorize_many(self, resources, permission, recipient).await
+    }
+}
+
+#[async_trait::async_trait]
+impl<T: HasPolicy> Policy for T {
+    async fn authorize(
+        &self,
+        resource: &ResourceIdent,
+        permission: &Permission,
+        recipient: &Recipient,
+    ) -> Result<Decision> {
+        self.policy()
+            .authorize(resource, permission, recipient)
+            .await
+    }
+
+    async fn authorize_many(
+        &self,
+        resources: &[ResourceIdent],
+        permission: &Permission,
+        recipient: &Recipient,
+    ) -> Result<Vec<Decision>> {
+        self.policy()
+            .authorize_many(resources, permission, recipient)
+            .await
     }
 }
 

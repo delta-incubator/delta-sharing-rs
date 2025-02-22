@@ -3,7 +3,7 @@ use itertools::Itertools;
 use super::ServerHandler;
 use crate::api::{CatalogHandler, RequestContext};
 use crate::models::catalog::v1::*;
-use crate::{ResourceIdent, ResourceName, ResourceRef, Result, SecuredAction};
+use crate::{ObjectLabel, ResourceName, Result, SecuredAction};
 
 #[async_trait::async_trait]
 impl CatalogHandler for ServerHandler {
@@ -57,7 +57,8 @@ impl CatalogHandler for ServerHandler {
         let (resources, next_page_token) = self
             .store
             .list(
-                &ResourceIdent::catalog(ResourceRef::Undefined),
+                &ObjectLabel::CatalogInfo,
+                None,
                 request.max_results.map(|v| v as usize),
                 request.page_token,
             )
@@ -119,7 +120,8 @@ impl CatalogHandler for ServerHandler {
         let (resources, next_page_token) = self
             .store
             .list(
-                &ResourceIdent::catalog(ResourceName::new([&request.catalog_name])),
+                &ObjectLabel::SchemaInfo,
+                Some(&ResourceName::new([&request.catalog_name])),
                 request.max_results.map(|v| v as usize),
                 request.page_token,
             )

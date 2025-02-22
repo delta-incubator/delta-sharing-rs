@@ -38,7 +38,7 @@ impl Store {
         match ident {
             ResourceRef::Uuid(id) => Ok(*id),
             ResourceRef::Name(name) => {
-                let object = self.get_object_by_name(label, name).await?;
+                let object = self.get_object_by_name(label, &name).await?;
                 Ok(object.id)
             }
             ResourceRef::Undefined => Err(crate::Error::entity_not_found("undefined")),

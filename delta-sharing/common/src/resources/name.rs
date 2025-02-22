@@ -5,6 +5,10 @@ use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::iter::Peekable;
 use std::ops::Deref;
+use std::sync::LazyLock;
+
+pub static EMPTY_RESOURCE_NAME: LazyLock<ResourceName> =
+    LazyLock::new(|| ResourceName::new(&[] as &[String]));
 
 /// A (possibly nested) column name.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Serialize, Deserialize)]
@@ -96,6 +100,13 @@ impl ResourceName {
     /// Consumes this column name and returns the path of field names.
     pub fn into_inner(self) -> Vec<String> {
         self.0
+    }
+
+    pub fn prefix_matches(&self, prefix: &ResourceName) -> bool {
+        if self.len() < prefix.len() {
+            return false;
+        }
+        prefix.iter().zip(self.iter()).all(|(a, b)| a == b)
     }
 }
 

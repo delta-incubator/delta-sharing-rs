@@ -3,7 +3,7 @@ use itertools::Itertools;
 use super::ServerHandler;
 use crate::api::{CredentialsHandler, RequestContext};
 use crate::models::credentials::v1::*;
-use crate::{Error, ResourceIdent, ResourceRef, Result, SecuredAction};
+use crate::{Error, ObjectLabel, Result, SecuredAction};
 
 #[async_trait::async_trait]
 impl CredentialsHandler for ServerHandler {
@@ -87,7 +87,8 @@ impl CredentialsHandler for ServerHandler {
         let (resources, next_page_token) = self
             .store
             .list(
-                &ResourceIdent::storage_location(ResourceRef::Undefined),
+                &ObjectLabel::StorageLocation,
+                None,
                 request.max_results.map(|v| v as usize),
                 request.page_token,
             )

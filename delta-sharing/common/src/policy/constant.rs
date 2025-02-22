@@ -1,5 +1,5 @@
-use crate::error::Result;
-use crate::{Decision, Permission, Policy, Recipient, ResourceIdent};
+use super::{Decision, Permission, Policy, Recipient};
+use crate::{ResourceIdent, Result};
 
 /// Policy that always returns a constant decision.
 ///

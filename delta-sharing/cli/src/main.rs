@@ -3,7 +3,8 @@ use std::sync::Arc;
 use chrono::Days;
 use clap::{Parser, Subcommand};
 use delta_sharing_common::{
-    rest::AnonymousAuthenticator, ConstantPolicy, KernelQueryHandler, ServerHandler,
+    memory::InMemoryResourceStore, rest::AnonymousAuthenticator, ConstantPolicy,
+    KernelQueryHandler, ServerHandler,
 };
 use delta_sharing_postgres::GraphStore;
 use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
@@ -129,6 +130,15 @@ async fn get_db_handler() -> Result<ServerHandler> {
     Ok(handler)
 }
 
+fn get_memory_handler() -> ServerHandler {
+    let store = Arc::new(InMemoryResourceStore::new());
+    ServerHandler {
+        query: KernelQueryHandler::new_multi_thread(store.clone(), Default::default()),
+        store,
+        policy: Arc::new(ConstantPolicy::default()),
+    }
+}
+
 fn init_tracing() {
     tracing_subscriber::registry()
         .with(
@@ -158,7 +168,10 @@ async fn handle_rest(args: ServerArgs) -> Result<()> {
             .await
             .map_err(|_| Error::Generic("Server failed".to_string()))
     } else {
-        todo!()
+        let handler = get_memory_handler();
+        run_rest_server_full(args.host, args.port, handler, AnonymousAuthenticator)
+            .await
+            .map_err(|_| Error::Generic("Server failed".to_string()))
     }
 }
 
