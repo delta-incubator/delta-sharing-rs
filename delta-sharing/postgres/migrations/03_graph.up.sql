@@ -12,12 +12,11 @@ CREATE TYPE object_label AS ENUM (
 CREATE TABLE objects (
     id uuid primary key default uuidv7(),
     label object_label not null,
-    namespace Text [] collate case_insensitive not null,
-    name Text collate case_insensitive not null,
+    name Text [] collate case_insensitive not null,
     properties jsonb,
     created_at timestamptz not null default now(),
     updated_at timestamptz,
-    constraint unique_object_name unique (label, namespace, name)
+    constraint unique_object_name unique (label, name)
 );
 select trigger_updated_at('objects');
 create index objects_label_index on objects (label, name);

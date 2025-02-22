@@ -3,6 +3,7 @@ use std::sync::Arc;
 use bytes::Bytes;
 use uuid::Uuid;
 
+mod api;
 pub mod error;
 #[cfg(feature = "grpc")]
 mod grpc;
@@ -19,6 +20,8 @@ mod resources;
 pub mod rest;
 
 pub use self::resources::*;
+pub use api::*;
+pub use delta_sharing_derive;
 pub use error::*;
 pub use handlers::*;
 #[cfg(feature = "memory")]
@@ -59,7 +62,7 @@ impl Recipient {
 #[derive(Debug, Clone, PartialEq, Hash, Eq)]
 pub enum ResourceRef {
     Uuid(Uuid),
-    Name(Vec<String>, String),
+    Name(ResourceName),
     /// Not referencing a specific resource.
     ///
     /// This is used to represent a wildcard in a policy
@@ -68,16 +71,22 @@ pub enum ResourceRef {
     Undefined,
 }
 
+impl ResourceRef {
+    pub fn is_undefined(&self) -> bool {
+        matches!(self, Self::Undefined)
+    }
+
+    pub fn name(name: impl Into<ResourceName>) -> Self {
+        Self::Name(name.into())
+    }
+}
+
 impl std::fmt::Display for ResourceRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Uuid(u) => write!(f, "{}", u.hyphenated()),
-            Self::Name(path, name) => {
-                if path.is_empty() {
-                    write!(f, "{}", name)
-                } else {
-                    write!(f, "{}.{}", path.join("."), name)
-                }
+            Self::Name(name) => {
+                write!(f, "{}", name)
             }
             Self::Undefined => write!(f, "*"),
         }
@@ -96,30 +105,9 @@ impl From<&Uuid> for ResourceRef {
     }
 }
 
-impl From<String> for ResourceRef {
-    fn from(val: String) -> Self {
-        Self::Name(vec![], val)
-    }
-}
-
-impl From<&String> for ResourceRef {
-    fn from(val: &String) -> Self {
-        Self::Name(vec![], val.clone())
-    }
-}
-
-impl From<&str> for ResourceRef {
-    fn from(val: &str) -> Self {
-        Self::Name(vec![], val.to_string())
-    }
-}
-
-impl<T: ToString + Sized, U: ToString, const N: usize> From<([T; N], U)> for ResourceRef {
-    fn from(val: ([T; N], U)) -> Self {
-        Self::Name(
-            val.0.iter().map(|s| s.to_string()).collect(),
-            val.1.to_string(),
-        )
+impl From<ResourceName> for ResourceRef {
+    fn from(val: ResourceName) -> Self {
+        Self::Name(val)
     }
 }
 
@@ -252,44 +240,3 @@ pub trait RepositoryHandler: Send + Sync + 'static {
     async fn delete_schema(&self, request: DeleteSharingSchemaRequest) -> Result<()>;
 }
 // --8<-- [end:sharing-repository-handler]
-
-#[async_trait::async_trait]
-pub trait CredentialsHandler: Send + Sync + 'static {
-    async fn create_credentials(
-        &self,
-        request: crate::models::credentials::v1::CreateCredentialRequest,
-    ) -> Result<crate::models::credentials::v1::Credential>;
-
-    async fn delete_credentials(
-        &self,
-        request: crate::models::credentials::v1::DeleteCredentialRequest,
-    ) -> Result<crate::models::credentials::v1::Credential>;
-
-    async fn get_credentials(
-        &self,
-        request: crate::models::credentials::v1::GetCredentialRequest,
-    ) -> Result<crate::models::credentials::v1::Credential>;
-}
-
-#[async_trait::async_trait]
-pub trait StorageLocationHandler: Send + Sync + 'static {
-    async fn create_storage_location(
-        &self,
-        request: crate::models::credentials::v1::CreateStorageLocationRequest,
-    ) -> Result<crate::models::credentials::v1::StorageLocation>;
-
-    async fn delete_storage_location(
-        &self,
-        request: crate::models::credentials::v1::DeleteStorageLocationRequest,
-    ) -> Result<crate::models::credentials::v1::StorageLocation>;
-
-    async fn get_storage_location(
-        &self,
-        request: crate::models::credentials::v1::GetStorageLocationRequest,
-    ) -> Result<crate::models::credentials::v1::StorageLocation>;
-
-    async fn list_storage_locations(
-        &self,
-        request: crate::models::credentials::v1::ListStorageLocationsRequest,
-    ) -> Result<crate::models::credentials::v1::ListStorageLocationsResponse>;
-}

@@ -250,12 +250,24 @@ impl serde::Serialize for CreateCatalogRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if self.catalog.is_some() {
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if self.comment.is_some() {
+            len += 1;
+        }
+        if self.properties.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.catalog.v1.CreateCatalogRequest", len)?;
-        if let Some(v) = self.catalog.as_ref() {
-            struct_ser.serialize_field("catalog", v)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.comment.as_ref() {
+            struct_ser.serialize_field("comment", v)?;
+        }
+        if let Some(v) = self.properties.as_ref() {
+            struct_ser.serialize_field("properties", v)?;
         }
         struct_ser.end()
     }
@@ -267,12 +279,16 @@ impl<'de> serde::Deserialize<'de> for CreateCatalogRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "catalog",
+            "name",
+            "comment",
+            "properties",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Catalog,
+            Name,
+            Comment,
+            Properties,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -295,7 +311,9 @@ impl<'de> serde::Deserialize<'de> for CreateCatalogRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "catalog" => Ok(GeneratedField::Catalog),
+                            "name" => Ok(GeneratedField::Name),
+                            "comment" => Ok(GeneratedField::Comment),
+                            "properties" => Ok(GeneratedField::Properties),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -315,14 +333,28 @@ impl<'de> serde::Deserialize<'de> for CreateCatalogRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut catalog__ = None;
+                let mut name__ = None;
+                let mut comment__ = None;
+                let mut properties__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Catalog => {
-                            if catalog__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("catalog"));
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
                             }
-                            catalog__ = map_.next_value()?;
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Comment => {
+                            if comment__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("comment"));
+                            }
+                            comment__ = map_.next_value()?;
+                        }
+                        GeneratedField::Properties => {
+                            if properties__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("properties"));
+                            }
+                            properties__ = map_.next_value()?;
                         }
                         GeneratedField::__SkipField__ => {
                             let _ = map_.next_value::<serde::de::IgnoredAny>()?;
@@ -330,7 +362,9 @@ impl<'de> serde::Deserialize<'de> for CreateCatalogRequest {
                     }
                 }
                 Ok(CreateCatalogRequest {
-                    catalog: catalog__,
+                    name: name__.unwrap_or_default(),
+                    comment: comment__,
+                    properties: properties__,
                 })
             }
         }
@@ -345,12 +379,30 @@ impl serde::Serialize for CreateSchemaRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if self.schema.is_some() {
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if !self.catalog_name.is_empty() {
+            len += 1;
+        }
+        if self.comment.is_some() {
+            len += 1;
+        }
+        if self.properties.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.catalog.v1.CreateSchemaRequest", len)?;
-        if let Some(v) = self.schema.as_ref() {
-            struct_ser.serialize_field("schema", v)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if !self.catalog_name.is_empty() {
+            struct_ser.serialize_field("catalogName", &self.catalog_name)?;
+        }
+        if let Some(v) = self.comment.as_ref() {
+            struct_ser.serialize_field("comment", v)?;
+        }
+        if let Some(v) = self.properties.as_ref() {
+            struct_ser.serialize_field("properties", v)?;
         }
         struct_ser.end()
     }
@@ -362,12 +414,19 @@ impl<'de> serde::Deserialize<'de> for CreateSchemaRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "schema",
+            "name",
+            "catalog_name",
+            "catalogName",
+            "comment",
+            "properties",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Schema,
+            Name,
+            CatalogName,
+            Comment,
+            Properties,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -390,7 +449,10 @@ impl<'de> serde::Deserialize<'de> for CreateSchemaRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "schema" => Ok(GeneratedField::Schema),
+                            "name" => Ok(GeneratedField::Name),
+                            "catalogName" | "catalog_name" => Ok(GeneratedField::CatalogName),
+                            "comment" => Ok(GeneratedField::Comment),
+                            "properties" => Ok(GeneratedField::Properties),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -410,14 +472,35 @@ impl<'de> serde::Deserialize<'de> for CreateSchemaRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut schema__ = None;
+                let mut name__ = None;
+                let mut catalog_name__ = None;
+                let mut comment__ = None;
+                let mut properties__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Schema => {
-                            if schema__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("schema"));
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
                             }
-                            schema__ = map_.next_value()?;
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::CatalogName => {
+                            if catalog_name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("catalogName"));
+                            }
+                            catalog_name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Comment => {
+                            if comment__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("comment"));
+                            }
+                            comment__ = map_.next_value()?;
+                        }
+                        GeneratedField::Properties => {
+                            if properties__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("properties"));
+                            }
+                            properties__ = map_.next_value()?;
                         }
                         GeneratedField::__SkipField__ => {
                             let _ = map_.next_value::<serde::de::IgnoredAny>()?;
@@ -425,7 +508,10 @@ impl<'de> serde::Deserialize<'de> for CreateSchemaRequest {
                     }
                 }
                 Ok(CreateSchemaRequest {
-                    schema: schema__,
+                    name: name__.unwrap_or_default(),
+                    catalog_name: catalog_name__.unwrap_or_default(),
+                    comment: comment__,
+                    properties: properties__,
                 })
             }
         }
@@ -552,12 +638,18 @@ impl serde::Serialize for DeleteSchemaRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if !self.name.is_empty() {
+        if !self.full_name.is_empty() {
+            len += 1;
+        }
+        if self.force.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.catalog.v1.DeleteSchemaRequest", len)?;
-        if !self.name.is_empty() {
-            struct_ser.serialize_field("name", &self.name)?;
+        if !self.full_name.is_empty() {
+            struct_ser.serialize_field("fullName", &self.full_name)?;
+        }
+        if let Some(v) = self.force.as_ref() {
+            struct_ser.serialize_field("force", v)?;
         }
         struct_ser.end()
     }
@@ -569,12 +661,15 @@ impl<'de> serde::Deserialize<'de> for DeleteSchemaRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "name",
+            "full_name",
+            "fullName",
+            "force",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Name,
+            FullName,
+            Force,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -597,7 +692,8 @@ impl<'de> serde::Deserialize<'de> for DeleteSchemaRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "name" => Ok(GeneratedField::Name),
+                            "fullName" | "full_name" => Ok(GeneratedField::FullName),
+                            "force" => Ok(GeneratedField::Force),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -617,14 +713,21 @@ impl<'de> serde::Deserialize<'de> for DeleteSchemaRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut name__ = None;
+                let mut full_name__ = None;
+                let mut force__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Name => {
-                            if name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("name"));
+                        GeneratedField::FullName => {
+                            if full_name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("fullName"));
                             }
-                            name__ = Some(map_.next_value()?);
+                            full_name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Force => {
+                            if force__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("force"));
+                            }
+                            force__ = map_.next_value()?;
                         }
                         GeneratedField::__SkipField__ => {
                             let _ = map_.next_value::<serde::de::IgnoredAny>()?;
@@ -632,7 +735,8 @@ impl<'de> serde::Deserialize<'de> for DeleteSchemaRequest {
                     }
                 }
                 Ok(DeleteSchemaRequest {
-                    name: name__.unwrap_or_default(),
+                    full_name: full_name__.unwrap_or_default(),
+                    force: force__,
                 })
             }
         }
@@ -742,12 +846,12 @@ impl serde::Serialize for GetSchemaRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if !self.name.is_empty() {
+        if !self.full_name.is_empty() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.catalog.v1.GetSchemaRequest", len)?;
-        if !self.name.is_empty() {
-            struct_ser.serialize_field("name", &self.name)?;
+        if !self.full_name.is_empty() {
+            struct_ser.serialize_field("fullName", &self.full_name)?;
         }
         struct_ser.end()
     }
@@ -759,12 +863,13 @@ impl<'de> serde::Deserialize<'de> for GetSchemaRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "name",
+            "full_name",
+            "fullName",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Name,
+            FullName,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -787,7 +892,7 @@ impl<'de> serde::Deserialize<'de> for GetSchemaRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "name" => Ok(GeneratedField::Name),
+                            "fullName" | "full_name" => Ok(GeneratedField::FullName),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -807,14 +912,14 @@ impl<'de> serde::Deserialize<'de> for GetSchemaRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut name__ = None;
+                let mut full_name__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Name => {
-                            if name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("name"));
+                        GeneratedField::FullName => {
+                            if full_name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("fullName"));
                             }
-                            name__ = Some(map_.next_value()?);
+                            full_name__ = Some(map_.next_value()?);
                         }
                         GeneratedField::__SkipField__ => {
                             let _ = map_.next_value::<serde::de::IgnoredAny>()?;
@@ -822,7 +927,7 @@ impl<'de> serde::Deserialize<'de> for GetSchemaRequest {
                     }
                 }
                 Ok(GetSchemaRequest {
-                    name: name__.unwrap_or_default(),
+                    full_name: full_name__.unwrap_or_default(),
                 })
             }
         }

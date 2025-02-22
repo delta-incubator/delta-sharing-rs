@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            UPDATE objects\n            SET properties = $2\n            WHERE id = $1\n            RETURNING\n                id,\n                label AS \"label: ObjectLabel\",\n                namespace,\n                name,\n                properties,\n                created_at,\n                updated_at\n            ",
+  "query": "\n            SELECT\n                id,\n                label AS \"label: ObjectLabel\",\n                name,\n                properties,\n                created_at,\n                updated_at\n            FROM objects\n            WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -16,12 +16,14 @@
             "name": "object_label",
             "kind": {
               "Enum": [
-                "delta_share",
-                "delta_schema",
-                "table",
-                "principal",
+                "share_info",
+                "sharing_schema_info",
+                "sharing_table",
                 "credential",
-                "storage_location"
+                "storage_location",
+                "catalog_info",
+                "schema_info",
+                "table_info"
               ]
             }
           }
@@ -29,38 +31,31 @@
       },
       {
         "ordinal": 2,
-        "name": "namespace",
+        "name": "name",
         "type_info": "TextArray"
       },
       {
         "ordinal": 3,
-        "name": "name",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 4,
         "name": "properties",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 5,
+        "ordinal": 4,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Jsonb"
+        "Uuid"
       ]
     },
     "nullable": [
-      false,
       false,
       false,
       false,
@@ -69,5 +64,5 @@
       true
     ]
   },
-  "hash": "c9ebb3175e6509fc4d905ff6e9f99b79401aa5df081f71eec207e74b8c8404a3"
+  "hash": "eab7f454070bffb953e582a7f158ce12c4a4be83a7476635cc393e0c68065720"
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO objects ( label, namespace, name, properties )\n            VALUES ( $1, $2, $3, $4 )\n            RETURNING\n                id,\n                label AS \"label: ObjectLabel\",\n                namespace,\n                name,\n                properties,\n                created_at,\n                updated_at\n            ",
+  "query": "\n            SELECT\n                id,\n                label AS \"label: ObjectLabel\",\n                name,\n                properties,\n                created_at,\n                updated_at\n            FROM objects\n            WHERE label = $1\n                AND ( $2 = 0 OR name[1:$2] = $3)\n                AND ( id < $4 OR $4 IS NULL )\n            ORDER BY id DESC\n            LIMIT $5\n            ",
   "describe": {
     "columns": [
       {
@@ -16,12 +16,14 @@
             "name": "object_label",
             "kind": {
               "Enum": [
-                "delta_share",
-                "delta_schema",
-                "table",
-                "principal",
+                "share_info",
+                "sharing_schema_info",
+                "sharing_table",
                 "credential",
-                "storage_location"
+                "storage_location",
+                "catalog_info",
+                "schema_info",
+                "table_info"
               ]
             }
           }
@@ -29,26 +31,21 @@
       },
       {
         "ordinal": 2,
-        "name": "namespace",
+        "name": "name",
         "type_info": "TextArray"
       },
       {
         "ordinal": 3,
-        "name": "name",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 4,
         "name": "properties",
         "type_info": "Jsonb"
       },
       {
-        "ordinal": 5,
+        "ordinal": 4,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
@@ -60,23 +57,25 @@
             "name": "object_label",
             "kind": {
               "Enum": [
-                "delta_share",
-                "delta_schema",
-                "table",
-                "principal",
+                "share_info",
+                "sharing_schema_info",
+                "sharing_table",
                 "credential",
-                "storage_location"
+                "storage_location",
+                "catalog_info",
+                "schema_info",
+                "table_info"
               ]
             }
           }
         },
+        "Int4",
         "TextArray",
-        "Text",
-        "Jsonb"
+        "Uuid",
+        "Int8"
       ]
     },
     "nullable": [
-      false,
       false,
       false,
       false,
@@ -85,5 +84,5 @@
       true
     ]
   },
-  "hash": "2361c3662baded0771f273700084e8390ccefbf0830fd4028e784f6f36abfabd"
+  "hash": "45c364fd30e52474dfe2728d33edf0dbcdfcf95de75f5a1f95bff8be2d2910bf"
 }

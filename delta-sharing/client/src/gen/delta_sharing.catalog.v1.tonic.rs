@@ -268,7 +268,7 @@ pub mod catalog_service_client {
         pub async fn delete_schema(
             &mut self,
             request: impl tonic::IntoRequest<super::DeleteSchemaRequest>,
-        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
             self.inner
                 .ready()
                 .await

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::models::sharing::v1::*;
+use crate::ResourceName;
 use crate::{DiscoveryHandler, RepositoryHandler, ResourceRef, Result};
 
 #[async_trait::async_trait]
@@ -133,16 +134,13 @@ impl<T: SharingRepository> DiscoveryHandler for T {
 #[async_trait::async_trait]
 impl<T: SharingRepository> RepositoryHandler for T {
     async fn create_share(&self, request: CreateShareRequest) -> Result<ShareInfo> {
-        let share = request
-            .share
-            .ok_or_else(|| crate::Error::invalid_argument("share is required".to_string()))?;
-        let properties = share.properties.map(|p| {
+        let properties = request.properties.map(|p| {
             p.fields
                 .iter()
                 .map(|(field, value)| (field.clone(), serde_json::to_value(value).unwrap()))
                 .collect()
         });
-        T::add_share(self, &share.name, share.description, properties).await
+        T::add_share(self, &request.name, request.description, properties).await
     }
 
     async fn delete_share(&self, request: DeleteShareRequest) -> Result<()> {
@@ -153,7 +151,7 @@ impl<T: SharingRepository> RepositoryHandler for T {
         &self,
         request: CreateSharingSchemaRequest,
     ) -> Result<SharingSchemaInfo> {
-        let share = ResourceRef::from(&request.share);
+        let share = ResourceRef::Name(ResourceName::new([&request.share]));
         let schema = request
             .schema
             .ok_or_else(|| crate::Error::invalid_argument("schema is required".to_string()))?;

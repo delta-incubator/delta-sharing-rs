@@ -74,9 +74,15 @@ pub struct SchemaInfo {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateCatalogRequest {
-    /// Catalog to create.
-    #[prost(message, optional, tag="2")]
-    pub catalog: ::core::option::Option<CatalogInfo>,
+    /// Name of catalog.
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+    /// User-provided free-form text description.
+    #[prost(string, optional, tag="2")]
+    pub comment: ::core::option::Option<::prost::alloc::string::String>,
+    /// A map of key-value properties attached to the securable.
+    #[prost(message, optional, tag="3")]
+    pub properties: ::core::option::Option<::pbjson_types::Struct>,
 }
 /// Delete a catalog
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -140,25 +146,41 @@ pub struct UpdateCatalogRequest {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateSchemaRequest {
-    /// Schema to create.
-    #[prost(message, optional, tag="2")]
-    pub schema: ::core::option::Option<SchemaInfo>,
+    /// Name of schema, relative to parent catalog.
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+    /// Name of parent catalog.
+    #[prost(string, tag="2")]
+    pub catalog_name: ::prost::alloc::string::String,
+    /// User-provided free-form text description.
+    #[prost(string, optional, tag="3")]
+    pub comment: ::core::option::Option<::prost::alloc::string::String>,
+    /// A map of key-value properties attached to the securable.
+    #[prost(message, optional, tag="4")]
+    pub properties: ::core::option::Option<::pbjson_types::Struct>,
 }
 /// Delete a Schema
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteSchemaRequest {
-    /// Name of schema.
+    /// Full name of schema to delete.
+    ///
+    /// Format: catalog_name.schema_name
     #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
+    pub full_name: ::prost::alloc::string::String,
+    /// Force deletion even if the schema is not empty.
+    #[prost(bool, optional, tag="2")]
+    pub force: ::core::option::Option<bool>,
 }
 /// Get a Schema
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetSchemaRequest {
-    /// Name of schema.
+    /// Full name of schema.
+    ///
+    /// Format: catalog_name.schema_name
     #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
+    pub full_name: ::prost::alloc::string::String,
 }
 /// List Schemas in a catalog
 #[allow(clippy::derive_partial_eq_without_eq)]

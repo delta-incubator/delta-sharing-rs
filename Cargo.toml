@@ -2,6 +2,16 @@
 resolver = "2"
 members = ["delta-sharing/*"]
 
+[workspace.package]
+edition = "2021"
+homepage = "https://delta.io"
+keywords = ["deltalake", "delta", "datalake", "delta-sharing"]
+license = "Apache-2.0"
+repository = "https://github.com/delta-incubator/delta-sharing-rs"
+readme = "README.md"
+rust-version = "1.80"
+version = "0.0.1"
+
 [workspace.dependencies]
 async-trait = "0.1.83"
 bytes = { version = "1.1" }

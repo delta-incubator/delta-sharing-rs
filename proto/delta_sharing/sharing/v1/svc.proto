@@ -8,6 +8,8 @@ import "delta_sharing/sharing/v1/query.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
 import "openapiv3/annotations.proto";
 
 option (openapi.v3.document) = {
@@ -266,7 +268,9 @@ service DeltaSharingService {
 
 // Create a new Share in the Delta Sharing service.
 message CreateShareRequest {
-  ShareInfo share = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string description = 2 [(google.api.field_behavior) = OPTIONAL];
+  optional google.protobuf.Struct properties = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // Delete a Share in the Delta Sharing service.
@@ -275,6 +279,8 @@ message DeleteShareRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
+
+  optional bool force = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // Create a new Schema in the Delta Sharing service.
@@ -283,6 +289,7 @@ message CreateSharingSchemaRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
   ];
+
   SharingSchemaInfo schema = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
@@ -306,7 +313,7 @@ service DeltaSharingExtensionService {
   rpc CreateShare(CreateShareRequest) returns (ShareInfo) {
     option (google.api.http) = {
       post: "/shares"
-      body: "share"
+      body: "*"
     };
     option (openapi.v3.operation) = {
       tags: [
@@ -318,7 +325,7 @@ service DeltaSharingExtensionService {
   }
 
   // Delete a Share in the Delta Sharing service.
-  rpc DeleteShare(DeleteShareRequest) returns (ShareInfo) {
+  rpc DeleteShare(DeleteShareRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/shares/{name}"};
     option (openapi.v3.operation) = {
       tags: [
