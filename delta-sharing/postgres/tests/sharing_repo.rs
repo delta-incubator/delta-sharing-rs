@@ -17,7 +17,7 @@ async fn test_shares(pool: sqlx::PgPool) {
     assert_eq!(share.name, "test_share");
 
     let share = repo
-        .get_share(&ResourceRef::from("test_share".to_string()))
+        .get_share(&ResourceRef::name(vec!["test_share".to_string()]))
         .await
         .unwrap();
     assert_eq!(share.name, "test_share");
@@ -34,15 +34,15 @@ async fn test_shares(pool: sqlx::PgPool) {
 
     // test get share with unknown name should fail
     let res = repo
-        .get_share(&ResourceRef::from("unknown".to_string()))
+        .get_share(&ResourceRef::name(vec!["unknown".to_string()]))
         .await;
     assert!(matches!(res, Err(Error::NotFound)));
 
-    repo.delete_share(&ResourceRef::from("test_share".to_string()))
+    repo.delete_share(&ResourceRef::name(vec!["test_share".to_string()]))
         .await
         .unwrap();
     let res = repo
-        .get_share(&ResourceRef::from("test_share".to_string()))
+        .get_share(&ResourceRef::name(vec!["test_share".to_string()]))
         .await;
     assert!(matches!(res, Err(Error::NotFound)));
 
@@ -80,7 +80,7 @@ async fn test_schema(pool: sqlx::PgPool) {
 
     let schema = repo
         .add_schema(
-            &ResourceRef::from(&share.name),
+            &ResourceRef::name(vec![share.name.clone()]),
             "test_schema",
             Some("test comment".to_string()),
             None,
@@ -91,10 +91,10 @@ async fn test_schema(pool: sqlx::PgPool) {
     assert_eq!(schema.name, "test_schema");
 
     let schema = repo
-        .get_schema(&ResourceRef::from((
-            [share.name.clone()],
+        .get_schema(&ResourceRef::name(vec![
+            share.name.clone(),
             "test_schema".to_string(),
-        )))
+        ]))
         .await
         .unwrap();
     assert_eq!(schema.share, share.name);
@@ -113,37 +113,37 @@ async fn test_schema(pool: sqlx::PgPool) {
 
     // test get schema with unknown name should fail
     let res = repo
-        .get_schema(&ResourceRef::from((
-            [share.name.clone()],
+        .get_schema(&ResourceRef::name(vec![
+            share.name.clone(),
             "unknown".to_string(),
-        )))
+        ]))
         .await;
     assert!(matches!(res, Err(Error::NotFound)));
 
-    repo.delete_schema(&ResourceRef::from((
-        [share.name.clone()],
+    repo.delete_schema(&ResourceRef::name(vec![
+        share.name.clone(),
         "test_schema".to_string(),
-    )))
+    ]))
     .await
     .unwrap();
     let res = repo
-        .get_schema(&ResourceRef::from((
-            [share.name.clone()],
+        .get_schema(&ResourceRef::name(vec![
+            share.name.clone(),
             "test_schema".to_string(),
-        )))
+        ]))
         .await;
     assert!(matches!(res, Err(Error::NotFound)));
 
     // list schemas
     let schemas = repo
-        .list_schemas(&ResourceRef::from(&share.name), None, None)
+        .list_schemas(&ResourceRef::name(vec![share.name.clone()]), None, None)
         .await
         .unwrap();
     assert_eq!(schemas.0.len(), 0);
 
     let _schema = repo
         .add_schema(
-            &ResourceRef::from(&share.name),
+            &ResourceRef::name(vec![share.name.clone()]),
             "test_schema",
             Some("test comment".to_string()),
             None,
@@ -151,7 +151,7 @@ async fn test_schema(pool: sqlx::PgPool) {
         .await
         .unwrap();
     let schemas = repo
-        .list_schemas(&ResourceRef::from(share.name), None, None)
+        .list_schemas(&ResourceRef::name(vec![share.name]), None, None)
         .await
         .unwrap();
     assert_eq!(schemas.0.len(), 1);

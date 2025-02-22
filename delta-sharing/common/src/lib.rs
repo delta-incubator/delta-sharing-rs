@@ -71,6 +71,16 @@ pub enum ResourceRef {
     Undefined,
 }
 
+impl ResourceRef {
+    pub fn is_undefined(&self) -> bool {
+        matches!(self, Self::Undefined)
+    }
+
+    pub fn name(name: impl Into<ResourceName>) -> Self {
+        Self::Name(name.into())
+    }
+}
+
 impl std::fmt::Display for ResourceRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

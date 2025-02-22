@@ -13,21 +13,21 @@ async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Erro
     let object = store
         .add_object(
             &ObjectLabel::SharingTable,
-            &["namespace".to_string()],
-            "table_name",
+            &["namespace".to_string(), "table_name".to_string()],
             Some(serde_json::json!({ "key": "value" })),
         )
         .await?;
     assert_eq!(object.label, ObjectLabel::SharingTable);
-    assert_eq!(object.namespace, vec!["namespace".to_string()]);
-    assert_eq!(object.name, "table_name");
+    assert_eq!(
+        object.name,
+        vec!["namespace".to_string(), "table_name".to_string()].into()
+    );
 
     // Adding the same object should fail.
     let res = store
         .add_object(
             &ObjectLabel::SharingTable,
-            &["namespace".to_string()],
-            "table_name",
+            &["namespace".to_string(), "table_name".to_string()],
             Some(serde_json::json!({ "key": "value" })),
         )
         .await;
@@ -35,8 +35,10 @@ async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Erro
 
     let object = store.get_object(&object.id).await?;
     assert_eq!(object.label, ObjectLabel::SharingTable);
-    assert_eq!(object.namespace, vec!["namespace".to_string()]);
-    assert_eq!(object.name, "table_name");
+    assert_eq!(
+        object.name,
+        vec!["namespace".to_string(), "table_name".to_string()].into()
+    );
     assert_eq!(
         object.properties,
         Some(serde_json::json!({ "key": "value" }))
@@ -46,13 +48,14 @@ async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Erro
     let object = store
         .get_object_by_name(
             &ObjectLabel::SharingTable,
-            &["namespace".to_string()],
-            "table_name",
+            &["namespace".to_string(), "table_name".to_string()],
         )
         .await?;
     assert_eq!(object.label, ObjectLabel::SharingTable);
-    assert_eq!(object.namespace, vec!["namespace".to_string()]);
-    assert_eq!(object.name, "table_name");
+    assert_eq!(
+        object.name,
+        vec!["namespace".to_string(), "table_name".to_string()].into()
+    );
 
     let object = store
         .update_object(&object.id, serde_json::json!({ "key": "value2" }))
@@ -82,16 +85,14 @@ async fn test_associations(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error:
     let object1 = store
         .add_object(
             &ObjectLabel::SharingTable,
-            &["namespace".to_string()],
-            "table_name1",
+            &["namespace".to_string(), "table_name1".to_string()],
             Some(serde_json::json!({ "key": "value" })),
         )
         .await?;
     let object2 = store
         .add_object(
             &ObjectLabel::SharingTable,
-            &["namespace".to_string()],
-            "table_name2",
+            &["namespace".to_string(), "table_name2".to_string()],
             Some(serde_json::json!({ "key": "value" })),
         )
         .await?;
