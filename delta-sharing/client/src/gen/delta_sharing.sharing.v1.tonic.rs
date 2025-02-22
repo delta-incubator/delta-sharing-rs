@@ -4,6 +4,8 @@ pub mod delta_sharing_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
+    /** Service exposing the official APIs for Delta Sharing.
+*/
     #[derive(Debug, Clone)]
     pub struct DeltaSharingServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -84,6 +86,8 @@ pub mod delta_sharing_service_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
+        /** List shares accessible to a recipient.
+*/
         pub async fn list_shares(
             &mut self,
             request: impl tonic::IntoRequest<super::ListSharesRequest>,

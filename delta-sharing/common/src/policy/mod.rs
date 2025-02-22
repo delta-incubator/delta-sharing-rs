@@ -21,6 +21,7 @@ pub enum Permission {
     Write,
     Manage,
     Create,
+    Use,
 }
 
 impl AsRef<str> for Permission {
@@ -30,6 +31,7 @@ impl AsRef<str> for Permission {
             Self::Write => "write",
             Self::Manage => "manage",
             Self::Create => "create",
+            Self::Use => "use",
         }
     }
 }

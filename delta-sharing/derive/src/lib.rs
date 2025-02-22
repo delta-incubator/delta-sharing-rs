@@ -20,7 +20,7 @@ pub fn parse_column_name(input: proc_macro::TokenStream) -> proc_macro::TokenStr
             _ => {
                 let path = name.value();
                 let path = path.split('.').map(proc_macro2::Literal::string);
-                return quote_spanned! { name.span() => [#(#path),*] }.into();
+                return quote_spanned! { name.span()=> [#(#path),*] }.into();
             }
         },
         Ok(lit) => Error::new(lit.span(), "Expected a string literal"),

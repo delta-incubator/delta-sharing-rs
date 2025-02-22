@@ -13,7 +13,7 @@ pub struct Object {
     /// The globally unique identifier of the object.
     pub id: Uuid,
 
-    /// The label / tyoe of the object.
+    /// The label / type of the object.
     pub label: ObjectLabel,
 
     /// The namespaced name of the object.

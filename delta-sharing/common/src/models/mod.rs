@@ -1,6 +1,7 @@
 use paste::paste;
 use serde::Serialize;
-use sharing::v1::{ShareInfo, SharingSchemaInfo};
+use sharing::v1::{ShareInfo, SharingSchemaInfo, SharingTable};
+use tables::v1::TableInfo;
 use uuid::Uuid;
 
 use crate::{
@@ -9,10 +10,9 @@ use crate::{
 };
 
 pub use credentials::v1::{Credential, StorageLocation};
+pub use internal::resource::{ObjectLabel, Resource};
 pub use properties::*;
 pub use requests::*;
-
-pub use internal::resource::{ObjectLabel, Resource};
 
 mod properties;
 pub(crate) mod requests;
@@ -94,6 +94,112 @@ impl AsResource for Share {
             .as_ref()
             .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::share))
             .unwrap_or_else(|| ResourceIdent::share(ResourceName::new([&self.name])))
+    }
+}
+
+impl AsResource for ShareInfo {
+    fn as_resource(&self) -> ResourceIdent {
+        Uuid::parse_str(&self.id)
+            .ok()
+            .map(ResourceIdent::share)
+            .unwrap_or_else(|| ResourceIdent::share(ResourceName::new([&self.name])))
+    }
+}
+
+impl AsResource for SharingSchemaInfo {
+    fn as_resource(&self) -> ResourceIdent {
+        Uuid::parse_str(&self.id)
+            .ok()
+            .map(ResourceIdent::sharing_schema)
+            .unwrap_or_else(|| {
+                ResourceIdent::sharing_schema(ResourceName::new([&self.share, &self.name]))
+            })
+    }
+}
+
+impl AsResource for SharingSchema {
+    fn as_resource(&self) -> ResourceIdent {
+        self.id
+            .as_ref()
+            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::sharing_schema))
+            .unwrap_or_else(|| ResourceIdent::sharing_schema(ResourceName::new([&self.name])))
+    }
+}
+
+impl AsResource for SharingTable {
+    fn as_resource(&self) -> ResourceIdent {
+        self.id
+            .as_ref()
+            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::sharing_table))
+            .unwrap_or_else(|| ResourceIdent::sharing_table(ResourceName::new([&self.name])))
+    }
+}
+
+impl AsResource for Credential {
+    fn as_resource(&self) -> ResourceIdent {
+        Uuid::parse_str(&self.id)
+            .ok()
+            .map(ResourceIdent::credential)
+            .unwrap_or_else(|| ResourceIdent::credential(ResourceName::new([&self.name])))
+    }
+}
+
+impl AsResource for StorageLocation {
+    fn as_resource(&self) -> ResourceIdent {
+        Uuid::parse_str(&self.id)
+            .ok()
+            .map(ResourceIdent::storage_location)
+            .unwrap_or_else(|| ResourceIdent::storage_location(ResourceName::new([&self.name])))
+    }
+}
+
+impl AsResource for CatalogInfo {
+    fn as_resource(&self) -> ResourceIdent {
+        self.id
+            .as_ref()
+            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::catalog))
+            .unwrap_or_else(|| ResourceIdent::catalog(ResourceName::new([&self.name])))
+    }
+}
+
+impl AsResource for SchemaInfo {
+    fn as_resource(&self) -> ResourceIdent {
+        self.schema_id
+            .as_ref()
+            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::schema))
+            .unwrap_or_else(|| {
+                ResourceIdent::schema(ResourceName::new([&self.catalog_name, &self.name]))
+            })
+    }
+}
+
+impl AsResource for TableInfo {
+    fn as_resource(&self) -> ResourceIdent {
+        self.table_id
+            .as_ref()
+            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::table))
+            .unwrap_or_else(|| {
+                ResourceIdent::table(ResourceName::new([
+                    &self.catalog_name,
+                    &self.schema_name,
+                    &self.name,
+                ]))
+            })
+    }
+}
+
+impl AsResource for Resource {
+    fn as_resource(&self) -> ResourceIdent {
+        match self {
+            Resource::ShareInfo(share) => share.as_resource(),
+            Resource::SharingSchemaInfo(schema) => schema.as_resource(),
+            Resource::SharingTable(table) => table.as_resource(),
+            Resource::Credential(cred) => cred.as_resource(),
+            Resource::StorageLocation(loc) => loc.as_resource(),
+            Resource::CatalogInfo(catalog) => catalog.as_resource(),
+            Resource::SchemaInfo(schema) => schema.as_resource(),
+            Resource::TableInfo(table) => table.as_resource(),
+        }
     }
 }
 

@@ -422,8 +422,12 @@ pub struct ListShareTablesResponse {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateShareRequest {
-    #[prost(message, optional, tag="1")]
-    pub share: ::core::option::Option<ShareInfo>,
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, optional, tag="2")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(message, optional, tag="3")]
+    pub properties: ::core::option::Option<::pbjson_types::Struct>,
 }
 /// Delete a Share in the Delta Sharing service.
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -431,6 +435,8 @@ pub struct CreateShareRequest {
 pub struct DeleteShareRequest {
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
+    #[prost(bool, optional, tag="2")]
+    pub force: ::core::option::Option<bool>,
 }
 /// Create a new Schema in the Delta Sharing service.
 #[allow(clippy::derive_partial_eq_without_eq)]

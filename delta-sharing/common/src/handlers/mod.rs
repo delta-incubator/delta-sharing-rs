@@ -11,8 +11,6 @@ mod catalog;
 mod credentials;
 mod sharing;
 
-pub use sharing::*;
-
 #[derive(Clone)]
 pub struct ServerHandler {
     pub policy: Arc<dyn Policy>,
@@ -31,6 +29,12 @@ impl ServerHandler {
             store,
             query,
         }
+    }
+}
+
+impl AsRef<dyn Policy> for ServerHandler {
+    fn as_ref(&self) -> &dyn Policy {
+        self
     }
 }
 

@@ -582,7 +582,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ShareInfo'
+              $ref: '#/components/schemas/CreateShareRequest'
         required: true
       responses:
         '200':
@@ -611,6 +611,10 @@ paths:
           required: true
           schema:
             type: string
+        - name: force
+          in: query
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -1059,6 +1063,18 @@ components:
           type: object
           description: A map of key-value properties attached to the securable.
       description: Create a new Schema
+    CreateShareRequest:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        properties:
+          type: object
+      description: Create a new Share in the Delta Sharing service.
     Credential:
       required:
         - name

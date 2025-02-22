@@ -1,15 +1,13 @@
-use std::path::Path;
 use std::sync::Arc;
 
 use chrono::Days;
 use clap::{Parser, Subcommand};
 use delta_sharing_common::{
-    rest::AnonymousAuthenticator, ConstantPolicy, DeltaSharingHandler, InMemoryConfig,
-    InMemoryHandler, KernelQueryHandler, ServerHandler,
+    rest::AnonymousAuthenticator, ConstantPolicy, KernelQueryHandler, ServerHandler,
 };
 use delta_sharing_postgres::GraphStore;
 use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
-use delta_sharing_server::{run_grpc_server, run_rest_server, run_rest_server_full2};
+use delta_sharing_server::run_rest_server_full;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::error::{Error, Result};
@@ -103,7 +101,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match args.command {
         Commands::Rest(server_args) => handle_rest(server_args).await?,
-        Commands::Grpc(server_args) => handle_grpc(server_args).await?,
+        Commands::Grpc(_) => todo!("gRPC server not implemented"),
         Commands::Client(client_args) => {
             // Access the client arguments
             let endpoint = client_args.endpoint;
@@ -116,21 +114,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     Ok(())
-}
-
-fn get_handler(config: impl AsRef<Path>) -> Result<DeltaSharingHandler> {
-    let config = std::fs::read_to_string(config)
-        .map_err(|_| Error::Generic("malformed config".to_string()))?;
-    let config = serde_yml::from_str::<InMemoryConfig>(&config)
-        .map_err(|_| Error::Generic("malformed config".to_string()))?;
-
-    let discovery = Arc::new(InMemoryHandler::new(config));
-    let handler = DeltaSharingHandler {
-        query: KernelQueryHandler::new_multi_thread(discovery.clone(), Default::default()),
-        discovery,
-        policy: Arc::new(ConstantPolicy::default()),
-    };
-    Ok(handler)
 }
 
 async fn get_db_handler() -> Result<ServerHandler> {
@@ -171,29 +154,26 @@ async fn handle_rest(args: ServerArgs) -> Result<()> {
 
     if args.use_db {
         let handler = get_db_handler().await?;
-        run_rest_server_full2(args.host, args.port, handler, AnonymousAuthenticator)
+        run_rest_server_full(args.host, args.port, handler, AnonymousAuthenticator)
             .await
             .map_err(|_| Error::Generic("Server failed".to_string()))
     } else {
-        let handler = get_handler(args.config)?;
-        run_rest_server(args.host, args.port, handler, AnonymousAuthenticator)
-            .await
-            .map_err(|_| Error::Generic("Server failed".to_string()))
+        todo!()
     }
 }
 
 /// Handle the server command.
 ///
 /// This function starts a delta-sharing server using the gRPC protocol.
-async fn handle_grpc(args: ServerArgs) -> Result<()> {
-    init_tracing();
-
-    let handler = get_handler(args.config)?;
-
-    run_grpc_server(args.host, args.port, handler)
-        .await
-        .map_err(|_| Error::Generic("Server failed".to_string()))
-}
+// async fn handle_grpc(args: ServerArgs) -> Result<()> {
+//     init_tracing();
+//
+//     let handler = get_handler(args.config)?;
+//
+//     run_grpc_server(args.host, args.port, handler)
+//         .await
+//         .map_err(|_| Error::Generic("Server failed".to_string()))
+// }
 
 /// Handle the profile command.
 async fn handle_profile(args: ProfileArgs) -> Result<()> {

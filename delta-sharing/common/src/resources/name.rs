@@ -13,7 +13,7 @@ use std::ops::Deref;
 pub struct ResourceName(Vec<String>);
 
 impl ResourceName {
-    /// Creates a new column name from input satisfying `FromIterator for ColumnName`. The provided
+    /// Creates a new column name from input satisfying `FromIterator for ResourceName`. The provided
     /// field names are concatenated into a single path.
     pub fn new<A>(iter: impl IntoIterator<Item = A>) -> Self
     where
@@ -26,14 +26,14 @@ impl ResourceName {
     ///
     /// This method is _NOT_ recommended for production use, as it does not attempt to interpret
     /// special characters in field names. For example, many systems would interpret the field name
-    /// `"a.b" . c ` as equivalent to `ColumnName::new(["\"a.b\"", "c"])` (two fields, whitespace
+    /// `"a.b" . c ` as equivalent to `ResourceName::new(["\"a.b\"", "c"])` (two fields, whitespace
     /// padding ignored), but this method would return three fields, including whitespace:
     ///
     /// ```
-    /// # use delta_kernel::resources::ResourceName;
+    /// # use delta_sharing_common::ResourceName;
     /// assert_eq!(
-    ///     ColumnName::from_naive_str_split(" \"a.b\" . c "),
-    ///     ColumnName::new([" \"a", "b\" ", " c "])
+    ///     ResourceName::from_naive_str_split(" \"a.b\" . c "),
+    ///     ResourceName::new([" \"a", "b\" ", " c "])
     /// );
     /// ```
     pub fn from_naive_str_split(name: impl AsRef<str>) -> Self {
@@ -44,17 +44,17 @@ impl ResourceName {
     /// characters, e.g.:
     ///
     /// ```
-    /// # use delta_kernel::resources::ResourceName;
+    /// # use delta_sharing_common::ResourceName;
     /// assert_eq!(
-    ///     &ColumnName::parse_column_name_list("a.b , c.`d , e` . f").unwrap(),
-    ///     &[ColumnName::new(["a", "b"]), ColumnName::new(["c", "d , e", "f"])]
+    ///     &ResourceName::parse_column_name_list("a.b , c.`d , e` . f").unwrap(),
+    ///     &[ResourceName::new(["a", "b"]), ResourceName::new(["c", "d , e", "f"])]
     /// );
     /// ```
     pub fn parse_column_name_list(names: impl AsRef<str>) -> Result<Vec<ResourceName>> {
         let names = names.as_ref();
         let chars = &mut names.chars().peekable();
 
-        // Ambiguous case: The empty string `""` could reasonably parse as `[ColumnName::new([])]`
+        // Ambiguous case: The empty string `""` could reasonably parse as `[ResourceName::new([])]`
         // or `[]`. Prefer the latter as more intuitive and compatible with e.g. `str::join(',')`.
         drop_leading_whitespace(chars);
         let mut ending = match chars.peek() {
@@ -75,14 +75,14 @@ impl ResourceName {
     ///
     /// NOTE: This is a convenience method that copies two arguments without consuming them. If more
     /// arguments are needed, or if performance is a concern, it is recommended to use
-    /// [`FromIterator for ColumnName`](#impl-FromIterator<ColumnName>-for-ColumnName) instead:
+    /// [`FromIterator for ResourceName`](#impl-FromIterator<ResourceName>-for-ResourceName) instead:
     ///
     /// ```
-    /// # use delta_kernel::resources::ResourceName;
-    /// let x = ColumnName::new(["a", "b"]);
-    /// let y = ColumnName::new(["c", "d"]);
-    /// let joined: ColumnName = [x, y].into_iter().collect();
-    /// assert_eq!(joined, ColumnName::new(["a", "b", "c", "d"]));
+    /// # use delta_sharing_common::ResourceName;
+    /// let x = ResourceName::new(["a", "b"]);
+    /// let y = ResourceName::new(["c", "d"]);
+    /// let joined: ResourceName = [x, y].into_iter().collect();
+    /// assert_eq!(joined, ResourceName::new(["a", "b", "c", "d"]));
     /// ```
     pub fn join(&self, right: &ResourceName) -> ResourceName {
         [self.clone(), right.clone()].into_iter().collect()
@@ -139,14 +139,14 @@ impl Deref for ResourceName {
     }
 }
 
-// Allows searching collections of `ColumnName` without an owned key value
+// Allows searching collections of `ResourceName` without an owned key value
 impl Borrow<[String]> for ResourceName {
     fn borrow(&self) -> &[String] {
         self
     }
 }
 
-// Allows searching collections of `&ColumnName` without an owned key value. Needed because there is
+// Allows searching collections of `&ResourceName` without an owned key value. Needed because there is
 // apparently no blanket `impl<U, T> Borrow<U> for &T where T: Borrow<U>`, even tho `Eq` [1] and
 // `Hash` [2] both have blanket impl for treating `&T` like `T`.
 //
@@ -168,24 +168,24 @@ impl Hash for ResourceName {
 /// characters are escaped by backtick symbols:
 ///
 /// ```
-/// # use delta_kernel::resources::ResourceName;
-/// assert_eq!(ColumnName::new(["a", "b.c", "d"]).to_string(), "a.`b.c`.d");
+/// # use delta_sharing_common::ResourceName;
+/// assert_eq!(ResourceName::new(["a", "b.c", "d"]).to_string(), "a.`b.c`.d");
 /// ```
 ///
 /// Backticks inside escaped field names are themselves escaped by doubling:
 ///
 /// ```
-/// # use delta_kernel::resources::ResourceName;
-/// assert_eq!(ColumnName::new(["a", "b.`c`.d", "e"]).to_string(), "a.`b.``c``.d`.e");
+/// # use delta_sharing_common::ResourceName;
+/// assert_eq!(ResourceName::new(["a", "b.`c`.d", "e"]).to_string(), "a.`b.``c``.d`.e");
 /// ```
 ///
-/// The string representation is lossless, and can be parsed back into a `ColumnName` using
+/// The string representation is lossless, and can be parsed back into a `ResourceName` using
 /// [`FromStr`]:
 ///
 /// ```
-/// # use delta_kernel::resources::ResourceName;
-/// let colname = ColumnName::new(["a", "b.c", "d"]);
-/// let parsed: ColumnName = colname.to_string().parse().unwrap();
+/// # use delta_sharing_common::ResourceName;
+/// let colname = ResourceName::new(["a", "b.c", "d"]);
+/// let parsed: ResourceName = colname.to_string().parse().unwrap();
 /// assert_eq!(colname, parsed);
 /// ```
 ///
@@ -235,17 +235,17 @@ fn drop_leading_whitespace(iter: &mut Peekable<impl Iterator<Item = char>>) {
 /// periods and spaces. To include a literal backtick in a field name, escape it by doubling, e.g.:
 ///
 /// ```
-/// # use delta_kernel::resources::ResourceName;
-/// assert_eq!(ColumnName::new(["a", "b.`c`.d", "e"]).to_string(), "a.`b.``c``.d`.e");
+/// # use delta_sharing_common::ResourceName;
+/// assert_eq!(ResourceName::new(["a", "b.`c`.d", "e"]).to_string(), "a.`b.``c``.d`.e");
 /// ```
 ///
-/// NOTE: Unlike the conversion from `ColumnName` to `String` and back, a conversion from `String`
-/// to `ColumnName` and back may not exactly match the original string, if the latter included
+/// NOTE: Unlike the conversion from `ResourceName` to `String` and back, a conversion from `String`
+/// to `ResourceName` and back may not exactly match the original string, if the latter included
 /// whitespace or unnecessary field escapes, e.g.:
 ///
 /// ```
-/// # use delta_kernel::resources::ResourceName;
-/// let parsed: ColumnName = " `a` . `b.``c``.d` . `e` ".parse().unwrap();
+/// # use delta_sharing_common::resources::ResourceName;
+/// let parsed: ResourceName = " `a` . `b.``c``.d` . `e` ".parse().unwrap();
 /// assert_eq!(parsed.to_string(), "a.`b.``c``.d`.e");
 /// ```
 impl std::str::FromStr for ResourceName {
@@ -275,10 +275,10 @@ const FIELD_SEPARATOR: char = '.';
 const COLUMN_SEPARATOR: char = ',';
 
 fn parse_resource_name(chars: &mut Chars<'_>) -> Result<(ResourceName, FieldEnding)> {
-    // Ambiguous case: The empty string `""`could reasonably parse as either `ColumnName::new([""])`
-    // or `ColumnName::new([])`. However, `ColumnName::new([""]).to_string()` is `"[]"` and
-    // `ColumnName::new([]).to_string()` is `""`, so we choose the latter because it produces a
-    // lossless round trip from `ColumnName` to `String` and back. We also swallow a leading comma
+    // Ambiguous case: The empty string `""`could reasonably parse as either `ResourceName::new([""])`
+    // or `ResourceName::new([])`. However, `ResourceName::new([""]).to_string()` is `"[]"` and
+    // `ResourceName::new([]).to_string()` is `""`, so we choose the latter because it produces a
+    // lossless round trip from `ResourceName` to `String` and back. We also swallow a leading comma
     // to produce an empty column, so that the string "," parses as two empty columns.
     drop_leading_whitespace(chars);
     let mut ending = if chars.peek().is_none() {
@@ -346,23 +346,23 @@ fn parse_escaped_field_name(chars: &mut Chars<'_>) -> Result<String> {
     Ok(name)
 }
 
-/// Creates a nested column name whose field names are all simple column names (containing only
+/// Creates a nested column name whose field names are all simple resource names (containing only
 /// alphanumeric characters and underscores), delimited by dots. This macro is provided as a
 /// convenience for the common case where the caller knows the column name contains only simple
 /// field names and that splitting by periods is safe:
 ///
 /// ```
-/// # use delta_kernel::expressions::{column_name, ColumnName};
-/// assert_eq!(column_name!("a.b.c"), ColumnName::new(["a", "b", "c"]));
+/// # use delta_sharing_common::{resource_name, ResourceName};
+/// assert_eq!(resource_name!("a.b.c"), ResourceName::new(["a", "b", "c"]));
 /// ```
 ///
 /// To avoid accidental misuse, the argument must be a string literal, so the compiler can validate
 /// the safety conditions. Thus, the following uses would fail to compile:
 ///
 /// ```fail_compile
-/// # use delta_kernel::expressions::column_name;
+/// # use delta_sharing_common::resource_name;
 /// let s = "a.b";
-/// let name = column_name!(s); // not a string literal
+/// let name = resource_name!(s); // not a string literal
 /// ```
 ///
 /// ```fail_compile
@@ -415,26 +415,6 @@ macro_rules! __joined_resource_name {
 }
 #[doc(inline)]
 pub use __joined_resource_name as joined_resource_name;
-
-#[macro_export]
-#[doc(hidden)]
-macro_rules! __column_expr {
-    ( $($name:tt)* ) => {
-        $crate::expressions::Expression::from($crate::__resource_name!($($name)*))
-    };
-}
-#[doc(inline)]
-pub use __column_expr as column_expr;
-
-#[macro_export]
-#[doc(hidden)]
-macro_rules! __joined_column_expr {
-    ( $($name:tt)* ) => {
-        $crate::expressions::Expression::from($crate::__joined_resource_name!($($name)*))
-    };
-}
-#[doc(inline)]
-pub use __joined_column_expr as joined_column_expr;
 use serde::{Deserialize, Serialize};
 
 #[cfg(test)]
@@ -515,18 +495,18 @@ mod test {
         let name: ResourceName = ["x", "y"].into_iter().collect();
         assert_eq!(name, nested);
 
-        // impl FromIterator<ColumnName>
+        // impl FromIterator<ResourceName>
         let name: ResourceName = [&nested, &simple].into_iter().cloned().collect();
         assert_eq!(name, resource_name!("x.y.x"));
 
-        // ColumnName::new
+        // ResourceName::new
         let name = ResourceName::new([nested, simple]);
         assert_eq!(name, resource_name!("x.y.x"));
 
         let name = ResourceName::new(["x", "y"]);
         assert_eq!(name, resource_name!("x.y"));
 
-        // ColumnName::into_iter()
+        // ResourceName::into_iter()
         let name = resource_name!("x.y.z");
         let name = ResourceName::new(name);
         assert_eq!(name, resource_name!("x.y.z"));

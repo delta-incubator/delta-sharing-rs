@@ -7,12 +7,24 @@ impl serde::Serialize for CreateShareRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if self.share.is_some() {
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if self.description.is_some() {
+            len += 1;
+        }
+        if self.properties.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.sharing.v1.CreateShareRequest", len)?;
-        if let Some(v) = self.share.as_ref() {
-            struct_ser.serialize_field("share", v)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.description.as_ref() {
+            struct_ser.serialize_field("description", v)?;
+        }
+        if let Some(v) = self.properties.as_ref() {
+            struct_ser.serialize_field("properties", v)?;
         }
         struct_ser.end()
     }
@@ -24,12 +36,16 @@ impl<'de> serde::Deserialize<'de> for CreateShareRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "share",
+            "name",
+            "description",
+            "properties",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Share,
+            Name,
+            Description,
+            Properties,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -51,7 +67,9 @@ impl<'de> serde::Deserialize<'de> for CreateShareRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "share" => Ok(GeneratedField::Share),
+                            "name" => Ok(GeneratedField::Name),
+                            "description" => Ok(GeneratedField::Description),
+                            "properties" => Ok(GeneratedField::Properties),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -71,19 +89,35 @@ impl<'de> serde::Deserialize<'de> for CreateShareRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut share__ = None;
+                let mut name__ = None;
+                let mut description__ = None;
+                let mut properties__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Share => {
-                            if share__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("share"));
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
                             }
-                            share__ = map_.next_value()?;
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Description => {
+                            if description__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("description"));
+                            }
+                            description__ = map_.next_value()?;
+                        }
+                        GeneratedField::Properties => {
+                            if properties__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("properties"));
+                            }
+                            properties__ = map_.next_value()?;
                         }
                     }
                 }
                 Ok(CreateShareRequest {
-                    share: share__,
+                    name: name__.unwrap_or_default(),
+                    description: description__,
+                    properties: properties__,
                 })
             }
         }
@@ -209,9 +243,15 @@ impl serde::Serialize for DeleteShareRequest {
         if !self.name.is_empty() {
             len += 1;
         }
+        if self.force.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.sharing.v1.DeleteShareRequest", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.force.as_ref() {
+            struct_ser.serialize_field("force", v)?;
         }
         struct_ser.end()
     }
@@ -224,11 +264,13 @@ impl<'de> serde::Deserialize<'de> for DeleteShareRequest {
     {
         const FIELDS: &[&str] = &[
             "name",
+            "force",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Name,
+            Force,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -251,6 +293,7 @@ impl<'de> serde::Deserialize<'de> for DeleteShareRequest {
                     {
                         match value {
                             "name" => Ok(GeneratedField::Name),
+                            "force" => Ok(GeneratedField::Force),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -271,6 +314,7 @@ impl<'de> serde::Deserialize<'de> for DeleteShareRequest {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut name__ = None;
+                let mut force__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Name => {
@@ -279,10 +323,17 @@ impl<'de> serde::Deserialize<'de> for DeleteShareRequest {
                             }
                             name__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::Force => {
+                            if force__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("force"));
+                            }
+                            force__ = map_.next_value()?;
+                        }
                     }
                 }
                 Ok(DeleteShareRequest {
                     name: name__.unwrap_or_default(),
+                    force: force__,
                 })
             }
         }

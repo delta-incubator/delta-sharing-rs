@@ -29,7 +29,7 @@ pub enum AssociationLabel {
 impl AssociationLabel {
     /// Get the inverse of the association label.
     ///
-    /// Associations may be bidirectional, either symetric or asymetric.
+    /// Associations may be bidirectional, either symmetric or asymmetric.
     /// Symmetric types are their own inverse. Asymmetric types have a distinct inverse.
     pub fn inverse(&self) -> Option<Self> {
         match self {

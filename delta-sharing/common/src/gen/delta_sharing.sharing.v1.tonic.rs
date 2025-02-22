@@ -6,6 +6,8 @@ pub mod delta_sharing_service_server {
     /// Generated trait containing gRPC methods that should be implemented for use with DeltaSharingServiceServer.
     #[async_trait]
     pub trait DeltaSharingService: Send + Sync + 'static {
+        /** List shares accessible to a recipient.
+*/
         async fn list_shares(
             &self,
             request: tonic::Request<super::ListSharesRequest>,
@@ -50,6 +52,8 @@ pub mod delta_sharing_service_server {
             request: tonic::Request<super::GetTableMetadataRequest>,
         ) -> std::result::Result<tonic::Response<super::QueryResponse>, tonic::Status>;
     }
+    /** Service exposing the official APIs for Delta Sharing.
+*/
     #[derive(Debug)]
     pub struct DeltaSharingServiceServer<T: DeltaSharingService> {
         inner: Arc<T>,

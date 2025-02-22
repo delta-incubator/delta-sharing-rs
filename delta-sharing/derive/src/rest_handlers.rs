@@ -46,7 +46,7 @@ pub fn to_request_impl(handler: &HandlerDef) -> proc_macro2::TokenStream {
     match get_request_type(&type_name) {
         RequestType::List => {
             // Generate paginated implementation
-            generate_paginated_request_impl(request_type, &handler.fields, true)
+            generate_path_query_request_impl(request_type, &handler.fields, true)
         }
         RequestType::Create | RequestType::Update => {
             // Generate JSON body implementation
@@ -69,7 +69,7 @@ pub fn to_request_impl(handler: &HandlerDef) -> proc_macro2::TokenStream {
         }
         RequestType::Get | RequestType::Delete => {
             // Generate path parameter implementation
-            generate_paginated_request_impl(request_type, &handler.fields, false)
+            generate_path_query_request_impl(request_type, &handler.fields, false)
         }
     }
 }
@@ -128,7 +128,7 @@ fn get_request_type(type_name: &str) -> RequestType {
     }
 }
 
-fn generate_paginated_request_impl(
+fn generate_path_query_request_impl(
     request_type: &Type,
     fields: &[FieldDef],
     paginated: bool,
@@ -159,28 +159,25 @@ fn generate_paginated_request_impl(
         query_types.push(&page_token_type);
     }
 
-    let path_ext = if path_names.is_empty() {
-        quote! {}
-    } else {
-        quote! {
-            use ::axum::extract::Path;
-            let Path((#(#path_names),*)) = parts.extract::<Path<(#(#path_types),*)>>().await?;
-        }
-    };
-    let query_ext = if query_names.is_empty() {
-        quote! {}
-    } else {
-        quote! {
-            use ::axum::extract::Query;
-            #[derive(::serde::Deserialize)]
-            struct QueryParams {
-                #(
-                    #query_names: #query_types,
-                )*
+    let path_ext = (!path_names.is_empty())
+        .then(|| {
+            quote! {
+                use ::axum::extract::Path;
+                let Path((#(#path_names),*)) = parts.extract::<Path<(#(#path_types),*)>>().await?;
             }
-            let Query(QueryParams { #(#query_names,)* }) = parts.extract::<Query<QueryParams>>().await?;
+        })
+        .unwrap_or_default();
+
+    let query_ext = (!query_names.is_empty()).then(|| quote! {
+        use ::axum::extract::Query;
+        #[derive(::serde::Deserialize)]
+        struct QueryParams {
+            #(
+                #query_names: #query_types,
+            )*
         }
-    };
+        let Query(QueryParams { #(#query_names,)* }) = parts.extract::<Query<QueryParams>>().await?;
+    }).unwrap_or_default();
 
     quote! {
         impl<S: Send + Sync> ::axum::extract::FromRequestParts<S> for #request_type {

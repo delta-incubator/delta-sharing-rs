@@ -41,6 +41,7 @@ impl From<sqlx::Error> for Error {
     fn from(e: sqlx::Error) -> Self {
         match &e {
             sqlx::Error::RowNotFound => Error::EntityNotFound("Row not found".to_string()),
+            // https://www.postgresql.org/docs/current/errcodes-appendix.html
             sqlx::Error::Database(db_err) => {
                 let pg_err = db_err.try_downcast_ref::<sqlx::postgres::PgDatabaseError>();
                 match pg_err {
