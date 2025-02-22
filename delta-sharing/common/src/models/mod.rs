@@ -62,7 +62,7 @@ pub mod profiles {
     }
 }
 
-pub mod internal {
+pub(crate) mod internal {
     include!("../gen/delta_sharing.internal.rs");
 }
 
@@ -199,6 +199,38 @@ impl AsResource for Resource {
             Resource::CatalogInfo(catalog) => catalog.as_resource(),
             Resource::SchemaInfo(schema) => schema.as_resource(),
             Resource::TableInfo(table) => table.as_resource(),
+        }
+    }
+}
+
+impl Resource {
+    pub fn label(&self) -> &ObjectLabel {
+        match self {
+            Resource::ShareInfo(_) => &ObjectLabel::ShareInfo,
+            Resource::SharingSchemaInfo(_) => &ObjectLabel::SharingSchemaInfo,
+            Resource::SharingTable(_) => &ObjectLabel::SharingTable,
+            Resource::Credential(_) => &ObjectLabel::Credential,
+            Resource::StorageLocation(_) => &ObjectLabel::StorageLocation,
+            Resource::CatalogInfo(_) => &ObjectLabel::CatalogInfo,
+            Resource::SchemaInfo(_) => &ObjectLabel::SchemaInfo,
+            Resource::TableInfo(_) => &ObjectLabel::TableInfo,
+        }
+    }
+
+    pub fn name(&self) -> ResourceName {
+        match self {
+            Resource::ShareInfo(info) => ResourceName::new([&info.name]),
+            Resource::SharingSchemaInfo(info) => ResourceName::new([&info.share, &info.name]),
+            Resource::SharingTable(info) => {
+                ResourceName::new([&info.share, &info.schema, &info.name])
+            }
+            Resource::Credential(info) => ResourceName::new([&info.name]),
+            Resource::StorageLocation(info) => ResourceName::new([&info.name]),
+            Resource::CatalogInfo(info) => ResourceName::new([&info.name]),
+            Resource::SchemaInfo(info) => ResourceName::new([&info.catalog_name, &info.name]),
+            Resource::TableInfo(info) => {
+                ResourceName::new([&info.catalog_name, &info.schema_name, &info.name])
+            }
         }
     }
 }

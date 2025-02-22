@@ -2,13 +2,12 @@ use uuid::Uuid;
 
 use delta_sharing_common::models::catalog::v1 as catalog;
 use delta_sharing_common::models::credentials::v1 as credentials;
-use delta_sharing_common::models::internal::resource::ObjectLabel;
 use delta_sharing_common::models::sharing::v1 as sharing;
 use delta_sharing_common::models::tables::v1 as tables;
 use delta_sharing_common::models::{IntoJSONStruct, PropertyMap};
 use delta_sharing_common::{
-    AssociationLabel, Error, IntoJson, PropertyMapHandler, Resource, ResourceIdent, ResourceName,
-    ResourceRef, ResourceStore, Result,
+    AssociationLabel, Error, IntoJson, ObjectLabel, PropertyMapHandler, Resource, ResourceIdent,
+    ResourceName, ResourceRef, ResourceStore, Result, EMPTY_RESOURCE_NAME,
 };
 use itertools::Itertools;
 
@@ -20,16 +19,7 @@ pub trait IdentRefs {
 
 impl IdentRefs for ResourceIdent {
     fn ident(&self) -> (&ObjectLabel, &ResourceRef) {
-        match self {
-            ResourceIdent::Share(ident) => (&ObjectLabel::ShareInfo, ident),
-            ResourceIdent::SharingSchema(ident) => (&ObjectLabel::SharingSchemaInfo, ident),
-            ResourceIdent::SharingTable(ident) => (&ObjectLabel::SharingTable, ident),
-            ResourceIdent::Credential(ident) => (&ObjectLabel::Credential, ident),
-            ResourceIdent::StorageLocation(ident) => (&ObjectLabel::StorageLocation, ident),
-            ResourceIdent::Catalog(ident) => (&ObjectLabel::CatalogInfo, ident),
-            ResourceIdent::Schema(ident) => (&ObjectLabel::SchemaInfo, ident),
-            ResourceIdent::Table(ident) => (&ObjectLabel::TableInfo, ident),
-        }
+        (self.as_ref(), self.as_ref())
     }
 }
 
@@ -393,13 +383,10 @@ impl ResourceStore for GraphStore {
     /// # Returns
     /// The resource with the given identifier.
     async fn get(&self, id: &ResourceIdent) -> Result<(Resource, ResourceRef)> {
-        let (label, ident) = id.ident();
-        match ident {
-            ResourceRef::Uuid(uuid) => {
-                Ok((self.get_object(uuid).await?.try_into()?, ident.clone()))
-            }
+        match id.as_ref() {
+            ResourceRef::Uuid(uuid) => Ok((self.get_object(uuid).await?.try_into()?, id.into())),
             ResourceRef::Name(name) => {
-                let object = self.get_object_by_name(label, name).await?;
+                let object = self.get_object_by_name(id.as_ref(), name).await?;
                 let id_new = ResourceRef::Uuid(object.id);
                 Ok((object.try_into()?, id_new))
             }
@@ -419,27 +406,23 @@ impl ResourceStore for GraphStore {
     /// - `page_token`: The token to use to get the next page of results.
     async fn list(
         &self,
-        root: &ResourceIdent,
+        label: &ObjectLabel,
+        namespace: Option<&ResourceName>,
         max_results: Option<usize>,
         page_token: Option<String>,
     ) -> Result<(Vec<Resource>, Option<String>)> {
-        let (label, ident) = root.ident();
-        match ident {
-            ResourceRef::Undefined => {
-                let objects = self
-                    .list_objects(label, &[], page_token.as_deref(), max_results)
-                    .await?;
-                Ok((
-                    objects
-                        .0
-                        .into_iter()
-                        .map(|object| object.try_into())
-                        .try_collect()?,
-                    objects.1,
-                ))
-            }
-            _ => Err(Error::generic("Cannot list children of non-root resource")),
-        }
+        let namespace = namespace.unwrap_or_else(|| &EMPTY_RESOURCE_NAME);
+        let objects = self
+            .list_objects(label, namespace, page_token.as_deref(), max_results)
+            .await?;
+        Ok((
+            objects
+                .0
+                .into_iter()
+                .map(|object| object.try_into())
+                .try_collect()?,
+            objects.1,
+        ))
     }
 
     /// Create a new resource.
@@ -463,11 +446,10 @@ impl ResourceStore for GraphStore {
     /// # Arguments
     /// - `id`: The identifier of the resource to delete.
     async fn delete(&self, id: &ResourceIdent) -> Result<()> {
-        let (label, ident) = id.ident();
-        match ident {
+        match id.as_ref() {
             ResourceRef::Uuid(uuid) => self.delete_object(uuid).await?,
             ResourceRef::Name(name) => {
-                let obj = self.get_object_by_name(label, name).await?;
+                let obj = self.get_object_by_name(id.as_ref(), name).await?;
                 self.delete_object(&obj.id).await?;
             }
             ResourceRef::Undefined => {
@@ -485,26 +467,18 @@ impl ResourceStore for GraphStore {
         label: &AssociationLabel,
         properties: Option<PropertyMap>,
     ) -> Result<()> {
-        let (from_label, from_ident) = from.ident();
-        let (to_label, to_ident) = to.ident();
-        let from_id = match from_ident {
+        let from_id = match from.as_ref() {
             ResourceRef::Uuid(uuid) => *uuid,
-            ResourceRef::Name(name) => {
-                let object = self.get_object_by_name(from_label, name).await?;
-                object.id
-            }
+            ResourceRef::Name(name) => self.get_object_by_name(from.as_ref(), name).await?.id,
             ResourceRef::Undefined => {
                 return Err(Error::generic(
                     "Cannot add association to undefined resource",
                 ))
             }
         };
-        let to_id = match to_ident {
+        let to_id = match to.as_ref() {
             ResourceRef::Uuid(uuid) => *uuid,
-            ResourceRef::Name(name) => {
-                let object = self.get_object_by_name(to_label, name).await?;
-                object.id
-            }
+            ResourceRef::Name(name) => self.get_object_by_name(to.as_ref(), name).await?.id,
             ResourceRef::Undefined => {
                 return Err(Error::generic(
                     "Cannot add association to undefined resource",

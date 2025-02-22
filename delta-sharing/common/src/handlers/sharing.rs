@@ -6,22 +6,23 @@ use crate::api::{
 };
 use crate::models::sharing::v1::*;
 use crate::policy::{process_resources, Permission};
-use crate::{AssociationLabel, Resource, ResourceIdent, ResourceRef, Result, SecuredAction};
+use crate::{
+    AssociationLabel, ObjectLabel, Policy, Resource, ResourceIdent, ResourceRef, ResourceStore,
+    Result, SecuredAction,
+};
 
 #[async_trait::async_trait]
-impl SharingDiscoveryHandler for ServerHandler {
+impl<T: ResourceStore + Policy> SharingDiscoveryHandler for T {
     async fn list_shares(
         &self,
         request: ListSharesRequest,
         context: RequestContext,
     ) -> Result<ListSharesResponse> {
-        self.as_ref()
-            .check_required(&request, context.as_ref())
-            .await?;
+        self.check_required(&request, context.as_ref()).await?;
         let (mut resources, next_page_token) = self
-            .store
             .list(
-                &ResourceIdent::share(ResourceRef::Undefined),
+                &ObjectLabel::ShareInfo,
+                None,
                 request.max_results.map(|v| v as usize),
                 request.page_token,
             )
@@ -34,10 +35,8 @@ impl SharingDiscoveryHandler for ServerHandler {
     }
 
     async fn get_share(&self, request: GetShareRequest, context: RequestContext) -> Result<Share> {
-        self.as_ref()
-            .check_required(&request, context.recipient())
-            .await?;
-        self.store.get(&request.resource()).await?.0.try_into()
+        self.check_required(&request, context.recipient()).await?;
+        self.get(&request.resource()).await?.0.try_into()
     }
 
     async fn list_sharing_schemas(
@@ -45,11 +44,8 @@ impl SharingDiscoveryHandler for ServerHandler {
         request: ListSharingSchemasRequest,
         context: RequestContext,
     ) -> Result<ListSharingSchemasResponse> {
-        self.as_ref()
-            .check_required(&request, context.recipient())
-            .await?;
+        self.check_required(&request, context.recipient()).await?;
         let (idents, next_page_token) = self
-            .store
             .list_associations(
                 &request.resource(),
                 &AssociationLabel::ParentOf,
@@ -59,7 +55,7 @@ impl SharingDiscoveryHandler for ServerHandler {
             )
             .await?;
         let (mut resources, _): (Vec<Resource>, Vec<ResourceRef>) =
-            self.store.get_many(&idents).await?.into_iter().unzip();
+            self.get_many(&idents).await?.into_iter().unzip();
         process_resources(self, context.as_ref(), &Permission::Read, &mut resources).await?;
         Ok(ListSharingSchemasResponse {
             items: resources.into_iter().map(|r| r.try_into()).try_collect()?,
@@ -87,22 +83,20 @@ impl SharingDiscoveryHandler for ServerHandler {
 }
 
 #[async_trait::async_trait]
-impl SharingExtensionHandler for ServerHandler {
+impl<T: ResourceStore + Policy> SharingExtensionHandler for T {
     async fn create_share(
         &self,
         request: CreateShareRequest,
         context: RequestContext,
     ) -> Result<ShareInfo> {
-        self.as_ref()
-            .check_required(&request, context.recipient())
-            .await?;
+        self.check_required(&request, context.recipient()).await?;
         let resource = ShareInfo {
             name: request.name,
             description: request.description,
             properties: request.properties,
             ..Default::default()
         };
-        self.store.create(resource.into()).await?.0.try_into()
+        self.create(resource.into()).await?.0.try_into()
     }
 
     async fn delete_share(
@@ -110,10 +104,8 @@ impl SharingExtensionHandler for ServerHandler {
         request: DeleteShareRequest,
         context: RequestContext,
     ) -> Result<()> {
-        self.as_ref()
-            .check_required(&request, context.recipient())
-            .await?;
-        self.store.delete(&request.resource()).await
+        self.check_required(&request, context.recipient()).await?;
+        self.delete(&request.resource()).await
     }
 
     async fn create_sharing_schema(
@@ -121,9 +113,7 @@ impl SharingExtensionHandler for ServerHandler {
         request: CreateSharingSchemaRequest,
         context: RequestContext,
     ) -> Result<SharingSchemaInfo> {
-        self.as_ref()
-            .check_required(&request, context.recipient())
-            .await?;
+        self.check_required(&request, context.recipient()).await?;
         todo!()
     }
 
@@ -132,10 +122,8 @@ impl SharingExtensionHandler for ServerHandler {
         request: DeleteSharingSchemaRequest,
         context: RequestContext,
     ) -> Result<()> {
-        self.as_ref()
-            .check_required(&request, context.recipient())
-            .await?;
-        self.store.delete(&request.resource()).await
+        self.check_required(&request, context.recipient()).await?;
+        self.delete(&request.resource()).await
     }
 }
 
@@ -146,9 +134,7 @@ impl SharingQueryHandler for ServerHandler {
         request: GetTableVersionRequest,
         context: RequestContext,
     ) -> Result<GetTableVersionResponse> {
-        self.as_ref()
-            .check_required(&request, context.recipient())
-            .await?;
+        self.check_required(&request, context.recipient()).await?;
         self.query.get_table_version(request).await
     }
 
@@ -157,9 +143,7 @@ impl SharingQueryHandler for ServerHandler {
         request: GetTableMetadataRequest,
         context: RequestContext,
     ) -> Result<QueryResponse> {
-        self.as_ref()
-            .check_required(&request, context.recipient())
-            .await?;
+        self.check_required(&request, context.recipient()).await?;
         self.query.get_table_metadata(request).await
     }
 }

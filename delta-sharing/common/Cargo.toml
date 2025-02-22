@@ -33,7 +33,7 @@ paste = "1.0"
 
 # in-memory handler dependencies (in alphabetical order)
 dashmap = { version = "6", optional = true }
-uuid = { version = "1.8", features = ["v5"] }
+uuid = { version = "1.8" }
 
 # axum handler dependencies (in alphabetical order)
 axum = { version = "0.8", optional = true }
@@ -54,7 +54,7 @@ uuid = { version = "1.8", features = ["v4"] }
 
 [features]
 default = ["memory", "axum", "grpc"]
-memory = ["dashmap", "uuid/v5"]
+memory = ["dashmap", "uuid/v7"]
 axum = ["dep:axum", "http", "tower"]
 
 # The grpc features provides implementations to support

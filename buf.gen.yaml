@@ -20,7 +20,7 @@ plugins:
       - type_attribute=.delta_sharing.internal.Resource.resource=#[derive(::strum::EnumDiscriminants)]
       - type_attribute=.delta_sharing.internal.Resource.resource=#[strum_discriminants(name(ObjectLabel))]
       - type_attribute=.delta_sharing.internal.Resource.resource=#[strum_discriminants(derive(::strum::AsRefStr\, ::strum::Display\, ::strum::EnumIter\, ::strum::EnumString)\, strum(serialize_all = "snake_case"))]
-      - type_attribute=.delta_sharing.internal.Resource.resource=#[strum_discriminants(derive(::serde::Serialize\, ::serde::Deserialize))]
+      - type_attribute=.delta_sharing.internal.Resource.resource=#[strum_discriminants(derive(::serde::Serialize\, ::serde::Deserialize\, Hash))]
       - type_attribute=.delta_sharing.internal.Resource.resource=#[strum_discriminants(serde(rename_all = "snake_case"))]
       - type_attribute=.delta_sharing.internal.Resource.resource=#[strum_discriminants(cfg_attr(feature = "sqlx"\, derive(::sqlx::Type)))]
       - type_attribute=.delta_sharing.internal.Resource.resource=#[strum_discriminants(cfg_attr(feature = "sqlx"\, sqlx(type_name = "object_label"\, rename_all = "snake_case")))]

@@ -1,5 +1,6 @@
-use delta_sharing_common::models::internal::resource::ObjectLabel;
-use delta_sharing_common::{AssociationLabel, ResourceIdent, ResourceName, ResourceRef};
+use delta_sharing_common::{
+    AssociationLabel, ObjectLabel, ResourceIdent, ResourceName, ResourceRef,
+};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

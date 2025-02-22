@@ -3,8 +3,7 @@ use std::sync::Arc;
 use crate::policy::Policy;
 use crate::resources::ResourceStore;
 use crate::{
-    Decision, Permission, Recipient, ResourceIdent, ResourceRef, Result, TableLocationResover,
-    TableQueryHandler,
+    HasPolicy, ProvidesResourceStore, ResourceRef, Result, TableLocationResover, TableQueryHandler,
 };
 
 mod catalog;
@@ -32,32 +31,15 @@ impl ServerHandler {
     }
 }
 
-impl AsRef<dyn Policy> for ServerHandler {
-    fn as_ref(&self) -> &dyn Policy {
-        self
+impl HasPolicy for ServerHandler {
+    fn policy(&self) -> &Arc<dyn Policy> {
+        &self.policy
     }
 }
 
-#[async_trait::async_trait]
-impl Policy for ServerHandler {
-    async fn authorize(
-        &self,
-        resource: &ResourceIdent,
-        permission: &Permission,
-        recipient: &Recipient,
-    ) -> Result<Decision> {
-        self.policy.authorize(resource, permission, recipient).await
-    }
-
-    async fn authorize_many(
-        &self,
-        resources: &[ResourceIdent],
-        permission: &Permission,
-        recipient: &Recipient,
-    ) -> Result<Vec<Decision>> {
-        self.policy
-            .authorize_many(resources, permission, recipient)
-            .await
+impl ProvidesResourceStore for ServerHandler {
+    fn store(&self) -> &dyn ResourceStore {
+        self.store.as_ref()
     }
 }
 
