@@ -1,7 +1,5 @@
 use paste::paste;
 use serde::Serialize;
-use sharing::v1::{ShareInfo, SharingSchemaInfo, SharingTable};
-use tables::v1::TableInfo;
 use uuid::Uuid;
 
 use crate::{
@@ -13,13 +11,14 @@ pub use credentials::v1::{Credential, StorageLocation};
 pub use internal::resource::{ObjectLabel, Resource};
 pub use properties::*;
 pub use requests::*;
+pub use tables::v1::TableInfo;
 
 mod properties;
 pub(crate) mod requests;
 
 pub use catalog::v1::{CatalogInfo, SchemaInfo};
 pub use profiles::v1::Profile;
-pub use sharing::v1::{Share, SharingSchema};
+pub use sharing::v1::{Share, ShareInfo, SharingSchema, SharingSchemaInfo, SharingTable};
 
 #[allow(clippy::empty_docs, clippy::large_enum_variant)]
 pub mod sharing {

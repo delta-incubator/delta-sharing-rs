@@ -905,6 +905,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "delta-sharing-common",
+ "delta-sharing-derive",
  "itertools 0.14.0",
  "paste",
  "serde",

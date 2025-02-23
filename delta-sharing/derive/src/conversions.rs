@@ -1,0 +1,136 @@
+use proc_macro2::Ident;
+use quote::quote;
+use syn::{
+    parse::{Parse, ParseStream},
+    punctuated::Punctuated,
+    Expr, LitBool, Token, Type,
+};
+
+pub struct ObjectDefs {
+    pub defs: Vec<ObjectDef>,
+}
+
+impl Parse for ObjectDefs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let defs = Punctuated::<ObjectDef, Token![;]>::parse_terminated(input)?;
+        Ok(Self {
+            defs: defs.into_iter().collect(),
+        })
+    }
+}
+
+/// Parsed object definition
+///
+/// This struct represents the parsed object definition
+/// the user provided definition to be parsed:
+/// ```ignore
+/// TypeName, Label, [Path, Names], optional
+/// ```
+pub struct ObjectDef {
+    pub ty: Type,
+    pub label: Expr,
+    pub name: Ident,
+    pub path_names: Vec<Ident>,
+    pub is_optional: bool,
+}
+
+impl Parse for ObjectDef {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ty = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let label = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let name = input.parse()?;
+        input.parse::<Token![,]>()?;
+
+        let content;
+        syn::bracketed!(content in input);
+        let field_defs = Punctuated::<Ident, Token![,]>::parse_terminated(&content)?;
+        let path_names: Vec<_> = field_defs.into_iter().collect();
+
+        let is_optional = if input.peek(Token![,]) {
+            input.parse::<Token![,]>()?;
+            input.parse::<LitBool>()?.value
+        } else {
+            false
+        };
+
+        Ok(Self {
+            name,
+            ty,
+            label,
+            path_names,
+            is_optional,
+        })
+    }
+}
+
+pub(crate) fn from_object(obj: &ObjectDef) -> proc_macro2::TokenStream {
+    let target_ty = &obj.ty;
+    let id_field_name = &obj.name;
+
+    let id_assignment = if obj.is_optional {
+        quote! {
+            res.#id_field_name = Some(object.id.hyphenated().to_string());
+        }
+    } else {
+        quote! {
+            res.#id_field_name = object.id.hyphenated().to_string();
+        }
+    };
+
+    quote! {
+        impl TryFrom<Object> for #target_ty {
+            type Error = Error;
+
+            fn try_from(object: Object) -> Result<Self, Self::Error> {
+                let props = object
+                    .properties
+                    .ok_or_else(|| Error::generic("expected properties"))?;
+                let mut res: #target_ty = ::serde_json::from_value(props)?;
+                #id_assignment
+                Ok(res)
+            }
+        }
+    }
+}
+
+pub(crate) fn to_object(obj: &ObjectDef) -> proc_macro2::TokenStream {
+    let target_ty = &obj.ty;
+    let id_field_name = &obj.name;
+    let path_names = &obj.path_names;
+    let object_label = &obj.label;
+
+    let id_field = if obj.is_optional {
+        quote! {
+            let id = obj
+                .#id_field_name
+                .as_ref()
+                .map(|id| ::uuid::Uuid::parse_str(id))
+                .transpose()?
+                .unwrap_or_else(|| ::uuid::Uuid::nil());
+        }
+    } else {
+        quote! {
+            let id = ::uuid::Uuid::parse_str(&obj.#id_field_name).unwrap_or_else(|_| ::uuid::Uuid::nil());
+        }
+    };
+
+    quote! {
+        impl TryFrom<#target_ty> for Object {
+            type Error = Error;
+
+            fn try_from(obj: #target_ty) -> Result<Self, Self::Error> {
+                #id_field
+                Ok(Object {
+                    id,
+                    name: ResourceName::new([#(&obj.#path_names),*]),
+                    label: #object_label,
+                    properties: Some(::serde_json::to_value(obj)?),
+                    updated_at: None,
+                    created_at: chrono::Utc::now(),
+                })
+            }
+        }
+    }
+}

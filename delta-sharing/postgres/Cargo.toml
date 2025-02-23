@@ -8,6 +8,7 @@ edition = "2021"
 delta-sharing-common = { path = "../common", default-features = false, features = [
     "sqlx",
 ] }
+delta-sharing-derive = { path = "../derive" }
 
 # workspace dependencies (in alphabetical order)
 async-trait = { workspace = true }
