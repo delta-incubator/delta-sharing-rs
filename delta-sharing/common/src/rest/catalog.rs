@@ -1,10 +1,6 @@
-use axum::routing::{delete, get, patch, post};
-use axum::{RequestExt, RequestPartsExt, Router};
-use delta_sharing_derive::rest_handlers;
+use axum::routing::{delete, get, patch, post, Router};
 
-use crate::api::{CatalogHandler, RequestContext};
-use crate::models::catalog::v1::*;
-use crate::{Error, Recipient, Result};
+use crate::api::catalog::*;
 
 /// Create a new [Router] for the Delta Sharing REST API.
 pub fn get_router<T: CatalogHandler + Clone>(handler: T) -> Router {
@@ -21,30 +17,3 @@ pub fn get_router<T: CatalogHandler + Clone>(handler: T) -> Router {
         .route("/schemas/{full_name}", patch(update_schema::<T>))
         .with_state(handler)
 }
-
-rest_handlers!(
-    CatalogHandler, [
-        CreateCatalogRequest, CatalogInfo;
-        ListCatalogsRequest, ListCatalogsResponse;
-        GetCatalogRequest, CatalogInfo with [
-            name: path as String,
-        ];
-        UpdateCatalogRequest, CatalogInfo;
-        DeleteCatalogRequest with [
-            name: path as String,
-            force: query as Option<bool>,
-        ];
-        CreateSchemaRequest, SchemaInfo;
-        ListSchemasRequest, ListSchemasResponse with [
-            catalog_name: path as String
-        ];
-        GetSchemaRequest, SchemaInfo with [
-            full_name: path as String,
-        ];
-        UpdateSchemaRequest, SchemaInfo;
-        DeleteSchemaRequest with [
-            full_name: path as String,
-            force: query as Option<bool>,
-        ];
-    ]
-);

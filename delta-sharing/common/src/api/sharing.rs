@@ -1,7 +1,27 @@
-use crate::models::sharing::v1::*;
-use crate::Result;
+use delta_sharing_derive::rest_handlers;
 
 use super::RequestContext;
+use crate::models::sharing::v1::*;
+use crate::{Error, Recipient, Result};
+
+rest_handlers!(
+    SharingDiscoveryHandler, [
+        ListSharesRequest, ListSharesResponse;
+        GetShareRequest, Share with [
+            name: path as String,
+        ];
+        ListSharingSchemasRequest, ListSharingSchemasResponse with [
+            share: path as String,
+        ];
+        ListShareTablesRequest, ListShareTablesResponse with [
+            name: path as String,
+        ];
+        ListSchemaTablesRequest, ListSchemaTablesResponse with [
+            share: path as String,
+            name: path as String,
+        ];
+    ]
+);
 
 #[async_trait::async_trait]
 pub trait SharingDiscoveryHandler: Send + Sync + 'static {
@@ -36,6 +56,23 @@ pub trait SharingDiscoveryHandler: Send + Sync + 'static {
         context: RequestContext,
     ) -> Result<ListShareTablesResponse>;
 }
+
+rest_handlers!(
+    SharingExtensionHandler, [
+        CreateShareRequest, ShareInfo;
+        DeleteShareRequest with [
+            name: path as String,
+            force: query as Option<bool>
+        ];
+        CreateSharingSchemaRequest, SharingSchemaInfo with [
+            share: path as String,
+        ];
+        DeleteSharingSchemaRequest with [
+            share: path as String,
+            name: path as String,
+        ];
+    ]
+);
 
 #[async_trait::async_trait]
 pub trait SharingExtensionHandler: Send + Sync + 'static {

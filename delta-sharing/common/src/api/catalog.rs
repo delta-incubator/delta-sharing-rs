@@ -1,7 +1,35 @@
-use crate::models::catalog::v1::*;
-use crate::Result;
+use delta_sharing_derive::rest_handlers;
 
-use super::RequestContext;
+pub use super::RequestContext;
+use crate::models::catalog::v1::*;
+use crate::{Error, Recipient, Result};
+
+rest_handlers!(
+    CatalogHandler, [
+        CreateCatalogRequest, CatalogInfo;
+        ListCatalogsRequest, ListCatalogsResponse;
+        GetCatalogRequest, CatalogInfo with [
+            name: path as String,
+        ];
+        UpdateCatalogRequest, CatalogInfo;
+        DeleteCatalogRequest with [
+            name: path as String,
+            force: query as Option<bool>,
+        ];
+        CreateSchemaRequest, SchemaInfo;
+        ListSchemasRequest, ListSchemasResponse with [
+            catalog_name: path as String
+        ];
+        GetSchemaRequest, SchemaInfo with [
+            full_name: path as String,
+        ];
+        UpdateSchemaRequest, SchemaInfo;
+        DeleteSchemaRequest with [
+            full_name: path as String,
+            force: query as Option<bool>,
+        ];
+    ]
+);
 
 #[async_trait::async_trait]
 pub trait CatalogHandler: Send + Sync + 'static {

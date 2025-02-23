@@ -1,10 +1,7 @@
-use axum::routing::{delete, get, post};
-use axum::{RequestExt, RequestPartsExt, Router};
-use delta_sharing_derive::rest_handlers;
+use axum::routing::{delete, get, post, Router};
 
-use crate::api::{CredentialsHandler, RequestContext};
-use crate::models::credentials::v1::*;
-use crate::{Error, Recipient, Result};
+use crate::api::credentials::*;
+use crate::api::CredentialsHandler;
 
 pub fn get_router<T: CredentialsHandler + Clone>(handler: T) -> Router {
     Router::new()
@@ -22,24 +19,3 @@ pub fn get_router<T: CredentialsHandler + Clone>(handler: T) -> Router {
         )
         .with_state(handler)
 }
-
-rest_handlers!(
-    CredentialsHandler,
-    [
-        CreateCredentialRequest, Credential;
-        GetCredentialRequest, Credential with [
-            name: path as String,
-        ];
-        DeleteCredentialRequest with [
-            name: path as String,
-        ];
-        CreateStorageLocationRequest, StorageLocation;
-        ListStorageLocationsRequest, ListStorageLocationsResponse;
-        GetStorageLocationRequest, StorageLocation with [
-            name: path as String,
-        ];
-        DeleteStorageLocationRequest with [
-            name: path as String,
-        ];
-    ]
-);

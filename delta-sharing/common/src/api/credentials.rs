@@ -1,7 +1,29 @@
-use crate::models::credentials::v1::*;
-use crate::Result;
+use delta_sharing_derive::rest_handlers;
 
 use super::RequestContext;
+use crate::models::credentials::v1::*;
+use crate::{Error, Recipient, Result};
+
+rest_handlers!(
+    CredentialsHandler,
+    [
+        CreateCredentialRequest, Credential;
+        GetCredentialRequest, Credential with [
+            name: path as String,
+        ];
+        DeleteCredentialRequest with [
+            name: path as String,
+        ];
+        CreateStorageLocationRequest, StorageLocation;
+        ListStorageLocationsRequest, ListStorageLocationsResponse;
+        GetStorageLocationRequest, StorageLocation with [
+            name: path as String,
+        ];
+        DeleteStorageLocationRequest with [
+            name: path as String,
+        ];
+    ]
+);
 
 #[async_trait::async_trait]
 pub trait CredentialsHandler: Send + Sync + 'static {

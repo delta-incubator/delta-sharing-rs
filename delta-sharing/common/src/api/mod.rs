@@ -1,9 +1,9 @@
-mod catalog;
-mod credentials;
-mod sharing;
+pub(crate) mod catalog;
+pub(crate) mod credentials;
+pub(crate) mod sharing;
 
-pub use catalog::*;
-pub use credentials::*;
+pub use catalog::CatalogHandler;
+pub use credentials::CredentialsHandler;
 pub use sharing::*;
 
 use crate::Recipient;

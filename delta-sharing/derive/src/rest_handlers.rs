@@ -16,7 +16,7 @@ pub fn to_handler(handler: &HandlerDef, handler_type: &Type) -> proc_macro2::Tok
 
     match &handler.response_type {
         Some(response_type) => quote! {
-            async fn #fn_name<T: #handler_type>(
+            pub(crate) async fn #fn_name<T: #handler_type>(
                 ::axum::extract::State(handler): ::axum::extract::State<T>,
                 ::axum::extract::Extension(recipient): ::axum::extract::Extension<Recipient>,
                 request: #request_type,
@@ -26,7 +26,7 @@ pub fn to_handler(handler: &HandlerDef, handler_type: &Type) -> proc_macro2::Tok
             }
         },
         None => quote! {
-            async fn #fn_name<T: #handler_type>(
+            pub(crate) async fn #fn_name<T: #handler_type>(
                 ::axum::extract::State(handler): ::axum::extract::State<T>,
                 ::axum::extract::Extension(recipient): ::axum::extract::Extension<Recipient>,
                 request: #request_type,
@@ -85,7 +85,7 @@ fn get_type_name(ty: &Type) -> Option<String> {
 }
 
 /// Generate handler function name from request type
-fn generate_handler_name(request_type: &Type) -> String {
+pub(crate) fn generate_handler_name(request_type: &Type) -> String {
     let request_name =
         get_type_name(request_type).unwrap_or_else(|| panic!("Invalid request type"));
 
