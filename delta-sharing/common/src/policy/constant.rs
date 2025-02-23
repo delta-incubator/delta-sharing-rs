@@ -5,6 +5,7 @@ use crate::{ResourceIdent, Result};
 ///
 /// This policy is mainly useful for testing and development, or servers that do not require
 /// authorization checks - e.g. when deployed in a trusted environment.
+#[derive(Debug, Clone)]
 pub struct ConstantPolicy {
     decision: Decision,
 }

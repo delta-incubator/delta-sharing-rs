@@ -109,6 +109,21 @@ pub struct StorageLocation {
     pub description: ::core::option::Option<::prost::alloc::string::String>,
     #[prost(message, optional, tag="7")]
     pub properties: ::core::option::Option<::pbjson_types::Struct>,
+    /// Username of current owner of storage location.
+    #[prost(string, optional, tag="8")]
+    pub owner: ::core::option::Option<::prost::alloc::string::String>,
+    /// Time at which this storage location was created, in epoch milliseconds.
+    #[prost(int64, optional, tag="9")]
+    pub create_at: ::core::option::Option<i64>,
+    /// Username of storage location creator.
+    #[prost(string, optional, tag="10")]
+    pub created_by: ::core::option::Option<::prost::alloc::string::String>,
+    /// Time at which this storage location was last updated, in epoch milliseconds.
+    #[prost(int64, optional, tag="11")]
+    pub update_at: ::core::option::Option<i64>,
+    /// Username of user who last modified storage location.
+    #[prost(string, optional, tag="12")]
+    pub updated_by: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// The type of storage service to use.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -172,8 +187,18 @@ pub struct GetCredentialRequest {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateStorageLocationRequest {
     /// Storage location to create.
-    #[prost(message, optional, tag="1")]
-    pub location: ::core::option::Option<StorageLocation>,
+    #[prost(string, tag="2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub url: ::prost::alloc::string::String,
+    #[prost(enumeration="StorageType", tag="4")]
+    pub r#type: i32,
+    #[prost(string, tag="5")]
+    pub credential: ::prost::alloc::string::String,
+    #[prost(string, optional, tag="6")]
+    pub description: ::core::option::Option<::prost::alloc::string::String>,
+    #[prost(message, optional, tag="7")]
+    pub properties: ::core::option::Option<::pbjson_types::Struct>,
 }
 /// Delete a storage location
 #[allow(clippy::derive_partial_eq_without_eq)]

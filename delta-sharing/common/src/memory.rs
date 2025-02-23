@@ -1,7 +1,8 @@
 use dashmap::DashMap;
+use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::{AsResource, AssociationLabel, Error, PropertyMap, Result, TableLocationResover};
+use crate::{AssociationLabel, Error, PropertyMap, ResourceExt, Result, TableLocationResover};
 use crate::{ObjectLabel, Resource, ResourceIdent, ResourceName, ResourceRef, ResourceStore};
 
 const MAX_PAGE_SIZE: usize = 10000;
@@ -9,18 +10,25 @@ const MAX_PAGE_SIZE: usize = 10000;
 /// An in-memory implementation of a resource store.
 ///
 /// This store is not intended for production use, but is useful for testing and development.
+#[derive(Debug, Clone)]
 pub struct InMemoryResourceStore {
-    resources: DashMap<Uuid, Resource>,
-    id_map: DashMap<ObjectLabel, DashMap<ResourceName, Uuid>>,
-    associations: DashMap<AssociationLabel, DashMap<Uuid, (Uuid, Option<PropertyMap>)>>,
+    resources: Arc<DashMap<Uuid, Resource>>,
+    id_map: Arc<DashMap<ObjectLabel, DashMap<ResourceName, Uuid>>>,
+    associations: Arc<DashMap<AssociationLabel, DashMap<Uuid, (Uuid, Option<PropertyMap>)>>>,
+}
+
+impl Default for InMemoryResourceStore {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl InMemoryResourceStore {
     pub fn new() -> Self {
         Self {
-            resources: DashMap::new(),
-            id_map: DashMap::new(),
-            associations: DashMap::new(),
+            resources: DashMap::new().into(),
+            id_map: DashMap::new().into(),
+            associations: DashMap::new().into(),
         }
     }
 
@@ -40,10 +48,7 @@ impl InMemoryResourceStore {
         if self.get_uuid(label, name).is_some() {
             return Err(Error::AlreadyExists);
         }
-        let map = self
-            .id_map
-            .entry(label.clone())
-            .or_insert_with(DashMap::new);
+        let map = self.id_map.entry(*label).or_default();
         let uuid = Uuid::now_v7();
         map.insert(name.clone(), uuid);
         Ok(uuid)
@@ -77,10 +82,13 @@ impl ResourceStore for InMemoryResourceStore {
     }
 
     async fn create(&self, resource: Resource) -> Result<(Resource, ResourceRef)> {
-        if self.get_uuid(resource.label(), &resource.name()).is_some() {
+        if self
+            .get_uuid(resource.resource_label(), &resource.resource_name())
+            .is_some()
+        {
             return Err(Error::AlreadyExists);
         }
-        let uuid = self.new_uuid(resource.label(), &resource.name())?;
+        let uuid = self.new_uuid(resource.resource_label(), &resource.resource_name())?;
         self.resources.insert(uuid, resource.clone());
         Ok((resource, ResourceRef::Uuid(uuid)))
     }
@@ -92,10 +100,47 @@ impl ResourceStore for InMemoryResourceStore {
             ResourceRef::Undefined => return Err(Error::NotFound),
         };
         match self.resources.remove(&uuid) {
-            Some((_, resource)) => self.remove_uuid(id.label(), &resource.name()),
+            Some((_, resource)) => self.remove_uuid(id.label(), &resource.resource_name()),
             None => None,
         };
         Ok(())
+    }
+
+    async fn update(
+        &self,
+        id: &ResourceIdent,
+        resource: Resource,
+    ) -> Result<(Resource, ResourceRef)> {
+        let uuid = match id.as_ref() {
+            ResourceRef::Uuid(uuid) => *uuid,
+            ResourceRef::Name(name) => self.get_uuid(id.label(), name).ok_or(Error::NotFound)?,
+            ResourceRef::Undefined => return Err(Error::NotFound),
+        };
+        // Need to clone to avoid locking the map while holding a reference to the value
+        let existing = self
+            .resources
+            .get(&uuid)
+            .ok_or(Error::NotFound)?
+            .value()
+            .clone();
+        if existing.resource_label() != resource.resource_label() {
+            self.id_map
+                .get(existing.resource_label())
+                .and_then(|map| map.value().remove(&existing.resource_name()));
+            self.id_map
+                .entry(*resource.resource_label())
+                .or_default()
+                .insert(resource.resource_name().clone(), uuid);
+        } else if existing.resource_name() != resource.resource_name() {
+            self.id_map
+                .get(existing.resource_label())
+                .and_then(|map| map.value().remove(&existing.resource_name()));
+            self.id_map
+                .get(existing.resource_label())
+                .and_then(|map| map.value().insert(resource.resource_name(), uuid));
+        }
+        self.resources.insert(uuid, resource.clone());
+        Ok((resource, ResourceRef::Uuid(uuid)))
     }
 
     async fn list(
@@ -154,16 +199,10 @@ impl ResourceStore for InMemoryResourceStore {
             ResourceRef::Name(name) => self.get_uuid(to.label(), name).ok_or(Error::NotFound)?,
             ResourceRef::Undefined => return Err(Error::NotFound),
         };
-        let map = self
-            .associations
-            .entry(label.clone())
-            .or_insert_with(DashMap::new);
+        let map = self.associations.entry(label.clone()).or_default();
         map.insert(from_uuid, (to_uuid, properties.clone()));
         if let Some(inverse) = label.inverse() {
-            let inverse_map = self
-                .associations
-                .entry(inverse)
-                .or_insert_with(DashMap::new);
+            let inverse_map = self.associations.entry(inverse).or_default();
             inverse_map.insert(to_uuid, (from_uuid, properties.clone()));
         }
         Ok(())
@@ -247,7 +286,7 @@ impl ResourceStore for InMemoryResourceStore {
         for uuid in association_ids.iter().rev().take(max_page_size) {
             let resource = self.resources.get(uuid).ok_or(Error::NotFound)?;
             last_id = uuid;
-            resources.push(resource.as_resource());
+            resources.push(resource.resource_ident());
         }
         let next_page_token = (resources.len() == max_page_size).then(|| last_id.to_string());
         Ok((resources, next_page_token))
@@ -268,7 +307,7 @@ mod tests {
         }
         .into();
         let (created, reference) = store.create(resource.clone()).await.unwrap();
-        assert_eq!(created.name(), resource.name());
+        assert_eq!(created.resource_name(), resource.resource_name());
 
         let ident = ObjectLabel::CatalogInfo.to_ident(reference);
         let (retrieved, _) = store.get(&ident).await.unwrap();

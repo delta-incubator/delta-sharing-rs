@@ -121,21 +121,31 @@ async fn get_db_handler() -> Result<ServerHandler> {
     let db_url = std::env::var("DATABASE_URL")
         .map_err(|_| Error::Generic("missing DATABASE_URL".to_string()))?;
     let store = Arc::new(GraphStore::connect(&db_url).await.unwrap());
+    let policy = Arc::new(ConstantPolicy::default());
     store.migrate().await.unwrap();
     let handler = ServerHandler {
-        query: KernelQueryHandler::new_multi_thread(store.clone(), Default::default()),
+        query: KernelQueryHandler::new_multi_thread(
+            store.clone(),
+            Default::default(),
+            policy.clone(),
+        ),
         store,
-        policy: Arc::new(ConstantPolicy::default()),
+        policy,
     };
     Ok(handler)
 }
 
 fn get_memory_handler() -> ServerHandler {
     let store = Arc::new(InMemoryResourceStore::new());
+    let policy = Arc::new(ConstantPolicy::default());
     ServerHandler {
-        query: KernelQueryHandler::new_multi_thread(store.clone(), Default::default()),
+        query: KernelQueryHandler::new_multi_thread(
+            store.clone(),
+            Default::default(),
+            policy.clone(),
+        ),
         store,
-        policy: Arc::new(ConstantPolicy::default()),
+        policy,
     }
 }
 

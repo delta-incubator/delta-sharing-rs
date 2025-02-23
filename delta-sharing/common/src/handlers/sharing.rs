@@ -24,10 +24,16 @@ impl<T: ResourceStore + Policy> SharingDiscoveryHandler for T {
                 &ObjectLabel::ShareInfo,
                 None,
                 request.max_results.map(|v| v as usize),
-                request.page_token,
+                request.page_token.clone(),
             )
             .await?;
         process_resources(self, context.as_ref(), &Permission::Read, &mut resources).await?;
+
+        // if all resources gor filtered, but there are more pages, try again
+        if resources.is_empty() && next_page_token.is_some() {
+            return self.list_shares(request, context).await;
+        }
+
         Ok(ListSharesResponse {
             items: resources.into_iter().map(|r| r.try_into()).try_collect()?,
             next_page_token,
@@ -135,7 +141,7 @@ impl SharingQueryHandler for ServerHandler {
         context: RequestContext,
     ) -> Result<GetTableVersionResponse> {
         self.check_required(&request, context.recipient()).await?;
-        self.query.get_table_version(request).await
+        self.query.get_table_version(request, context).await
     }
 
     async fn get_table_metadata(
@@ -144,6 +150,6 @@ impl SharingQueryHandler for ServerHandler {
         context: RequestContext,
     ) -> Result<QueryResponse> {
         self.check_required(&request, context.recipient()).await?;
-        self.query.get_table_metadata(request).await
+        self.query.get_table_metadata(request, context).await
     }
 }

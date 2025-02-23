@@ -599,12 +599,44 @@ impl serde::Serialize for CreateStorageLocationRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if self.location.is_some() {
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if !self.url.is_empty() {
+            len += 1;
+        }
+        if self.r#type != 0 {
+            len += 1;
+        }
+        if !self.credential.is_empty() {
+            len += 1;
+        }
+        if self.description.is_some() {
+            len += 1;
+        }
+        if self.properties.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.CreateStorageLocationRequest", len)?;
-        if let Some(v) = self.location.as_ref() {
-            struct_ser.serialize_field("location", v)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if !self.url.is_empty() {
+            struct_ser.serialize_field("url", &self.url)?;
+        }
+        if self.r#type != 0 {
+            let v = StorageType::try_from(self.r#type)
+                .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.r#type)))?;
+            struct_ser.serialize_field("type", &v)?;
+        }
+        if !self.credential.is_empty() {
+            struct_ser.serialize_field("credential", &self.credential)?;
+        }
+        if let Some(v) = self.description.as_ref() {
+            struct_ser.serialize_field("description", v)?;
+        }
+        if let Some(v) = self.properties.as_ref() {
+            struct_ser.serialize_field("properties", v)?;
         }
         struct_ser.end()
     }
@@ -616,12 +648,22 @@ impl<'de> serde::Deserialize<'de> for CreateStorageLocationRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "location",
+            "name",
+            "url",
+            "type",
+            "credential",
+            "description",
+            "properties",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Location,
+            Name,
+            Url,
+            Type,
+            Credential,
+            Description,
+            Properties,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -643,7 +685,12 @@ impl<'de> serde::Deserialize<'de> for CreateStorageLocationRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "location" => Ok(GeneratedField::Location),
+                            "name" => Ok(GeneratedField::Name),
+                            "url" => Ok(GeneratedField::Url),
+                            "type" => Ok(GeneratedField::Type),
+                            "credential" => Ok(GeneratedField::Credential),
+                            "description" => Ok(GeneratedField::Description),
+                            "properties" => Ok(GeneratedField::Properties),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -663,19 +710,59 @@ impl<'de> serde::Deserialize<'de> for CreateStorageLocationRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut location__ = None;
+                let mut name__ = None;
+                let mut url__ = None;
+                let mut r#type__ = None;
+                let mut credential__ = None;
+                let mut description__ = None;
+                let mut properties__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Location => {
-                            if location__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("location"));
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
                             }
-                            location__ = map_.next_value()?;
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Url => {
+                            if url__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("url"));
+                            }
+                            url__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Type => {
+                            if r#type__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("type"));
+                            }
+                            r#type__ = Some(map_.next_value::<StorageType>()? as i32);
+                        }
+                        GeneratedField::Credential => {
+                            if credential__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("credential"));
+                            }
+                            credential__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Description => {
+                            if description__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("description"));
+                            }
+                            description__ = map_.next_value()?;
+                        }
+                        GeneratedField::Properties => {
+                            if properties__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("properties"));
+                            }
+                            properties__ = map_.next_value()?;
                         }
                     }
                 }
                 Ok(CreateStorageLocationRequest {
-                    location: location__,
+                    name: name__.unwrap_or_default(),
+                    url: url__.unwrap_or_default(),
+                    r#type: r#type__.unwrap_or_default(),
+                    credential: credential__.unwrap_or_default(),
+                    description: description__,
+                    properties: properties__,
                 })
             }
         }
@@ -1524,6 +1611,21 @@ impl serde::Serialize for StorageLocation {
         if self.properties.is_some() {
             len += 1;
         }
+        if self.owner.is_some() {
+            len += 1;
+        }
+        if self.create_at.is_some() {
+            len += 1;
+        }
+        if self.created_by.is_some() {
+            len += 1;
+        }
+        if self.update_at.is_some() {
+            len += 1;
+        }
+        if self.updated_by.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.StorageLocation", len)?;
         if !self.id.is_empty() {
             struct_ser.serialize_field("id", &self.id)?;
@@ -1548,6 +1650,25 @@ impl serde::Serialize for StorageLocation {
         if let Some(v) = self.properties.as_ref() {
             struct_ser.serialize_field("properties", v)?;
         }
+        if let Some(v) = self.owner.as_ref() {
+            struct_ser.serialize_field("owner", v)?;
+        }
+        if let Some(v) = self.create_at.as_ref() {
+            #[allow(clippy::needless_borrow)]
+            #[allow(clippy::needless_borrows_for_generic_args)]
+            struct_ser.serialize_field("createAt", ToString::to_string(&v).as_str())?;
+        }
+        if let Some(v) = self.created_by.as_ref() {
+            struct_ser.serialize_field("createdBy", v)?;
+        }
+        if let Some(v) = self.update_at.as_ref() {
+            #[allow(clippy::needless_borrow)]
+            #[allow(clippy::needless_borrows_for_generic_args)]
+            struct_ser.serialize_field("updateAt", ToString::to_string(&v).as_str())?;
+        }
+        if let Some(v) = self.updated_by.as_ref() {
+            struct_ser.serialize_field("updatedBy", v)?;
+        }
         struct_ser.end()
     }
 }
@@ -1565,6 +1686,15 @@ impl<'de> serde::Deserialize<'de> for StorageLocation {
             "credential",
             "description",
             "properties",
+            "owner",
+            "create_at",
+            "createAt",
+            "created_by",
+            "createdBy",
+            "update_at",
+            "updateAt",
+            "updated_by",
+            "updatedBy",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -1576,6 +1706,11 @@ impl<'de> serde::Deserialize<'de> for StorageLocation {
             Credential,
             Description,
             Properties,
+            Owner,
+            CreateAt,
+            CreatedBy,
+            UpdateAt,
+            UpdatedBy,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -1604,6 +1739,11 @@ impl<'de> serde::Deserialize<'de> for StorageLocation {
                             "credential" => Ok(GeneratedField::Credential),
                             "description" => Ok(GeneratedField::Description),
                             "properties" => Ok(GeneratedField::Properties),
+                            "owner" => Ok(GeneratedField::Owner),
+                            "createAt" | "create_at" => Ok(GeneratedField::CreateAt),
+                            "createdBy" | "created_by" => Ok(GeneratedField::CreatedBy),
+                            "updateAt" | "update_at" => Ok(GeneratedField::UpdateAt),
+                            "updatedBy" | "updated_by" => Ok(GeneratedField::UpdatedBy),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -1630,6 +1770,11 @@ impl<'de> serde::Deserialize<'de> for StorageLocation {
                 let mut credential__ = None;
                 let mut description__ = None;
                 let mut properties__ = None;
+                let mut owner__ = None;
+                let mut create_at__ = None;
+                let mut created_by__ = None;
+                let mut update_at__ = None;
+                let mut updated_by__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Id => {
@@ -1674,6 +1819,40 @@ impl<'de> serde::Deserialize<'de> for StorageLocation {
                             }
                             properties__ = map_.next_value()?;
                         }
+                        GeneratedField::Owner => {
+                            if owner__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("owner"));
+                            }
+                            owner__ = map_.next_value()?;
+                        }
+                        GeneratedField::CreateAt => {
+                            if create_at__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("createAt"));
+                            }
+                            create_at__ = 
+                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
+                            ;
+                        }
+                        GeneratedField::CreatedBy => {
+                            if created_by__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("createdBy"));
+                            }
+                            created_by__ = map_.next_value()?;
+                        }
+                        GeneratedField::UpdateAt => {
+                            if update_at__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("updateAt"));
+                            }
+                            update_at__ = 
+                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
+                            ;
+                        }
+                        GeneratedField::UpdatedBy => {
+                            if updated_by__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("updatedBy"));
+                            }
+                            updated_by__ = map_.next_value()?;
+                        }
                     }
                 }
                 Ok(StorageLocation {
@@ -1684,6 +1863,11 @@ impl<'de> serde::Deserialize<'de> for StorageLocation {
                     credential: credential__.unwrap_or_default(),
                     description: description__,
                     properties: properties__,
+                    owner: owner__,
+                    create_at: create_at__,
+                    created_by: created_by__,
+                    update_at: update_at__,
+                    updated_by: updated_by__,
                 })
             }
         }

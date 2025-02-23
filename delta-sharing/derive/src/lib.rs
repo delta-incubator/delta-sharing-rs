@@ -1,10 +1,12 @@
-use proc_macro2::Ident;
+use proc_macro2::{Ident, Span};
 use quote::{quote, quote_spanned};
 use syn::{bracketed, parse_macro_input, Error, Type};
 
+use conversions::{from_object, resource_impl, to_object, to_resource, ObjectDefs};
 use parsing::HandlerParams;
-use rest_handlers::{to_handler, to_request_impl};
+use rest_handlers::{generate_handler_name, to_action, to_handler, to_request_impl};
 
+mod conversions;
 /// Parser for macro parameters
 mod parsing;
 mod rest_handlers;
@@ -29,10 +31,34 @@ pub fn parse_column_name(input: proc_macro::TokenStream) -> proc_macro::TokenStr
     err.into_compile_error().into()
 }
 
+/// Implements handler functions for REST endpoints.
+///
+/// Will generate implementations for axum's `FromRequest` and `FromRequestParts` traits for the
+/// specified request types as well as the boilerplate handler functions.
+///
+/// The handlers are generic over the provided handler trait but assume a naming convention
+/// for the route specific functions to invoke on a specific route.
+///
+/// # Example
+///
+/// ```ignore
+/// rest_handlers! {
+///     MyHandlerTrait, // The trait that the handlers expect
+///     [
+///         CreateCatalogRequest, CatalogInfo;
+///     ]
+/// }
+/// ```
+///
+/// Names extracted from path parameters must be specified in hierarchical order, e.g.:
+/// share -> schema -> table
+/// catalog -> schema -> table
 #[proc_macro]
 pub fn rest_handlers(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as HandlerParams);
     let handler_type = input.handler_type;
+
+    let actions = input.handlers.iter().map(to_action);
 
     // Generate handler functions
     let handlers = input
@@ -43,9 +69,46 @@ pub fn rest_handlers(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
     // Generate FromRequest/FromRequestParts implementations
     let request_impls = input.handlers.iter().map(to_request_impl);
 
+    let mod_name = generate_handler_name(&handler_type);
+    let mod_ident = Ident::new(&mod_name, Span::call_site());
+
     let expanded = quote! {
-        #(#handlers)*
-        #(#request_impls)*
+        #(#actions)*
+
+        #[cfg(feature = "axum")]
+        pub use #mod_ident::*;
+
+        #[cfg(feature = "axum")]
+        pub(crate) mod #mod_ident {
+            use ::axum::{RequestExt, RequestPartsExt};
+
+            use super::*;
+
+            #(#handlers)*
+            #(#request_impls)*
+        }
+    };
+
+    proc_macro::TokenStream::from(expanded)
+}
+
+#[proc_macro]
+pub fn object_conversions(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as ObjectDefs);
+
+    let to_object_impls = input.defs.iter().map(to_object);
+    let from_object_impls = input.defs.iter().map(from_object);
+
+    // Generate resource impls
+    let resource_impls = input.defs.iter().map(resource_impl);
+
+    let to_resource_impls = input.defs.iter().map(to_resource);
+
+    let expanded = quote! {
+        #(#to_object_impls)*
+        #(#from_object_impls)*
+        #(#resource_impls)*
+        #(#to_resource_impls)*
     };
 
     proc_macro::TokenStream::from(expanded)

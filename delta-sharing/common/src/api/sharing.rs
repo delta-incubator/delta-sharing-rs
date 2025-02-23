@@ -1,7 +1,27 @@
-use crate::models::sharing::v1::*;
-use crate::Result;
+use delta_sharing_derive::rest_handlers;
 
-use super::RequestContext;
+use super::{RequestContext, SecuredAction};
+use crate::models::sharing::v1::*;
+use crate::{Error, Permission, Recipient, ResourceIdent, ResourceName, ResourceRef, Result};
+
+rest_handlers!(
+    SharingDiscoveryHandler, [
+        ListSharesRequest, Share, Read, ListSharesResponse;
+        GetShareRequest, Share, Read, Share with [
+            name: path as String,
+        ];
+        ListSharingSchemasRequest, Share, Read, ListSharingSchemasResponse with [
+            share: path as String,
+        ];
+        ListShareTablesRequest, Share, Read, ListShareTablesResponse with [
+            name: path as String,
+        ];
+        ListSchemaTablesRequest, SharingSchema, Read, ListSchemaTablesResponse with [
+            share: path as String,
+            name: path as String,
+        ];
+    ]
+);
 
 #[async_trait::async_trait]
 pub trait SharingDiscoveryHandler: Send + Sync + 'static {
@@ -37,6 +57,23 @@ pub trait SharingDiscoveryHandler: Send + Sync + 'static {
     ) -> Result<ListShareTablesResponse>;
 }
 
+rest_handlers!(
+    SharingExtensionHandler, [
+        CreateShareRequest, Share, Create, ShareInfo;
+        DeleteShareRequest, Share, Manage with [
+            name: path as String,
+            force: query as Option<bool>
+        ];
+        CreateSharingSchemaRequest, SharingSchema, Create, SharingSchemaInfo with [
+            share: path as String,
+        ];
+        DeleteSharingSchemaRequest, SharingSchema, Manage with [
+            share: path as String,
+            name: path as String,
+        ];
+    ]
+);
+
 #[async_trait::async_trait]
 pub trait SharingExtensionHandler: Send + Sync + 'static {
     /// Create a share.
@@ -67,6 +104,22 @@ pub trait SharingExtensionHandler: Send + Sync + 'static {
         context: RequestContext,
     ) -> Result<()>;
 }
+
+rest_handlers!(
+    SharingQueryHandler, [
+        GetTableVersionRequest, SharingTable, Read, GetTableVersionResponse with [
+            share: path as String,
+            schema: path as String,
+            name: path as String,
+            starting_timestamp: query as Option<String>
+        ];
+        GetTableMetadataRequest, SharingTable, Read, QueryResponse with [
+            share: path as String,
+            schema: path as String,
+            name: path as String,
+        ];
+    ]
+);
 
 #[async_trait::async_trait]
 pub trait SharingQueryHandler: Send + Sync + 'static {

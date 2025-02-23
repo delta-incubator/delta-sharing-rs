@@ -1,27 +1,26 @@
 use itertools::Itertools;
 
-use super::ServerHandler;
-use crate::api::{CatalogHandler, RequestContext};
+use crate::api::catalog::CatalogHandler;
 use crate::models::catalog::v1::*;
-use crate::{ObjectLabel, ResourceName, Result, SecuredAction};
+use crate::{
+    ObjectLabel, Policy, RequestContext, ResourceName, ResourceStore, Result, SecuredAction,
+};
 
 #[async_trait::async_trait]
-impl CatalogHandler for ServerHandler {
+impl<T: ResourceStore + Policy> CatalogHandler for T {
     async fn create_catalog(
         &self,
         request: CreateCatalogRequest,
         context: RequestContext,
     ) -> Result<CatalogInfo> {
-        self.policy
-            .check_required(&request, context.as_ref())
-            .await?;
+        self.check_required(&request, context.as_ref()).await?;
         let resource = CatalogInfo {
             name: request.name,
             comment: request.comment,
             properties: request.properties,
             ..Default::default()
         };
-        self.store.create(resource.into()).await?.0.try_into()
+        self.create(resource.into()).await?.0.try_into()
     }
 
     async fn delete_catalog(
@@ -29,10 +28,8 @@ impl CatalogHandler for ServerHandler {
         request: DeleteCatalogRequest,
         context: RequestContext,
     ) -> Result<()> {
-        self.policy
-            .check_required(&request, context.as_ref())
-            .await?;
-        self.store.delete(&request.resource()).await
+        self.check_required(&request, context.as_ref()).await?;
+        self.delete(&request.resource()).await
     }
 
     async fn get_catalog(
@@ -40,10 +37,8 @@ impl CatalogHandler for ServerHandler {
         request: GetCatalogRequest,
         context: RequestContext,
     ) -> Result<CatalogInfo> {
-        self.policy
-            .check_required(&request, context.recipient())
-            .await?;
-        self.store.get(&request.resource()).await?.0.try_into()
+        self.check_required(&request, context.recipient()).await?;
+        self.get(&request.resource()).await?.0.try_into()
     }
 
     async fn list_catalogs(
@@ -51,11 +46,8 @@ impl CatalogHandler for ServerHandler {
         request: ListCatalogsRequest,
         context: RequestContext,
     ) -> Result<ListCatalogsResponse> {
-        self.policy
-            .check_required(&request, context.as_ref())
-            .await?;
+        self.check_required(&request, context.as_ref()).await?;
         let (resources, next_page_token) = self
-            .store
             .list(
                 &ObjectLabel::CatalogInfo,
                 None,
@@ -74,10 +66,15 @@ impl CatalogHandler for ServerHandler {
         request: UpdateCatalogRequest,
         context: RequestContext,
     ) -> Result<CatalogInfo> {
-        self.policy
-            .check_required(&request, context.as_ref())
-            .await?;
-        todo!()
+        self.check_required(&request, context.as_ref()).await?;
+        let ident = request.resource();
+        let resource = CatalogInfo {
+            name: request.new_name,
+            comment: request.comment,
+            properties: request.properties,
+            ..Default::default()
+        };
+        self.update(&ident, resource.into()).await?.0.try_into()
     }
 
     async fn create_schema(
@@ -85,9 +82,7 @@ impl CatalogHandler for ServerHandler {
         request: CreateSchemaRequest,
         context: RequestContext,
     ) -> Result<SchemaInfo> {
-        self.policy
-            .check_required(&request, context.as_ref())
-            .await?;
+        self.check_required(&request, context.as_ref()).await?;
         let resource = SchemaInfo {
             name: request.name,
             catalog_name: request.catalog_name,
@@ -95,7 +90,7 @@ impl CatalogHandler for ServerHandler {
             properties: request.properties,
             ..Default::default()
         };
-        self.store.create(resource.into()).await?.0.try_into()
+        self.create(resource.into()).await?.0.try_into()
     }
 
     async fn delete_schema(
@@ -103,10 +98,8 @@ impl CatalogHandler for ServerHandler {
         request: DeleteSchemaRequest,
         context: RequestContext,
     ) -> Result<()> {
-        self.policy
-            .check_required(&request, context.as_ref())
-            .await?;
-        self.store.delete(&request.resource()).await
+        self.check_required(&request, context.as_ref()).await?;
+        self.delete(&request.resource()).await
     }
 
     async fn list_schemas(
@@ -114,11 +107,8 @@ impl CatalogHandler for ServerHandler {
         request: ListSchemasRequest,
         context: RequestContext,
     ) -> Result<ListSchemasResponse> {
-        self.policy
-            .check_required(&request, context.as_ref())
-            .await?;
+        self.check_required(&request, context.as_ref()).await?;
         let (resources, next_page_token) = self
-            .store
             .list(
                 &ObjectLabel::SchemaInfo,
                 Some(&ResourceName::new([&request.catalog_name])),
@@ -137,10 +127,8 @@ impl CatalogHandler for ServerHandler {
         request: GetSchemaRequest,
         context: RequestContext,
     ) -> Result<SchemaInfo> {
-        self.policy
-            .check_required(&request, context.as_ref())
-            .await?;
-        self.store.get(&request.resource()).await?.0.try_into()
+        self.check_required(&request, context.as_ref()).await?;
+        self.get(&request.resource()).await?.0.try_into()
     }
 
     async fn update_schema(
@@ -148,9 +136,22 @@ impl CatalogHandler for ServerHandler {
         request: UpdateSchemaRequest,
         context: RequestContext,
     ) -> Result<SchemaInfo> {
-        self.policy
-            .check_required(&request, context.as_ref())
-            .await?;
-        todo!()
+        self.check_required(&request, context.as_ref()).await?;
+        let ident = request.resource();
+        let name = ResourceName::from_naive_str_split(request.full_name);
+        let [catalog_name, _schema_name] = name.as_ref() else {
+            return Err(crate::Error::invalid_argument(
+                "Invalid schema name - expected <catalog_name>.<schema_name>",
+            ));
+        };
+        let resource = SchemaInfo {
+            name: request.new_name.clone(),
+            comment: request.comment,
+            properties: request.properties,
+            catalog_name: catalog_name.to_owned(),
+            full_name: Some(format!("{}.{}", catalog_name, request.new_name)),
+            ..Default::default()
+        };
+        self.update(&ident, resource.into()).await?.0.try_into()
     }
 }

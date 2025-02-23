@@ -16,7 +16,7 @@ pub fn to_handler(handler: &HandlerDef, handler_type: &Type) -> proc_macro2::Tok
 
     match &handler.response_type {
         Some(response_type) => quote! {
-            async fn #fn_name<T: #handler_type>(
+            pub(crate) async fn #fn_name<T: #handler_type>(
                 ::axum::extract::State(handler): ::axum::extract::State<T>,
                 ::axum::extract::Extension(recipient): ::axum::extract::Extension<Recipient>,
                 request: #request_type,
@@ -26,7 +26,7 @@ pub fn to_handler(handler: &HandlerDef, handler_type: &Type) -> proc_macro2::Tok
             }
         },
         None => quote! {
-            async fn #fn_name<T: #handler_type>(
+            pub(crate) async fn #fn_name<T: #handler_type>(
                 ::axum::extract::State(handler): ::axum::extract::State<T>,
                 ::axum::extract::Extension(recipient): ::axum::extract::Extension<Recipient>,
                 request: #request_type,
@@ -74,6 +74,60 @@ pub fn to_request_impl(handler: &HandlerDef) -> proc_macro2::TokenStream {
     }
 }
 
+pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
+    let resource = &handler.resource;
+    let request_type = &handler.request_type;
+    let permission = &handler.permission;
+    // HACK: we should prbably anmnotate the queryt fields that should be extracted for
+    // the resource identification, but for now we just hardcode the fields that are
+    // known to be excluded.
+    const KNOW_QUERY: [&str; 7] = [
+        "max_results",
+        "page_token",
+        "force",
+        "maxResults",
+        "pageToken",
+        "starting_timestamp",
+        "startingTimestamp",
+    ];
+    let field_names: Vec<_> = handler
+        .fields
+        .iter()
+        .filter(|f| {
+            matches!(f.source, FieldSource::Path)
+                || !KNOW_QUERY.contains(&f.name.to_string().as_str())
+        })
+        .map(|f| &f.name)
+        .collect();
+
+    let resource = if handler.fields.is_empty() {
+        quote! {
+            ResourceIdent::#resource(ResourceRef::Undefined)
+        }
+    } else if field_names.len() == 1 {
+        let field_name = &field_names[0];
+        // If there is only one path parameter, it may be a fully qualified resource name
+        quote! {
+            ResourceIdent::#resource(ResourceRef::Name(ResourceName::from_naive_str_split(&self.#field_name)))
+        }
+    } else {
+        quote! {
+            ResourceIdent::#resource(ResourceRef::Name(ResourceName::new([#(&self.#field_names),*])))
+        }
+    };
+
+    quote! {
+        impl SecuredAction for #request_type {
+            fn resource(&self) -> ResourceIdent {
+                #resource
+            }
+            fn permission(&self) -> &'static Permission {
+                &Permission::#permission
+            }
+        }
+    }
+}
+
 /// Extracts the final segment of a Type’s path, e.g. SomeModule::FooBar => "FooBar".
 fn get_type_name(ty: &Type) -> Option<String> {
     if let Type::Path(type_path) = ty {
@@ -85,7 +139,7 @@ fn get_type_name(ty: &Type) -> Option<String> {
 }
 
 /// Generate handler function name from request type
-fn generate_handler_name(request_type: &Type) -> String {
+pub(crate) fn generate_handler_name(request_type: &Type) -> String {
     let request_name =
         get_type_name(request_type).unwrap_or_else(|| panic!("Invalid request type"));
 
