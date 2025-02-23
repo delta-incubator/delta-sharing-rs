@@ -48,10 +48,7 @@ impl InMemoryResourceStore {
         if self.get_uuid(label, name).is_some() {
             return Err(Error::AlreadyExists);
         }
-        let map = self
-            .id_map
-            .entry(*label)
-            .or_default();
+        let map = self.id_map.entry(*label).or_default();
         let uuid = Uuid::now_v7();
         map.insert(name.clone(), uuid);
         Ok(uuid)
@@ -202,16 +199,10 @@ impl ResourceStore for InMemoryResourceStore {
             ResourceRef::Name(name) => self.get_uuid(to.label(), name).ok_or(Error::NotFound)?,
             ResourceRef::Undefined => return Err(Error::NotFound),
         };
-        let map = self
-            .associations
-            .entry(label.clone())
-            .or_default();
+        let map = self.associations.entry(label.clone()).or_default();
         map.insert(from_uuid, (to_uuid, properties.clone()));
         if let Some(inverse) = label.inverse() {
-            let inverse_map = self
-                .associations
-                .entry(inverse)
-                .or_default();
+            let inverse_map = self.associations.entry(inverse).or_default();
             inverse_map.insert(to_uuid, (from_uuid, properties.clone()));
         }
         Ok(())

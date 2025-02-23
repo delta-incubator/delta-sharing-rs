@@ -100,10 +100,7 @@ pub fn object_conversions(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let from_object_impls = input.defs.iter().map(from_object);
 
     // Generate resource impls
-    let resource_impls = input
-        .defs
-        .iter()
-        .map(resource_impl);
+    let resource_impls = input.defs.iter().map(resource_impl);
 
     let to_resource_impls = input.defs.iter().map(to_resource);
 
