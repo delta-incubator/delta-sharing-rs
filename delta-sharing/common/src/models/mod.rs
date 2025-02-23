@@ -1,11 +1,7 @@
 use paste::paste;
 use serde::Serialize;
-use uuid::Uuid;
 
-use crate::{
-    policy::{AsResource, ResourceIdent},
-    Error, ResourceName, ResourceRef,
-};
+use crate::{Error, ResourceIdent, ResourceName, ResourceRef};
 
 pub use credentials::v1::{Credential, StorageLocation};
 pub use internal::resource::{ObjectLabel, Resource};
@@ -83,11 +79,29 @@ impl ObjectLabel {
 }
 
 pub trait ResourceExt {
+    /// Get the label for the resource
     fn resource_label(&self) -> &ObjectLabel;
+
+    /// Get the name of the resource
     fn resource_name(&self) -> ResourceName;
+
+    /// Get the reference for the resource
+    ///
+    /// Depending on the resource type, this may be a UUID or a name.
+    /// If possible, implementations should prefer to use the UUID
+    /// as it is globally unique. However not all repurce-like objects
+    /// have a UUID field, or the UUID field may be optional.
     fn resource_ref(&self) -> ResourceRef;
+
+    /// Get the ident for the resource
     fn resource_ident(&self) -> ResourceIdent {
         self.resource_label().to_ident(self.resource_ref())
+    }
+}
+
+impl<T: ResourceExt> From<&T> for ResourceIdent {
+    fn from(resource: &T) -> Self {
+        resource.resource_ident()
     }
 }
 
@@ -96,153 +110,6 @@ pub trait ResourceExt {
 pub struct ErrorResponse {
     pub error_code: String,
     pub message: String,
-}
-
-impl AsResource for Share {
-    fn as_resource(&self) -> ResourceIdent {
-        self.id
-            .as_ref()
-            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::share))
-            .unwrap_or_else(|| ResourceIdent::share(ResourceName::new([&self.name])))
-    }
-}
-
-impl AsResource for ShareInfo {
-    fn as_resource(&self) -> ResourceIdent {
-        Uuid::parse_str(&self.id)
-            .ok()
-            .map(ResourceIdent::share)
-            .unwrap_or_else(|| ResourceIdent::share(ResourceName::new([&self.name])))
-    }
-}
-
-impl AsResource for SharingSchemaInfo {
-    fn as_resource(&self) -> ResourceIdent {
-        Uuid::parse_str(&self.id)
-            .ok()
-            .map(ResourceIdent::sharing_schema)
-            .unwrap_or_else(|| {
-                ResourceIdent::sharing_schema(ResourceName::new([&self.share, &self.name]))
-            })
-    }
-}
-
-impl AsResource for SharingSchema {
-    fn as_resource(&self) -> ResourceIdent {
-        self.id
-            .as_ref()
-            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::sharing_schema))
-            .unwrap_or_else(|| ResourceIdent::sharing_schema(ResourceName::new([&self.name])))
-    }
-}
-
-impl AsResource for SharingTable {
-    fn as_resource(&self) -> ResourceIdent {
-        self.id
-            .as_ref()
-            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::sharing_table))
-            .unwrap_or_else(|| ResourceIdent::sharing_table(ResourceName::new([&self.name])))
-    }
-}
-
-impl AsResource for Credential {
-    fn as_resource(&self) -> ResourceIdent {
-        Uuid::parse_str(&self.id)
-            .ok()
-            .map(ResourceIdent::credential)
-            .unwrap_or_else(|| ResourceIdent::credential(ResourceName::new([&self.name])))
-    }
-}
-
-impl AsResource for StorageLocation {
-    fn as_resource(&self) -> ResourceIdent {
-        Uuid::parse_str(&self.id)
-            .ok()
-            .map(ResourceIdent::storage_location)
-            .unwrap_or_else(|| ResourceIdent::storage_location(ResourceName::new([&self.name])))
-    }
-}
-
-impl AsResource for CatalogInfo {
-    fn as_resource(&self) -> ResourceIdent {
-        self.id
-            .as_ref()
-            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::catalog))
-            .unwrap_or_else(|| ResourceIdent::catalog(ResourceName::new([&self.name])))
-    }
-}
-
-impl AsResource for SchemaInfo {
-    fn as_resource(&self) -> ResourceIdent {
-        self.schema_id
-            .as_ref()
-            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::schema))
-            .unwrap_or_else(|| {
-                ResourceIdent::schema(ResourceName::new([&self.catalog_name, &self.name]))
-            })
-    }
-}
-
-impl AsResource for TableInfo {
-    fn as_resource(&self) -> ResourceIdent {
-        self.table_id
-            .as_ref()
-            .and_then(|id| Uuid::parse_str(id).ok().map(ResourceIdent::table))
-            .unwrap_or_else(|| {
-                ResourceIdent::table(ResourceName::new([
-                    &self.catalog_name,
-                    &self.schema_name,
-                    &self.name,
-                ]))
-            })
-    }
-}
-
-impl AsResource for Resource {
-    fn as_resource(&self) -> ResourceIdent {
-        match self {
-            Resource::ShareInfo(share) => share.as_resource(),
-            Resource::SharingSchemaInfo(schema) => schema.as_resource(),
-            Resource::SharingTable(table) => table.as_resource(),
-            Resource::Credential(cred) => cred.as_resource(),
-            Resource::StorageLocation(loc) => loc.as_resource(),
-            Resource::CatalogInfo(catalog) => catalog.as_resource(),
-            Resource::SchemaInfo(schema) => schema.as_resource(),
-            Resource::TableInfo(table) => table.as_resource(),
-        }
-    }
-}
-
-impl Resource {
-    pub fn label(&self) -> &ObjectLabel {
-        match self {
-            Resource::ShareInfo(_) => &ObjectLabel::ShareInfo,
-            Resource::SharingSchemaInfo(_) => &ObjectLabel::SharingSchemaInfo,
-            Resource::SharingTable(_) => &ObjectLabel::SharingTable,
-            Resource::Credential(_) => &ObjectLabel::Credential,
-            Resource::StorageLocation(_) => &ObjectLabel::StorageLocation,
-            Resource::CatalogInfo(_) => &ObjectLabel::CatalogInfo,
-            Resource::SchemaInfo(_) => &ObjectLabel::SchemaInfo,
-            Resource::TableInfo(_) => &ObjectLabel::TableInfo,
-        }
-    }
-
-    pub fn name(&self) -> ResourceName {
-        match self {
-            Resource::ShareInfo(info) => ResourceName::new([&info.name]),
-            Resource::SharingSchemaInfo(info) => ResourceName::new([&info.share, &info.name]),
-            Resource::SharingTable(info) => {
-                ResourceName::new([&info.share, &info.schema, &info.name])
-            }
-            Resource::Credential(info) => ResourceName::new([&info.name]),
-            Resource::StorageLocation(info) => ResourceName::new([&info.name]),
-            Resource::CatalogInfo(info) => ResourceName::new([&info.name]),
-            Resource::SchemaInfo(info) => ResourceName::new([&info.catalog_name, &info.name]),
-            Resource::TableInfo(info) => {
-                ResourceName::new([&info.catalog_name, &info.schema_name, &info.name])
-            }
-        }
-    }
 }
 
 impl<T: SecuredAction> From<T> for ResourceRef {

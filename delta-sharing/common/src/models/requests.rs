@@ -1,5 +1,5 @@
-use crate::policy::{Permission, ResourceIdent};
-use crate::{ResourceName, ResourceRef};
+use crate::policy::Permission;
+use crate::resources::{ResourceIdent, ResourceName, ResourceRef};
 
 pub use super::catalog::v1::{
     CreateCatalogRequest, CreateSchemaRequest, DeleteCatalogRequest, DeleteSchemaRequest,

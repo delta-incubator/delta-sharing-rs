@@ -4,6 +4,8 @@ use uuid::Uuid;
 pub use name::*;
 pub use store::*;
 
+use crate::models::ObjectLabel;
+
 mod name;
 mod store;
 
@@ -57,6 +59,139 @@ impl From<&Uuid> for ResourceRef {
 impl From<ResourceName> for ResourceRef {
     fn from(val: ResourceName) -> Self {
         Self::Name(val)
+    }
+}
+
+/// Resource that a policy can authorize.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum ResourceIdent {
+    Share(ResourceRef),
+    SharingSchema(ResourceRef),
+    SharingTable(ResourceRef),
+    Credential(ResourceRef),
+    StorageLocation(ResourceRef),
+    Catalog(ResourceRef),
+    Schema(ResourceRef),
+    Table(ResourceRef),
+}
+
+impl ResourceIdent {
+    pub fn label(&self) -> &ObjectLabel {
+        self.as_ref()
+    }
+
+    pub fn reference(&self) -> &ResourceRef {
+        self.as_ref()
+    }
+
+    pub fn share(name: impl Into<ResourceRef>) -> Self {
+        Self::Share(name.into())
+    }
+
+    pub fn sharing_schema(name: impl Into<ResourceRef>) -> Self {
+        Self::SharingSchema(name.into())
+    }
+
+    pub fn sharing_table(name: impl Into<ResourceRef>) -> Self {
+        Self::SharingTable(name.into())
+    }
+
+    pub fn credential(name: impl Into<ResourceRef>) -> Self {
+        Self::Credential(name.into())
+    }
+
+    pub fn storage_location(name: impl Into<ResourceRef>) -> Self {
+        Self::StorageLocation(name.into())
+    }
+
+    pub fn catalog(name: impl Into<ResourceRef>) -> Self {
+        Self::Catalog(name.into())
+    }
+
+    pub fn schema(name: impl Into<ResourceRef>) -> Self {
+        Self::Schema(name.into())
+    }
+
+    pub fn table(name: impl Into<ResourceRef>) -> Self {
+        Self::Table(name.into())
+    }
+}
+
+impl std::fmt::Display for ResourceIdent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ResourceIdent::Share(r) => write!(f, "share:{}", r),
+            ResourceIdent::SharingSchema(r) => write!(f, "schema:{}", r),
+            ResourceIdent::SharingTable(r) => write!(f, "table:{}", r),
+            ResourceIdent::Credential(r) => write!(f, "credential:{}", r),
+            ResourceIdent::StorageLocation(r) => write!(f, "storage_location:{}", r),
+            ResourceIdent::Catalog(r) => write!(f, "catalog:{}", r),
+            ResourceIdent::Schema(r) => write!(f, "schema:{}", r),
+            ResourceIdent::Table(r) => write!(f, "table:{}", r),
+        }
+    }
+}
+
+impl AsRef<ResourceRef> for ResourceIdent {
+    fn as_ref(&self) -> &ResourceRef {
+        match self {
+            ResourceIdent::Share(r) => r,
+            ResourceIdent::SharingSchema(r) => r,
+            ResourceIdent::SharingTable(r) => r,
+            ResourceIdent::Credential(r) => r,
+            ResourceIdent::StorageLocation(r) => r,
+            ResourceIdent::Catalog(r) => r,
+            ResourceIdent::Schema(r) => r,
+            ResourceIdent::Table(r) => r,
+        }
+    }
+}
+
+impl AsRef<ObjectLabel> for ResourceIdent {
+    fn as_ref(&self) -> &ObjectLabel {
+        match self {
+            ResourceIdent::Share(_) => &ObjectLabel::ShareInfo,
+            ResourceIdent::SharingSchema(_) => &ObjectLabel::SharingSchemaInfo,
+            ResourceIdent::SharingTable(_) => &ObjectLabel::SharingTable,
+            ResourceIdent::Credential(_) => &ObjectLabel::Credential,
+            ResourceIdent::StorageLocation(_) => &ObjectLabel::StorageLocation,
+            ResourceIdent::Catalog(_) => &ObjectLabel::CatalogInfo,
+            ResourceIdent::Schema(_) => &ObjectLabel::SchemaInfo,
+            ResourceIdent::Table(_) => &ObjectLabel::TableInfo,
+        }
+    }
+}
+
+impl From<ResourceIdent> for ResourceRef {
+    fn from(ident: ResourceIdent) -> Self {
+        match ident {
+            ResourceIdent::Share(r) => r,
+            ResourceIdent::SharingSchema(r) => r,
+            ResourceIdent::SharingTable(r) => r,
+            ResourceIdent::Credential(r) => r,
+            ResourceIdent::StorageLocation(r) => r,
+            ResourceIdent::Catalog(r) => r,
+            ResourceIdent::Schema(r) => r,
+            ResourceIdent::Table(r) => r,
+        }
+    }
+}
+
+impl From<&ResourceIdent> for ResourceRef {
+    fn from(ident: &ResourceIdent) -> Self {
+        (ident as &dyn AsRef<ResourceRef>).as_ref().clone()
+    }
+}
+
+impl From<&ResourceIdent> for ObjectLabel {
+    fn from(ident: &ResourceIdent) -> Self {
+        (ident as &dyn AsRef<ObjectLabel>).as_ref().clone()
+    }
+}
+
+impl From<ResourceIdent> for ObjectLabel {
+    fn from(ident: ResourceIdent) -> Self {
+        (&ident).into()
     }
 }
 

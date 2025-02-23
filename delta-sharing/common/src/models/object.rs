@@ -66,27 +66,27 @@ impl ResourceExt for Resource {
 
     fn resource_name(&self) -> ResourceName {
         match self {
-            Resource::ShareInfo(share) => share.resource_name(),
-            Resource::SharingSchemaInfo(schema) => schema.resource_name(),
-            Resource::SharingTable(table) => table.resource_name(),
+            Resource::ShareInfo(obj) => obj.resource_name(),
+            Resource::SharingSchemaInfo(obj) => obj.resource_name(),
+            Resource::SharingTable(obj) => obj.resource_name(),
             Resource::Credential(_) => todo!(),
-            Resource::StorageLocation(storage_location) => storage_location.resource_name(),
-            Resource::CatalogInfo(catalog) => catalog.resource_name(),
-            Resource::SchemaInfo(schema) => schema.resource_name(),
-            Resource::TableInfo(table) => table.resource_name(),
+            Resource::StorageLocation(obj) => obj.resource_name(),
+            Resource::CatalogInfo(obj) => obj.resource_name(),
+            Resource::SchemaInfo(obj) => obj.resource_name(),
+            Resource::TableInfo(obj) => obj.resource_name(),
         }
     }
 
     fn resource_ref(&self) -> ResourceRef {
         match self {
-            Resource::ShareInfo(share) => share.resource_ref(),
-            Resource::SharingSchemaInfo(schema) => schema.resource_ref(),
-            Resource::SharingTable(table) => table.resource_ref(),
+            Resource::ShareInfo(obj) => obj.resource_ref(),
+            Resource::SharingSchemaInfo(obj) => obj.resource_ref(),
+            Resource::SharingTable(obj) => obj.resource_ref(),
             Resource::Credential(_) => todo!(),
-            Resource::StorageLocation(storage_location) => storage_location.resource_ref(),
-            Resource::CatalogInfo(catalog) => catalog.resource_ref(),
-            Resource::SchemaInfo(schema) => schema.resource_ref(),
-            Resource::TableInfo(table) => table.resource_ref(),
+            Resource::StorageLocation(obj) => obj.resource_ref(),
+            Resource::CatalogInfo(obj) => obj.resource_ref(),
+            Resource::SchemaInfo(obj) => obj.resource_ref(),
+            Resource::TableInfo(obj) => obj.resource_ref(),
         }
     }
 }
@@ -96,14 +96,14 @@ impl TryFrom<Resource> for Object {
 
     fn try_from(resource: Resource) -> Result<Self, Self::Error> {
         match resource {
-            Resource::ShareInfo(share) => share.try_into(),
-            Resource::SharingSchemaInfo(schema) => schema.try_into(),
-            Resource::SharingTable(table) => table.try_into(),
+            Resource::ShareInfo(obj) => obj.try_into(),
+            Resource::SharingSchemaInfo(obj) => obj.try_into(),
+            Resource::SharingTable(obj) => obj.try_into(),
             Resource::Credential(_) => Err(Error::generic("Cannot convert credential to object")),
-            Resource::StorageLocation(storage_location) => storage_location.try_into(),
-            Resource::CatalogInfo(catalog) => catalog.try_into(),
-            Resource::SchemaInfo(schema) => schema.try_into(),
-            Resource::TableInfo(table) => table.try_into(),
+            Resource::StorageLocation(obj) => obj.try_into(),
+            Resource::CatalogInfo(obj) => obj.try_into(),
+            Resource::SchemaInfo(obj) => obj.try_into(),
+            Resource::TableInfo(obj) => obj.try_into(),
         }
     }
 }
@@ -111,16 +111,16 @@ impl TryFrom<Resource> for Object {
 impl TryFrom<Object> for Resource {
     type Error = Error;
 
-    fn try_from(object: Object) -> Result<Self, Self::Error> {
-        match object.label {
-            ObjectLabel::ShareInfo => Ok(Resource::ShareInfo(object.try_into()?)),
-            ObjectLabel::SharingSchemaInfo => Ok(Resource::SharingSchemaInfo(object.try_into()?)),
-            ObjectLabel::SharingTable => Ok(Resource::SharingTable(object.try_into()?)),
+    fn try_from(obj: Object) -> Result<Self, Self::Error> {
+        match obj.label {
+            ObjectLabel::ShareInfo => Ok(Resource::ShareInfo(obj.try_into()?)),
+            ObjectLabel::SharingSchemaInfo => Ok(Resource::SharingSchemaInfo(obj.try_into()?)),
+            ObjectLabel::SharingTable => Ok(Resource::SharingTable(obj.try_into()?)),
             ObjectLabel::Credential => todo!("Convert Object to Resource"),
-            ObjectLabel::StorageLocation => Ok(Resource::StorageLocation(object.try_into()?)),
-            ObjectLabel::CatalogInfo => Ok(Resource::CatalogInfo(object.try_into()?)),
-            ObjectLabel::SchemaInfo => Ok(Resource::SchemaInfo(object.try_into()?)),
-            ObjectLabel::TableInfo => Ok(Resource::TableInfo(object.try_into()?)),
+            ObjectLabel::StorageLocation => Ok(Resource::StorageLocation(obj.try_into()?)),
+            ObjectLabel::CatalogInfo => Ok(Resource::CatalogInfo(obj.try_into()?)),
+            ObjectLabel::SchemaInfo => Ok(Resource::SchemaInfo(obj.try_into()?)),
+            ObjectLabel::TableInfo => Ok(Resource::TableInfo(obj.try_into()?)),
         }
     }
 }

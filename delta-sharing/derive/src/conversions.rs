@@ -98,8 +98,6 @@ pub(crate) fn from_object(obj: &ObjectDef) -> proc_macro2::TokenStream {
 pub(crate) fn to_object(obj: &ObjectDef) -> proc_macro2::TokenStream {
     let target_ty = &obj.ty;
     let id_field_name = &obj.name;
-    let path_names = &obj.path_names;
-    let object_label = &obj.label;
 
     let id_field = if obj.is_optional {
         quote! {
@@ -124,8 +122,8 @@ pub(crate) fn to_object(obj: &ObjectDef) -> proc_macro2::TokenStream {
                 #id_field
                 Ok(Object {
                     id,
-                    name: ResourceName::new([#(&obj.#path_names),*]),
-                    label: #object_label,
+                    name: obj.resource_name(),
+                    label: obj.resource_label().clone(),
                     properties: Some(::serde_json::to_value(obj)?),
                     updated_at: None,
                     created_at: chrono::Utc::now(),
