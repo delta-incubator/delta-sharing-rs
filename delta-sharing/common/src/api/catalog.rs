@@ -1,30 +1,30 @@
 use delta_sharing_derive::rest_handlers;
 
-pub use super::RequestContext;
+use super::{RequestContext, SecuredAction};
 use crate::models::catalog::v1::*;
-use crate::{Error, Recipient, Result};
+use crate::{Error, Permission, Recipient, ResourceIdent, ResourceName, ResourceRef, Result};
 
 rest_handlers!(
     CatalogHandler, [
-        CreateCatalogRequest, CatalogInfo;
-        ListCatalogsRequest, ListCatalogsResponse;
-        GetCatalogRequest, CatalogInfo with [
+        CreateCatalogRequest, Catalog, Create, CatalogInfo;
+        ListCatalogsRequest, Catalog, Read, ListCatalogsResponse;
+        GetCatalogRequest, Catalog, Read, CatalogInfo with [
             name: path as String,
         ];
-        UpdateCatalogRequest, CatalogInfo;
-        DeleteCatalogRequest with [
+        UpdateCatalogRequest, Catalog, Manage, CatalogInfo;
+        DeleteCatalogRequest, Catalog, Manage with [
             name: path as String,
             force: query as Option<bool>,
         ];
-        CreateSchemaRequest, SchemaInfo;
-        ListSchemasRequest, ListSchemasResponse with [
+        CreateSchemaRequest, Schema, Create, SchemaInfo;
+        ListSchemasRequest, Catalog, Read, ListSchemasResponse with [
             catalog_name: path as String
         ];
-        GetSchemaRequest, SchemaInfo with [
+        GetSchemaRequest, Schema, Read, SchemaInfo with [
             full_name: path as String,
         ];
-        UpdateSchemaRequest, SchemaInfo;
-        DeleteSchemaRequest with [
+        UpdateSchemaRequest, Schema, Manage, SchemaInfo;
+        DeleteSchemaRequest, Schema, Manage with [
             full_name: path as String,
             force: query as Option<bool>,
         ];

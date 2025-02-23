@@ -6,12 +6,10 @@ pub use credentials::v1::{Credential, StorageLocation};
 pub use internal::resource::{ObjectLabel, Resource};
 pub use object::*;
 pub use properties::*;
-pub use requests::*;
 pub use tables::v1::TableInfo;
 
 mod object;
 mod properties;
-pub(crate) mod requests;
 
 pub use catalog::v1::{CatalogInfo, SchemaInfo};
 pub use profiles::v1::Profile;
@@ -109,12 +107,6 @@ impl<T: ResourceExt> From<&T> for ResourceIdent {
 pub struct ErrorResponse {
     pub error_code: String,
     pub message: String,
-}
-
-impl<T: SecuredAction> From<T> for ResourceRef {
-    fn from(action: T) -> Self {
-        action.resource().into()
-    }
 }
 
 /// Conversions from more specific types to reduced info sharing API types

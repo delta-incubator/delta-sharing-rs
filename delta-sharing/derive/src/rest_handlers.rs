@@ -74,6 +74,45 @@ pub fn to_request_impl(handler: &HandlerDef) -> proc_macro2::TokenStream {
     }
 }
 
+pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
+    let resource = &handler.resource;
+    let request_type = &handler.request_type;
+    let permission = &handler.permission;
+    let field_names: Vec<_> = handler
+        .fields
+        .iter()
+        .filter(|f| matches!(f.source, FieldSource::Path))
+        .map(|f| &f.name)
+        .collect();
+
+    let resource = if handler.fields.is_empty() {
+        quote! {
+            ResourceIdent::#resource(ResourceRef::Undefined)
+        }
+    } else if field_names.len() == 1 {
+        let field_name = &field_names[0];
+        // If there is only one path parameter, it may be a fully qualified resource name
+        quote! {
+            ResourceIdent::#resource(ResourceRef::Name(ResourceName::from_naive_str_split(&self.#field_name)))
+        }
+    } else {
+        quote! {
+            ResourceIdent::#resource(ResourceRef::Name(ResourceName::new([#(&self.#field_names),*])))
+        }
+    };
+
+    quote! {
+        impl SecuredAction for #request_type {
+            fn resource(&self) -> ResourceIdent {
+                #resource
+            }
+            fn permission(&self) -> &'static Permission {
+                &Permission::#permission
+            }
+        }
+    }
+}
+
 /// Extracts the final segment of a Type’s path, e.g. SomeModule::FooBar => "FooBar".
 fn get_type_name(ty: &Type) -> Option<String> {
     if let Type::Path(type_path) = ty {

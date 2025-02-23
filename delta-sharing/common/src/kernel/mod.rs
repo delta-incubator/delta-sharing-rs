@@ -11,7 +11,10 @@ use delta_kernel::{Engine, Table};
 use crate::models::sharing::v1::{
     GetTableMetadataRequest, GetTableVersionRequest, GetTableVersionResponse, QueryResponse,
 };
-use crate::{ResourceRef, Result, TableLocationResover, TableQueryHandler};
+use crate::{
+    Policy, RequestContext, ResourceRef, Result, SecuredAction, SharingQueryHandler,
+    TableLocationResover,
+};
 
 mod conversion;
 
@@ -57,6 +60,7 @@ impl<E: TaskExecutor> KernelEngineFactroy for DefaultKernelEngineFactroy<E> {
 pub struct KernelQueryHandler {
     engine_factory: Arc<dyn KernelEngineFactroy>,
     location_resolver: Arc<dyn TableLocationResover>,
+    policy: Arc<dyn Policy>,
 }
 
 impl KernelQueryHandler {
@@ -64,10 +68,12 @@ impl KernelQueryHandler {
     pub fn new(
         engine_factory: Arc<dyn KernelEngineFactroy>,
         location_resolver: Arc<dyn TableLocationResover>,
+        policy: Arc<dyn Policy>,
     ) -> Self {
         Self {
             engine_factory,
             location_resolver,
+            policy,
         }
     }
 
@@ -75,18 +81,20 @@ impl KernelQueryHandler {
     pub fn new_background(
         location_resolver: Arc<dyn TableLocationResover>,
         storage_configs: HashMap<(String, String), HashMap<String, String>>,
+        policy: Arc<dyn Policy>,
     ) -> Arc<Self> {
         let engine_factory = Arc::new(DefaultKernelEngineFactroy::new(
             Arc::new(TokioBackgroundExecutor::new()),
             storage_configs,
         ));
-        Arc::new(Self::new(engine_factory, location_resolver))
+        Arc::new(Self::new(engine_factory, location_resolver, policy))
     }
 
     /// Create a new instance of [`KernelQueryHandler`] with a multi-threaded executor.
     pub fn new_multi_thread(
         location_resolver: Arc<dyn TableLocationResover>,
         storage_configs: HashMap<(String, String), HashMap<String, String>>,
+        policy: Arc<dyn Policy>,
     ) -> Arc<Self> {
         let engine_factory = Arc::new(DefaultKernelEngineFactroy::new(
             Arc::new(TokioMultiThreadExecutor::new(
@@ -94,7 +102,7 @@ impl KernelQueryHandler {
             )),
             storage_configs,
         ));
-        Arc::new(Self::new(engine_factory, location_resolver))
+        Arc::new(Self::new(engine_factory, location_resolver, policy))
     }
 
     async fn get_snapshot(&self, table_ref: &ResourceRef) -> Result<Snapshot> {
@@ -107,21 +115,34 @@ impl KernelQueryHandler {
 }
 
 #[async_trait::async_trait]
-impl TableQueryHandler for KernelQueryHandler {
+impl SharingQueryHandler for KernelQueryHandler {
     async fn get_table_version(
         &self,
         request: GetTableVersionRequest,
+        context: RequestContext,
     ) -> Result<GetTableVersionResponse> {
+        self.policy
+            .check_required(&request, context.as_ref())
+            .await?;
+        let res = request.resource();
         // TODO handle optional timestamp
-        let snapshot = self.get_snapshot(&request.into()).await?;
+        let snapshot = self.get_snapshot(res.as_ref()).await?;
         let version = snapshot.version();
         Ok(GetTableVersionResponse {
             version: version as i64,
         })
     }
 
-    async fn get_table_metadata(&self, request: GetTableMetadataRequest) -> Result<QueryResponse> {
-        let snapshot = self.get_snapshot(&request.into()).await?;
+    async fn get_table_metadata(
+        &self,
+        request: GetTableMetadataRequest,
+        context: RequestContext,
+    ) -> Result<QueryResponse> {
+        self.policy
+            .check_required(&request, context.as_ref())
+            .await?;
+        let res = request.resource();
+        let snapshot = self.get_snapshot(res.as_ref()).await?;
         Ok([snapshot.metadata().into(), snapshot.protocol().into()].into())
     }
 }

@@ -38,30 +38,3 @@ impl<T: TableLocationResover> TableLocationResover for Arc<T> {
         T::resolve(self, table).await
     }
 }
-
-// --8<-- [start:table-query-handler]
-/// Handler for querying tables exposed by a Delta Sharing server.
-#[async_trait::async_trait]
-pub trait TableQueryHandler: Send + Sync + 'static {
-    async fn get_table_version(
-        &self,
-        request: GetTableVersionRequest,
-    ) -> Result<GetTableVersionResponse>;
-
-    async fn get_table_metadata(&self, request: GetTableMetadataRequest) -> Result<QueryResponse>;
-}
-// --8<-- [end:table-query-handler]
-
-#[async_trait::async_trait]
-impl<T: TableQueryHandler> TableQueryHandler for Arc<T> {
-    async fn get_table_version(
-        &self,
-        request: GetTableVersionRequest,
-    ) -> Result<GetTableVersionResponse> {
-        T::get_table_version(self, request).await
-    }
-
-    async fn get_table_metadata(&self, request: GetTableMetadataRequest) -> Result<QueryResponse> {
-        T::get_table_metadata(self, request).await
-    }
-}

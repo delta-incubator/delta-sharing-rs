@@ -8,8 +8,7 @@
 use bytes::Bytes;
 use std::sync::Arc;
 
-use crate::models::SecuredAction;
-use crate::{Error, ResourceExt, ResourceIdent, Result};
+use crate::{Error, ResourceExt, ResourceIdent, Result, SecuredAction};
 
 pub use constant::*;
 

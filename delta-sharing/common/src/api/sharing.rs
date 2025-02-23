@@ -1,22 +1,22 @@
 use delta_sharing_derive::rest_handlers;
 
-use super::RequestContext;
+use super::{RequestContext, SecuredAction};
 use crate::models::sharing::v1::*;
-use crate::{Error, Recipient, Result};
+use crate::{Error, Permission, Recipient, ResourceIdent, ResourceName, ResourceRef, Result};
 
 rest_handlers!(
     SharingDiscoveryHandler, [
-        ListSharesRequest, ListSharesResponse;
-        GetShareRequest, Share with [
+        ListSharesRequest, Share, Read, ListSharesResponse;
+        GetShareRequest, Share, Read, Share with [
             name: path as String,
         ];
-        ListSharingSchemasRequest, ListSharingSchemasResponse with [
+        ListSharingSchemasRequest, Share, Read, ListSharingSchemasResponse with [
             share: path as String,
         ];
-        ListShareTablesRequest, ListShareTablesResponse with [
+        ListShareTablesRequest, Share, Read, ListShareTablesResponse with [
             name: path as String,
         ];
-        ListSchemaTablesRequest, ListSchemaTablesResponse with [
+        ListSchemaTablesRequest, SharingSchema, Read, ListSchemaTablesResponse with [
             share: path as String,
             name: path as String,
         ];
@@ -59,15 +59,15 @@ pub trait SharingDiscoveryHandler: Send + Sync + 'static {
 
 rest_handlers!(
     SharingExtensionHandler, [
-        CreateShareRequest, ShareInfo;
-        DeleteShareRequest with [
+        CreateShareRequest, Share, Create, ShareInfo;
+        DeleteShareRequest, Share, Manage with [
             name: path as String,
             force: query as Option<bool>
         ];
-        CreateSharingSchemaRequest, SharingSchemaInfo with [
+        CreateSharingSchemaRequest, SharingSchema, Create, SharingSchemaInfo with [
             share: path as String,
         ];
-        DeleteSharingSchemaRequest with [
+        DeleteSharingSchemaRequest, SharingSchema, Manage with [
             share: path as String,
             name: path as String,
         ];
@@ -104,6 +104,22 @@ pub trait SharingExtensionHandler: Send + Sync + 'static {
         context: RequestContext,
     ) -> Result<()>;
 }
+
+rest_handlers!(
+    SharingQueryHandler, [
+        GetTableVersionRequest, SharingTable, Read, GetTableVersionResponse with [
+            share: path as String,
+            schema: path as String,
+            name: path as String,
+            starting_timestamp: query as Option<String>
+        ];
+        GetTableMetadataRequest, SharingTable, Read, QueryResponse with [
+            share: path as String,
+            schema: path as String,
+            name: path as String,
+        ];
+    ]
+);
 
 #[async_trait::async_trait]
 pub trait SharingQueryHandler: Send + Sync + 'static {

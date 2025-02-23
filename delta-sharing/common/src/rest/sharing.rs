@@ -1,11 +1,8 @@
 use axum::body::Body;
-use axum::extract::{Extension, FromRequestParts, Path, Query, State};
-use axum::http::request::Parts;
-use axum::routing::{delete, get, post};
-use axum::RequestPartsExt;
-use axum::{response::Response, Router};
+use axum::extract::{Extension, State};
+use axum::response::Response;
+use axum::routing::{delete, get, post, Router};
 use http::header::CONTENT_TYPE;
-use serde::Deserialize;
 
 use crate::api::sharing::*;
 use crate::models::sharing::v1::*;
@@ -35,35 +32,16 @@ pub fn get_router<
         )
         .route(
             "/shares/{share}/schemas/{schema}/tables/{name}/version",
-            get(get_table_version::<T>),
+            get(get_table_version_correct::<T>),
         )
         .route(
             "/shares/{share}/schemas/{schema}/tables/{name}/metadata",
-            get(get_table_metadata::<T>),
+            get(get_table_metadata_correct::<T>),
         )
         .with_state(state)
 }
 
-impl<S: Send + Sync> FromRequestParts<S> for GetTableVersionRequest {
-    type Rejection = Error;
-
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        #[derive(Deserialize)]
-        struct GetTableVersionQuery {
-            starting_timestamp: Option<String>,
-        }
-        let Query(query) = parts.extract::<Query<GetTableVersionQuery>>().await?;
-        let Path((share, schema, name)) = parts.extract::<Path<(String, String, String)>>().await?;
-        Ok(GetTableVersionRequest {
-            share,
-            schema,
-            name,
-            starting_timestamp: query.starting_timestamp,
-        })
-    }
-}
-
-async fn get_table_version<T: SharingQueryHandler>(
+async fn get_table_version_correct<T: SharingQueryHandler>(
     State(handler): State<T>,
     Extension(recipient): Extension<Recipient>,
     request: GetTableVersionRequest,
@@ -76,20 +54,7 @@ async fn get_table_version<T: SharingQueryHandler>(
         .map_err(|e| Error::generic(e.to_string()))
 }
 
-impl<S: Send + Sync> FromRequestParts<S> for GetTableMetadataRequest {
-    type Rejection = Error;
-
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let Path((share, schema, name)) = parts.extract::<Path<(String, String, String)>>().await?;
-        Ok(GetTableMetadataRequest {
-            share,
-            schema,
-            name,
-        })
-    }
-}
-
-async fn get_table_metadata<T: SharingQueryHandler>(
+async fn get_table_metadata_correct<T: SharingQueryHandler>(
     State(handler): State<T>,
     Extension(recipient): Extension<Recipient>,
     request: GetTableMetadataRequest,

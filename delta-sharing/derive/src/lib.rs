@@ -4,7 +4,7 @@ use syn::{bracketed, parse_macro_input, Error, Type};
 
 use conversions::{from_object, resource_impl, to_object, to_resource, ObjectDefs};
 use parsing::HandlerParams;
-use rest_handlers::{generate_handler_name, to_handler, to_request_impl};
+use rest_handlers::{generate_handler_name, to_action, to_handler, to_request_impl};
 
 mod conversions;
 /// Parser for macro parameters
@@ -54,6 +54,8 @@ pub fn rest_handlers(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
     let input = parse_macro_input!(input as HandlerParams);
     let handler_type = input.handler_type;
 
+    let actions = input.handlers.iter().map(|handler| to_action(handler));
+
     // Generate handler functions
     let handlers = input
         .handlers
@@ -67,6 +69,7 @@ pub fn rest_handlers(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
     let mod_ident = Ident::new(&mod_name, Span::call_site());
 
     let expanded = quote! {
+        #(#actions)*
 
         #[cfg(feature = "axum")]
         pub use #mod_ident::*;

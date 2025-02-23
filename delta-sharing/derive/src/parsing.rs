@@ -46,28 +46,35 @@ impl Parse for FieldDef {
 }
 
 /// One “handler definition” inside the macro, e.g.:
-///   CreateFooRequest, FooResponse with [...]
+///   CreateFooRequest with [...], FooResponse, FooPermission;
 ///   or
 ///   DeleteFooRequest;
 pub struct HandlerDef {
     pub request_type: Type,
     pub response_type: Option<Type>,
     pub fields: Vec<FieldDef>,
+    pub permission: Type,
+    pub resource: Type,
 }
 
 impl Parse for HandlerDef {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let request_type = input.parse()?;
 
-        let mut response_type = None;
-        let mut fields = Vec::new();
+        input.parse::<Comma>()?;
+        let resource = input.parse()?;
 
+        input.parse::<Comma>()?;
+        let permission = input.parse()?;
+
+        let mut response_type = None;
         if input.peek(Comma) {
             input.parse::<Comma>()?;
             response_type = Some(input.parse()?);
         }
 
         // Parse optional field definitions
+        let mut fields = Vec::new();
         if input.peek(kw::with) {
             input.parse::<kw::with>()?;
             let content;
@@ -80,6 +87,8 @@ impl Parse for HandlerDef {
             request_type,
             response_type,
             fields,
+            permission,
+            resource,
         })
     }
 }
