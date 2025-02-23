@@ -60,6 +60,20 @@ pub trait ResourceStore: Send + Sync + 'static {
     /// - `id`: The identifier of the resource to delete.
     async fn delete(&self, id: &ResourceIdent) -> Result<()>;
 
+    /// Update a resource.
+    ///
+    /// # Arguments
+    /// - `id`: The identifier of the resource to update.
+    /// - `resource`: The updated resource.
+    ///
+    /// # Returns
+    /// The updated resource.
+    async fn update(
+        &self,
+        id: &ResourceIdent,
+        resource: Resource,
+    ) -> Result<(Resource, ResourceRef)>;
+
     /// Add an association between two resources.
     ///
     /// Assosications are directed edges between resources with a label and optional properties.
@@ -158,6 +172,14 @@ impl<T: ResourceStore> ResourceStore for Arc<T> {
         T::delete(self, id).await
     }
 
+    async fn update(
+        &self,
+        id: &ResourceIdent,
+        resource: Resource,
+    ) -> Result<(Resource, ResourceRef)> {
+        T::update(self, id, resource).await
+    }
+
     async fn add_association(
         &self,
         from: &ResourceIdent,
@@ -217,6 +239,14 @@ impl<T: ProvidesResourceStore> ResourceStore for T {
 
     async fn delete(&self, id: &ResourceIdent) -> Result<()> {
         self.store().delete(id).await
+    }
+
+    async fn update(
+        &self,
+        id: &ResourceIdent,
+        resource: Resource,
+    ) -> Result<(Resource, ResourceRef)> {
+        self.store().update(id, resource).await
     }
 
     async fn add_association(

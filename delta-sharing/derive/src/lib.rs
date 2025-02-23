@@ -49,6 +49,10 @@ pub fn parse_column_name(input: proc_macro::TokenStream) -> proc_macro::TokenStr
 ///     ]
 /// }
 /// ```
+///
+/// Names extracted from path parameters must be specified in hierarchical order, e.g.:
+/// share -> schema -> table
+/// catalog -> schema -> table
 #[proc_macro]
 pub fn rest_handlers(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as HandlerParams);

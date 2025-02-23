@@ -7,3 +7,8 @@ mod auth;
 mod catalog;
 mod credentials;
 mod sharing;
+
+#[cfg(feature = "integration")]
+pub mod integration {
+    pub use super::catalog::integration::*;
+}

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::policy::Policy;
 use crate::resources::ResourceStore;
 use crate::{
-    HasPolicy, ProvidesResourceStore, ResourceRef, Result, SharingQueryHandler,
+    ProvidesPolicy, ProvidesResourceStore, ResourceRef, Result, SharingQueryHandler,
     TableLocationResover,
 };
 
@@ -32,7 +32,7 @@ impl ServerHandler {
     }
 }
 
-impl HasPolicy for ServerHandler {
+impl ProvidesPolicy for ServerHandler {
     fn policy(&self) -> &Arc<dyn Policy> {
         &self.policy
     }

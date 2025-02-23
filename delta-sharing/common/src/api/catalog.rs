@@ -11,19 +11,23 @@ rest_handlers!(
         GetCatalogRequest, Catalog, Read, CatalogInfo with [
             name: path as String,
         ];
-        UpdateCatalogRequest, Catalog, Manage, CatalogInfo;
+        UpdateCatalogRequest, Catalog, Manage, CatalogInfo with [
+            name: path as String,
+        ];
         DeleteCatalogRequest, Catalog, Manage with [
             name: path as String,
             force: query as Option<bool>,
         ];
         CreateSchemaRequest, Schema, Create, SchemaInfo;
         ListSchemasRequest, Catalog, Read, ListSchemasResponse with [
-            catalog_name: path as String
+            catalog_name: query as String
         ];
         GetSchemaRequest, Schema, Read, SchemaInfo with [
             full_name: path as String,
         ];
-        UpdateSchemaRequest, Schema, Manage, SchemaInfo;
+        UpdateSchemaRequest, Schema, Manage, SchemaInfo with [
+            full_name: path as String,
+        ];
         DeleteSchemaRequest, Schema, Manage with [
             full_name: path as String,
             force: query as Option<bool>,

@@ -78,10 +78,25 @@ pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
     let resource = &handler.resource;
     let request_type = &handler.request_type;
     let permission = &handler.permission;
+    // HACK: we should prbably anmnotate the queryt fields that should be extracted for
+    // the resource identification, but for now we just hardcode the fields that are
+    // known to be excluded.
+    const KNOW_QUERY: [&str; 7] = [
+        "max_results",
+        "page_token",
+        "force",
+        "maxResults",
+        "pageToken",
+        "starting_timestamp",
+        "startingTimestamp",
+    ];
     let field_names: Vec<_> = handler
         .fields
         .iter()
-        .filter(|f| matches!(f.source, FieldSource::Path))
+        .filter(|f| {
+            matches!(f.source, FieldSource::Path)
+                || !KNOW_QUERY.contains(&f.name.to_string().as_str())
+        })
         .map(|f| &f.name)
         .collect();
 

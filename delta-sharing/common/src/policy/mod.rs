@@ -125,7 +125,7 @@ pub trait Policy: Send + Sync + 'static {
     }
 }
 
-pub trait HasPolicy: Send + Sync + 'static {
+pub trait ProvidesPolicy: Send + Sync + 'static {
     fn policy(&self) -> &Arc<dyn Policy>;
 }
 
@@ -151,7 +151,7 @@ impl<T: Policy> Policy for Arc<T> {
 }
 
 #[async_trait::async_trait]
-impl<T: HasPolicy> Policy for T {
+impl<T: ProvidesPolicy> Policy for T {
     async fn authorize(
         &self,
         resource: &ResourceIdent,

@@ -1,4 +1,5 @@
 use dashmap::DashMap;
+use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::{AssociationLabel, Error, PropertyMap, ResourceExt, Result, TableLocationResover};
@@ -9,18 +10,25 @@ const MAX_PAGE_SIZE: usize = 10000;
 /// An in-memory implementation of a resource store.
 ///
 /// This store is not intended for production use, but is useful for testing and development.
+#[derive(Debug, Clone)]
 pub struct InMemoryResourceStore {
-    resources: DashMap<Uuid, Resource>,
-    id_map: DashMap<ObjectLabel, DashMap<ResourceName, Uuid>>,
-    associations: DashMap<AssociationLabel, DashMap<Uuid, (Uuid, Option<PropertyMap>)>>,
+    resources: Arc<DashMap<Uuid, Resource>>,
+    id_map: Arc<DashMap<ObjectLabel, DashMap<ResourceName, Uuid>>>,
+    associations: Arc<DashMap<AssociationLabel, DashMap<Uuid, (Uuid, Option<PropertyMap>)>>>,
+}
+
+impl Default for InMemoryResourceStore {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl InMemoryResourceStore {
     pub fn new() -> Self {
         Self {
-            resources: DashMap::new(),
-            id_map: DashMap::new(),
-            associations: DashMap::new(),
+            resources: DashMap::new().into(),
+            id_map: DashMap::new().into(),
+            associations: DashMap::new().into(),
         }
     }
 
@@ -99,6 +107,43 @@ impl ResourceStore for InMemoryResourceStore {
             None => None,
         };
         Ok(())
+    }
+
+    async fn update(
+        &self,
+        id: &ResourceIdent,
+        resource: Resource,
+    ) -> Result<(Resource, ResourceRef)> {
+        let uuid = match id.as_ref() {
+            ResourceRef::Uuid(uuid) => *uuid,
+            ResourceRef::Name(name) => self.get_uuid(id.label(), name).ok_or(Error::NotFound)?,
+            ResourceRef::Undefined => return Err(Error::NotFound),
+        };
+        // Need to clone to avoid locking the map while holding a reference to the value
+        let existing = self
+            .resources
+            .get(&uuid)
+            .ok_or(Error::NotFound)?
+            .value()
+            .clone();
+        if existing.resource_label() != resource.resource_label() {
+            self.id_map
+                .get(existing.resource_label())
+                .and_then(|map| map.value().remove(&existing.resource_name()));
+            self.id_map
+                .entry(resource.resource_label().clone())
+                .or_insert_with(DashMap::new)
+                .insert(resource.resource_name().clone(), uuid);
+        } else if existing.resource_name() != resource.resource_name() {
+            self.id_map
+                .get(existing.resource_label())
+                .and_then(|map| map.value().remove(&existing.resource_name()));
+            self.id_map
+                .get(existing.resource_label())
+                .and_then(|map| map.value().insert(resource.resource_name(), uuid));
+        }
+        self.resources.insert(uuid, resource.clone());
+        Ok((resource, ResourceRef::Uuid(uuid)))
     }
 
     async fn list(

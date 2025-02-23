@@ -103,6 +103,21 @@ impl ResourceStore for GraphStore {
         Ok(())
     }
 
+    /// Update a resource.
+    ///
+    /// # Arguments
+    /// - `resource`: The resource to update.
+    ///
+    /// # Returns
+    /// The updated resource.
+    async fn update(
+        &self,
+        id: &ResourceIdent,
+        resource: Resource,
+    ) -> Result<(Resource, ResourceRef)> {
+        todo!("update")
+    }
+
     /// Add an association between two resources.
     async fn add_association(
         &self,
