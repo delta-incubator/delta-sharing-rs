@@ -2,7 +2,7 @@ use proc_macro2::Ident;
 use quote::{quote, quote_spanned};
 use syn::{bracketed, parse_macro_input, Error, Type};
 
-use conversions::{from_object, resource_impl, to_object, ObjectDefs};
+use conversions::{from_object, resource_impl, to_object, to_resource, ObjectDefs};
 use parsing::HandlerParams;
 use rest_handlers::{to_handler, to_request_impl};
 
@@ -84,10 +84,13 @@ pub fn object_conversions(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         .iter()
         .map(|object_def| resource_impl(object_def));
 
+    let to_resource_impls = input.defs.iter().map(|object_def| to_resource(object_def));
+
     let expanded = quote! {
         #(#to_object_impls)*
         #(#from_object_impls)*
         #(#resource_impls)*
+        #(#to_resource_impls)*
     };
 
     proc_macro::TokenStream::from(expanded)

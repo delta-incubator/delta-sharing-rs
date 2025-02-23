@@ -858,7 +858,6 @@ dependencies = [
  "http",
  "itertools 0.14.0",
  "object_store",
- "paste",
  "pbjson",
  "pbjson-types",
  "prost",

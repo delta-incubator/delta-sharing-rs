@@ -1,4 +1,3 @@
-use paste::paste;
 use serde::Serialize;
 
 use crate::{Error, ResourceIdent, ResourceName, ResourceRef};
@@ -117,38 +116,6 @@ impl<T: SecuredAction> From<T> for ResourceRef {
         action.resource().into()
     }
 }
-
-/// Convert a specific recorce type to and from the container type `Resource`
-macro_rules! impl_resource_conversions {
-    ($($type:ty),* $(,)?) => {
-        $(
-            impl From<$type> for Resource {
-                fn from(value: $type) -> Self {
-                    paste!{ Resource::[<$type>](value) }
-                }
-            }
-
-            impl TryFrom<Resource> for $type {
-                type Error = Error;
-
-                fn try_from(resource: Resource) -> Result<Self, Self::Error> {
-                    match resource {
-                        paste!{ Resource::[<$type>](value) } => Ok(value),
-                        _ => Err(Error::generic(concat!("Resource is not a ", stringify!($type)))),
-                    }
-                }
-            }
-        )*
-    };
-}
-impl_resource_conversions!(
-    ShareInfo,
-    SharingSchemaInfo,
-    Credential,
-    StorageLocation,
-    CatalogInfo,
-    SchemaInfo
-);
 
 /// Conversions from more specific types to reduced info sharing API types
 impl TryFrom<Resource> for Share {

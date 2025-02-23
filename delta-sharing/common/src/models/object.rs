@@ -4,9 +4,10 @@ use uuid::Uuid;
 
 use super::ResourceExt;
 use crate::models::{
-    CatalogInfo, SchemaInfo, ShareInfo, SharingSchemaInfo, SharingTable, StorageLocation, TableInfo,
+    CatalogInfo, Credential, SchemaInfo, ShareInfo, SharingSchemaInfo, SharingTable,
+    StorageLocation, TableInfo,
 };
-use crate::{Error, ObjectLabel, Resource, ResourceIdent, ResourceName, ResourceRef};
+use crate::{Error, ObjectLabel, Resource, ResourceName, ResourceRef};
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
@@ -40,13 +41,6 @@ impl ResourceExt for Object {
 
     fn resource_ref(&self) -> ResourceRef {
         ResourceRef::Uuid(self.id)
-    }
-}
-
-impl Object {
-    pub fn resource_ident(&self) -> ResourceIdent {
-        let id = ResourceRef::Uuid(self.id);
-        self.label.to_ident(id)
     }
 }
 
@@ -133,4 +127,5 @@ object_conversions!(
     CatalogInfo, ObjectLabel::CatalogInfo, id, [name], true;
     SchemaInfo, ObjectLabel::SchemaInfo, schema_id, [catalog_name, name], true;
     TableInfo, ObjectLabel::TableInfo, table_id, [catalog_name, schema_name, name], true;
+    Credential, ObjectLabel::Credential, id, [name];
 );

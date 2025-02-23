@@ -133,6 +133,29 @@ pub(crate) fn to_object(obj: &ObjectDef) -> proc_macro2::TokenStream {
     }
 }
 
+pub(crate) fn to_resource(obj: &ObjectDef) -> proc_macro2::TokenStream {
+    let object_ty = &obj.ty;
+
+    quote! {
+        impl From<#object_ty> for Resource {
+            fn from(obj: #object_ty) -> Self {
+                Resource::#object_ty(obj)
+            }
+        }
+
+        impl TryFrom<Resource> for #object_ty {
+            type Error = Error;
+
+            fn try_from(resource: Resource) -> Result<Self, Self::Error> {
+                match resource {
+                    Resource::#object_ty(value) => Ok(value),
+                    _ => Err(Error::generic(concat!("Resource is not a ", stringify!(#object_ty)))),
+                }
+            }
+        }
+    }
+}
+
 pub(crate) fn resource_impl(obj: &ObjectDef) -> proc_macro2::TokenStream {
     let object_ty = &obj.ty;
     let label = &obj.label;
