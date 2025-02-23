@@ -58,7 +58,7 @@ pub fn rest_handlers(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
     let input = parse_macro_input!(input as HandlerParams);
     let handler_type = input.handler_type;
 
-    let actions = input.handlers.iter().map(|handler| to_action(handler));
+    let actions = input.handlers.iter().map(to_action);
 
     // Generate handler functions
     let handlers = input
@@ -96,16 +96,16 @@ pub fn rest_handlers(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 pub fn object_conversions(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as ObjectDefs);
 
-    let to_object_impls = input.defs.iter().map(|object_def| to_object(object_def));
-    let from_object_impls = input.defs.iter().map(|object_def| from_object(object_def));
+    let to_object_impls = input.defs.iter().map(to_object);
+    let from_object_impls = input.defs.iter().map(from_object);
 
     // Generate resource impls
     let resource_impls = input
         .defs
         .iter()
-        .map(|object_def| resource_impl(object_def));
+        .map(resource_impl);
 
-    let to_resource_impls = input.defs.iter().map(|object_def| to_resource(object_def));
+    let to_resource_impls = input.defs.iter().map(to_resource);
 
     let expanded = quote! {
         #(#to_object_impls)*

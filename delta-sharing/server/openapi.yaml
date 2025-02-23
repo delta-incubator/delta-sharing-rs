@@ -299,7 +299,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StorageLocation'
+              $ref: '#/components/schemas/CreateStorageLocationRequest'
         required: true
       responses:
         '200':
@@ -1075,6 +1075,29 @@ components:
         properties:
           type: object
       description: Create a new Share in the Delta Sharing service.
+    CreateStorageLocationRequest:
+      required:
+        - name
+        - url
+        - type
+        - credential
+      type: object
+      properties:
+        name:
+          type: string
+          description: Storage location to create.
+        url:
+          type: string
+        type:
+          type: integer
+          format: enum
+        credential:
+          type: string
+        description:
+          type: string
+        properties:
+          type: object
+      description: Create a new storage location
     Credential:
       required:
         - name
@@ -1554,6 +1577,26 @@ components:
           type: string
         properties:
           type: object
+        owner:
+          readOnly: true
+          type: string
+          description: Username of current owner of storage location.
+        createAt:
+          readOnly: true
+          type: string
+          description: Time at which this storage location was created, in epoch milliseconds.
+        createdBy:
+          readOnly: true
+          type: string
+          description: Username of storage location creator.
+        updateAt:
+          readOnly: true
+          type: string
+          description: Time at which this storage location was last updated, in epoch milliseconds.
+        updatedBy:
+          readOnly: true
+          type: string
+          description: Username of user who last modified storage location.
     UpdateCatalogRequest:
       required:
         - name

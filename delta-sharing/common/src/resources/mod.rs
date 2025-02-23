@@ -185,7 +185,7 @@ impl From<&ResourceIdent> for ResourceRef {
 
 impl From<&ResourceIdent> for ObjectLabel {
     fn from(ident: &ResourceIdent) -> Self {
-        (ident as &dyn AsRef<ObjectLabel>).as_ref().clone()
+        *(ident as &dyn AsRef<ObjectLabel>).as_ref()
     }
 }
 

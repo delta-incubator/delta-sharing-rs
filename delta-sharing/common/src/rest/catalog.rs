@@ -19,17 +19,122 @@ pub fn get_router<T: CatalogHandler + Clone>(handler: T) -> Router {
 }
 
 #[cfg(any(test, feature = "integration"))]
-mod integration {
+pub(crate) mod integration {
+    use super::super::integration::{collect_body, create_request};
     use super::*;
     use crate::models::catalog::v1::*;
     use axum::{
         body::Body,
         http::{self, Method, Request, StatusCode},
     };
-    use http_body_util::BodyExt;
     use tower::ServiceExt;
 
+    // TODO: test un-happy paths ... missing fields, etc
+    //
     pub async fn test_catalog_router(app: Router) {
+        test_catalog_router_crud(app.clone()).await;
+        test_catalog_router_list(app.clone()).await;
+    }
+
+    // validate that the catalog router can list catalogs and works with page / limits
+    async fn test_catalog_router_list(app: Router) {
+        let list_catalogs = create_request(Method::GET, "/catalogs", None::<()>);
+        let list_catalogs_response = app.clone().oneshot(list_catalogs).await.unwrap();
+        assert_eq!(list_catalogs_response.status(), StatusCode::OK);
+        let body: ListCatalogsResponse = collect_body(list_catalogs_response).await;
+        assert_eq!(body.catalogs.len(), 0);
+
+        // create a catalog
+        let catalog = CatalogInfo {
+            name: "test".to_string(),
+            comment: Some("test catalog".to_string()),
+            ..Default::default()
+        };
+        let create_catalog = create_request(Method::POST, "/catalogs", Some(catalog));
+        let create_catalog_response = app.clone().oneshot(create_catalog).await.unwrap();
+        assert_eq!(create_catalog_response.status(), StatusCode::OK);
+
+        // list catalogs
+        let list_catalogs = create_request(Method::GET, "/catalogs", None::<()>);
+        let list_catalogs_response = app.clone().oneshot(list_catalogs).await.unwrap();
+        assert_eq!(list_catalogs_response.status(), StatusCode::OK);
+        let body: ListCatalogsResponse = collect_body(list_catalogs_response).await;
+        assert_eq!(body.catalogs.len(), 1);
+
+        // create a schema
+        let schema = SchemaInfo {
+            name: "test".to_string(),
+            catalog_name: "test".to_string(),
+            comment: Some("test schema".to_string()),
+            ..Default::default()
+        };
+        let create_schema = create_request(Method::POST, "/schemas", Some(schema));
+        let create_schema_response = app.clone().oneshot(create_schema).await.unwrap();
+        assert_eq!(create_schema_response.status(), StatusCode::OK);
+
+        // list schemas
+        let list_schemas = create_request(Method::GET, "/schemas?catalog_name=test", None::<()>);
+        let list_schemas_response = app.clone().oneshot(list_schemas).await.unwrap();
+        assert_eq!(list_schemas_response.status(), StatusCode::OK);
+        let body: ListSchemasResponse = collect_body(list_schemas_response).await;
+        assert_eq!(body.schemas.len(), 1);
+
+        // create some more schemas
+        let schema = SchemaInfo {
+            name: "test2".to_string(),
+            catalog_name: "test".to_string(),
+            comment: Some("test schema".to_string()),
+            ..Default::default()
+        };
+        let create_schema = create_request(Method::POST, "/schemas", Some(schema));
+        let create_schema_response = app.clone().oneshot(create_schema).await.unwrap();
+        assert_eq!(create_schema_response.status(), StatusCode::OK);
+
+        let schema = SchemaInfo {
+            name: "test3".to_string(),
+            catalog_name: "test".to_string(),
+            comment: Some("test schema".to_string()),
+            ..Default::default()
+        };
+        let create_schema = create_request(Method::POST, "/schemas", Some(schema));
+        let create_schema_response = app.clone().oneshot(create_schema).await.unwrap();
+        assert_eq!(create_schema_response.status(), StatusCode::OK);
+
+        // list schemas
+        let list_schemas = create_request(Method::GET, "/schemas?catalog_name=test", None::<()>);
+        let list_schemas_response = app.clone().oneshot(list_schemas).await.unwrap();
+        assert_eq!(list_schemas_response.status(), StatusCode::OK);
+        let body: ListSchemasResponse = collect_body(list_schemas_response).await;
+        assert_eq!(body.schemas.len(), 3);
+
+        // list schemas with limit
+        let list_schemas = create_request(
+            Method::GET,
+            "/schemas?catalog_name=test&max_results=2",
+            None::<()>,
+        );
+        let list_schemas_response = app.clone().oneshot(list_schemas).await.unwrap();
+        assert_eq!(list_schemas_response.status(), StatusCode::OK);
+        let body: ListSchemasResponse = collect_body(list_schemas_response).await;
+        assert_eq!(body.schemas.len(), 2);
+        let next_page_token = body.next_page_token.unwrap();
+
+        // list schemas with limit and page
+        let list_schemas = create_request(
+            Method::GET,
+            &format!(
+                "/schemas?catalog_name=test&max_results=2&page_token={}",
+                next_page_token
+            ),
+            None::<()>,
+        );
+        let list_schemas_response = app.clone().oneshot(list_schemas).await.unwrap();
+        assert_eq!(list_schemas_response.status(), StatusCode::OK);
+        let body: ListSchemasResponse = collect_body(list_schemas_response).await;
+        assert_eq!(body.schemas.len(), 1);
+    }
+
+    async fn test_catalog_router_crud(app: Router) {
         let catalog = CatalogInfo {
             name: "test".to_string(),
             comment: Some("test catalog".to_string()),
@@ -45,13 +150,7 @@ mod integration {
             .unwrap();
         let create_catalog_response = app.clone().oneshot(create_catalog).await.unwrap();
         assert_eq!(create_catalog_response.status(), StatusCode::OK);
-        let body = create_catalog_response
-            .into_body()
-            .collect()
-            .await
-            .unwrap()
-            .to_bytes();
-        let body: CatalogInfo = serde_json::from_slice(&body).unwrap();
+        let body: CatalogInfo = collect_body(create_catalog_response).await;
         assert_eq!(body.name, catalog.name);
         assert_eq!(body.comment, catalog.comment);
 
@@ -63,13 +162,7 @@ mod integration {
             .unwrap();
         let list_catalogs_response = app.clone().oneshot(list_catalogs).await.unwrap();
         assert_eq!(list_catalogs_response.status(), StatusCode::OK);
-        let body = list_catalogs_response
-            .into_body()
-            .collect()
-            .await
-            .unwrap()
-            .to_bytes();
-        let body: ListCatalogsResponse = serde_json::from_slice(&body).unwrap();
+        let body: ListCatalogsResponse = collect_body(list_catalogs_response).await;
         assert_eq!(body.catalogs.len(), 1);
         assert_eq!(body.catalogs[0].name, catalog.name);
 
@@ -81,13 +174,7 @@ mod integration {
             .unwrap();
         let get_catalog_response = app.clone().oneshot(get_catalog).await.unwrap();
         assert_eq!(get_catalog_response.status(), StatusCode::OK);
-        let body = get_catalog_response
-            .into_body()
-            .collect()
-            .await
-            .unwrap()
-            .to_bytes();
-        let body: CatalogInfo = serde_json::from_slice(&body).unwrap();
+        let body: CatalogInfo = collect_body(get_catalog_response).await;
         assert_eq!(body.name, catalog.name);
 
         // update catalog
@@ -105,13 +192,7 @@ mod integration {
             .unwrap();
         let update_catalog_response = app.clone().oneshot(update_catalog).await.unwrap();
         assert_eq!(update_catalog_response.status(), StatusCode::OK);
-        let body = update_catalog_response
-            .into_body()
-            .collect()
-            .await
-            .unwrap()
-            .to_bytes();
-        let body: CatalogInfo = serde_json::from_slice(&body).unwrap();
+        let body: CatalogInfo = collect_body(update_catalog_response).await;
         assert_eq!(body.name, new_catalog.new_name);
         assert_eq!(body.comment, new_catalog.comment);
 
@@ -123,13 +204,7 @@ mod integration {
             .unwrap();
         let get_catalog_response = app.clone().oneshot(get_catalog).await.unwrap();
         assert_eq!(get_catalog_response.status(), StatusCode::OK);
-        let body = get_catalog_response
-            .into_body()
-            .collect()
-            .await
-            .unwrap()
-            .to_bytes();
-        let body: CatalogInfo = serde_json::from_slice(&body).unwrap();
+        let body: CatalogInfo = collect_body(get_catalog_response).await;
         assert_eq!(body.name, new_catalog.new_name);
 
         // create a schema
@@ -147,13 +222,7 @@ mod integration {
             .unwrap();
         let create_schema_response = app.clone().oneshot(create_schema).await.unwrap();
         assert_eq!(create_schema_response.status(), StatusCode::OK);
-        let body = create_schema_response
-            .into_body()
-            .collect()
-            .await
-            .unwrap()
-            .to_bytes();
-        let body: SchemaInfo = serde_json::from_slice(&body).unwrap();
+        let body: SchemaInfo = collect_body(create_schema_response).await;
         assert_eq!(body.name, schema.name);
         assert_eq!(body.catalog_name, schema.catalog_name);
         assert_eq!(body.comment, schema.comment);
@@ -166,13 +235,7 @@ mod integration {
             .unwrap();
         let list_schemas_response = app.clone().oneshot(list_schemas).await.unwrap();
         assert_eq!(list_schemas_response.status(), StatusCode::OK);
-        let body = list_schemas_response
-            .into_body()
-            .collect()
-            .await
-            .unwrap()
-            .to_bytes();
-        let body: ListSchemasResponse = serde_json::from_slice(&body).unwrap();
+        let body: ListSchemasResponse = collect_body(list_schemas_response).await;
         assert_eq!(body.schemas.len(), 1);
         assert_eq!(body.schemas[0].name, schema.name);
 
@@ -184,13 +247,7 @@ mod integration {
             .unwrap();
         let get_schema_response = app.clone().oneshot(get_schema).await.unwrap();
         assert_eq!(get_schema_response.status(), StatusCode::OK);
-        let body = get_schema_response
-            .into_body()
-            .collect()
-            .await
-            .unwrap()
-            .to_bytes();
-        let body: SchemaInfo = serde_json::from_slice(&body).unwrap();
+        let body: SchemaInfo = collect_body(get_schema_response).await;
         assert_eq!(body.name, schema.name);
 
         // update schema
@@ -208,13 +265,7 @@ mod integration {
             .unwrap();
         let update_schema_response = app.clone().oneshot(update_schema).await.unwrap();
         assert_eq!(update_schema_response.status(), StatusCode::OK);
-        let body = update_schema_response
-            .into_body()
-            .collect()
-            .await
-            .unwrap()
-            .to_bytes();
-        let body: SchemaInfo = serde_json::from_slice(&body).unwrap();
+        let body: SchemaInfo = collect_body(update_schema_response).await;
         assert_eq!(body.name, new_schema.new_name);
         assert_eq!(body.comment, new_schema.comment);
 
@@ -253,49 +304,5 @@ mod integration {
             .unwrap();
         let get_catalog_response = app.clone().oneshot(get_catalog).await.unwrap();
         assert_eq!(get_catalog_response.status(), StatusCode::NOT_FOUND);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::memory::InMemoryResourceStore;
-    use crate::policy::ConstantPolicy;
-    use crate::rest::auth::{AnonymousAuthenticator, AuthenticationLayer};
-    use crate::{Policy, ProvidesPolicy, ProvidesResourceStore, ResourceStore};
-    use std::sync::Arc;
-
-    #[derive(Clone)]
-    struct Handler {
-        store: InMemoryResourceStore,
-        policy: Arc<dyn Policy>,
-    }
-
-    impl Default for Handler {
-        fn default() -> Self {
-            Self {
-                store: InMemoryResourceStore::new(),
-                policy: Arc::new(ConstantPolicy::default()),
-            }
-        }
-    }
-
-    impl ProvidesResourceStore for Handler {
-        fn store(&self) -> &dyn ResourceStore {
-            &self.store
-        }
-    }
-
-    impl ProvidesPolicy for Handler {
-        fn policy(&self) -> &Arc<dyn Policy> {
-            &self.policy
-        }
-    }
-
-    #[tokio::test]
-    async fn test_catalog_router() {
-        let app =
-            get_router(Handler::default()).layer(AuthenticationLayer::new(AnonymousAuthenticator));
-        super::integration::test_catalog_router(app).await;
     }
 }

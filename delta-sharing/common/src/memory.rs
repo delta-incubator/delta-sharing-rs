@@ -50,8 +50,8 @@ impl InMemoryResourceStore {
         }
         let map = self
             .id_map
-            .entry(label.clone())
-            .or_insert_with(DashMap::new);
+            .entry(*label)
+            .or_default();
         let uuid = Uuid::now_v7();
         map.insert(name.clone(), uuid);
         Ok(uuid)
@@ -131,8 +131,8 @@ impl ResourceStore for InMemoryResourceStore {
                 .get(existing.resource_label())
                 .and_then(|map| map.value().remove(&existing.resource_name()));
             self.id_map
-                .entry(resource.resource_label().clone())
-                .or_insert_with(DashMap::new)
+                .entry(*resource.resource_label())
+                .or_default()
                 .insert(resource.resource_name().clone(), uuid);
         } else if existing.resource_name() != resource.resource_name() {
             self.id_map
@@ -205,13 +205,13 @@ impl ResourceStore for InMemoryResourceStore {
         let map = self
             .associations
             .entry(label.clone())
-            .or_insert_with(DashMap::new);
+            .or_default();
         map.insert(from_uuid, (to_uuid, properties.clone()));
         if let Some(inverse) = label.inverse() {
             let inverse_map = self
                 .associations
                 .entry(inverse)
-                .or_insert_with(DashMap::new);
+                .or_default();
             inverse_map.insert(to_uuid, (from_uuid, properties.clone()));
         }
         Ok(())
