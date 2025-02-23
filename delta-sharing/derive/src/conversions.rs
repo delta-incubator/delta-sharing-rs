@@ -134,3 +134,42 @@ pub(crate) fn to_object(obj: &ObjectDef) -> proc_macro2::TokenStream {
         }
     }
 }
+
+pub(crate) fn resource_impl(obj: &ObjectDef) -> proc_macro2::TokenStream {
+    let object_ty = &obj.ty;
+    let label = &obj.label;
+    let path_names = &obj.path_names;
+    let id_field_name = &obj.name;
+
+    let resource_ref = if obj.is_optional {
+        quote! {
+            self
+                .#id_field_name
+                .as_ref()
+                .and_then(|id| ::uuid::Uuid::parse_str(id).ok())
+                .map(|id| ResourceRef::Uuid(id))
+                .unwrap_or_else(|| ResourceRef::Name(self.resource_name()))
+        }
+    } else {
+        quote! {
+            ::uuid::Uuid::parse_str(&self.#id_field_name)
+                .ok()
+                .map(|id| ResourceRef::Uuid(id))
+                .unwrap_or_else(|| ResourceRef::Name(self.resource_name()))
+        }
+    };
+
+    quote! {
+        impl ResourceExt for #object_ty {
+            fn resource_label(&self) -> &ObjectLabel {
+                &#label
+            }
+            fn resource_name(&self) -> ResourceName {
+                ResourceName::new([#(&self.#path_names),*])
+            }
+            fn resource_ref(&self) -> ResourceRef {
+                #resource_ref
+            }
+        }
+    }
+}

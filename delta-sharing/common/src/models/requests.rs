@@ -76,12 +76,12 @@ impl_secured_action!(
     ),
     (
         ListSharesRequest,
-        |_| ResourceIdent::Share(ResourceRef::Undefined),
+        |_| ResourceIdent::share(ResourceRef::Undefined),
         Permission::Create
     ),
     (
         CreateShareRequest,
-        |_| ResourceIdent::Share(ResourceRef::Undefined),
+        |_| ResourceIdent::share(ResourceRef::Undefined),
         Permission::Create
     ),
     (
@@ -101,7 +101,7 @@ impl_secured_action!(
     ),
     (
         CreateCredentialRequest,
-        |_| ResourceIdent::Credential(ResourceRef::Undefined),
+        |_| ResourceIdent::credential(ResourceRef::Undefined),
         Permission::Create
     ),
     (
@@ -116,7 +116,7 @@ impl_secured_action!(
     ),
     (
         CreateStorageLocationRequest,
-        |_| ResourceIdent::StorageLocation(ResourceRef::Undefined),
+        |_| ResourceIdent::storage_location(ResourceRef::Undefined),
         Permission::Create
     ),
     (
@@ -131,12 +131,12 @@ impl_secured_action!(
     ),
     (
         ListStorageLocationsRequest,
-        |_| ResourceIdent::StorageLocation(ResourceRef::Undefined),
+        |_| ResourceIdent::storage_location(ResourceRef::Undefined),
         Permission::Read
     ),
     (
         CreateCatalogRequest,
-        |_| ResourceIdent::Catalog(ResourceRef::Undefined),
+        |_| ResourceIdent::catalog(ResourceRef::Undefined),
         Permission::Create
     ),
     (
@@ -156,7 +156,7 @@ impl_secured_action!(
     ),
     (
         ListCatalogsRequest,
-        |_| ResourceIdent::Catalog(ResourceRef::Undefined),
+        |_| ResourceIdent::catalog(ResourceRef::Undefined),
         Permission::Read
     ),
     (

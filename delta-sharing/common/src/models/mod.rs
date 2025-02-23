@@ -9,10 +9,12 @@ use crate::{
 
 pub use credentials::v1::{Credential, StorageLocation};
 pub use internal::resource::{ObjectLabel, Resource};
+pub use object::*;
 pub use properties::*;
 pub use requests::*;
 pub use tables::v1::TableInfo;
 
+mod object;
 mod properties;
 pub(crate) mod requests;
 
@@ -77,6 +79,15 @@ impl ObjectLabel {
             ObjectLabel::SchemaInfo => ResourceIdent::schema(id),
             ObjectLabel::TableInfo => ResourceIdent::table(id),
         }
+    }
+}
+
+pub trait ResourceExt {
+    fn resource_label(&self) -> &ObjectLabel;
+    fn resource_name(&self) -> ResourceName;
+    fn resource_ref(&self) -> ResourceRef;
+    fn resource_ident(&self) -> ResourceIdent {
+        self.resource_label().to_ident(self.resource_ref())
     }
 }
 

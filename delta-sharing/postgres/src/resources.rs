@@ -1,11 +1,11 @@
 use delta_sharing_common::models::PropertyMap;
 use delta_sharing_common::{
-    AssociationLabel, Error, IntoJson, ObjectLabel, Resource, ResourceIdent, ResourceName,
+    AssociationLabel, Error, IntoJson, Object, ObjectLabel, Resource, ResourceIdent, ResourceName,
     ResourceRef, ResourceStore, Result, EMPTY_RESOURCE_NAME,
 };
 use itertools::Itertools;
 
-use crate::{GraphStore, Object};
+use crate::GraphStore;
 
 pub trait IdentRefs {
     fn ident(&self) -> (&ObjectLabel, &ResourceRef);

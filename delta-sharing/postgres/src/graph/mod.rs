@@ -1,6 +1,4 @@
-use delta_sharing_common::{
-    AssociationLabel, ObjectLabel, ResourceIdent, ResourceName, ResourceRef,
-};
+use delta_sharing_common::{AssociationLabel, Object, ObjectLabel, ResourceIdent, ResourceRef};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -9,47 +7,10 @@ mod store;
 
 pub use store::Store as GraphStore;
 
-#[derive(Debug, Deserialize, Serialize, PartialEq, sqlx::FromRow)]
-pub struct Object {
-    /// The globally unique identifier of the object.
-    pub id: Uuid,
-
-    /// The label / type of the object.
-    pub label: ObjectLabel,
-
-    /// The namespaced name of the object.
-    pub name: ResourceName,
-
-    /// The properties of the object.
-    pub properties: Option<serde_json::Value>,
-
-    /// The time when the object was created.
-    pub created_at: chrono::DateTime<chrono::Utc>,
-
-    /// The time when the object was last updated.
-    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
-}
-
 pub struct ObjectRelations {
     pub owner: Option<Uuid>,
     pub created_by: Option<Uuid>,
     pub updated_by: Option<Uuid>,
-}
-
-impl Object {
-    pub fn resource_ident(&self) -> ResourceIdent {
-        let id = ResourceRef::Uuid(self.id);
-        match self.label {
-            ObjectLabel::ShareInfo => ResourceIdent::Share(id),
-            ObjectLabel::SharingSchemaInfo => ResourceIdent::Schema(id),
-            ObjectLabel::SharingTable => ResourceIdent::SharingTable(id),
-            ObjectLabel::Credential => ResourceIdent::Credential(id),
-            ObjectLabel::StorageLocation => ResourceIdent::StorageLocation(id),
-            ObjectLabel::CatalogInfo => ResourceIdent::Catalog(id),
-            ObjectLabel::SchemaInfo => ResourceIdent::Schema(id),
-            ObjectLabel::TableInfo => ResourceIdent::Table(id),
-        }
-    }
 }
 
 /// Associations describe relationships between two objects.
