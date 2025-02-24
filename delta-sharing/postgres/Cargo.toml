@@ -36,9 +36,14 @@ uuid = { version = "1.8", features = ["serde"] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt-multi-thread", "parking_lot"] }
+delta-sharing-common = { path = "../common", default-features = false, features = [
+    "sqlx",
+    "axum",
+] }
 
 [features]
+default = []
 # feature flags for integration tests
 # running integration tests requires a running PostgreSQL instance
 # and DATABASE_URL environment variable set
-integration-pg = []
+integration-pg = ["delta-sharing-common/integration"]

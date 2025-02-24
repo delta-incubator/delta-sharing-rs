@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            UPDATE objects\n            SET properties = $2\n            WHERE id = $1\n            RETURNING\n                id,\n                label AS \"label: ObjectLabel\",\n                name,\n                properties,\n                created_at,\n                updated_at\n            ",
+  "query": "\n            UPDATE objects\n            SET\n                label = COALESCE($2, label),\n                name = COALESCE($3, name),\n                properties = COALESCE($4, properties)\n            WHERE id = $1\n            RETURNING\n                id,\n                label AS \"label: ObjectLabel\",\n                name,\n                properties,\n                created_at,\n                updated_at\n            ",
   "describe": {
     "columns": [
       {
@@ -53,6 +53,24 @@
     "parameters": {
       "Left": [
         "Uuid",
+        {
+          "Custom": {
+            "name": "object_label",
+            "kind": {
+              "Enum": [
+                "share_info",
+                "sharing_schema_info",
+                "sharing_table",
+                "credential",
+                "storage_location",
+                "catalog_info",
+                "schema_info",
+                "table_info"
+              ]
+            }
+          }
+        },
+        "TextArray",
         "Jsonb"
       ]
     },
@@ -65,5 +83,5 @@
       true
     ]
   },
-  "hash": "14811707fe39204a4e9a3cb00fb5ed765c9f39335d204dd9574e76e28616eabd"
+  "hash": "2ffd1ce40de559df743970280b773de0d6752273c19eefc3d372baed1d38faa0"
 }

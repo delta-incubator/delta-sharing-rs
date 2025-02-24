@@ -1,3 +1,9 @@
+//! Storage layer for managing objects and associations.
+//!
+//! Lossely based on the data model applied in Meta's [TAO].
+//!
+//! [TAO]: https://www.usenix.org/system/files/conference/atc13/atc13-bronson.pdf
+
 use std::sync::Arc;
 
 use delta_sharing_common::{ResourceIdent, ResourceRef};
@@ -33,13 +39,27 @@ impl Store {
         Ok(())
     }
 
-    pub async fn ident_to_uuid(&self, reference: &ResourceIdent) -> Result<Uuid> {
+    /// Convert a resource reference to a UUID.
+    ///
+    /// If the reference is a name, the corresponding object is fetched from the store.
+    /// to get the UUID. The object is returned as well in case it is needed later
+    /// to avoid an additional fetch.
+    ///
+    /// # Parameters
+    /// - `reference`: The reference to convert.
+    ///
+    /// # Returns
+    /// The UUID of the reference and the object if the reference is a name.
+    ///
+    /// # Errors
+    /// In case of an undefined reference, an error is returned.
+    pub async fn ident_to_uuid(&self, reference: &ResourceIdent) -> Result<(Uuid, Option<Object>)> {
         let (label, ident) = reference.ident();
         match ident {
-            ResourceRef::Uuid(id) => Ok(*id),
+            ResourceRef::Uuid(id) => Ok((*id, None)),
             ResourceRef::Name(name) => {
                 let object = self.get_object_by_name(label, name).await?;
-                Ok(object.id)
+                Ok((object.id, Some(object)))
             }
             ResourceRef::Undefined => Err(crate::Error::entity_not_found("undefined")),
         }
@@ -166,13 +186,18 @@ impl Store {
     pub async fn update_object(
         &self,
         id: &Uuid,
+        new_label: impl Into<Option<&ObjectLabel>>,
+        new_name: impl Into<Option<&[String]>>,
         properties: impl Into<Option<serde_json::Value>>,
     ) -> Result<Object> {
         Ok(sqlx::query_as!(
             Object,
             r#"
             UPDATE objects
-            SET properties = $2
+            SET
+                label = COALESCE($2, label),
+                name = COALESCE($3, name),
+                properties = COALESCE($4, properties)
             WHERE id = $1
             RETURNING
                 id,
@@ -183,6 +208,8 @@ impl Store {
                 updated_at
             "#,
             id,
+            new_label.into() as Option<&ObjectLabel>,
+            new_name.into(),
             properties.into()
         )
         .fetch_one(&*self.pool)

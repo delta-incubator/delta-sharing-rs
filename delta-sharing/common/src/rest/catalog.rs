@@ -42,7 +42,11 @@ pub(crate) mod integration {
         let list_catalogs_response = app.clone().oneshot(list_catalogs).await.unwrap();
         assert_eq!(list_catalogs_response.status(), StatusCode::OK);
         let body: ListCatalogsResponse = collect_body(list_catalogs_response).await;
-        assert_eq!(body.catalogs.len(), 0);
+        assert_eq!(
+            body.catalogs.len(),
+            0,
+            "expected no catalogs on initial list"
+        );
 
         // create a catalog
         let catalog = CatalogInfo {
@@ -52,12 +56,20 @@ pub(crate) mod integration {
         };
         let create_catalog = create_request(Method::POST, "/catalogs", Some(catalog));
         let create_catalog_response = app.clone().oneshot(create_catalog).await.unwrap();
-        assert_eq!(create_catalog_response.status(), StatusCode::OK);
+        assert_eq!(
+            create_catalog_response.status(),
+            StatusCode::OK,
+            "create catalog"
+        );
 
         // list catalogs
         let list_catalogs = create_request(Method::GET, "/catalogs", None::<()>);
         let list_catalogs_response = app.clone().oneshot(list_catalogs).await.unwrap();
-        assert_eq!(list_catalogs_response.status(), StatusCode::OK);
+        assert_eq!(
+            list_catalogs_response.status(),
+            StatusCode::OK,
+            "list catalogs"
+        );
         let body: ListCatalogsResponse = collect_body(list_catalogs_response).await;
         assert_eq!(body.catalogs.len(), 1);
 
@@ -70,12 +82,20 @@ pub(crate) mod integration {
         };
         let create_schema = create_request(Method::POST, "/schemas", Some(schema));
         let create_schema_response = app.clone().oneshot(create_schema).await.unwrap();
-        assert_eq!(create_schema_response.status(), StatusCode::OK);
+        assert_eq!(
+            create_schema_response.status(),
+            StatusCode::OK,
+            "create schema"
+        );
 
         // list schemas
         let list_schemas = create_request(Method::GET, "/schemas?catalog_name=test", None::<()>);
         let list_schemas_response = app.clone().oneshot(list_schemas).await.unwrap();
-        assert_eq!(list_schemas_response.status(), StatusCode::OK);
+        assert_eq!(
+            list_schemas_response.status(),
+            StatusCode::OK,
+            "list schemas"
+        );
         let body: ListSchemasResponse = collect_body(list_schemas_response).await;
         assert_eq!(body.schemas.len(), 1);
 
@@ -103,7 +123,11 @@ pub(crate) mod integration {
         // list schemas
         let list_schemas = create_request(Method::GET, "/schemas?catalog_name=test", None::<()>);
         let list_schemas_response = app.clone().oneshot(list_schemas).await.unwrap();
-        assert_eq!(list_schemas_response.status(), StatusCode::OK);
+        assert_eq!(
+            list_schemas_response.status(),
+            StatusCode::OK,
+            "list schemas"
+        );
         let body: ListSchemasResponse = collect_body(list_schemas_response).await;
         assert_eq!(body.schemas.len(), 3);
 
@@ -114,7 +138,11 @@ pub(crate) mod integration {
             None::<()>,
         );
         let list_schemas_response = app.clone().oneshot(list_schemas).await.unwrap();
-        assert_eq!(list_schemas_response.status(), StatusCode::OK);
+        assert_eq!(
+            list_schemas_response.status(),
+            StatusCode::OK,
+            "list schemas with limit"
+        );
         let body: ListSchemasResponse = collect_body(list_schemas_response).await;
         assert_eq!(body.schemas.len(), 2);
         let next_page_token = body.next_page_token.unwrap();
@@ -129,7 +157,11 @@ pub(crate) mod integration {
             None::<()>,
         );
         let list_schemas_response = app.clone().oneshot(list_schemas).await.unwrap();
-        assert_eq!(list_schemas_response.status(), StatusCode::OK);
+        assert_eq!(
+            list_schemas_response.status(),
+            StatusCode::OK,
+            "list schemas with page"
+        );
         let body: ListSchemasResponse = collect_body(list_schemas_response).await;
         assert_eq!(body.schemas.len(), 1);
     }
@@ -149,7 +181,11 @@ pub(crate) mod integration {
             .body(Body::from(serde_json::to_vec(&catalog).unwrap()))
             .unwrap();
         let create_catalog_response = app.clone().oneshot(create_catalog).await.unwrap();
-        assert_eq!(create_catalog_response.status(), StatusCode::OK);
+        assert_eq!(
+            create_catalog_response.status(),
+            StatusCode::OK,
+            "create catalog"
+        );
         let body: CatalogInfo = collect_body(create_catalog_response).await;
         assert_eq!(body.name, catalog.name);
         assert_eq!(body.comment, catalog.comment);
@@ -161,7 +197,11 @@ pub(crate) mod integration {
             .body(Body::empty())
             .unwrap();
         let list_catalogs_response = app.clone().oneshot(list_catalogs).await.unwrap();
-        assert_eq!(list_catalogs_response.status(), StatusCode::OK);
+        assert_eq!(
+            list_catalogs_response.status(),
+            StatusCode::OK,
+            "list catalogs"
+        );
         let body: ListCatalogsResponse = collect_body(list_catalogs_response).await;
         assert_eq!(body.catalogs.len(), 1);
         assert_eq!(body.catalogs[0].name, catalog.name);
@@ -173,7 +213,7 @@ pub(crate) mod integration {
             .body(Body::empty())
             .unwrap();
         let get_catalog_response = app.clone().oneshot(get_catalog).await.unwrap();
-        assert_eq!(get_catalog_response.status(), StatusCode::OK);
+        assert_eq!(get_catalog_response.status(), StatusCode::OK, "get catalog");
         let body: CatalogInfo = collect_body(get_catalog_response).await;
         assert_eq!(body.name, catalog.name);
 
@@ -191,7 +231,11 @@ pub(crate) mod integration {
             .body(Body::from(serde_json::to_vec(&new_catalog).unwrap()))
             .unwrap();
         let update_catalog_response = app.clone().oneshot(update_catalog).await.unwrap();
-        assert_eq!(update_catalog_response.status(), StatusCode::OK);
+        assert_eq!(
+            update_catalog_response.status(),
+            StatusCode::OK,
+            "update catalog"
+        );
         let body: CatalogInfo = collect_body(update_catalog_response).await;
         assert_eq!(body.name, new_catalog.new_name);
         assert_eq!(body.comment, new_catalog.comment);
@@ -203,7 +247,11 @@ pub(crate) mod integration {
             .body(Body::empty())
             .unwrap();
         let get_catalog_response = app.clone().oneshot(get_catalog).await.unwrap();
-        assert_eq!(get_catalog_response.status(), StatusCode::OK);
+        assert_eq!(
+            get_catalog_response.status(),
+            StatusCode::OK,
+            "get updated catalog"
+        );
         let body: CatalogInfo = collect_body(get_catalog_response).await;
         assert_eq!(body.name, new_catalog.new_name);
 
@@ -221,7 +269,11 @@ pub(crate) mod integration {
             .body(Body::from(serde_json::to_vec(&schema).unwrap()))
             .unwrap();
         let create_schema_response = app.clone().oneshot(create_schema).await.unwrap();
-        assert_eq!(create_schema_response.status(), StatusCode::OK);
+        assert_eq!(
+            create_schema_response.status(),
+            StatusCode::OK,
+            "create schema"
+        );
         let body: SchemaInfo = collect_body(create_schema_response).await;
         assert_eq!(body.name, schema.name);
         assert_eq!(body.catalog_name, schema.catalog_name);
@@ -234,7 +286,11 @@ pub(crate) mod integration {
             .body(Body::empty())
             .unwrap();
         let list_schemas_response = app.clone().oneshot(list_schemas).await.unwrap();
-        assert_eq!(list_schemas_response.status(), StatusCode::OK);
+        assert_eq!(
+            list_schemas_response.status(),
+            StatusCode::OK,
+            "list schemas"
+        );
         let body: ListSchemasResponse = collect_body(list_schemas_response).await;
         assert_eq!(body.schemas.len(), 1);
         assert_eq!(body.schemas[0].name, schema.name);
@@ -246,7 +302,7 @@ pub(crate) mod integration {
             .body(Body::empty())
             .unwrap();
         let get_schema_response = app.clone().oneshot(get_schema).await.unwrap();
-        assert_eq!(get_schema_response.status(), StatusCode::OK);
+        assert_eq!(get_schema_response.status(), StatusCode::OK, "get schema");
         let body: SchemaInfo = collect_body(get_schema_response).await;
         assert_eq!(body.name, schema.name);
 
@@ -264,7 +320,11 @@ pub(crate) mod integration {
             .body(Body::from(serde_json::to_vec(&new_schema).unwrap()))
             .unwrap();
         let update_schema_response = app.clone().oneshot(update_schema).await.unwrap();
-        assert_eq!(update_schema_response.status(), StatusCode::OK);
+        assert_eq!(
+            update_schema_response.status(),
+            StatusCode::OK,
+            "update schema"
+        );
         let body: SchemaInfo = collect_body(update_schema_response).await;
         assert_eq!(body.name, new_schema.new_name);
         assert_eq!(body.comment, new_schema.comment);
@@ -276,7 +336,11 @@ pub(crate) mod integration {
             .body(Body::empty())
             .unwrap();
         let delete_schema_response = app.clone().oneshot(delete_schema).await.unwrap();
-        assert_eq!(delete_schema_response.status(), StatusCode::OK);
+        assert_eq!(
+            delete_schema_response.status(),
+            StatusCode::OK,
+            "delete schema"
+        );
 
         // assert schema is deleted
         let get_schema = Request::builder()
@@ -285,7 +349,11 @@ pub(crate) mod integration {
             .body(Body::empty())
             .unwrap();
         let get_schema_response = app.clone().oneshot(get_schema).await.unwrap();
-        assert_eq!(get_schema_response.status(), StatusCode::NOT_FOUND);
+        assert_eq!(
+            get_schema_response.status(),
+            StatusCode::NOT_FOUND,
+            "schema not found"
+        );
 
         // delete catalog
         let delete_catalog = Request::builder()
@@ -294,7 +362,11 @@ pub(crate) mod integration {
             .body(Body::empty())
             .unwrap();
         let delete_catalog_response = app.clone().oneshot(delete_catalog).await.unwrap();
-        assert_eq!(delete_catalog_response.status(), StatusCode::OK);
+        assert_eq!(
+            delete_catalog_response.status(),
+            StatusCode::OK,
+            "delete catalog"
+        );
 
         // assert catalog is deleted
         let get_catalog = Request::builder()
@@ -303,6 +375,10 @@ pub(crate) mod integration {
             .body(Body::empty())
             .unwrap();
         let get_catalog_response = app.clone().oneshot(get_catalog).await.unwrap();
-        assert_eq!(get_catalog_response.status(), StatusCode::NOT_FOUND);
+        assert_eq!(
+            get_catalog_response.status(),
+            StatusCode::NOT_FOUND,
+            "catalog not found"
+        );
     }
 }

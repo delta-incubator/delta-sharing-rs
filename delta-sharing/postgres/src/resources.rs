@@ -1,7 +1,7 @@
 use delta_sharing_common::models::PropertyMap;
 use delta_sharing_common::{
-    AssociationLabel, Error, IntoJson, Object, ObjectLabel, Resource, ResourceIdent, ResourceName,
-    ResourceRef, ResourceStore, Result, EMPTY_RESOURCE_NAME,
+    AssociationLabel, Error, IntoJson, Object, ObjectLabel, Resource, ResourceExt, ResourceIdent,
+    ResourceName, ResourceRef, ResourceStore, Result, EMPTY_RESOURCE_NAME,
 };
 use itertools::Itertools;
 
@@ -115,7 +115,19 @@ impl ResourceStore for GraphStore {
         id: &ResourceIdent,
         resource: Resource,
     ) -> Result<(Resource, ResourceRef)> {
-        todo!("update")
+        let (uuid, _object) = self.ident_to_uuid(id).await?;
+        let object: Object = resource.try_into()?;
+        Ok((
+            self.update_object(
+                &uuid,
+                Some(&object.label),
+                Some(object.name.as_ref()),
+                object.properties,
+            )
+            .await?
+            .try_into()?,
+            uuid.into(),
+        ))
     }
 
     /// Add an association between two resources.
@@ -167,7 +179,7 @@ impl ResourceStore for GraphStore {
         page_token: Option<String>,
     ) -> Result<(Vec<ResourceIdent>, Option<String>)> {
         let target_label = target_label.map(|r| r.ident().0);
-        let target_id = self.ident_to_uuid(resource).await?;
+        let (target_id, _) = self.ident_to_uuid(resource).await?;
         let (associations, token) = self
             .list_associations(
                 &target_id,

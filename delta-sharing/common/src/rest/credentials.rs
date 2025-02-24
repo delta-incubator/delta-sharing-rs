@@ -50,14 +50,22 @@ pub(crate) mod integration {
             Some(storage_location.clone()),
         );
         let create_location_response = app.clone().oneshot(create_location).await.unwrap();
-        assert_eq!(create_location_response.status(), StatusCode::OK);
+        assert_eq!(
+            create_location_response.status(),
+            StatusCode::OK,
+            "create location"
+        );
         let body: StorageLocation = collect_body(create_location_response).await;
         assert_eq!(body.name, storage_location.name);
 
         // List storage locations
         let list_locations = create_request(Method::GET, "/storage_locations", None::<()>);
         let list_locations_response = app.clone().oneshot(list_locations).await.unwrap();
-        assert_eq!(list_locations_response.status(), StatusCode::OK);
+        assert_eq!(
+            list_locations_response.status(),
+            StatusCode::OK,
+            "list locations"
+        );
         let body: ListStorageLocationsResponse = collect_body(list_locations_response).await;
         assert_eq!(body.storage_locations.len(), 1);
         assert_eq!(body.storage_locations[0].name, storage_location.name);
@@ -66,7 +74,11 @@ pub(crate) mod integration {
         let get_location =
             create_request(Method::GET, "/storage_locations/test-location", None::<()>);
         let get_location_response = app.clone().oneshot(get_location).await.unwrap();
-        assert_eq!(get_location_response.status(), StatusCode::OK);
+        assert_eq!(
+            get_location_response.status(),
+            StatusCode::OK,
+            "get location"
+        );
         let body: StorageLocation = collect_body(get_location_response).await;
         assert_eq!(body.name, storage_location.name);
 
@@ -109,12 +121,20 @@ pub(crate) mod integration {
             None::<()>,
         );
         let delete_location_response = app.clone().oneshot(delete_location).await.unwrap();
-        assert_eq!(delete_location_response.status(), StatusCode::OK);
+        assert_eq!(
+            delete_location_response.status(),
+            StatusCode::OK,
+            "delete location"
+        );
 
         // Verify storage location is deleted
         let get_location =
             create_request(Method::GET, "/storage_locations/test-location", None::<()>);
         let get_location_response = app.clone().oneshot(get_location).await.unwrap();
-        assert_eq!(get_location_response.status(), StatusCode::NOT_FOUND);
+        assert_eq!(
+            get_location_response.status(),
+            StatusCode::NOT_FOUND,
+            "deleted location not found"
+        );
     }
 }
