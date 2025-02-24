@@ -1,0 +1,60 @@
+[package]
+name = "cloud-client"
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+license = "Apache-2.0"
+repository.workspace = true
+readme = "README.md"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+thiserror = { workspace = true }
+
+async-trait = "0.1.53"
+bytes = "1.0"
+chrono = { version = "0.4.34", default-features = false, features = [
+    "clock",
+    "serde",
+] }
+futures = "0.3"
+humantime = "2.1"
+itertools = "0.14.0"
+parking_lot = { version = "0.12" }
+percent-encoding = "2.1"
+tracing = { version = "0.1" }
+url = "2.2"
+walkdir = { version = "2", optional = true }
+base64 = { version = "0.22", default-features = false, features = ["std"] }
+hyper = { version = "1.2", default-features = false }
+quick-xml = { version = "0.37.0", features = ["serialize", "overlapped-lists"] }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+serde_json = { version = "1.0" }
+rand = { version = "0.8", default-features = false, features = [
+    "std",
+    "std_rng",
+] }
+reqwest = { version = "0.12", default-features = false, features = [
+    "rustls-tls-native-roots",
+    "http2",
+    "json",
+    "stream",
+] }
+ring = { version = "0.17", default-features = false, features = ["std"] }
+rustls-pemfile = { version = "2.0", default-features = false, features = [
+    "std",
+] }
+tokio = { version = "1.29.0", features = [
+    "sync",
+    "macros",
+    "rt",
+    "time",
+    "io-util",
+] }
+md-5 = { version = "0.10.6", default-features = false }
+httparse = { version = "1.8.0", default-features = false, features = ["std"] }
+
+[dev-dependencies]
+hyper = { version = "1.2", features = ["server"] }
+hyper-util = "0.1"
