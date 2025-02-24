@@ -58,7 +58,12 @@ async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Erro
     );
 
     let object = store
-        .update_object(&object.id, serde_json::json!({ "key": "value2" }))
+        .update_object(
+            &object.id,
+            None,
+            None,
+            serde_json::json!({ "key": "value2" }),
+        )
         .await?;
     assert_eq!(
         object.properties,
@@ -67,7 +72,7 @@ async fn test_objects(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Erro
 
     // Updating an object with a non-existent ID should fail.
     let res = store
-        .update_object(&Uuid::new_v4(), serde_json::json!({}))
+        .update_object(&Uuid::new_v4(), None, None, serde_json::json!({}))
         .await;
     assert!(matches!(res, Err(Error::EntityNotFound(_))));
 
