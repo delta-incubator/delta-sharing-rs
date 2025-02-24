@@ -16,7 +16,10 @@ use crate::{
     TableLocationResover,
 };
 
+pub use predicate::json_predicate_to_expression;
+
 mod conversion;
+mod predicate;
 
 #[async_trait::async_trait]
 pub trait KernelEngineFactroy: Send + Sync {

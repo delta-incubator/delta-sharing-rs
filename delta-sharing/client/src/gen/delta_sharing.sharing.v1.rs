@@ -302,6 +302,31 @@ pub struct MetadatDelta {
     #[prost(int64, optional, tag="4")]
     pub num_files: ::core::option::Option<i64>,
 }
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct JsonPredicate {
+    /// The operation to perform.
+    #[prost(string, tag="1")]
+    pub op: ::prost::alloc::string::String,
+    /// The inputs to the operation - if any.
+    #[prost(message, repeated, tag="2")]
+    pub children: ::prost::alloc::vec::Vec<JsonPredicate>,
+    /// Specifies the name of a column.
+    ///
+    /// This is only applicable to column ops.
+    #[prost(string, optional, tag="3")]
+    pub name: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies the value of a literal.
+    ///
+    /// This is only applicable to literal ops.
+    #[prost(string, optional, tag="4")]
+    pub value: ::core::option::Option<::prost::alloc::string::String>,
+    /// Specifies the value type of a column or a literal op.
+    ///
+    /// This is only applicate to column and literal ops.
+    #[prost(string, optional, tag="5")]
+    pub value_type: ::core::option::Option<::prost::alloc::string::String>,
+}
 /// Request to list shares.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

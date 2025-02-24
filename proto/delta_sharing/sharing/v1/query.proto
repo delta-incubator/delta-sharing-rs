@@ -158,3 +158,26 @@ message MetadatDelta {
   // The number of files in the table, will be returned if available in the delta log.
   optional int64 num_files = 4;
 }
+
+message JsonPredicate {
+  // The operation to perform.
+  string op = 1;
+
+  // The inputs to the operation - if any.
+  repeated JsonPredicate children = 2;
+
+  // Specifies the name of a column.
+  //
+  // This is only applicable to column ops.
+  optional string name = 3;
+
+  // Specifies the value of a literal.
+  //
+  // This is only applicable to literal ops.
+  optional string value = 4;
+
+  // Specifies the value type of a column or a literal op.
+  //
+  // This is only applicate to column and literal ops.
+  optional string value_type = 5;
+}
