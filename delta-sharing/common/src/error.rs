@@ -32,6 +32,9 @@ pub enum Error {
     #[error("Invalid identifier: {0}")]
     InvalidIdentifier(#[from] uuid::Error),
 
+    #[error("Invalid predicate: {0}")]
+    InvalidPredicate(String),
+
     #[error("Generic error: {0}")]
     Generic(String),
 
@@ -58,6 +61,10 @@ impl Error {
     pub fn invalid_argument(msg: impl Into<String>) -> Self {
         Self::InvalidArgument(msg.into())
     }
+
+    pub fn invalid_predicate(msg: impl Into<String>) -> Self {
+        Self::InvalidPredicate(msg.into())
+    }
 }
 
 #[cfg(feature = "grpc")]
@@ -79,6 +86,7 @@ impl From<Error> for Status {
             Error::MissingRecipient => {
                 Status::invalid_argument("Failed to extract recipient from request")
             }
+            Error::InvalidPredicate(msg) => Status::invalid_argument(msg),
             Error::AlreadyExists => Status::already_exists("The resource already exists."),
             Error::InvalidIdentifier(_) => Status::internal("Invalid uuid identifier"),
             Error::InvalidArgument(message) => Status::invalid_argument(message),
@@ -140,6 +148,13 @@ mod server {
                 Error::InvalidArgument(message) => {
                     error!("Invalid argument: {}", message);
                     INVALID_ARGUMENT
+                }
+                Error::InvalidPredicate(msg) => {
+                    error!("Invalid predicate: {}", msg);
+                    (
+                        StatusCode::BAD_REQUEST,
+                        "Invalid predicate provided in the request.",
+                    )
                 }
                 Error::InvalidIdentifier(_) => {
                     error!("Invalid uuid identifier");

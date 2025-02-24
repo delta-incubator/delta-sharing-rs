@@ -46,7 +46,8 @@ sqlx = { version = "0.8", optional = true, features = [
 ] }
 
 # integration test dependencies (in alphabetical order)
-http-body-util = { version = "0.1.0", optional = true}
+http-body-util = { version = "0.1.0", optional = true }
+mime = { version = "0.3", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -69,4 +70,4 @@ grpc = ["dep:tonic"]
 sqlx = ["dep:sqlx"]
 
 # exposes functions that help testing cutom handler / router implementations.
-integration = ["http-body-util"]
+integration = ["http-body-util", "mime"]
