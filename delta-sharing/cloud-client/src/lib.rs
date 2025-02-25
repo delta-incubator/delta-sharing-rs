@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use self::token::{TemporaryToken, TokenCache};
 
+mod aws;
 mod azure;
 mod backoff;
 mod config;

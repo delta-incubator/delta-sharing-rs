@@ -95,19 +95,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Handle the server command.
-///
-/// This function starts a delta-sharing server using the gRPC protocol.
-// async fn handle_grpc(args: ServerArgs) -> Result<()> {
-//     init_tracing();
-//
-//     let handler = get_handler(args.config)?;
-//
-//     run_grpc_server(args.host, args.port, handler)
-//         .await
-//         .map_err(|_| Error::Generic("Server failed".to_string()))
-// }
-
 /// Handle the profile command.
 async fn handle_profile(args: ProfileArgs) -> Result<()> {
     let token_manager = TokenManager::new_from_secret(args.secret.as_bytes(), None);
