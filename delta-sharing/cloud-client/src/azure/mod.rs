@@ -1,4 +1,4 @@
-use credential::CredentialExt;
+use credential::AzureCredentialExt;
 use reqwest::{Client as ReqwestClient, IntoUrl, Method, RequestBuilder};
 use std::sync::Arc;
 use url::Url;
@@ -8,8 +8,9 @@ use crate::retry::RetryExt;
 use crate::{ClientOptions, CredentialProvider, Result, RetryConfig};
 
 mod builder;
-mod credential;
+pub(crate) mod credential;
 
+pub(crate) use self::credential::*;
 pub use builder::*;
 
 pub type AzureCredentialProvider = Arc<dyn CredentialProvider<Credential = AzureCredential>>;
@@ -25,7 +26,7 @@ pub(crate) struct AzureConfig {
 }
 
 impl AzureConfig {
-    async fn get_credential(&self) -> Result<Option<Arc<AzureCredential>>> {
+    pub(crate) async fn get_credential(&self) -> Result<Option<Arc<AzureCredential>>> {
         if self.skip_signature {
             Ok(None)
         } else {
@@ -52,7 +53,7 @@ impl AzureClient {
         &self.config
     }
 
-    async fn get_credential(&self) -> Result<Option<Arc<AzureCredential>>> {
+    pub(crate) async fn get_credential(&self) -> Result<Option<Arc<AzureCredential>>> {
         self.config.get_credential().await
     }
 

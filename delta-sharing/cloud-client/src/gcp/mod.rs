@@ -77,6 +77,10 @@ impl GoogleConfig {
             client_options,
         }
     }
+
+    pub(crate) async fn get_credential(&self) -> Result<Arc<GcpCredential>> {
+        self.credentials.get_credential().await
+    }
 }
 
 /// Sign Blob Request Body

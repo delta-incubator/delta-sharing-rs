@@ -1,3 +1,5 @@
+#![allow(unused, dead_code)]
+
 use std::time::Duration;
 
 use aws::AmazonConfig;
@@ -7,6 +9,7 @@ use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use reqwest::{Body, Client, IntoUrl, Method, RequestBuilder};
 use serde::Serialize;
 
+use self::azure::credential::AzureCredentialExt;
 use self::token::{TemporaryToken, TokenCache};
 
 mod aws;
@@ -235,5 +238,26 @@ impl CloudRequestBuilder {
     pub fn json<T: Serialize + ?Sized>(mut self, json: &T) -> CloudRequestBuilder {
         self.builder = self.builder.json(json);
         self
+    }
+
+    pub async fn send(mut self) -> Result<reqwest::Response> {
+        match &self.client.credential {
+            Credential::Azure(az) => {
+                let credential = az.get_credential().await?;
+                self.builder = self.builder.with_azure_authorization(&credential);
+            }
+            Credential::Aws(_aws) => {
+                todo!()
+            }
+            Credential::Google(gcp) => {
+                let credential = gcp.get_credential().await?;
+                self.builder = self.builder.bearer_auth(&credential.bearer);
+            }
+            Credential::Unauthenticated => {
+                // Do nothing
+            }
+        };
+        let response = self.builder.send().await?;
+        Ok(response)
     }
 }

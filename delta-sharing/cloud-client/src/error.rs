@@ -2,6 +2,9 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+    #[error("Reqwest error: {0}")]
+    ReqwestError(#[from] reqwest::Error),
+
     #[error("Generic error: {source}")]
     Generic {
         /// The wrapped error

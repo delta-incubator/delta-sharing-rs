@@ -80,7 +80,7 @@ pub(crate) struct AmazonConfig {
     pub disable_tagging: bool,
     pub checksum: Option<Checksum>,
     pub request_payer: bool,
-    pub(super) encryption_headers: S3EncryptionHeaders,
+    pub(crate) encryption_headers: S3EncryptionHeaders,
 }
 
 impl AmazonConfig {

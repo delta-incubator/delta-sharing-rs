@@ -177,7 +177,7 @@ impl<'a> AzureAuthorizer<'a> {
     }
 }
 
-pub(crate) trait CredentialExt {
+pub trait AzureCredentialExt {
     /// Apply authorization to requests against azure storage accounts
     /// <https://docs.microsoft.com/en-us/rest/api/storageservices/authorize-requests-to-azure-storage>
     fn with_azure_authorization(
@@ -186,7 +186,7 @@ pub(crate) trait CredentialExt {
     ) -> Self;
 }
 
-impl CredentialExt for RequestBuilder {
+impl AzureCredentialExt for RequestBuilder {
     fn with_azure_authorization(
         self,
         credential: &Option<impl Deref<Target = AzureCredential>>,
