@@ -1,6 +1,6 @@
 use delta_sharing_common::models::PropertyMap;
 use delta_sharing_common::{
-    AssociationLabel, Error, IntoJson, Object, ObjectLabel, Resource, ResourceExt, ResourceIdent,
+    AssociationLabel, Error, IntoJson, Object, ObjectLabel, Resource, ResourceIdent,
     ResourceName, ResourceRef, ResourceStore, Result, EMPTY_RESOURCE_NAME,
 };
 use itertools::Itertools;
