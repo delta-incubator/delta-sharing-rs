@@ -18,6 +18,8 @@ mod builder;
 mod checksum;
 mod credential;
 
+pub use builder::*;
+
 /// This struct is used to maintain the URI path encoding
 const STRICT_PATH_ENCODE_SET: percent_encoding::AsciiSet = STRICT_ENCODE_SET.remove(b'/');
 
@@ -66,8 +68,8 @@ impl From<Error> for crate::Error {
     }
 }
 
-#[derive(Debug)]
-pub(crate) struct S3Config {
+#[derive(Debug, Clone)]
+pub(crate) struct AmazonConfig {
     pub region: String,
     pub credentials: AwsCredentialProvider,
     pub session_provider: Option<AwsCredentialProvider>,
@@ -81,7 +83,7 @@ pub(crate) struct S3Config {
     pub(super) encryption_headers: S3EncryptionHeaders,
 }
 
-impl S3Config {
+impl AmazonConfig {
     async fn get_session_credential(&self) -> Result<SessionCredential<'_>> {
         let credential = match self.skip_signature {
             false => {
@@ -114,7 +116,7 @@ impl S3Config {
 struct SessionCredential<'a> {
     credential: Option<Arc<AwsCredential>>,
     session_token: bool,
-    config: &'a S3Config,
+    config: &'a AmazonConfig,
 }
 
 impl SessionCredential<'_> {
@@ -156,13 +158,12 @@ impl From<RequestError> for crate::Error {
 
 /// A builder for a request allowing customisation of the headers and query string
 pub(crate) struct Request<'a> {
-    config: &'a S3Config,
+    config: &'a AmazonConfig,
     builder: RequestBuilder,
     payload_sha256: Option<digest::Digest>,
     use_session_creds: bool,
     idempotent: bool,
     retry_on_conflict: bool,
-    retry_error_body: bool,
 }
 
 impl<'a> Request<'a> {
@@ -192,13 +193,6 @@ impl<'a> Request<'a> {
     pub(crate) fn retry_on_conflict(self, retry_on_conflict: bool) -> Self {
         Self {
             retry_on_conflict,
-            ..self
-        }
-    }
-
-    pub(crate) fn retry_error_body(self, retry_error_body: bool) -> Self {
-        Self {
-            retry_error_body,
             ..self
         }
     }
@@ -233,21 +227,20 @@ impl<'a> Request<'a> {
             .retryable(&self.config.retry_config)
             .retry_on_conflict(self.retry_on_conflict)
             .idempotent(self.idempotent)
-            .retry_error_body(self.retry_error_body)
             .send()
             .await
             .map_err(|source| RequestError::Retry { source })
     }
 }
 
-#[derive(Debug)]
-pub(crate) struct S3Client {
-    pub config: S3Config,
+#[derive(Debug, Clone)]
+pub(crate) struct AmazonClient {
+    pub config: AmazonConfig,
     pub client: ReqwestClient,
 }
 
-impl S3Client {
-    pub(crate) fn try_new(config: S3Config) -> Result<Self> {
+impl AmazonClient {
+    pub(crate) fn try_new(config: AmazonConfig) -> Result<Self> {
         let client = config.client_options.client()?;
         Ok(Self { config, client })
     }
@@ -260,7 +253,6 @@ impl S3Client {
             use_session_creds: true,
             idempotent: false,
             retry_on_conflict: false,
-            retry_error_body: false,
         }
     }
 }

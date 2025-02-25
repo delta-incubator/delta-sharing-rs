@@ -15,7 +15,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use super::{S3Client, S3Config};
+use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
+use md5::{Digest, Md5};
+use reqwest::header::{HeaderMap, HeaderValue};
+use serde::{Deserialize, Serialize};
+use std::str::FromStr;
+use std::sync::Arc;
+use tracing::info;
+
+use super::AmazonConfig;
 use crate::aws::credential::{
     InstanceCredentialProvider, SessionProvider, TaskCredentialProvider, WebIdentityProvider,
 };
@@ -25,14 +34,6 @@ use crate::{
     ClientConfigKey, ClientOptions, Result, RetryConfig, StaticCredentialProvider,
     TokenCredentialProvider,
 };
-use base64::prelude::BASE64_STANDARD;
-use base64::Engine;
-use md5::{Digest, Md5};
-use reqwest::header::{HeaderMap, HeaderValue};
-use serde::{Deserialize, Serialize};
-use std::str::FromStr;
-use std::sync::Arc;
-use tracing::info;
 
 /// Default metadata endpoint
 static DEFAULT_METADATA_ENDPOINT: &str = "http://169.254.169.254";
@@ -668,7 +669,7 @@ impl AmazonBuilder {
 
     /// Create a [`AmazonS3`] instance from the provided values,
     /// consuming `self`.
-    pub fn build(mut self) -> Result<S3Client> {
+    pub fn build(self) -> Result<AmazonConfig> {
         let region = self.region.unwrap_or_else(|| "us-east-1".to_string());
         let checksum = self.checksum_algorithm.map(|x| x.get()).transpose()?;
 
@@ -759,7 +760,7 @@ impl AmazonBuilder {
             S3EncryptionHeaders::default()
         };
 
-        let config = S3Config {
+        Ok(AmazonConfig {
             region,
             credentials,
             session_provider: None,
@@ -771,9 +772,7 @@ impl AmazonBuilder {
             checksum,
             encryption_headers,
             request_payer: self.request_payer.get()?,
-        };
-
-        S3Client::try_new(config)
+        })
     }
 }
 
@@ -994,7 +993,6 @@ mod tests {
         let aws_access_key_id = "object_store:fake_access_key_id".to_string();
         let aws_secret_access_key = "object_store:fake_secret_key".to_string();
         let aws_default_region = "object_store:fake_default_region".to_string();
-        let aws_endpoint = "object_store:fake_endpoint".to_string();
         let aws_session_token = "object_store:fake_session_token".to_string();
 
         let builder = AmazonBuilder::new()
@@ -1067,8 +1065,8 @@ mod tests {
 
     #[test]
     fn s3_default_region() {
-        let client = AmazonBuilder::new().build().unwrap();
-        assert_eq!(client.config.region, "us-east-1");
+        let config = AmazonBuilder::new().build().unwrap();
+        assert_eq!(config.region, "us-east-1");
     }
 
     #[tokio::test]

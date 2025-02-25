@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use super::{AzureClient, AzureConfig};
+use super::AzureConfig;
 use crate::azure::credential::{
     AzureCliCredential, ClientSecretOAuthProvider, FabricTokenOAuthProvider,
     ImdsManagedIdentityProvider, WorkloadIdentityOAuthProvider,
@@ -118,7 +118,7 @@ impl From<Error> for crate::Error {
 ///  .build();
 /// ```
 #[derive(Default, Clone)]
-pub struct MicrosoftAzureBuilder {
+pub struct AzureBuilder {
     /// Account name
     account_name: Option<String>,
     /// Access key
@@ -473,7 +473,7 @@ impl FromStr for AzureConfigKey {
     }
 }
 
-impl std::fmt::Debug for MicrosoftAzureBuilder {
+impl std::fmt::Debug for AzureBuilder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -483,7 +483,7 @@ impl std::fmt::Debug for MicrosoftAzureBuilder {
     }
 }
 
-impl MicrosoftAzureBuilder {
+impl AzureBuilder {
     /// Create a new [`MicrosoftAzureBuilder`] with default values.
     pub fn new() -> Self {
         Default::default()
@@ -886,34 +886,13 @@ impl MicrosoftAzureBuilder {
         self
     }
 
-    /// Configure a connection to container with given name on Microsoft Azure Blob store.
-    pub fn build(mut self) -> Result<AzureClient> {
-        if let Some(url) = self.url.take() {
-            self.parse_url(&url)?;
-        }
-
+    pub fn build(self) -> Result<AzureConfig> {
         let static_creds = |credential: AzureCredential| -> AzureCredentialProvider {
             Arc::new(StaticCredentialProvider::new(credential))
         };
 
-        let (storage_url, auth) = {
-            let account_name = self.account_name.ok_or(Error::MissingAccount {})?;
-            let account_url = match self.endpoint {
-                Some(account_url) => account_url,
-                None => match self.use_fabric_endpoint.get()? {
-                    true => {
-                        format!("https://{}.blob.fabric.microsoft.com", &account_name)
-                    }
-                    false => format!("https://{}.blob.core.windows.net", &account_name),
-                },
-            };
-
-            let url = Url::parse(&account_url).map_err(|source| {
-                let url = account_url.clone();
-                Error::UnableToParseUrl { url, source }
-            })?;
-
-            let credential = if let Some(credential) = self.credentials {
+        let auth = {
+            if let Some(credential) = self.credentials {
                 credential
             } else if let (
                 Some(fabric_token_service_url),
@@ -987,8 +966,7 @@ impl MicrosoftAzureBuilder {
                     self.client_options.metadata_client()?,
                     self.retry_config.clone(),
                 )) as _
-            };
-            (url, credential)
+            }
         };
 
         let config = AzureConfig {
@@ -996,11 +974,10 @@ impl MicrosoftAzureBuilder {
             disable_tagging: self.disable_tagging.get()?,
             retry_config: self.retry_config,
             client_options: self.client_options,
-            service: storage_url,
             credentials: auth,
         };
 
-        AzureClient::try_new(config)
+        Ok(config)
     }
 }
 
@@ -1046,7 +1023,7 @@ mod tests {
 
     #[test]
     fn azure_blob_test_urls() {
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder
             .parse_url("abfss://file_system@account.dfs.core.windows.net/")
             .unwrap();
@@ -1054,7 +1031,7 @@ mod tests {
         assert_eq!(builder.container_name, Some("file_system".to_string()));
         assert!(!builder.use_fabric_endpoint.get().unwrap());
 
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder
             .parse_url("abfss://file_system@account.dfs.fabric.microsoft.com/")
             .unwrap();
@@ -1062,33 +1039,33 @@ mod tests {
         assert_eq!(builder.container_name, Some("file_system".to_string()));
         assert!(builder.use_fabric_endpoint.get().unwrap());
 
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder.parse_url("abfs://container/path").unwrap();
         assert_eq!(builder.container_name, Some("container".to_string()));
 
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder.parse_url("az://container").unwrap();
         assert_eq!(builder.container_name, Some("container".to_string()));
 
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder.parse_url("az://container/path").unwrap();
         assert_eq!(builder.container_name, Some("container".to_string()));
 
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder
             .parse_url("https://account.dfs.core.windows.net/")
             .unwrap();
         assert_eq!(builder.account_name, Some("account".to_string()));
         assert!(!builder.use_fabric_endpoint.get().unwrap());
 
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder
             .parse_url("https://account.blob.core.windows.net/")
             .unwrap();
         assert_eq!(builder.account_name, Some("account".to_string()));
         assert!(!builder.use_fabric_endpoint.get().unwrap());
 
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder
             .parse_url("https://account.blob.core.windows.net/container")
             .unwrap();
@@ -1096,7 +1073,7 @@ mod tests {
         assert_eq!(builder.container_name, Some("container".to_string()));
         assert!(!builder.use_fabric_endpoint.get().unwrap());
 
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder
             .parse_url("https://account.dfs.fabric.microsoft.com/")
             .unwrap();
@@ -1104,7 +1081,7 @@ mod tests {
         assert_eq!(builder.container_name, None);
         assert!(builder.use_fabric_endpoint.get().unwrap());
 
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder
             .parse_url("https://account.dfs.fabric.microsoft.com/container")
             .unwrap();
@@ -1112,7 +1089,7 @@ mod tests {
         assert_eq!(builder.container_name.as_deref(), Some("container"));
         assert!(builder.use_fabric_endpoint.get().unwrap());
 
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder
             .parse_url("https://account.blob.fabric.microsoft.com/")
             .unwrap();
@@ -1120,7 +1097,7 @@ mod tests {
         assert_eq!(builder.container_name, None);
         assert!(builder.use_fabric_endpoint.get().unwrap());
 
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         builder
             .parse_url("https://account.blob.fabric.microsoft.com/container")
             .unwrap();
@@ -1137,7 +1114,7 @@ mod tests {
             "https://blob.mydomain/",
             "https://blob.foo.dfs.core.windows.net/",
         ];
-        let mut builder = MicrosoftAzureBuilder::new();
+        let mut builder = AzureBuilder::new();
         for case in err_cases {
             builder.parse_url(case).unwrap_err();
         }
@@ -1156,7 +1133,7 @@ mod tests {
 
         let builder = options
             .into_iter()
-            .fold(MicrosoftAzureBuilder::new(), |builder, (key, value)| {
+            .fold(AzureBuilder::new(), |builder, (key, value)| {
                 builder.with_config(key.parse().unwrap(), value)
             });
         assert_eq!(builder.client_id.unwrap(), azure_client_id);

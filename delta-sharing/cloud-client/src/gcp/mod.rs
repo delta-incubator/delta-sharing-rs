@@ -8,6 +8,8 @@ use self::credential::GcpCredential;
 use crate::CredentialProvider;
 use crate::{ClientOptions, Result, RetryConfig};
 
+pub use builder::*;
+
 mod builder;
 mod credential;
 
@@ -54,7 +56,7 @@ impl From<Error> for crate::Error {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct GoogleConfig {
     pub credentials: GcpCredentialProvider,
 
@@ -92,7 +94,7 @@ struct SignBlobResponse {
     signed_blob: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct GoogleClient {
     config: GoogleConfig,
     client: Client,

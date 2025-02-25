@@ -178,10 +178,6 @@ impl Default for RetryConfig {
     }
 }
 
-fn body_contains_error(response_body: &str) -> bool {
-    response_body.contains("InternalError") || response_body.contains("SlowDown")
-}
-
 pub(crate) struct RetryableRequest {
     client: Client,
     request: Request,
@@ -193,8 +189,6 @@ pub(crate) struct RetryableRequest {
     sensitive: bool,
     idempotent: Option<bool>,
     retry_on_conflict: bool,
-
-    retry_error_body: bool,
 }
 
 impl RetryableRequest {
@@ -223,14 +217,6 @@ impl RetryableRequest {
     #[allow(unused)]
     pub(crate) fn sensitive(self, sensitive: bool) -> Self {
         Self { sensitive, ..self }
-    }
-
-    #[allow(unused)]
-    pub(crate) fn retry_error_body(self, retry_error_body: bool) -> Self {
-        Self {
-            retry_error_body,
-            ..self
-        }
     }
 
     pub(crate) async fn send(self) -> Result<Response> {
@@ -411,7 +397,6 @@ impl RetryExt for reqwest::RequestBuilder {
             sensitive: false,
             idempotent: None,
             retry_on_conflict: false,
-            retry_error_body: false,
         }
     }
 
@@ -425,25 +410,11 @@ impl RetryExt for reqwest::RequestBuilder {
 mod tests {
     use super::RetryConfig;
     use crate::mock_server::MockServer;
-    use crate::retry::{body_contains_error, Error, RetryExt};
+    use crate::retry::{Error, RetryExt};
     use hyper::header::LOCATION;
     use hyper::Response;
     use reqwest::{Client, Method, StatusCode};
     use std::time::Duration;
-
-    #[test]
-    fn test_body_contains_error() {
-        // Example error message provided by https://repost.aws/knowledge-center/s3-resolve-200-internalerror
-        let error_response = "AmazonS3Exception: We encountered an internal error. Please try again. (Service: Amazon S3; Status Code: 200; Error Code: InternalError; Request ID: 0EXAMPLE9AAEB265)";
-        assert!(body_contains_error(error_response));
-
-        let error_response_2 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>SlowDown</Code><Message>Please reduce your request rate.</Message><RequestId>123</RequestId><HostId>456</HostId></Error>";
-        assert!(body_contains_error(error_response_2));
-
-        // Example success response from https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html
-        let success_response = "<CopyObjectResult><LastModified>2009-10-12T17:50:30.000Z</LastModified><ETag>\"9b2cf535f27731c974343645a3985328\"</ETag></CopyObjectResult>";
-        assert!(!body_contains_error(success_response));
-    }
 
     #[tokio::test]
     async fn test_retry() {

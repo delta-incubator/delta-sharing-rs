@@ -653,6 +653,7 @@ dependencies = [
  "bytes",
  "chrono",
  "futures",
+ "http",
  "http-body-util",
  "httparse",
  "humantime",

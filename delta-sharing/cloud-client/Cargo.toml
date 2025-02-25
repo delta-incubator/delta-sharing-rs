@@ -54,6 +54,7 @@ tokio = { version = "1.29.0", features = [
 ] }
 md-5 = { version = "0.10.6", default-features = false }
 httparse = { version = "1.8.0", default-features = false, features = ["std"] }
+http = "*"
 
 [dev-dependencies]
 hyper = { version = "1.2", features = ["server"] }

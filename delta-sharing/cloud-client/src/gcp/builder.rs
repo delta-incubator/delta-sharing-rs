@@ -321,7 +321,7 @@ impl GoogleBuilder {
 
     /// Configure a connection to Google Cloud Storage, returning a
     /// new [`GoogleClient`] and consuming `self`
-    pub fn build(self) -> Result<GoogleClient> {
+    pub fn build(self) -> Result<GoogleConfig> {
         // First try to initialize from the service account information.
         let service_account_credentials =
             match (self.service_account_path, self.service_account_key) {
@@ -387,9 +387,11 @@ impl GoogleBuilder {
             ) as _
         };
 
-        let config = GoogleConfig::new(credentials, self.retry_config, self.client_options);
-
-        GoogleClient::try_new(config)
+        Ok(GoogleConfig::new(
+            credentials,
+            self.retry_config,
+            self.client_options,
+        ))
     }
 }
 

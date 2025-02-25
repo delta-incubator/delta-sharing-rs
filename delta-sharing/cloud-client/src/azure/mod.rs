@@ -10,14 +10,15 @@ use crate::{ClientOptions, CredentialProvider, Result, RetryConfig};
 mod builder;
 mod credential;
 
+pub use builder::*;
+
 pub type AzureCredentialProvider = Arc<dyn CredentialProvider<Credential = AzureCredential>>;
 
 /// Configuration for [AzureClient]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct AzureConfig {
     pub credentials: AzureCredentialProvider,
     pub retry_config: RetryConfig,
-    pub service: Url,
     pub skip_signature: bool,
     pub disable_tagging: bool,
     pub client_options: ClientOptions,
@@ -33,7 +34,7 @@ impl AzureConfig {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct AzureClient {
     config: AzureConfig,
     client: ReqwestClient,
