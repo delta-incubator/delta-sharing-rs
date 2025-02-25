@@ -191,12 +191,24 @@ pub(crate) struct RetryableRequest {
     backoff: Backoff,
 
     sensitive: bool,
+    idempotent: Option<bool>,
     retry_on_conflict: bool,
 
     retry_error_body: bool,
 }
 
 impl RetryableRequest {
+    /// Set whether this request is idempotent
+    ///
+    /// An idempotent request will be retried on timeout even if the request
+    /// method is not [safe](https://datatracker.ietf.org/doc/html/rfc7231#section-4.2.1)
+    pub(crate) fn idempotent(self, idempotent: bool) -> Self {
+        Self {
+            idempotent: Some(idempotent),
+            ..self
+        }
+    }
+
     /// Set whether this request should be retried on a 409 Conflict response.
     pub(crate) fn retry_on_conflict(self, retry_on_conflict: bool) -> Self {
         Self {
@@ -228,7 +240,9 @@ impl RetryableRequest {
         let now = Instant::now();
 
         let mut backoff = self.backoff;
-        let is_idempotent = self.request.method().is_safe();
+        let is_idempotent = self
+            .idempotent
+            .unwrap_or_else(|| self.request.method().is_safe());
 
         let sanitize_err = move |e: reqwest::Error| match self.sensitive {
             true => e.without_url(),
@@ -395,6 +409,7 @@ impl RetryExt for reqwest::RequestBuilder {
             retry_timeout: config.retry_timeout,
             backoff: Backoff::new(&config.backoff),
             sensitive: false,
+            idempotent: None,
             retry_on_conflict: false,
             retry_error_body: false,
         }

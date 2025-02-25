@@ -58,3 +58,5 @@ httparse = { version = "1.8.0", default-features = false, features = ["std"] }
 [dev-dependencies]
 hyper = { version = "1.2", features = ["server"] }
 hyper-util = "0.1"
+http-body-util = "0.1"
+tempfile = "3.1.0"

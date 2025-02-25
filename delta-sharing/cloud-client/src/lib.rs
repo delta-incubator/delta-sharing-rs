@@ -9,15 +9,16 @@ use serde::{Deserialize, Serialize};
 
 use self::token::{TemporaryToken, TokenCache};
 
+mod azure;
 mod backoff;
 mod config;
-mod credentials;
 mod error;
 #[cfg(test)]
 mod mock_server;
 mod pagination;
 mod retry;
 mod token;
+mod util;
 
 pub use config::*;
 pub use error::*;
