@@ -14,6 +14,7 @@ mod azure;
 mod backoff;
 mod config;
 mod error;
+mod gcp;
 #[cfg(test)]
 mod mock_server;
 mod pagination;

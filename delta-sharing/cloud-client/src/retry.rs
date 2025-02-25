@@ -75,7 +75,7 @@ impl Error {
         }
     }
 
-    pub fn error(self, store: &'static str, path: String) -> crate::Error {
+    pub fn error(self) -> crate::Error {
         match self.status() {
             Some(StatusCode::NOT_FOUND) => crate::Error::NotFound {
                 source: Box::new(self),

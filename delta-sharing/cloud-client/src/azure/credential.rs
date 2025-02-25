@@ -17,18 +17,13 @@
 
 use crate::retry::RetryExt;
 use crate::token::{TemporaryToken, TokenCache};
-use crate::util::hmac_sha256;
 use crate::RetryConfig;
 use crate::{CredentialProvider, TokenProvider};
 use async_trait::async_trait;
-use base64::prelude::{BASE64_STANDARD, BASE64_URL_SAFE_NO_PAD};
+use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 use base64::Engine;
 use chrono::{DateTime, SecondsFormat, Utc};
-use reqwest::header::{
-    HeaderMap, HeaderName, HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_ENCODING, CONTENT_LANGUAGE,
-    CONTENT_LENGTH, CONTENT_TYPE, DATE, IF_MATCH, IF_MODIFIED_SINCE, IF_NONE_MATCH,
-    IF_UNMODIFIED_SINCE, RANGE,
-};
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue, ACCEPT, AUTHORIZATION, DATE};
 use reqwest::{Client, Method, Request, RequestBuilder};
 use serde::Deserialize;
 use std::borrow::Cow;
@@ -101,21 +96,6 @@ impl From<Error> for crate::Error {
     }
 }
 
-/// A shared Azure Storage Account Key
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct AzureAccessKey(Vec<u8>);
-
-impl AzureAccessKey {
-    /// Create a new [`AzureAccessKey`], checking it for validity
-    pub fn try_new(key: &str) -> Result<Self> {
-        let key = BASE64_STANDARD
-            .decode(key)
-            .map_err(|source| Error::InvalidAccessKey { source })?;
-
-        Ok(Self(key))
-    }
-}
-
 /// An Azure storage credential
 #[derive(Debug, Eq, PartialEq)]
 pub enum AzureCredential {
@@ -168,16 +148,12 @@ fn add_date_and_version_headers(request: &mut Request) {
 #[derive(Debug)]
 pub struct AzureAuthorizer<'a> {
     credential: &'a AzureCredential,
-    account: &'a str,
 }
 
 impl<'a> AzureAuthorizer<'a> {
     /// Create a new [`AzureAuthorizer`]
-    pub fn new(credential: &'a AzureCredential, account: &'a str) -> Self {
-        AzureAuthorizer {
-            credential,
-            account,
-        }
+    pub fn new(credential: &'a AzureCredential) -> Self {
+        AzureAuthorizer { credential }
     }
 
     /// Authorize `request`
@@ -207,7 +183,6 @@ pub(crate) trait CredentialExt {
     fn with_azure_authorization(
         self,
         credential: &Option<impl Deref<Target = AzureCredential>>,
-        account: &str,
     ) -> Self;
 }
 
@@ -215,14 +190,13 @@ impl CredentialExt for RequestBuilder {
     fn with_azure_authorization(
         self,
         credential: &Option<impl Deref<Target = AzureCredential>>,
-        account: &str,
     ) -> Self {
         let (client, request) = self.build_split();
         let mut request = request.expect("request valid");
 
         match credential.as_deref() {
             Some(credential) => {
-                AzureAuthorizer::new(credential, account).authorize(&mut request);
+                AzureAuthorizer::new(credential).authorize(&mut request);
             }
             None => {
                 add_date_and_version_headers(&mut request);
@@ -889,7 +863,7 @@ impl CredentialProvider for AzureCliCredential {
 mod tests {
     use futures::executor::block_on;
     use http_body_util::BodyExt;
-    use hyper::{Response, StatusCode};
+    use hyper::Response;
     use reqwest::{Client, Method};
     use tempfile::NamedTempFile;
 

@@ -1,23 +1,23 @@
-use reqwest::Client as ReqwestClient;
+use credential::CredentialExt;
+use reqwest::{Client as ReqwestClient, IntoUrl, Method, RequestBuilder};
 use std::sync::Arc;
 use url::Url;
 
-use self::credentials::AzureCredential;
+use self::credential::AzureCredential;
+use crate::retry::RetryExt;
 use crate::{ClientOptions, CredentialProvider, Result, RetryConfig};
 
-mod credentials;
+mod builder;
+mod credential;
 
 pub type AzureCredentialProvider = Arc<dyn CredentialProvider<Credential = AzureCredential>>;
 
 /// Configuration for [AzureClient]
 #[derive(Debug)]
 pub(crate) struct AzureConfig {
-    pub account: String,
-    pub container: String,
     pub credentials: AzureCredentialProvider,
     pub retry_config: RetryConfig,
     pub service: Url,
-    pub is_emulator: bool,
     pub skip_signature: bool,
     pub disable_tagging: bool,
     pub client_options: ClientOptions,
@@ -41,7 +41,7 @@ pub(crate) struct AzureClient {
 
 impl AzureClient {
     /// create a new instance of [AzureClient]
-    pub(crate) fn new(config: AzureConfig) -> Result<Self> {
+    pub(crate) fn try_new(config: AzureConfig) -> Result<Self> {
         let client = config.client_options.client()?;
         Ok(Self { config, client })
     }
@@ -53,6 +53,21 @@ impl AzureClient {
 
     async fn get_credential(&self) -> Result<Option<Arc<AzureCredential>>> {
         self.config.get_credential().await
+    }
+
+    pub async fn request<U>(&self, method: Method, url: U) -> Result<RequestBuilder>
+    where
+        U: IntoUrl,
+    {
+        let credential = self.get_credential().await?;
+        let sensitive = credential
+            .as_deref()
+            .map(|c| c.sensitive_request())
+            .unwrap_or_default();
+        Ok(self
+            .client
+            .request(method, url)
+            .with_azure_authorization(&credential))
     }
 
     // TODO: move this into higher level client ...
