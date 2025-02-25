@@ -645,6 +645,40 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
+name = "cloud-client"
+version = "0.0.1"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "futures",
+ "http",
+ "http-body-util",
+ "httparse",
+ "humantime",
+ "hyper",
+ "hyper-util",
+ "itertools 0.14.0",
+ "md-5",
+ "parking_lot",
+ "percent-encoding",
+ "quick-xml",
+ "rand 0.8.5",
+ "reqwest",
+ "ring",
+ "rustls-pemfile",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.11",
+ "tokio",
+ "tracing",
+ "url",
+ "walkdir",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -812,7 +846,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yml",
- "thiserror 1.0.69",
+ "thiserror 2.0.11",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -836,7 +870,7 @@ dependencies = [
  "ring",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.11",
  "tokio",
  "tonic",
  "tracing",
@@ -868,7 +902,7 @@ dependencies = [
  "sqlx",
  "strum 0.27.1",
  "testutils",
- "thiserror 1.0.69",
+ "thiserror 2.0.11",
  "tokio",
  "tonic",
  "tower 0.5.2",
@@ -893,7 +927,7 @@ version = "0.1.0"
 dependencies = [
  "prost",
  "prost-types",
- "thiserror 1.0.69",
+ "thiserror 2.0.11",
  "tokio",
  "tonic",
 ]
@@ -912,7 +946,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
- "thiserror 1.0.69",
+ "thiserror 2.0.11",
  "tokio",
  "tracing",
  "url",

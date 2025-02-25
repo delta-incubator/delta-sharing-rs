@@ -1,20 +1,13 @@
-use std::sync::Arc;
-
 use chrono::Days;
 use clap::{Parser, Subcommand};
-use delta_sharing_common::{
-    memory::InMemoryResourceStore, rest::AnonymousAuthenticator, ConstantPolicy,
-    KernelQueryHandler, ServerHandler,
-};
-use delta_sharing_postgres::GraphStore;
 use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
-use delta_sharing_server::run_rest_server_full;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::error::{Error, Result};
+use crate::error::Result;
+use crate::server::{handle_rest, ServerArgs};
 
 mod config;
 mod error;
+mod server;
 
 #[derive(Parser)]
 #[command(name = "delta-sharing", version, about = "CLI to manage delta.sharing services.", long_about = None)]
@@ -45,21 +38,6 @@ enum Commands {
 
     #[clap(about = "run database migrations")]
     Migrate,
-}
-
-#[derive(Parser)]
-struct ServerArgs {
-    #[clap(long, default_value = "0.0.0.0")]
-    host: String,
-
-    #[clap(long, short, default_value_t = 8080)]
-    port: u16,
-
-    #[arg(short, long, default_value = "config.yaml")]
-    config: String,
-
-    #[clap(long, help = "use database", default_value_t = false)]
-    use_db: bool,
 }
 
 #[derive(Parser)]
@@ -116,87 +94,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-
-async fn get_db_handler() -> Result<ServerHandler> {
-    let db_url = std::env::var("DATABASE_URL")
-        .map_err(|_| Error::Generic("missing DATABASE_URL".to_string()))?;
-    let store = Arc::new(GraphStore::connect(&db_url).await.unwrap());
-    let policy = Arc::new(ConstantPolicy::default());
-    store.migrate().await.unwrap();
-    let handler = ServerHandler {
-        query: KernelQueryHandler::new_multi_thread(
-            store.clone(),
-            Default::default(),
-            policy.clone(),
-        ),
-        store,
-        policy,
-    };
-    Ok(handler)
-}
-
-fn get_memory_handler() -> ServerHandler {
-    let store = Arc::new(InMemoryResourceStore::new());
-    let policy = Arc::new(ConstantPolicy::default());
-    ServerHandler {
-        query: KernelQueryHandler::new_multi_thread(
-            store.clone(),
-            Default::default(),
-            policy.clone(),
-        ),
-        store,
-        policy,
-    }
-}
-
-fn init_tracing() {
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-                // axum logs rejections from built-in extractors with the `axum::rejection`
-                // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
-                format!(
-                    "{}=debug,tower_http=debug,axum::rejection=trace",
-                    env!("CARGO_CRATE_NAME")
-                )
-                .into()
-            }),
-        )
-        .with(tracing_subscriber::fmt::layer())
-        .init();
-}
-
-/// Handle the rest server command.
-///
-/// This function starts a delta-sharing server using the REST protocol.
-async fn handle_rest(args: ServerArgs) -> Result<()> {
-    init_tracing();
-
-    if args.use_db {
-        let handler = get_db_handler().await?;
-        run_rest_server_full(args.host, args.port, handler, AnonymousAuthenticator)
-            .await
-            .map_err(|_| Error::Generic("Server failed".to_string()))
-    } else {
-        let handler = get_memory_handler();
-        run_rest_server_full(args.host, args.port, handler, AnonymousAuthenticator)
-            .await
-            .map_err(|_| Error::Generic("Server failed".to_string()))
-    }
-}
-
-/// Handle the server command.
-///
-/// This function starts a delta-sharing server using the gRPC protocol.
-// async fn handle_grpc(args: ServerArgs) -> Result<()> {
-//     init_tracing();
-//
-//     let handler = get_handler(args.config)?;
-//
-//     run_grpc_server(args.host, args.port, handler)
-//         .await
-//         .map_err(|_| Error::Generic("Server failed".to_string()))
-// }
 
 /// Handle the profile command.
 async fn handle_profile(args: ProfileArgs) -> Result<()> {
