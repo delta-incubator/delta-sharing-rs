@@ -13,7 +13,7 @@ use crate::models::sharing::v1::{
 };
 use crate::{
     Policy, RequestContext, ResourceRef, Result, SecuredAction, SharingQueryHandler,
-    TableLocationResover,
+    TableLocationResolver,
 };
 
 pub use predicate::json_predicate_to_expression;
@@ -62,7 +62,7 @@ impl<E: TaskExecutor> KernelEngineFactroy for DefaultKernelEngineFactroy<E> {
 
 pub struct KernelQueryHandler {
     engine_factory: Arc<dyn KernelEngineFactroy>,
-    location_resolver: Arc<dyn TableLocationResover>,
+    location_resolver: Arc<dyn TableLocationResolver>,
     policy: Arc<dyn Policy>,
 }
 
@@ -70,7 +70,7 @@ impl KernelQueryHandler {
     /// Create a new instance of [`KernelQueryHandler`].
     pub fn new(
         engine_factory: Arc<dyn KernelEngineFactroy>,
-        location_resolver: Arc<dyn TableLocationResover>,
+        location_resolver: Arc<dyn TableLocationResolver>,
         policy: Arc<dyn Policy>,
     ) -> Self {
         Self {
@@ -82,7 +82,7 @@ impl KernelQueryHandler {
 
     /// Create a new instance of [`KernelQueryHandler`] with a background executor.
     pub fn new_background(
-        location_resolver: Arc<dyn TableLocationResover>,
+        location_resolver: Arc<dyn TableLocationResolver>,
         storage_configs: HashMap<(String, String), HashMap<String, String>>,
         policy: Arc<dyn Policy>,
     ) -> Arc<Self> {
@@ -95,7 +95,7 @@ impl KernelQueryHandler {
 
     /// Create a new instance of [`KernelQueryHandler`] with a multi-threaded executor.
     pub fn new_multi_thread(
-        location_resolver: Arc<dyn TableLocationResover>,
+        location_resolver: Arc<dyn TableLocationResolver>,
         storage_configs: HashMap<(String, String), HashMap<String, String>>,
         policy: Arc<dyn Policy>,
     ) -> Arc<Self> {

@@ -4,7 +4,7 @@ use crate::policy::Policy;
 use crate::resources::ResourceStore;
 use crate::{
     ProvidesPolicy, ProvidesResourceStore, ResourceRef, Result, SharingQueryHandler,
-    TableLocationResover,
+    TableLocationResolver,
 };
 
 mod catalog;
@@ -46,7 +46,7 @@ impl ProvidesResourceStore for ServerHandler {
 }
 
 #[async_trait::async_trait]
-impl TableLocationResover for ServerHandler {
+impl TableLocationResolver for ServerHandler {
     async fn resolve(&self, _table: &ResourceRef) -> Result<url::Url> {
         todo!("resolve table location")
     }

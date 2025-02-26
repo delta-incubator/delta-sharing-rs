@@ -2,8 +2,10 @@ use dashmap::DashMap;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::{AssociationLabel, Error, PropertyMap, ResourceExt, Result, TableLocationResover};
-use crate::{ObjectLabel, Resource, ResourceIdent, ResourceName, ResourceRef, ResourceStore};
+use crate::{AssociationLabel, Error, PropertyMap, ResourceExt, Result, TableLocationResolver};
+use crate::{
+    ObjectLabel, Resource, ResourceIdent, ResourceName, ResourceRef, ResourceStore, SecretManager,
+};
 
 const MAX_PAGE_SIZE: usize = 10000;
 
@@ -15,6 +17,7 @@ pub struct InMemoryResourceStore {
     resources: Arc<DashMap<Uuid, Resource>>,
     id_map: Arc<DashMap<ObjectLabel, DashMap<ResourceName, Uuid>>>,
     associations: Arc<DashMap<AssociationLabel, DashMap<Uuid, (Uuid, Option<PropertyMap>)>>>,
+    secrets: Arc<DashMap<String, DashMap<Uuid, bytes::Bytes>>>,
 }
 
 impl Default for InMemoryResourceStore {
@@ -29,6 +32,7 @@ impl InMemoryResourceStore {
             resources: DashMap::new().into(),
             id_map: DashMap::new().into(),
             associations: DashMap::new().into(),
+            secrets: DashMap::new().into(),
         }
     }
 
@@ -56,7 +60,7 @@ impl InMemoryResourceStore {
 }
 
 #[async_trait::async_trait]
-impl TableLocationResover for InMemoryResourceStore {
+impl TableLocationResolver for InMemoryResourceStore {
     async fn resolve(&self, table: &ResourceRef) -> Result<url::Url> {
         let ident = ObjectLabel::TableInfo.to_ident(table.clone());
         let (_resource, _) = self.get(&ident).await?;
@@ -290,6 +294,64 @@ impl ResourceStore for InMemoryResourceStore {
         }
         let next_page_token = (resources.len() == max_page_size).then(|| last_id.to_string());
         Ok((resources, next_page_token))
+    }
+}
+
+#[async_trait::async_trait]
+impl SecretManager for InMemoryResourceStore {
+    async fn get_secret(&self, secret_name: &str) -> Result<(Uuid, bytes::Bytes)> {
+        let (uuid, value) = self
+            .secrets
+            .get(secret_name)
+            .and_then(|map| {
+                map.value()
+                    .iter()
+                    .max_by_key(|s| *s.key())
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+            })
+            .ok_or(Error::NotFound)?;
+        Ok((uuid, value))
+    }
+
+    async fn get_secret_version(&self, secret_name: &str, version: Uuid) -> Result<bytes::Bytes> {
+        let (uuid, value) = self
+            .secrets
+            .get(secret_name)
+            .and_then(|map| {
+                map.value()
+                    .iter()
+                    .filter(|s| *s.key() == version)
+                    .next()
+                    .map(|entry| (*entry.key(), entry.value().clone()))
+            })
+            .ok_or(Error::NotFound)?;
+        if uuid != version {
+            return Err(Error::NotFound);
+        }
+        Ok(value)
+    }
+
+    async fn create_secret(&self, secret_name: &str, secret_value: bytes::Bytes) -> Result<Uuid> {
+        if self.secrets.contains_key(secret_name) {
+            return Err(Error::AlreadyExists);
+        }
+        let uuid = Uuid::now_v7();
+        self.secrets
+            .entry(secret_name.to_string())
+            .or_default()
+            .insert(uuid, secret_value);
+        Ok(uuid)
+    }
+
+    async fn update_secret(&self, secret_name: &str, secret_value: bytes::Bytes) -> Result<Uuid> {
+        let map = self
+            .secrets
+            .get(secret_name)
+            .map(|entry| entry.value().clone())
+            .ok_or(Error::NotFound)?;
+        let uuid = Uuid::now_v7();
+        map.insert(uuid, secret_value);
+        Ok(uuid)
     }
 }
 
