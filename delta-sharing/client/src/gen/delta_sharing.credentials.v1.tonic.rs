@@ -1,6 +1,6 @@
 // @generated
 /// Generated client implementations.
-pub mod credential_service_client {
+pub mod credentials_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
@@ -8,10 +8,10 @@ pub mod credential_service_client {
  as well as generate signed urls for the Delta Sharing service.
 */
     #[derive(Debug, Clone)]
-    pub struct CredentialServiceClient<T> {
+    pub struct CredentialsServiceClient<T> {
         inner: tonic::client::Grpc<T>,
     }
-    impl CredentialServiceClient<tonic::transport::Channel> {
+    impl CredentialsServiceClient<tonic::transport::Channel> {
         /// Attempt to create a new client by connecting to a given endpoint.
         pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
         where
@@ -22,7 +22,7 @@ pub mod credential_service_client {
             Ok(Self::new(conn))
         }
     }
-    impl<T> CredentialServiceClient<T>
+    impl<T> CredentialsServiceClient<T>
     where
         T: tonic::client::GrpcService<tonic::body::BoxBody>,
         T::Error: Into<StdError>,
@@ -40,7 +40,7 @@ pub mod credential_service_client {
         pub fn with_interceptor<F>(
             inner: T,
             interceptor: F,
-        ) -> CredentialServiceClient<InterceptedService<T, F>>
+        ) -> CredentialsServiceClient<InterceptedService<T, F>>
         where
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
@@ -54,7 +54,7 @@ pub mod credential_service_client {
                 http::Request<tonic::body::BoxBody>,
             >>::Error: Into<StdError> + Send + Sync,
         {
-            CredentialServiceClient::new(InterceptedService::new(inner, interceptor))
+            CredentialsServiceClient::new(InterceptedService::new(inner, interceptor))
         }
         /// Compress requests with the given encoding.
         ///
@@ -88,10 +88,13 @@ pub mod credential_service_client {
             self
         }
         ///
-        pub async fn create_credential(
+        pub async fn list_credentials(
             &mut self,
-            request: impl tonic::IntoRequest<super::CreateCredentialRequest>,
-        ) -> std::result::Result<tonic::Response<super::Credential>, tonic::Status> {
+            request: impl tonic::IntoRequest<super::ListCredentialsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListCredentialsResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -103,13 +106,41 @@ pub mod credential_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.credentials.v1.CredentialService/CreateCredential",
+                "/delta_sharing.credentials.v1.CredentialsService/ListCredentials",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "delta_sharing.credentials.v1.CredentialService",
+                        "delta_sharing.credentials.v1.CredentialsService",
+                        "ListCredentials",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        ///
+        pub async fn create_credential(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateCredentialRequest>,
+        ) -> std::result::Result<tonic::Response<super::CredentialInfo>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.credentials.v1.CredentialsService/CreateCredential",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.credentials.v1.CredentialsService",
                         "CreateCredential",
                     ),
                 );
@@ -119,7 +150,7 @@ pub mod credential_service_client {
         pub async fn get_credential(
             &mut self,
             request: impl tonic::IntoRequest<super::GetCredentialRequest>,
-        ) -> std::result::Result<tonic::Response<super::Credential>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::CredentialInfo>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -131,14 +162,42 @@ pub mod credential_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.credentials.v1.CredentialService/GetCredential",
+                "/delta_sharing.credentials.v1.CredentialsService/GetCredential",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "delta_sharing.credentials.v1.CredentialService",
+                        "delta_sharing.credentials.v1.CredentialsService",
                         "GetCredential",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        ///
+        pub async fn update_credential(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateCredentialRequest>,
+        ) -> std::result::Result<tonic::Response<super::CredentialInfo>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.credentials.v1.CredentialsService/UpdateCredential",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.credentials.v1.CredentialsService",
+                        "UpdateCredential",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -159,13 +218,13 @@ pub mod credential_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.credentials.v1.CredentialService/DeleteCredential",
+                "/delta_sharing.credentials.v1.CredentialsService/DeleteCredential",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "delta_sharing.credentials.v1.CredentialService",
+                        "delta_sharing.credentials.v1.CredentialsService",
                         "DeleteCredential",
                     ),
                 );

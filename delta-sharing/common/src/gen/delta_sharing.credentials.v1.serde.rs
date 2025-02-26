@@ -1,5 +1,5 @@
 // @generated
-impl serde::Serialize for AzureClientCredential {
+impl serde::Serialize for AzureManagedIdentity {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
@@ -7,31 +7,154 @@ impl serde::Serialize for AzureClientCredential {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if !self.tenant_id.is_empty() {
+        if self.identifier.is_some() {
             len += 1;
         }
-        if !self.client_id.is_empty() {
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.AzureManagedIdentity", len)?;
+        if let Some(v) = self.identifier.as_ref() {
+            match v {
+                azure_managed_identity::Identifier::ObjectId(v) => {
+                    struct_ser.serialize_field("objectId", v)?;
+                }
+                azure_managed_identity::Identifier::ApplicationId(v) => {
+                    struct_ser.serialize_field("applicationId", v)?;
+                }
+                azure_managed_identity::Identifier::MsiResourceId(v) => {
+                    struct_ser.serialize_field("msiResourceId", v)?;
+                }
+            }
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for AzureManagedIdentity {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "object_id",
+            "objectId",
+            "application_id",
+            "applicationId",
+            "msi_resource_id",
+            "msiResourceId",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            ObjectId,
+            ApplicationId,
+            MsiResourceId,
+            __SkipField__,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "objectId" | "object_id" => Ok(GeneratedField::ObjectId),
+                            "applicationId" | "application_id" => Ok(GeneratedField::ApplicationId),
+                            "msiResourceId" | "msi_resource_id" => Ok(GeneratedField::MsiResourceId),
+                            _ => Ok(GeneratedField::__SkipField__),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = AzureManagedIdentity;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.credentials.v1.AzureManagedIdentity")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<AzureManagedIdentity, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut identifier__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::ObjectId => {
+                            if identifier__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("objectId"));
+                            }
+                            identifier__ = map_.next_value::<::std::option::Option<_>>()?.map(azure_managed_identity::Identifier::ObjectId);
+                        }
+                        GeneratedField::ApplicationId => {
+                            if identifier__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("applicationId"));
+                            }
+                            identifier__ = map_.next_value::<::std::option::Option<_>>()?.map(azure_managed_identity::Identifier::ApplicationId);
+                        }
+                        GeneratedField::MsiResourceId => {
+                            if identifier__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("msiResourceId"));
+                            }
+                            identifier__ = map_.next_value::<::std::option::Option<_>>()?.map(azure_managed_identity::Identifier::MsiResourceId);
+                        }
+                        GeneratedField::__SkipField__ => {
+                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
+                        }
+                    }
+                }
+                Ok(AzureManagedIdentity {
+                    identifier: identifier__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.credentials.v1.AzureManagedIdentity", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for AzureServicePrincipal {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.directory_id.is_empty() {
+            len += 1;
+        }
+        if !self.application_id.is_empty() {
             len += 1;
         }
         if self.credential.is_some() {
             len += 1;
         }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.AzureClientCredential", len)?;
-        if !self.tenant_id.is_empty() {
-            struct_ser.serialize_field("tenantId", &self.tenant_id)?;
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.AzureServicePrincipal", len)?;
+        if !self.directory_id.is_empty() {
+            struct_ser.serialize_field("directoryId", &self.directory_id)?;
         }
-        if !self.client_id.is_empty() {
-            struct_ser.serialize_field("clientId", &self.client_id)?;
+        if !self.application_id.is_empty() {
+            struct_ser.serialize_field("applicationId", &self.application_id)?;
         }
         if let Some(v) = self.credential.as_ref() {
             match v {
-                azure_client_credential::Credential::ClientSecret(v) => {
+                azure_service_principal::Credential::ClientSecret(v) => {
                     struct_ser.serialize_field("clientSecret", v)?;
                 }
-                azure_client_credential::Credential::ClientCertificate(v) => {
-                    struct_ser.serialize_field("clientCertificate", v)?;
-                }
-                azure_client_credential::Credential::FederatedTokenFile(v) => {
+                azure_service_principal::Credential::FederatedTokenFile(v) => {
                     struct_ser.serialize_field("federatedTokenFile", v)?;
                 }
             }
@@ -39,31 +162,28 @@ impl serde::Serialize for AzureClientCredential {
         struct_ser.end()
     }
 }
-impl<'de> serde::Deserialize<'de> for AzureClientCredential {
+impl<'de> serde::Deserialize<'de> for AzureServicePrincipal {
     #[allow(deprecated)]
     fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "tenant_id",
-            "tenantId",
-            "client_id",
-            "clientId",
+            "directory_id",
+            "directoryId",
+            "application_id",
+            "applicationId",
             "client_secret",
             "clientSecret",
-            "client_certificate",
-            "clientCertificate",
             "federated_token_file",
             "federatedTokenFile",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            TenantId,
-            ClientId,
+            DirectoryId,
+            ApplicationId,
             ClientSecret,
-            ClientCertificate,
             FederatedTokenFile,
             __SkipField__,
         }
@@ -74,7 +194,7 @@ impl<'de> serde::Deserialize<'de> for AzureClientCredential {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -87,10 +207,9 @@ impl<'de> serde::Deserialize<'de> for AzureClientCredential {
                         E: serde::de::Error,
                     {
                         match value {
-                            "tenantId" | "tenant_id" => Ok(GeneratedField::TenantId),
-                            "clientId" | "client_id" => Ok(GeneratedField::ClientId),
+                            "directoryId" | "directory_id" => Ok(GeneratedField::DirectoryId),
+                            "applicationId" | "application_id" => Ok(GeneratedField::ApplicationId),
                             "clientSecret" | "client_secret" => Ok(GeneratedField::ClientSecret),
-                            "clientCertificate" | "client_certificate" => Ok(GeneratedField::ClientCertificate),
                             "federatedTokenFile" | "federated_token_file" => Ok(GeneratedField::FederatedTokenFile),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
@@ -101,419 +220,58 @@ impl<'de> serde::Deserialize<'de> for AzureClientCredential {
         }
         struct GeneratedVisitor;
         impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = AzureClientCredential;
+            type Value = AzureServicePrincipal;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.credentials.v1.AzureClientCredential")
+                formatter.write_str("struct delta_sharing.credentials.v1.AzureServicePrincipal")
             }
 
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<AzureClientCredential, V::Error>
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<AzureServicePrincipal, V::Error>
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut tenant_id__ = None;
-                let mut client_id__ = None;
+                let mut directory_id__ = None;
+                let mut application_id__ = None;
                 let mut credential__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::TenantId => {
-                            if tenant_id__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("tenantId"));
+                        GeneratedField::DirectoryId => {
+                            if directory_id__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("directoryId"));
                             }
-                            tenant_id__ = Some(map_.next_value()?);
+                            directory_id__ = Some(map_.next_value()?);
                         }
-                        GeneratedField::ClientId => {
-                            if client_id__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("clientId"));
+                        GeneratedField::ApplicationId => {
+                            if application_id__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("applicationId"));
                             }
-                            client_id__ = Some(map_.next_value()?);
+                            application_id__ = Some(map_.next_value()?);
                         }
                         GeneratedField::ClientSecret => {
                             if credential__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("clientSecret"));
                             }
-                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(azure_client_credential::Credential::ClientSecret);
-                        }
-                        GeneratedField::ClientCertificate => {
-                            if credential__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("clientCertificate"));
-                            }
-                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(azure_client_credential::Credential::ClientCertificate);
+                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(azure_service_principal::Credential::ClientSecret);
                         }
                         GeneratedField::FederatedTokenFile => {
                             if credential__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("federatedTokenFile"));
                             }
-                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(azure_client_credential::Credential::FederatedTokenFile);
+                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(azure_service_principal::Credential::FederatedTokenFile);
                         }
                         GeneratedField::__SkipField__ => {
                             let _ = map_.next_value::<serde::de::IgnoredAny>()?;
                         }
                     }
                 }
-                Ok(AzureClientCredential {
-                    tenant_id: tenant_id__.unwrap_or_default(),
-                    client_id: client_id__.unwrap_or_default(),
+                Ok(AzureServicePrincipal {
+                    directory_id: directory_id__.unwrap_or_default(),
+                    application_id: application_id__.unwrap_or_default(),
                     credential: credential__,
                 })
             }
         }
-        deserializer.deserialize_struct("delta_sharing.credentials.v1.AzureClientCredential", FIELDS, GeneratedVisitor)
-    }
-}
-impl serde::Serialize for AzureCredential {
-    #[allow(deprecated)]
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeStruct;
-        let mut len = 0;
-        if self.credential.is_some() {
-            len += 1;
-        }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.AzureCredential", len)?;
-        if let Some(v) = self.credential.as_ref() {
-            match v {
-                azure_credential::Credential::AccountKey(v) => {
-                    struct_ser.serialize_field("accountKey", v)?;
-                }
-                azure_credential::Credential::Sas(v) => {
-                    struct_ser.serialize_field("sas", v)?;
-                }
-                azure_credential::Credential::Client(v) => {
-                    struct_ser.serialize_field("client", v)?;
-                }
-            }
-        }
-        struct_ser.end()
-    }
-}
-impl<'de> serde::Deserialize<'de> for AzureCredential {
-    #[allow(deprecated)]
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        const FIELDS: &[&str] = &[
-            "account_key",
-            "accountKey",
-            "sas",
-            "client",
-        ];
-
-        #[allow(clippy::enum_variant_names)]
-        enum GeneratedField {
-            AccountKey,
-            Sas,
-            Client,
-            __SkipField__,
-        }
-        impl<'de> serde::Deserialize<'de> for GeneratedField {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct GeneratedVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-                    type Value = GeneratedField;
-
-                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(formatter, "expected one of: {:?}", &FIELDS)
-                    }
-
-                    #[allow(unused_variables)]
-                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match value {
-                            "accountKey" | "account_key" => Ok(GeneratedField::AccountKey),
-                            "sas" => Ok(GeneratedField::Sas),
-                            "client" => Ok(GeneratedField::Client),
-                            _ => Ok(GeneratedField::__SkipField__),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(GeneratedVisitor)
-            }
-        }
-        struct GeneratedVisitor;
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = AzureCredential;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.credentials.v1.AzureCredential")
-            }
-
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<AzureCredential, V::Error>
-                where
-                    V: serde::de::MapAccess<'de>,
-            {
-                let mut credential__ = None;
-                while let Some(k) = map_.next_key()? {
-                    match k {
-                        GeneratedField::AccountKey => {
-                            if credential__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("accountKey"));
-                            }
-                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(azure_credential::Credential::AccountKey)
-;
-                        }
-                        GeneratedField::Sas => {
-                            if credential__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("sas"));
-                            }
-                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(azure_credential::Credential::Sas)
-;
-                        }
-                        GeneratedField::Client => {
-                            if credential__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("client"));
-                            }
-                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(azure_credential::Credential::Client)
-;
-                        }
-                        GeneratedField::__SkipField__ => {
-                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
-                        }
-                    }
-                }
-                Ok(AzureCredential {
-                    credential: credential__,
-                })
-            }
-        }
-        deserializer.deserialize_struct("delta_sharing.credentials.v1.AzureCredential", FIELDS, GeneratedVisitor)
-    }
-}
-impl serde::Serialize for AzureKeyCredential {
-    #[allow(deprecated)]
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeStruct;
-        let mut len = 0;
-        if !self.account_name.is_empty() {
-            len += 1;
-        }
-        if !self.account_key.is_empty() {
-            len += 1;
-        }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.AzureKeyCredential", len)?;
-        if !self.account_name.is_empty() {
-            struct_ser.serialize_field("accountName", &self.account_name)?;
-        }
-        if !self.account_key.is_empty() {
-            struct_ser.serialize_field("accountKey", &self.account_key)?;
-        }
-        struct_ser.end()
-    }
-}
-impl<'de> serde::Deserialize<'de> for AzureKeyCredential {
-    #[allow(deprecated)]
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        const FIELDS: &[&str] = &[
-            "account_name",
-            "accountName",
-            "account_key",
-            "accountKey",
-        ];
-
-        #[allow(clippy::enum_variant_names)]
-        enum GeneratedField {
-            AccountName,
-            AccountKey,
-            __SkipField__,
-        }
-        impl<'de> serde::Deserialize<'de> for GeneratedField {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct GeneratedVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-                    type Value = GeneratedField;
-
-                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(formatter, "expected one of: {:?}", &FIELDS)
-                    }
-
-                    #[allow(unused_variables)]
-                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match value {
-                            "accountName" | "account_name" => Ok(GeneratedField::AccountName),
-                            "accountKey" | "account_key" => Ok(GeneratedField::AccountKey),
-                            _ => Ok(GeneratedField::__SkipField__),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(GeneratedVisitor)
-            }
-        }
-        struct GeneratedVisitor;
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = AzureKeyCredential;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.credentials.v1.AzureKeyCredential")
-            }
-
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<AzureKeyCredential, V::Error>
-                where
-                    V: serde::de::MapAccess<'de>,
-            {
-                let mut account_name__ = None;
-                let mut account_key__ = None;
-                while let Some(k) = map_.next_key()? {
-                    match k {
-                        GeneratedField::AccountName => {
-                            if account_name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("accountName"));
-                            }
-                            account_name__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::AccountKey => {
-                            if account_key__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("accountKey"));
-                            }
-                            account_key__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::__SkipField__ => {
-                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
-                        }
-                    }
-                }
-                Ok(AzureKeyCredential {
-                    account_name: account_name__.unwrap_or_default(),
-                    account_key: account_key__.unwrap_or_default(),
-                })
-            }
-        }
-        deserializer.deserialize_struct("delta_sharing.credentials.v1.AzureKeyCredential", FIELDS, GeneratedVisitor)
-    }
-}
-impl serde::Serialize for AzureSasCredential {
-    #[allow(deprecated)]
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeStruct;
-        let mut len = 0;
-        if !self.account_name.is_empty() {
-            len += 1;
-        }
-        if !self.sas_token.is_empty() {
-            len += 1;
-        }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.AzureSasCredential", len)?;
-        if !self.account_name.is_empty() {
-            struct_ser.serialize_field("accountName", &self.account_name)?;
-        }
-        if !self.sas_token.is_empty() {
-            struct_ser.serialize_field("sasToken", &self.sas_token)?;
-        }
-        struct_ser.end()
-    }
-}
-impl<'de> serde::Deserialize<'de> for AzureSasCredential {
-    #[allow(deprecated)]
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        const FIELDS: &[&str] = &[
-            "account_name",
-            "accountName",
-            "sas_token",
-            "sasToken",
-        ];
-
-        #[allow(clippy::enum_variant_names)]
-        enum GeneratedField {
-            AccountName,
-            SasToken,
-            __SkipField__,
-        }
-        impl<'de> serde::Deserialize<'de> for GeneratedField {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct GeneratedVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-                    type Value = GeneratedField;
-
-                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(formatter, "expected one of: {:?}", &FIELDS)
-                    }
-
-                    #[allow(unused_variables)]
-                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match value {
-                            "accountName" | "account_name" => Ok(GeneratedField::AccountName),
-                            "sasToken" | "sas_token" => Ok(GeneratedField::SasToken),
-                            _ => Ok(GeneratedField::__SkipField__),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(GeneratedVisitor)
-            }
-        }
-        struct GeneratedVisitor;
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = AzureSasCredential;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.credentials.v1.AzureSasCredential")
-            }
-
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<AzureSasCredential, V::Error>
-                where
-                    V: serde::de::MapAccess<'de>,
-            {
-                let mut account_name__ = None;
-                let mut sas_token__ = None;
-                while let Some(k) = map_.next_key()? {
-                    match k {
-                        GeneratedField::AccountName => {
-                            if account_name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("accountName"));
-                            }
-                            account_name__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::SasToken => {
-                            if sas_token__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("sasToken"));
-                            }
-                            sas_token__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::__SkipField__ => {
-                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
-                        }
-                    }
-                }
-                Ok(AzureSasCredential {
-                    account_name: account_name__.unwrap_or_default(),
-                    sas_token: sas_token__.unwrap_or_default(),
-                })
-            }
-        }
-        deserializer.deserialize_struct("delta_sharing.credentials.v1.AzureSasCredential", FIELDS, GeneratedVisitor)
+        deserializer.deserialize_struct("delta_sharing.credentials.v1.AzureServicePrincipal", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for CreateCredentialRequest {
@@ -524,12 +282,51 @@ impl serde::Serialize for CreateCredentialRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if self.purpose != 0 {
+            len += 1;
+        }
+        if self.comment.is_some() {
+            len += 1;
+        }
+        if self.read_only.is_some() {
+            len += 1;
+        }
+        if self.skip_validation {
+            len += 1;
+        }
         if self.credential.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.CreateCredentialRequest", len)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if self.purpose != 0 {
+            let v = Purpose::try_from(self.purpose)
+                .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.purpose)))?;
+            struct_ser.serialize_field("purpose", &v)?;
+        }
+        if let Some(v) = self.comment.as_ref() {
+            struct_ser.serialize_field("comment", v)?;
+        }
+        if let Some(v) = self.read_only.as_ref() {
+            struct_ser.serialize_field("readOnly", v)?;
+        }
+        if self.skip_validation {
+            struct_ser.serialize_field("skipValidation", &self.skip_validation)?;
+        }
         if let Some(v) = self.credential.as_ref() {
-            struct_ser.serialize_field("credential", v)?;
+            match v {
+                create_credential_request::Credential::AzureServicePrincipal(v) => {
+                    struct_ser.serialize_field("azureServicePrincipal", v)?;
+                }
+                create_credential_request::Credential::AzureManagedIdentity(v) => {
+                    struct_ser.serialize_field("azureManagedIdentity", v)?;
+                }
+            }
         }
         struct_ser.end()
     }
@@ -541,12 +338,28 @@ impl<'de> serde::Deserialize<'de> for CreateCredentialRequest {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "credential",
+            "name",
+            "purpose",
+            "comment",
+            "read_only",
+            "readOnly",
+            "skip_validation",
+            "skipValidation",
+            "azure_service_principal",
+            "azureServicePrincipal",
+            "azure_managed_identity",
+            "azureManagedIdentity",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            Credential,
+            Name,
+            Purpose,
+            Comment,
+            ReadOnly,
+            SkipValidation,
+            AzureServicePrincipal,
+            AzureManagedIdentity,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -556,7 +369,7 @@ impl<'de> serde::Deserialize<'de> for CreateCredentialRequest {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -569,7 +382,13 @@ impl<'de> serde::Deserialize<'de> for CreateCredentialRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "credential" => Ok(GeneratedField::Credential),
+                            "name" => Ok(GeneratedField::Name),
+                            "purpose" => Ok(GeneratedField::Purpose),
+                            "comment" => Ok(GeneratedField::Comment),
+                            "readOnly" | "read_only" => Ok(GeneratedField::ReadOnly),
+                            "skipValidation" | "skip_validation" => Ok(GeneratedField::SkipValidation),
+                            "azureServicePrincipal" | "azure_service_principal" => Ok(GeneratedField::AzureServicePrincipal),
+                            "azureManagedIdentity" | "azure_managed_identity" => Ok(GeneratedField::AzureManagedIdentity),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -589,14 +408,57 @@ impl<'de> serde::Deserialize<'de> for CreateCredentialRequest {
                 where
                     V: serde::de::MapAccess<'de>,
             {
+                let mut name__ = None;
+                let mut purpose__ = None;
+                let mut comment__ = None;
+                let mut read_only__ = None;
+                let mut skip_validation__ = None;
                 let mut credential__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::Credential => {
-                            if credential__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("credential"));
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
                             }
-                            credential__ = map_.next_value()?;
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Purpose => {
+                            if purpose__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("purpose"));
+                            }
+                            purpose__ = Some(map_.next_value::<Purpose>()? as i32);
+                        }
+                        GeneratedField::Comment => {
+                            if comment__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("comment"));
+                            }
+                            comment__ = map_.next_value()?;
+                        }
+                        GeneratedField::ReadOnly => {
+                            if read_only__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("readOnly"));
+                            }
+                            read_only__ = map_.next_value()?;
+                        }
+                        GeneratedField::SkipValidation => {
+                            if skip_validation__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("skipValidation"));
+                            }
+                            skip_validation__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::AzureServicePrincipal => {
+                            if credential__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("azureServicePrincipal"));
+                            }
+                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(create_credential_request::Credential::AzureServicePrincipal)
+;
+                        }
+                        GeneratedField::AzureManagedIdentity => {
+                            if credential__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("azureManagedIdentity"));
+                            }
+                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(create_credential_request::Credential::AzureManagedIdentity)
+;
                         }
                         GeneratedField::__SkipField__ => {
                             let _ = map_.next_value::<serde::de::IgnoredAny>()?;
@@ -604,6 +466,11 @@ impl<'de> serde::Deserialize<'de> for CreateCredentialRequest {
                     }
                 }
                 Ok(CreateCredentialRequest {
+                    name: name__.unwrap_or_default(),
+                    purpose: purpose__.unwrap_or_default(),
+                    comment: comment__,
+                    read_only: read_only__,
+                    skip_validation: skip_validation__.unwrap_or_default(),
                     credential: credential__,
                 })
             }
@@ -611,7 +478,7 @@ impl<'de> serde::Deserialize<'de> for CreateCredentialRequest {
         deserializer.deserialize_struct("delta_sharing.credentials.v1.CreateCredentialRequest", FIELDS, GeneratedVisitor)
     }
 }
-impl serde::Serialize for Credential {
+impl serde::Serialize for CredentialInfo {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
@@ -623,6 +490,15 @@ impl serde::Serialize for Credential {
             len += 1;
         }
         if !self.name.is_empty() {
+            len += 1;
+        }
+        if self.purpose != 0 {
+            len += 1;
+        }
+        if self.read_only {
+            len += 1;
+        }
+        if self.comment.is_some() {
             len += 1;
         }
         if self.owner.is_some() {
@@ -640,15 +516,32 @@ impl serde::Serialize for Credential {
         if self.updated_by.is_some() {
             len += 1;
         }
+        if self.used_for_managed_storage {
+            len += 1;
+        }
+        if self.full_name.is_some() {
+            len += 1;
+        }
         if self.credential.is_some() {
             len += 1;
         }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.Credential", len)?;
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.CredentialInfo", len)?;
         if !self.id.is_empty() {
             struct_ser.serialize_field("id", &self.id)?;
         }
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
+        }
+        if self.purpose != 0 {
+            let v = Purpose::try_from(self.purpose)
+                .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.purpose)))?;
+            struct_ser.serialize_field("purpose", &v)?;
+        }
+        if self.read_only {
+            struct_ser.serialize_field("readOnly", &self.read_only)?;
+        }
+        if let Some(v) = self.comment.as_ref() {
+            struct_ser.serialize_field("comment", v)?;
         }
         if let Some(v) = self.owner.as_ref() {
             struct_ser.serialize_field("owner", v)?;
@@ -669,17 +562,26 @@ impl serde::Serialize for Credential {
         if let Some(v) = self.updated_by.as_ref() {
             struct_ser.serialize_field("updatedBy", v)?;
         }
+        if self.used_for_managed_storage {
+            struct_ser.serialize_field("usedForManagedStorage", &self.used_for_managed_storage)?;
+        }
+        if let Some(v) = self.full_name.as_ref() {
+            struct_ser.serialize_field("fullName", v)?;
+        }
         if let Some(v) = self.credential.as_ref() {
             match v {
-                credential::Credential::Azure(v) => {
-                    struct_ser.serialize_field("azure", v)?;
+                credential_info::Credential::AzureServicePrincipal(v) => {
+                    struct_ser.serialize_field("azureServicePrincipal", v)?;
+                }
+                credential_info::Credential::AzureManagedIdentity(v) => {
+                    struct_ser.serialize_field("azureManagedIdentity", v)?;
                 }
             }
         }
         struct_ser.end()
     }
 }
-impl<'de> serde::Deserialize<'de> for Credential {
+impl<'de> serde::Deserialize<'de> for CredentialInfo {
     #[allow(deprecated)]
     fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
     where
@@ -688,6 +590,10 @@ impl<'de> serde::Deserialize<'de> for Credential {
         const FIELDS: &[&str] = &[
             "id",
             "name",
+            "purpose",
+            "read_only",
+            "readOnly",
+            "comment",
             "owner",
             "create_at",
             "createAt",
@@ -697,19 +603,32 @@ impl<'de> serde::Deserialize<'de> for Credential {
             "updateAt",
             "updated_by",
             "updatedBy",
-            "azure",
+            "used_for_managed_storage",
+            "usedForManagedStorage",
+            "full_name",
+            "fullName",
+            "azure_service_principal",
+            "azureServicePrincipal",
+            "azure_managed_identity",
+            "azureManagedIdentity",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Id,
             Name,
+            Purpose,
+            ReadOnly,
+            Comment,
             Owner,
             CreateAt,
             CreatedBy,
             UpdateAt,
             UpdatedBy,
-            Azure,
+            UsedForManagedStorage,
+            FullName,
+            AzureServicePrincipal,
+            AzureManagedIdentity,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -719,7 +638,7 @@ impl<'de> serde::Deserialize<'de> for Credential {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -734,12 +653,18 @@ impl<'de> serde::Deserialize<'de> for Credential {
                         match value {
                             "id" => Ok(GeneratedField::Id),
                             "name" => Ok(GeneratedField::Name),
+                            "purpose" => Ok(GeneratedField::Purpose),
+                            "readOnly" | "read_only" => Ok(GeneratedField::ReadOnly),
+                            "comment" => Ok(GeneratedField::Comment),
                             "owner" => Ok(GeneratedField::Owner),
                             "createAt" | "create_at" => Ok(GeneratedField::CreateAt),
                             "createdBy" | "created_by" => Ok(GeneratedField::CreatedBy),
                             "updateAt" | "update_at" => Ok(GeneratedField::UpdateAt),
                             "updatedBy" | "updated_by" => Ok(GeneratedField::UpdatedBy),
-                            "azure" => Ok(GeneratedField::Azure),
+                            "usedForManagedStorage" | "used_for_managed_storage" => Ok(GeneratedField::UsedForManagedStorage),
+                            "fullName" | "full_name" => Ok(GeneratedField::FullName),
+                            "azureServicePrincipal" | "azure_service_principal" => Ok(GeneratedField::AzureServicePrincipal),
+                            "azureManagedIdentity" | "azure_managed_identity" => Ok(GeneratedField::AzureManagedIdentity),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -749,23 +674,28 @@ impl<'de> serde::Deserialize<'de> for Credential {
         }
         struct GeneratedVisitor;
         impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = Credential;
+            type Value = CredentialInfo;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.credentials.v1.Credential")
+                formatter.write_str("struct delta_sharing.credentials.v1.CredentialInfo")
             }
 
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<Credential, V::Error>
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<CredentialInfo, V::Error>
                 where
                     V: serde::de::MapAccess<'de>,
             {
                 let mut id__ = None;
                 let mut name__ = None;
+                let mut purpose__ = None;
+                let mut read_only__ = None;
+                let mut comment__ = None;
                 let mut owner__ = None;
                 let mut create_at__ = None;
                 let mut created_by__ = None;
                 let mut update_at__ = None;
                 let mut updated_by__ = None;
+                let mut used_for_managed_storage__ = None;
+                let mut full_name__ = None;
                 let mut credential__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
@@ -780,6 +710,24 @@ impl<'de> serde::Deserialize<'de> for Credential {
                                 return Err(serde::de::Error::duplicate_field("name"));
                             }
                             name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Purpose => {
+                            if purpose__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("purpose"));
+                            }
+                            purpose__ = Some(map_.next_value::<Purpose>()? as i32);
+                        }
+                        GeneratedField::ReadOnly => {
+                            if read_only__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("readOnly"));
+                            }
+                            read_only__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Comment => {
+                            if comment__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("comment"));
+                            }
+                            comment__ = map_.next_value()?;
                         }
                         GeneratedField::Owner => {
                             if owner__.is_some() {
@@ -815,11 +763,30 @@ impl<'de> serde::Deserialize<'de> for Credential {
                             }
                             updated_by__ = map_.next_value()?;
                         }
-                        GeneratedField::Azure => {
-                            if credential__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("azure"));
+                        GeneratedField::UsedForManagedStorage => {
+                            if used_for_managed_storage__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("usedForManagedStorage"));
                             }
-                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(credential::Credential::Azure)
+                            used_for_managed_storage__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::FullName => {
+                            if full_name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("fullName"));
+                            }
+                            full_name__ = map_.next_value()?;
+                        }
+                        GeneratedField::AzureServicePrincipal => {
+                            if credential__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("azureServicePrincipal"));
+                            }
+                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(credential_info::Credential::AzureServicePrincipal)
+;
+                        }
+                        GeneratedField::AzureManagedIdentity => {
+                            if credential__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("azureManagedIdentity"));
+                            }
+                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(credential_info::Credential::AzureManagedIdentity)
 ;
                         }
                         GeneratedField::__SkipField__ => {
@@ -827,19 +794,24 @@ impl<'de> serde::Deserialize<'de> for Credential {
                         }
                     }
                 }
-                Ok(Credential {
+                Ok(CredentialInfo {
                     id: id__.unwrap_or_default(),
                     name: name__.unwrap_or_default(),
+                    purpose: purpose__.unwrap_or_default(),
+                    read_only: read_only__.unwrap_or_default(),
+                    comment: comment__,
                     owner: owner__,
                     create_at: create_at__,
                     created_by: created_by__,
                     update_at: update_at__,
                     updated_by: updated_by__,
+                    used_for_managed_storage: used_for_managed_storage__.unwrap_or_default(),
+                    full_name: full_name__,
                     credential: credential__,
                 })
             }
         }
-        deserializer.deserialize_struct("delta_sharing.credentials.v1.Credential", FIELDS, GeneratedVisitor)
+        deserializer.deserialize_struct("delta_sharing.credentials.v1.CredentialInfo", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for DeleteCredentialRequest {
@@ -882,7 +854,7 @@ impl<'de> serde::Deserialize<'de> for DeleteCredentialRequest {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -977,7 +949,7 @@ impl<'de> serde::Deserialize<'de> for GetCredentialRequest {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -1030,5 +1002,545 @@ impl<'de> serde::Deserialize<'de> for GetCredentialRequest {
             }
         }
         deserializer.deserialize_struct("delta_sharing.credentials.v1.GetCredentialRequest", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for ListCredentialsRequest {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if self.max_results.is_some() {
+            len += 1;
+        }
+        if self.page_token.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.ListCredentialsRequest", len)?;
+        if let Some(v) = self.max_results.as_ref() {
+            struct_ser.serialize_field("maxResults", v)?;
+        }
+        if let Some(v) = self.page_token.as_ref() {
+            struct_ser.serialize_field("pageToken", v)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for ListCredentialsRequest {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "max_results",
+            "maxResults",
+            "page_token",
+            "pageToken",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            MaxResults,
+            PageToken,
+            __SkipField__,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
+                            "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
+                            _ => Ok(GeneratedField::__SkipField__),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = ListCredentialsRequest;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.credentials.v1.ListCredentialsRequest")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ListCredentialsRequest, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut max_results__ = None;
+                let mut page_token__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::MaxResults => {
+                            if max_results__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("maxResults"));
+                            }
+                            max_results__ = 
+                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
+                            ;
+                        }
+                        GeneratedField::PageToken => {
+                            if page_token__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("pageToken"));
+                            }
+                            page_token__ = map_.next_value()?;
+                        }
+                        GeneratedField::__SkipField__ => {
+                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
+                        }
+                    }
+                }
+                Ok(ListCredentialsRequest {
+                    max_results: max_results__,
+                    page_token: page_token__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.credentials.v1.ListCredentialsRequest", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for ListCredentialsResponse {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.credentials.is_empty() {
+            len += 1;
+        }
+        if self.next_page_token.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.ListCredentialsResponse", len)?;
+        if !self.credentials.is_empty() {
+            struct_ser.serialize_field("credentials", &self.credentials)?;
+        }
+        if let Some(v) = self.next_page_token.as_ref() {
+            struct_ser.serialize_field("nextPageToken", v)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for ListCredentialsResponse {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "credentials",
+            "next_page_token",
+            "nextPageToken",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Credentials,
+            NextPageToken,
+            __SkipField__,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "credentials" => Ok(GeneratedField::Credentials),
+                            "nextPageToken" | "next_page_token" => Ok(GeneratedField::NextPageToken),
+                            _ => Ok(GeneratedField::__SkipField__),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = ListCredentialsResponse;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.credentials.v1.ListCredentialsResponse")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ListCredentialsResponse, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut credentials__ = None;
+                let mut next_page_token__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Credentials => {
+                            if credentials__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("credentials"));
+                            }
+                            credentials__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::NextPageToken => {
+                            if next_page_token__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("nextPageToken"));
+                            }
+                            next_page_token__ = map_.next_value()?;
+                        }
+                        GeneratedField::__SkipField__ => {
+                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
+                        }
+                    }
+                }
+                Ok(ListCredentialsResponse {
+                    credentials: credentials__.unwrap_or_default(),
+                    next_page_token: next_page_token__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.credentials.v1.ListCredentialsResponse", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for Purpose {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let variant = match self {
+            Self::Unspecified => "PURPOSE_UNSPECIFIED",
+            Self::Storage => "STORAGE",
+            Self::Service => "SERVICE",
+        };
+        serializer.serialize_str(variant)
+    }
+}
+impl<'de> serde::Deserialize<'de> for Purpose {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "PURPOSE_UNSPECIFIED",
+            "STORAGE",
+            "SERVICE",
+        ];
+
+        struct GeneratedVisitor;
+
+        impl serde::de::Visitor<'_> for GeneratedVisitor {
+            type Value = Purpose;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(formatter, "expected one of: {:?}", &FIELDS)
+            }
+
+            fn visit_i64<E>(self, v: i64) -> std::result::Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                i32::try_from(v)
+                    .ok()
+                    .and_then(|x| x.try_into().ok())
+                    .ok_or_else(|| {
+                        serde::de::Error::invalid_value(serde::de::Unexpected::Signed(v), &self)
+                    })
+            }
+
+            fn visit_u64<E>(self, v: u64) -> std::result::Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                i32::try_from(v)
+                    .ok()
+                    .and_then(|x| x.try_into().ok())
+                    .ok_or_else(|| {
+                        serde::de::Error::invalid_value(serde::de::Unexpected::Unsigned(v), &self)
+                    })
+            }
+
+            fn visit_str<E>(self, value: &str) -> std::result::Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                match value {
+                    "PURPOSE_UNSPECIFIED" => Ok(Purpose::Unspecified),
+                    "STORAGE" => Ok(Purpose::Storage),
+                    "SERVICE" => Ok(Purpose::Service),
+                    _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),
+                }
+            }
+        }
+        deserializer.deserialize_any(GeneratedVisitor)
+    }
+}
+impl serde::Serialize for UpdateCredentialRequest {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if self.new_name.is_some() {
+            len += 1;
+        }
+        if self.comment.is_some() {
+            len += 1;
+        }
+        if self.read_only.is_some() {
+            len += 1;
+        }
+        if self.owner.is_some() {
+            len += 1;
+        }
+        if self.skip_validation.is_some() {
+            len += 1;
+        }
+        if self.force.is_some() {
+            len += 1;
+        }
+        if self.credential.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.UpdateCredentialRequest", len)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.new_name.as_ref() {
+            struct_ser.serialize_field("newName", v)?;
+        }
+        if let Some(v) = self.comment.as_ref() {
+            struct_ser.serialize_field("comment", v)?;
+        }
+        if let Some(v) = self.read_only.as_ref() {
+            struct_ser.serialize_field("readOnly", v)?;
+        }
+        if let Some(v) = self.owner.as_ref() {
+            struct_ser.serialize_field("owner", v)?;
+        }
+        if let Some(v) = self.skip_validation.as_ref() {
+            struct_ser.serialize_field("skipValidation", v)?;
+        }
+        if let Some(v) = self.force.as_ref() {
+            struct_ser.serialize_field("force", v)?;
+        }
+        if let Some(v) = self.credential.as_ref() {
+            match v {
+                update_credential_request::Credential::AzureServicePrincipal(v) => {
+                    struct_ser.serialize_field("azureServicePrincipal", v)?;
+                }
+                update_credential_request::Credential::AzureManagedIdentity(v) => {
+                    struct_ser.serialize_field("azureManagedIdentity", v)?;
+                }
+            }
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for UpdateCredentialRequest {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "name",
+            "new_name",
+            "newName",
+            "comment",
+            "read_only",
+            "readOnly",
+            "owner",
+            "skip_validation",
+            "skipValidation",
+            "force",
+            "azure_service_principal",
+            "azureServicePrincipal",
+            "azure_managed_identity",
+            "azureManagedIdentity",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Name,
+            NewName,
+            Comment,
+            ReadOnly,
+            Owner,
+            SkipValidation,
+            Force,
+            AzureServicePrincipal,
+            AzureManagedIdentity,
+            __SkipField__,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "name" => Ok(GeneratedField::Name),
+                            "newName" | "new_name" => Ok(GeneratedField::NewName),
+                            "comment" => Ok(GeneratedField::Comment),
+                            "readOnly" | "read_only" => Ok(GeneratedField::ReadOnly),
+                            "owner" => Ok(GeneratedField::Owner),
+                            "skipValidation" | "skip_validation" => Ok(GeneratedField::SkipValidation),
+                            "force" => Ok(GeneratedField::Force),
+                            "azureServicePrincipal" | "azure_service_principal" => Ok(GeneratedField::AzureServicePrincipal),
+                            "azureManagedIdentity" | "azure_managed_identity" => Ok(GeneratedField::AzureManagedIdentity),
+                            _ => Ok(GeneratedField::__SkipField__),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = UpdateCredentialRequest;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.credentials.v1.UpdateCredentialRequest")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<UpdateCredentialRequest, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut name__ = None;
+                let mut new_name__ = None;
+                let mut comment__ = None;
+                let mut read_only__ = None;
+                let mut owner__ = None;
+                let mut skip_validation__ = None;
+                let mut force__ = None;
+                let mut credential__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
+                            }
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::NewName => {
+                            if new_name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("newName"));
+                            }
+                            new_name__ = map_.next_value()?;
+                        }
+                        GeneratedField::Comment => {
+                            if comment__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("comment"));
+                            }
+                            comment__ = map_.next_value()?;
+                        }
+                        GeneratedField::ReadOnly => {
+                            if read_only__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("readOnly"));
+                            }
+                            read_only__ = map_.next_value()?;
+                        }
+                        GeneratedField::Owner => {
+                            if owner__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("owner"));
+                            }
+                            owner__ = map_.next_value()?;
+                        }
+                        GeneratedField::SkipValidation => {
+                            if skip_validation__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("skipValidation"));
+                            }
+                            skip_validation__ = map_.next_value()?;
+                        }
+                        GeneratedField::Force => {
+                            if force__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("force"));
+                            }
+                            force__ = map_.next_value()?;
+                        }
+                        GeneratedField::AzureServicePrincipal => {
+                            if credential__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("azureServicePrincipal"));
+                            }
+                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(update_credential_request::Credential::AzureServicePrincipal)
+;
+                        }
+                        GeneratedField::AzureManagedIdentity => {
+                            if credential__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("azureManagedIdentity"));
+                            }
+                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(update_credential_request::Credential::AzureManagedIdentity)
+;
+                        }
+                        GeneratedField::__SkipField__ => {
+                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
+                        }
+                    }
+                }
+                Ok(UpdateCredentialRequest {
+                    name: name__.unwrap_or_default(),
+                    new_name: new_name__,
+                    comment: comment__,
+                    read_only: read_only__,
+                    owner: owner__,
+                    skip_validation: skip_validation__,
+                    force: force__,
+                    credential: credential__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.credentials.v1.UpdateCredentialRequest", FIELDS, GeneratedVisitor)
     }
 }

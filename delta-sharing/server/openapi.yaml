@@ -9,7 +9,7 @@ info:
 tags:
   - name: CatalogsService
     description: Manage catalogs and schemas in the service.
-  - name: CredentialService
+  - name: CredentialsService
     description: |-
       Manage credentials to access external data sources and services
        as well as generate signed urls for the Delta Sharing service.
@@ -174,9 +174,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
   /credentials:
+    get:
+      tags:
+        - CredentialsService
+      operationId: ListCredentials
+      parameters:
+        - name: maxResults
+          in: query
+          description: The maximum number of results per page that should be returned.
+          schema:
+            type: integer
+            format: int32
+        - name: pageToken
+          in: query
+          description: Opaque pagination token to go to next page based on previous query.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCredentialsResponse'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
     post:
       tags:
-        - CredentialService
+        - CredentialsService
       operationId: CreateCredential
       requestBody:
         content:
@@ -190,7 +219,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Credential'
+                $ref: '#/components/schemas/CredentialInfo'
         default:
           description: Default error response
           content:
@@ -200,7 +229,7 @@ paths:
   /credentials/{name}:
     get:
       tags:
-        - CredentialService
+        - CredentialsService
       operationId: GetCredential
       parameters:
         - name: name
@@ -215,7 +244,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Credential'
+                $ref: '#/components/schemas/CredentialInfo'
         default:
           description: Default error response
           content:
@@ -224,9 +253,7 @@ paths:
                 $ref: '#/components/schemas/Status'
     delete:
       tags:
-        - CredentialService
-        - credentials
-        - unofficial
+        - CredentialsService
       operationId: DeleteCredential
       parameters:
         - name: name
@@ -239,6 +266,36 @@ paths:
         '200':
           description: OK
           content: {}
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    patch:
+      tags:
+        - CredentialsService
+      operationId: UpdateCredential
+      parameters:
+        - name: name
+          in: path
+          description: Name of credential.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCredentialRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredentialInfo'
         default:
           description: Default error response
           content:
@@ -1062,51 +1119,39 @@ paths:
                 $ref: '#/components/schemas/Status'
 components:
   schemas:
-    AzureClientCredential:
-      required:
-        - tenantId
-        - clientId
+    AzureManagedIdentity:
       type: object
       properties:
-        tenantId:
+        objectId:
           type: string
-        clientId:
+          description: Object id for use with managed identity authentication
+        applicationId:
           type: string
+          description: The application ID of the application registration within the referenced AAD tenant.
+        msiResourceId:
+          type: string
+          description: Msi resource id for use with managed identity authentication
+    AzureServicePrincipal:
+      required:
+        - directoryId
+        - applicationId
+      type: object
+      properties:
+        directoryId:
+          type: string
+          description: The directory ID corresponding to the Azure Active Directory (AAD) tenant of the application.
+        applicationId:
+          type: string
+          description: The application ID of the application registration within the referenced AAD tenant.
         clientSecret:
           type: string
-        clientCertificate:
-          type: string
+          description: The client secret generated for the above app ID in AAD.
         federatedTokenFile:
           type: string
-    AzureCredential:
-      type: object
-      properties:
-        accountKey:
-          $ref: '#/components/schemas/AzureKeyCredential'
-        sas:
-          $ref: '#/components/schemas/AzureSasCredential'
-        client:
-          $ref: '#/components/schemas/AzureClientCredential'
-    AzureKeyCredential:
-      required:
-        - accountName
-        - accountKey
-      type: object
-      properties:
-        accountName:
-          type: string
-        accountKey:
-          type: string
-    AzureSasCredential:
-      required:
-        - accountName
-        - sasToken
-      type: object
-      properties:
-        accountName:
-          type: string
-        sasToken:
-          type: string
+          description: |-
+            Location of the file containing a federated token.
+
+             Specifically useful for workload identity federation.
     CatalogInfo:
       required:
         - name
@@ -1163,13 +1208,30 @@ components:
       description: Create a new catalog
     CreateCredentialRequest:
       required:
-        - credential
+        - name
+        - purpose
       type: object
       properties:
-        credential:
-          allOf:
-            - $ref: '#/components/schemas/Credential'
-          description: Credential to create.
+        name:
+          type: string
+          description: The credential name. The name must be unique among storage and service credentials within the metastore.
+        purpose:
+          type: integer
+          description: The credential purpose.
+          format: enum
+        comment:
+          type: string
+          description: Comment associated with the credential.
+        readOnly:
+          type: boolean
+          description: Whether the credential is usable only for read operations. Only applicable when purpose is STORAGE.
+        skipValidation:
+          type: boolean
+          description: Supplying true to this argument skips validation of the created set of credentials.
+        azureServicePrincipal:
+          $ref: '#/components/schemas/AzureServicePrincipal'
+        azureManagedIdentity:
+          $ref: '#/components/schemas/AzureManagedIdentity'
       description: Create a new credential
     CreateExternalLocationRequest:
       required:
@@ -1263,38 +1325,59 @@ components:
 
          Data objects can be added after creation with update.
          The caller must be a metastore admin or have the CREATE_SHARE privilege on the metastore.
-    Credential:
-      required:
-        - name
+    CredentialInfo:
       type: object
       properties:
         id:
-          readOnly: true
           type: string
+          description: The unique identifier of the credential.
         name:
           type: string
-        azure:
-          $ref: '#/components/schemas/AzureCredential'
+          description: |-
+            The credential name.
+
+             The name must be unique among storage and service credentials within the metastore.
+        purpose:
+          type: integer
+          description: Indicates the purpose of the credential.
+          format: enum
+        readOnly:
+          type: boolean
+          description: |-
+            Whether the credential is usable only for read operations.
+
+             Only applicable when purpose is STORAGE.
+        comment:
+          type: string
+          description: User-provided free-form text description.
         owner:
-          readOnly: true
           type: string
-          description: Username of current owner of catalog.
+          description: Username of current owner of credential.
         createAt:
-          readOnly: true
           type: string
-          description: Time at which this catalog was created, in epoch milliseconds.
+          description: Time at which this credential was created, in epoch milliseconds.
         createdBy:
-          readOnly: true
           type: string
-          description: Username of catalog creator.
+          description: Username of credential creator.
         updateAt:
-          readOnly: true
           type: string
-          description: Time at which this catalog was last updated, in epoch milliseconds.
+          description: Time at which this credential was last updated, in epoch milliseconds.
         updatedBy:
-          readOnly: true
           type: string
-          description: Username of user who last modified catalog.
+          description: Username of user who last modified credential.
+        usedForManagedStorage:
+          type: boolean
+          description: |-
+            Whether this credential is the current metastore's root storage credential.
+
+             Only applicable when purpose is STORAGE.
+        fullName:
+          type: string
+          description: The full name of the credential.
+        azureServicePrincipal:
+          $ref: '#/components/schemas/AzureServicePrincipal'
+        azureManagedIdentity:
+          $ref: '#/components/schemas/AzureManagedIdentity'
     DataObject:
       type: object
       properties:
@@ -1455,6 +1538,17 @@ components:
           type: string
           description: The next_page_token value to include in the next List request.
       description: List catalogs response.
+    ListCredentialsResponse:
+      type: object
+      properties:
+        credentials:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialInfo'
+          description: The credentials returned.
+        nextPageToken:
+          type: string
+          description: The next_page_token value to include in the next List request.
     ListExternalLocationsResponse:
       type: object
       properties:
@@ -1882,6 +1976,39 @@ components:
           type: string
           description: Name of catalog.
       description: Update a catalog
+    UpdateCredentialRequest:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of credential.
+        newName:
+          type: string
+          description: Name of credential.
+        comment:
+          type: string
+          description: Comment associated with the credential.
+        readOnly:
+          type: boolean
+          description: Whether the credential is usable only for read operations. Only applicable when purpose is STORAGE.
+        owner:
+          type: string
+          description: Username of current owner of credential.
+        skipValidation:
+          type: boolean
+          description: Supply true to this argument to skip validation of the updated credential.
+        force:
+          type: boolean
+          description: |-
+            Force an update even if there are dependent services (when purpose is SERVICE)
+             or dependent external locations and external tables (when purpose is STORAGE).
+        azureServicePrincipal:
+          $ref: '#/components/schemas/AzureServicePrincipal'
+        azureManagedIdentity:
+          $ref: '#/components/schemas/AzureManagedIdentity'
+      description: Update a credential
     UpdateExternalLocationRequest:
       required:
         - name

@@ -7,8 +7,12 @@ use crate::{Error, Permission, Recipient, ResourceIdent, ResourceName, ResourceR
 rest_handlers!(
     CredentialsHandler,
     [
-        CreateCredentialRequest, Credential, Create, Credential;
-        GetCredentialRequest, Credential, Read, Credential with [
+        ListCredentialsRequest, Credential, Read, ListCredentialsResponse;
+        CreateCredentialRequest, Credential, Create, CredentialInfo;
+        GetCredentialRequest, Credential, Read, CredentialInfo with [
+            name: path as String,
+        ];
+        UpdateCredentialRequest, Credential, Manage, CredentialInfo with [
             name: path as String,
         ];
         DeleteCredentialRequest, Credential, Manage with [
@@ -19,12 +23,33 @@ rest_handlers!(
 
 #[async_trait::async_trait]
 pub trait CredentialsHandler: Send + Sync + 'static {
+    /// List credentials.
+    async fn list_credentials(
+        &self,
+        request: ListCredentialsRequest,
+        context: RequestContext,
+    ) -> Result<ListCredentialsResponse>;
+
     /// Create a new credential.
     async fn create_credential(
         &self,
         request: CreateCredentialRequest,
         context: RequestContext,
-    ) -> Result<Credential>;
+    ) -> Result<CredentialInfo>;
+
+    /// Get a credential.
+    async fn get_credential(
+        &self,
+        request: GetCredentialRequest,
+        context: RequestContext,
+    ) -> Result<CredentialInfo>;
+
+    /// Update a credential.
+    async fn update_credential(
+        &self,
+        request: UpdateCredentialRequest,
+        context: RequestContext,
+    ) -> Result<CredentialInfo>;
 
     /// Delete a credential.
     async fn delete_credential(
@@ -32,11 +57,4 @@ pub trait CredentialsHandler: Send + Sync + 'static {
         request: DeleteCredentialRequest,
         context: RequestContext,
     ) -> Result<()>;
-
-    /// Get a credential.
-    async fn get_credential(
-        &self,
-        request: GetCredentialRequest,
-        context: RequestContext,
-    ) -> Result<Credential>;
 }

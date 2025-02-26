@@ -7,15 +7,17 @@ impl serde::Serialize for DataSourceFormat {
     {
         let variant = match self {
             Self::Unspecified => "DATA_SOURCE_FORMAT_UNSPECIFIED",
-            Self::Delta => "DATA_SOURCE_FORMAT_DELTA",
-            Self::Iceberg => "DATA_SOURCE_FORMAT_ICEBERG",
-            Self::Hudi => "DATA_SOURCE_FORMAT_HUDI",
-            Self::Parquet => "DATA_SOURCE_FORMAT_PARQUET",
-            Self::Csv => "DATA_SOURCE_FORMAT_CSV",
-            Self::Json => "DATA_SOURCE_FORMAT_JSON",
-            Self::Orc => "DATA_SOURCE_FORMAT_ORC",
-            Self::Avro => "DATA_SOURCE_FORMAT_AVRO",
-            Self::Text => "DATA_SOURCE_FORMAT_TEXT",
+            Self::Delta => "DELTA",
+            Self::Iceberg => "ICEBERG",
+            Self::Hudi => "HUDI",
+            Self::Parquet => "PARQUET",
+            Self::Csv => "CSV",
+            Self::Json => "JSON",
+            Self::Orc => "ORC",
+            Self::Avro => "AVRO",
+            Self::Text => "TEXT",
+            Self::UnityCatalog => "UNITY_CATALOG",
+            Self::Deltasharing => "DELTASHARING",
         };
         serializer.serialize_str(variant)
     }
@@ -28,15 +30,17 @@ impl<'de> serde::Deserialize<'de> for DataSourceFormat {
     {
         const FIELDS: &[&str] = &[
             "DATA_SOURCE_FORMAT_UNSPECIFIED",
-            "DATA_SOURCE_FORMAT_DELTA",
-            "DATA_SOURCE_FORMAT_ICEBERG",
-            "DATA_SOURCE_FORMAT_HUDI",
-            "DATA_SOURCE_FORMAT_PARQUET",
-            "DATA_SOURCE_FORMAT_CSV",
-            "DATA_SOURCE_FORMAT_JSON",
-            "DATA_SOURCE_FORMAT_ORC",
-            "DATA_SOURCE_FORMAT_AVRO",
-            "DATA_SOURCE_FORMAT_TEXT",
+            "DELTA",
+            "ICEBERG",
+            "HUDI",
+            "PARQUET",
+            "CSV",
+            "JSON",
+            "ORC",
+            "AVRO",
+            "TEXT",
+            "UNITY_CATALOG",
+            "DELTASHARING",
         ];
 
         struct GeneratedVisitor;
@@ -78,15 +82,17 @@ impl<'de> serde::Deserialize<'de> for DataSourceFormat {
             {
                 match value {
                     "DATA_SOURCE_FORMAT_UNSPECIFIED" => Ok(DataSourceFormat::Unspecified),
-                    "DATA_SOURCE_FORMAT_DELTA" => Ok(DataSourceFormat::Delta),
-                    "DATA_SOURCE_FORMAT_ICEBERG" => Ok(DataSourceFormat::Iceberg),
-                    "DATA_SOURCE_FORMAT_HUDI" => Ok(DataSourceFormat::Hudi),
-                    "DATA_SOURCE_FORMAT_PARQUET" => Ok(DataSourceFormat::Parquet),
-                    "DATA_SOURCE_FORMAT_CSV" => Ok(DataSourceFormat::Csv),
-                    "DATA_SOURCE_FORMAT_JSON" => Ok(DataSourceFormat::Json),
-                    "DATA_SOURCE_FORMAT_ORC" => Ok(DataSourceFormat::Orc),
-                    "DATA_SOURCE_FORMAT_AVRO" => Ok(DataSourceFormat::Avro),
-                    "DATA_SOURCE_FORMAT_TEXT" => Ok(DataSourceFormat::Text),
+                    "DELTA" => Ok(DataSourceFormat::Delta),
+                    "ICEBERG" => Ok(DataSourceFormat::Iceberg),
+                    "HUDI" => Ok(DataSourceFormat::Hudi),
+                    "PARQUET" => Ok(DataSourceFormat::Parquet),
+                    "CSV" => Ok(DataSourceFormat::Csv),
+                    "JSON" => Ok(DataSourceFormat::Json),
+                    "ORC" => Ok(DataSourceFormat::Orc),
+                    "AVRO" => Ok(DataSourceFormat::Avro),
+                    "TEXT" => Ok(DataSourceFormat::Text),
+                    "UNITY_CATALOG" => Ok(DataSourceFormat::UnityCatalog),
+                    "DELTASHARING" => Ok(DataSourceFormat::Deltasharing),
                     _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),
                 }
             }
@@ -435,6 +441,7 @@ impl serde::Serialize for TableType {
         S: serde::Serializer,
     {
         let variant = match self {
+            Self::Unspecified => "TABLE_TYPE_UNSPECIFIED",
             Self::Managed => "MANAGED",
             Self::External => "EXTERNAL",
         };
@@ -448,6 +455,7 @@ impl<'de> serde::Deserialize<'de> for TableType {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
+            "TABLE_TYPE_UNSPECIFIED",
             "MANAGED",
             "EXTERNAL",
         ];
@@ -490,6 +498,7 @@ impl<'de> serde::Deserialize<'de> for TableType {
                 E: serde::de::Error,
             {
                 match value {
+                    "TABLE_TYPE_UNSPECIFIED" => Ok(TableType::Unspecified),
                     "MANAGED" => Ok(TableType::Managed),
                     "EXTERNAL" => Ok(TableType::External),
                     _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),

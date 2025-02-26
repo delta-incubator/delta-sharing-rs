@@ -153,7 +153,7 @@ impl AsRef<ObjectLabel> for ResourceIdent {
             ResourceIdent::Share(_) => &ObjectLabel::ShareInfo,
             ResourceIdent::SharingSchema(_) => &ObjectLabel::SharingSchemaInfo,
             ResourceIdent::SharingTable(_) => &ObjectLabel::SharingTable,
-            ResourceIdent::Credential(_) => &ObjectLabel::Credential,
+            ResourceIdent::Credential(_) => &ObjectLabel::CredentialInfo,
             ResourceIdent::ExternalLocation(_) => &ObjectLabel::ExternalLocationInfo,
             ResourceIdent::Catalog(_) => &ObjectLabel::CatalogInfo,
             ResourceIdent::Schema(_) => &ObjectLabel::SchemaInfo,

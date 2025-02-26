@@ -19,7 +19,7 @@ pub mod resource {
         #[prost(message, tag="3")]
         SharingTable(super::super::sharing::v1::SharingTable),
         #[prost(message, tag="4")]
-        Credential(super::super::credentials::v1::Credential),
+        CredentialInfo(super::super::credentials::v1::CredentialInfo),
         #[prost(message, tag="6")]
         CatalogInfo(super::super::catalogs::v1::CatalogInfo),
         #[prost(message, tag="7")]

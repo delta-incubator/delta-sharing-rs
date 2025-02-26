@@ -15,7 +15,7 @@ message Resource {
     delta_sharing.sharing.v1.ShareInfo share_info = 1;
     delta_sharing.sharing.v1.SharingSchemaInfo sharing_schema_info = 2;
     delta_sharing.sharing.v1.SharingTable sharing_table = 3;
-    delta_sharing.credentials.v1.Credential credential = 4;
+    delta_sharing.credentials.v1.CredentialInfo credential_info = 4;
     delta_sharing.catalogs.v1.CatalogInfo catalog_info = 6;
     delta_sharing.schemas.v1.SchemaInfo schema_info = 7;
     delta_sharing.tables.v1.TableInfo table_info = 8;

@@ -6,24 +6,38 @@ import "google/protobuf/struct.proto";
 
 // The type of the table.
 enum TableType {
-  // A table that is stored in a file format.
-  MANAGED = 0;
+  TABLE_TYPE_UNSPECIFIED = 0;
 
-  // A table that is stored in a stream format.
-  EXTERNAL = 1;
+  MANAGED = 1;
+
+  EXTERNAL = 2;
+
+  // VIEW = 3;
+
+  // MATERIALIZED_VIEW = 4;
+
+  // STREAMING_TABLE = 5;
+
+  // MANAGED_SHALLOW_CLONE = 6;
+
+  // FOREIGN = 7;
+
+  // EXTERNAL_SHALLOW_CLONE = 8;
 }
 
 enum DataSourceFormat {
   DATA_SOURCE_FORMAT_UNSPECIFIED = 0;
-  DATA_SOURCE_FORMAT_DELTA = 1;
-  DATA_SOURCE_FORMAT_ICEBERG = 2;
-  DATA_SOURCE_FORMAT_HUDI = 3;
-  DATA_SOURCE_FORMAT_PARQUET = 4;
-  DATA_SOURCE_FORMAT_CSV = 5;
-  DATA_SOURCE_FORMAT_JSON = 6;
-  DATA_SOURCE_FORMAT_ORC = 7;
-  DATA_SOURCE_FORMAT_AVRO = 8;
-  DATA_SOURCE_FORMAT_TEXT = 9;
+  DELTA = 1;
+  ICEBERG = 2;
+  HUDI = 3;
+  PARQUET = 4;
+  CSV = 5;
+  JSON = 6;
+  ORC = 7;
+  AVRO = 8;
+  TEXT = 9;
+  UNITY_CATALOG = 10;
+  DELTASHARING = 11;
 }
 
 message TableInfo {

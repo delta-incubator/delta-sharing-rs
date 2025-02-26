@@ -5,6 +5,7 @@ use crate::api::CredentialsHandler;
 
 pub fn get_router<T: CredentialsHandler + Clone>(handler: T) -> Router {
     Router::new()
+        .route("/credentials", get(list_credentials::<T>))
         .route("/credentials", post(create_credential::<T>))
         .route("/credentials/{name}", get(get_credential::<T>))
         //.route("/credentials/{name}", patch(update_credential::<T>))

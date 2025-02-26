@@ -11,7 +11,7 @@ mod object;
 mod properties;
 
 pub use catalogs::v1::CatalogInfo;
-pub use credentials::v1::Credential;
+pub use credentials::v1::CredentialInfo;
 pub use external_locations::v1::ExternalLocationInfo;
 pub use profiles::v1::Profile;
 pub use schemas::v1::SchemaInfo;
@@ -84,7 +84,7 @@ impl ObjectLabel {
             ObjectLabel::ShareInfo => ResourceIdent::share(id),
             ObjectLabel::SharingSchemaInfo => ResourceIdent::schema(id),
             ObjectLabel::SharingTable => ResourceIdent::sharing_table(id),
-            ObjectLabel::Credential => ResourceIdent::credential(id),
+            ObjectLabel::CredentialInfo => ResourceIdent::credential(id),
             ObjectLabel::CatalogInfo => ResourceIdent::catalog(id),
             ObjectLabel::SchemaInfo => ResourceIdent::schema(id),
             ObjectLabel::TableInfo => ResourceIdent::table(id),
@@ -164,7 +164,7 @@ mod tests {
             match label {
                 ObjectLabel::ShareInfo => assert_eq!(label.as_ref(), "share_info"),
                 ObjectLabel::SharingSchemaInfo => assert_eq!(label.as_ref(), "sharing_schema_info"),
-                ObjectLabel::Credential => assert_eq!(label.as_ref(), "credential"),
+                ObjectLabel::CredentialInfo => assert_eq!(label.as_ref(), "credential_info"),
                 ObjectLabel::CatalogInfo => assert_eq!(label.as_ref(), "catalog_info"),
                 ObjectLabel::SchemaInfo => assert_eq!(label.as_ref(), "schema_info"),
                 ObjectLabel::TableInfo => assert_eq!(label.as_ref(), "table_info"),

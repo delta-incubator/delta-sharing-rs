@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use super::{ExternalLocationInfo, ResourceExt};
 use crate::models::{
-    CatalogInfo, Credential, SchemaInfo, ShareInfo, SharingSchemaInfo, SharingTable, TableInfo,
+    CatalogInfo, CredentialInfo, SchemaInfo, ShareInfo, SharingSchemaInfo, SharingTable, TableInfo,
 };
 use crate::{Error, ObjectLabel, Resource, ResourceName, ResourceRef};
 
@@ -49,7 +49,7 @@ impl ResourceExt for Resource {
             Resource::ShareInfo(_) => &ObjectLabel::ShareInfo,
             Resource::SharingSchemaInfo(_) => &ObjectLabel::SharingSchemaInfo,
             Resource::SharingTable(_) => &ObjectLabel::SharingTable,
-            Resource::Credential(_) => &ObjectLabel::Credential,
+            Resource::CredentialInfo(_) => &ObjectLabel::CredentialInfo,
             Resource::CatalogInfo(_) => &ObjectLabel::CatalogInfo,
             Resource::SchemaInfo(_) => &ObjectLabel::SchemaInfo,
             Resource::TableInfo(_) => &ObjectLabel::TableInfo,
@@ -62,7 +62,7 @@ impl ResourceExt for Resource {
             Resource::ShareInfo(obj) => obj.resource_name(),
             Resource::SharingSchemaInfo(obj) => obj.resource_name(),
             Resource::SharingTable(obj) => obj.resource_name(),
-            Resource::Credential(_) => todo!(),
+            Resource::CredentialInfo(_) => todo!(),
             Resource::CatalogInfo(obj) => obj.resource_name(),
             Resource::SchemaInfo(obj) => obj.resource_name(),
             Resource::TableInfo(obj) => obj.resource_name(),
@@ -75,7 +75,7 @@ impl ResourceExt for Resource {
             Resource::ShareInfo(obj) => obj.resource_ref(),
             Resource::SharingSchemaInfo(obj) => obj.resource_ref(),
             Resource::SharingTable(obj) => obj.resource_ref(),
-            Resource::Credential(_) => todo!(),
+            Resource::CredentialInfo(_) => todo!(),
             Resource::CatalogInfo(obj) => obj.resource_ref(),
             Resource::SchemaInfo(obj) => obj.resource_ref(),
             Resource::TableInfo(obj) => obj.resource_ref(),
@@ -92,7 +92,9 @@ impl TryFrom<Resource> for Object {
             Resource::ShareInfo(obj) => obj.try_into(),
             Resource::SharingSchemaInfo(obj) => obj.try_into(),
             Resource::SharingTable(obj) => obj.try_into(),
-            Resource::Credential(_) => Err(Error::generic("Cannot convert credential to object")),
+            Resource::CredentialInfo(_) => {
+                Err(Error::generic("Cannot convert credential to object"))
+            }
             Resource::CatalogInfo(obj) => obj.try_into(),
             Resource::SchemaInfo(obj) => obj.try_into(),
             Resource::TableInfo(obj) => obj.try_into(),
@@ -109,7 +111,7 @@ impl TryFrom<Object> for Resource {
             ObjectLabel::ShareInfo => Ok(Resource::ShareInfo(obj.try_into()?)),
             ObjectLabel::SharingSchemaInfo => Ok(Resource::SharingSchemaInfo(obj.try_into()?)),
             ObjectLabel::SharingTable => Ok(Resource::SharingTable(obj.try_into()?)),
-            ObjectLabel::Credential => todo!("Convert Object to Resource"),
+            ObjectLabel::CredentialInfo => todo!("Convert Object to Resource"),
             ObjectLabel::CatalogInfo => Ok(Resource::CatalogInfo(obj.try_into()?)),
             ObjectLabel::SchemaInfo => Ok(Resource::SchemaInfo(obj.try_into()?)),
             ObjectLabel::TableInfo => Ok(Resource::TableInfo(obj.try_into()?)),
@@ -128,5 +130,5 @@ object_conversions!(
     CatalogInfo, ObjectLabel::CatalogInfo, id, [name], true;
     SchemaInfo, ObjectLabel::SchemaInfo, schema_id, [catalog_name, name], true;
     TableInfo, ObjectLabel::TableInfo, table_id, [catalog_name, schema_name, name], true;
-    Credential, ObjectLabel::Credential, id, [name];
+    CredentialInfo, ObjectLabel::CredentialInfo, id, [name];
 );

@@ -1,21 +1,34 @@
 // @generated
 /// Generated server implementations.
-pub mod credential_service_server {
+pub mod credentials_service_server {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
-    /// Generated trait containing gRPC methods that should be implemented for use with CredentialServiceServer.
+    /// Generated trait containing gRPC methods that should be implemented for use with CredentialsServiceServer.
     #[async_trait]
-    pub trait CredentialService: Send + Sync + 'static {
+    pub trait CredentialsService: Send + Sync + 'static {
+        ///
+        async fn list_credentials(
+            &self,
+            request: tonic::Request<super::ListCredentialsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListCredentialsResponse>,
+            tonic::Status,
+        >;
         ///
         async fn create_credential(
             &self,
             request: tonic::Request<super::CreateCredentialRequest>,
-        ) -> std::result::Result<tonic::Response<super::Credential>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::CredentialInfo>, tonic::Status>;
         ///
         async fn get_credential(
             &self,
             request: tonic::Request<super::GetCredentialRequest>,
-        ) -> std::result::Result<tonic::Response<super::Credential>, tonic::Status>;
+        ) -> std::result::Result<tonic::Response<super::CredentialInfo>, tonic::Status>;
+        ///
+        async fn update_credential(
+            &self,
+            request: tonic::Request<super::UpdateCredentialRequest>,
+        ) -> std::result::Result<tonic::Response<super::CredentialInfo>, tonic::Status>;
         ///
         async fn delete_credential(
             &self,
@@ -26,14 +39,14 @@ pub mod credential_service_server {
  as well as generate signed urls for the Delta Sharing service.
 */
     #[derive(Debug)]
-    pub struct CredentialServiceServer<T: CredentialService> {
+    pub struct CredentialsServiceServer<T: CredentialsService> {
         inner: Arc<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
         max_decoding_message_size: Option<usize>,
         max_encoding_message_size: Option<usize>,
     }
-    impl<T: CredentialService> CredentialServiceServer<T> {
+    impl<T: CredentialsService> CredentialsServiceServer<T> {
         pub fn new(inner: T) -> Self {
             Self::from_arc(Arc::new(inner))
         }
@@ -84,9 +97,9 @@ pub mod credential_service_server {
             self
         }
     }
-    impl<T, B> tonic::codegen::Service<http::Request<B>> for CredentialServiceServer<T>
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for CredentialsServiceServer<T>
     where
-        T: CredentialService,
+        T: CredentialsService,
         B: Body + Send + 'static,
         B::Error: Into<StdError> + Send + 'static,
     {
@@ -101,14 +114,60 @@ pub mod credential_service_server {
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             match req.uri().path() {
-                "/delta_sharing.credentials.v1.CredentialService/CreateCredential" => {
+                "/delta_sharing.credentials.v1.CredentialsService/ListCredentials" => {
                     #[allow(non_camel_case_types)]
-                    struct CreateCredentialSvc<T: CredentialService>(pub Arc<T>);
+                    struct ListCredentialsSvc<T: CredentialsService>(pub Arc<T>);
                     impl<
-                        T: CredentialService,
+                        T: CredentialsService,
+                    > tonic::server::UnaryService<super::ListCredentialsRequest>
+                    for ListCredentialsSvc<T> {
+                        type Response = super::ListCredentialsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListCredentialsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as CredentialsService>::list_credentials(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ListCredentialsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.credentials.v1.CredentialsService/CreateCredential" => {
+                    #[allow(non_camel_case_types)]
+                    struct CreateCredentialSvc<T: CredentialsService>(pub Arc<T>);
+                    impl<
+                        T: CredentialsService,
                     > tonic::server::UnaryService<super::CreateCredentialRequest>
                     for CreateCredentialSvc<T> {
-                        type Response = super::Credential;
+                        type Response = super::CredentialInfo;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
@@ -119,7 +178,10 @@ pub mod credential_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as CredentialService>::create_credential(&inner, request)
+                                <T as CredentialsService>::create_credential(
+                                        &inner,
+                                        request,
+                                    )
                                     .await
                             };
                             Box::pin(fut)
@@ -147,14 +209,14 @@ pub mod credential_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/delta_sharing.credentials.v1.CredentialService/GetCredential" => {
+                "/delta_sharing.credentials.v1.CredentialsService/GetCredential" => {
                     #[allow(non_camel_case_types)]
-                    struct GetCredentialSvc<T: CredentialService>(pub Arc<T>);
+                    struct GetCredentialSvc<T: CredentialsService>(pub Arc<T>);
                     impl<
-                        T: CredentialService,
+                        T: CredentialsService,
                     > tonic::server::UnaryService<super::GetCredentialRequest>
                     for GetCredentialSvc<T> {
-                        type Response = super::Credential;
+                        type Response = super::CredentialInfo;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
@@ -165,7 +227,7 @@ pub mod credential_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as CredentialService>::get_credential(&inner, request)
+                                <T as CredentialsService>::get_credential(&inner, request)
                                     .await
                             };
                             Box::pin(fut)
@@ -193,11 +255,60 @@ pub mod credential_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/delta_sharing.credentials.v1.CredentialService/DeleteCredential" => {
+                "/delta_sharing.credentials.v1.CredentialsService/UpdateCredential" => {
                     #[allow(non_camel_case_types)]
-                    struct DeleteCredentialSvc<T: CredentialService>(pub Arc<T>);
+                    struct UpdateCredentialSvc<T: CredentialsService>(pub Arc<T>);
                     impl<
-                        T: CredentialService,
+                        T: CredentialsService,
+                    > tonic::server::UnaryService<super::UpdateCredentialRequest>
+                    for UpdateCredentialSvc<T> {
+                        type Response = super::CredentialInfo;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::UpdateCredentialRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as CredentialsService>::update_credential(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = UpdateCredentialSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.credentials.v1.CredentialsService/DeleteCredential" => {
+                    #[allow(non_camel_case_types)]
+                    struct DeleteCredentialSvc<T: CredentialsService>(pub Arc<T>);
+                    impl<
+                        T: CredentialsService,
                     > tonic::server::UnaryService<super::DeleteCredentialRequest>
                     for DeleteCredentialSvc<T> {
                         type Response = ();
@@ -211,7 +322,10 @@ pub mod credential_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as CredentialService>::delete_credential(&inner, request)
+                                <T as CredentialsService>::delete_credential(
+                                        &inner,
+                                        request,
+                                    )
                                     .await
                             };
                             Box::pin(fut)
@@ -257,7 +371,7 @@ pub mod credential_service_server {
             }
         }
     }
-    impl<T: CredentialService> Clone for CredentialServiceServer<T> {
+    impl<T: CredentialsService> Clone for CredentialsServiceServer<T> {
         fn clone(&self) -> Self {
             let inner = self.inner.clone();
             Self {
@@ -269,8 +383,8 @@ pub mod credential_service_server {
             }
         }
     }
-    impl<T: CredentialService> tonic::server::NamedService
-    for CredentialServiceServer<T> {
-        const NAME: &'static str = "delta_sharing.credentials.v1.CredentialService";
+    impl<T: CredentialsService> tonic::server::NamedService
+    for CredentialsServiceServer<T> {
+        const NAME: &'static str = "delta_sharing.credentials.v1.CredentialsService";
     }
 }

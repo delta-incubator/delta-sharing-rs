@@ -22,8 +22,8 @@ impl serde::Serialize for Resource {
                 resource::Resource::SharingTable(v) => {
                     struct_ser.serialize_field("sharingTable", v)?;
                 }
-                resource::Resource::Credential(v) => {
-                    struct_ser.serialize_field("credential", v)?;
+                resource::Resource::CredentialInfo(v) => {
+                    struct_ser.serialize_field("credentialInfo", v)?;
                 }
                 resource::Resource::CatalogInfo(v) => {
                     struct_ser.serialize_field("catalogInfo", v)?;
@@ -55,7 +55,8 @@ impl<'de> serde::Deserialize<'de> for Resource {
             "sharingSchemaInfo",
             "sharing_table",
             "sharingTable",
-            "credential",
+            "credential_info",
+            "credentialInfo",
             "catalog_info",
             "catalogInfo",
             "schema_info",
@@ -71,7 +72,7 @@ impl<'de> serde::Deserialize<'de> for Resource {
             ShareInfo,
             SharingSchemaInfo,
             SharingTable,
-            Credential,
+            CredentialInfo,
             CatalogInfo,
             SchemaInfo,
             TableInfo,
@@ -85,7 +86,7 @@ impl<'de> serde::Deserialize<'de> for Resource {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -101,7 +102,7 @@ impl<'de> serde::Deserialize<'de> for Resource {
                             "shareInfo" | "share_info" => Ok(GeneratedField::ShareInfo),
                             "sharingSchemaInfo" | "sharing_schema_info" => Ok(GeneratedField::SharingSchemaInfo),
                             "sharingTable" | "sharing_table" => Ok(GeneratedField::SharingTable),
-                            "credential" => Ok(GeneratedField::Credential),
+                            "credentialInfo" | "credential_info" => Ok(GeneratedField::CredentialInfo),
                             "catalogInfo" | "catalog_info" => Ok(GeneratedField::CatalogInfo),
                             "schemaInfo" | "schema_info" => Ok(GeneratedField::SchemaInfo),
                             "tableInfo" | "table_info" => Ok(GeneratedField::TableInfo),
@@ -149,11 +150,11 @@ impl<'de> serde::Deserialize<'de> for Resource {
                             resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::SharingTable)
 ;
                         }
-                        GeneratedField::Credential => {
+                        GeneratedField::CredentialInfo => {
                             if resource__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("credential"));
+                                return Err(serde::de::Error::duplicate_field("credentialInfo"));
                             }
-                            resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::Credential)
+                            resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::CredentialInfo)
 ;
                         }
                         GeneratedField::CatalogInfo => {
