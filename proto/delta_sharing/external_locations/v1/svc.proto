@@ -1,0 +1,157 @@
+syntax = "proto3";
+
+package delta_sharing.external_locations.v1;
+
+import "buf/validate/validate.proto";
+import "delta_sharing/external_locations/v1/models.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+import "openapiv3/annotations.proto";
+
+// Create a new external location
+message CreateExternalLocationRequest {
+  // Name of external location.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Path URL of the external location.
+  string url = 2 [
+    (buf.validate.field).string.uri = true,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Name of the storage credential used with this location.
+  string credential_name = 3 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Indicates whether the external location is read-only.
+  optional bool read_only = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // User-provided free-form text description.
+  optional string comment = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // Skips validation of the storage credential associated with the external location.
+  optional bool skip_validation = 6 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Delete an external location
+message DeleteExternalLocationRequest {
+  // Name of external location.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Force deletion even if the external location is not empty.
+  optional bool force = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Get an external location
+message GetExternalLocationRequest {
+  // Name of external location.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// List external locations
+message ListExternalLocationsRequest {
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 2 [
+    (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lt = 1000,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Opaque pagination token to go to next page based on previous query.
+  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// List external locations response.
+message ListExternalLocationsResponse {
+  // The external locations returned.
+  repeated ExternalLocationInfo external_locations = 1;
+
+  // The next_page_token value to include in the next List request.
+  optional string next_page_token = 2;
+}
+
+// Update an external location
+message UpdateExternalLocationRequest {
+  // Name of external location.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Path URL of the external location.
+  optional string url = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Name of the storage credential used with this location.
+  optional string credential_name = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Indicates whether the external location is read-only.
+  optional bool read_only = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // owner of the external location.
+  optional string owner = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // User-provided free-form text description.
+  optional string comment = 6 [(google.api.field_behavior) = OPTIONAL];
+
+  // new name of the external location.
+  optional string new_name = 7 [(google.api.field_behavior) = OPTIONAL];
+
+  // force update of the external location.
+  optional bool force = 8 [(google.api.field_behavior) = OPTIONAL];
+
+  // Skips validation of the storage credential associated with the external location.
+  optional bool skip_validation = 9 [(google.api.field_behavior) = OPTIONAL];
+}
+
+service ExternalLocationsService {
+  // List external locations
+  rpc ListExternalLocations(ListExternalLocationsRequest) returns (ListExternalLocationsResponse) {
+    option (google.api.http) = {get: "/external_locations"};
+    option (openapi.v3.operation) = {operation_id: "ListExternalLocations"};
+  }
+
+  // Create a new external location
+  rpc CreateExternalLocation(CreateExternalLocationRequest) returns (ExternalLocationInfo) {
+    option (google.api.http) = {
+      post: "/external_locations"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {operation_id: "CreateExternalLocation"};
+  }
+
+  // Get an external location
+  rpc GetExternalLocation(GetExternalLocationRequest) returns (ExternalLocationInfo) {
+    option (google.api.http) = {get: "/external_locations/{name}"};
+    option (openapi.v3.operation) = {operation_id: "GetExternalLocation"};
+  }
+
+  // Update an external location
+  rpc UpdateExternalLocation(UpdateExternalLocationRequest) returns (ExternalLocationInfo) {
+    option (google.api.http) = {
+      patch: "/external_locations/{name}"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {operation_id: "UpdateExternalLocation"};
+  }
+
+  // Delete an external location
+  rpc DeleteExternalLocation(DeleteExternalLocationRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/external_locations/{name}"};
+    option (openapi.v3.operation) = {operation_id: "DeleteExternalLocation"};
+  }
+}

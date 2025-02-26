@@ -15,6 +15,7 @@ tags:
        as well as generate signed urls for the Delta Sharing service.
   - name: DeltaSharingService
     description: Service exposing the official APIs for Delta Sharing.
+  - name: ExternalLocationsService
   - name: RecipientsService
     description: |-
       Recipients
@@ -176,8 +177,6 @@ paths:
     post:
       tags:
         - CredentialService
-        - credentials
-        - unofficial
       operationId: CreateCredential
       requestBody:
         content:
@@ -202,8 +201,6 @@ paths:
     get:
       tags:
         - CredentialService
-        - credentials
-        - unofficial
       operationId: GetCredential
       parameters:
         - name: name
@@ -248,13 +245,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
-  /locations:
+  /external_locations:
     get:
       tags:
-        - CredentialService
-        - locations
-        - unofficial
-      operationId: ListStorageLocations
+        - ExternalLocationsService
+      description: List external locations
+      operationId: ListExternalLocations
       parameters:
         - name: maxResults
           in: query
@@ -264,9 +260,7 @@ paths:
             format: int32
         - name: pageToken
           in: query
-          description: |-
-            Specifies a page token to use. Set pageToken to the nextPageToken returned
-             by a previous list request to get the next page of results.
+          description: Opaque pagination token to go to next page based on previous query.
           schema:
             type: string
       responses:
@@ -275,7 +269,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListStorageLocationsResponse'
+                $ref: '#/components/schemas/ListExternalLocationsResponse'
         default:
           description: Default error response
           content:
@@ -284,15 +278,14 @@ paths:
                 $ref: '#/components/schemas/Status'
     post:
       tags:
-        - CredentialService
-        - locations
-        - unofficial
-      operationId: CreateStorageLocation
+        - ExternalLocationsService
+      description: Create a new external location
+      operationId: CreateExternalLocation
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateStorageLocationRequest'
+              $ref: '#/components/schemas/CreateExternalLocationRequest'
         required: true
       responses:
         '200':
@@ -300,24 +293,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StorageLocation'
+                $ref: '#/components/schemas/ExternalLocationInfo'
         default:
           description: Default error response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
-  /locations/{name}:
+  /external_locations/{name}:
     get:
       tags:
-        - CredentialService
-        - locations
-        - unofficial
-      operationId: GetStorageLocation
+        - ExternalLocationsService
+      description: Get an external location
+      operationId: GetExternalLocation
       parameters:
         - name: name
           in: path
-          description: Name of storage location.
+          description: Name of external location.
           required: true
           schema:
             type: string
@@ -327,7 +319,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StorageLocation'
+                $ref: '#/components/schemas/ExternalLocationInfo'
         default:
           description: Default error response
           content:
@@ -336,24 +328,56 @@ paths:
                 $ref: '#/components/schemas/Status'
     delete:
       tags:
-        - CredentialService
-        - locations
-        - unofficial
-      operationId: DeleteStorageLocation
+        - ExternalLocationsService
+      description: Delete an external location
+      operationId: DeleteExternalLocation
       parameters:
         - name: name
           in: path
-          description: Name of storage location.
+          description: Name of external location.
           required: true
           schema:
             type: string
+        - name: force
+          in: query
+          description: Force deletion even if the external location is not empty.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content: {}
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    patch:
+      tags:
+        - ExternalLocationsService
+      description: Update an external location
+      operationId: UpdateExternalLocation
+      parameters:
+        - name: name
+          in: path
+          description: Name of external location.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExternalLocationRequest'
+        required: true
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StorageLocation'
+                $ref: '#/components/schemas/ExternalLocationInfo'
         default:
           description: Default error response
           content:
@@ -1147,6 +1171,33 @@ components:
             - $ref: '#/components/schemas/Credential'
           description: Credential to create.
       description: Create a new credential
+    CreateExternalLocationRequest:
+      required:
+        - name
+        - url
+        - credentialName
+        - readOnly
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of external location.
+        url:
+          type: string
+          description: Path URL of the external location.
+        credentialName:
+          type: string
+          description: Name of the storage credential used with this location.
+        readOnly:
+          type: boolean
+          description: Indicates whether the external location is read-only.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        skipValidation:
+          type: boolean
+          description: Skips validation of the storage credential associated with the external location.
+      description: Create a new external location
     CreateRecipientRequest:
       required:
         - name
@@ -1212,29 +1263,6 @@ components:
 
          Data objects can be added after creation with update.
          The caller must be a metastore admin or have the CREATE_SHARE privilege on the metastore.
-    CreateStorageLocationRequest:
-      required:
-        - name
-        - url
-        - type
-        - credential
-      type: object
-      properties:
-        name:
-          type: string
-          description: Storage location to create.
-        url:
-          type: string
-        type:
-          type: integer
-          format: enum
-        credential:
-          type: string
-        description:
-          type: string
-        properties:
-          type: object
-      description: Create a new storage location
     Credential:
       required:
         - name
@@ -1350,6 +1378,44 @@ components:
           items:
             $ref: '#/components/schemas/DeltaLogMessage'
       description: Response for a query against a table in Delta format.
+    ExternalLocationInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the external location.
+        url:
+          type: string
+          description: Path URL of the external location.
+        credentialName:
+          type: string
+          description: Name of the storage credential used with this location.
+        readOnly:
+          type: boolean
+          description: Indicates whether the external location is read-only.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        properties:
+          type: object
+          description: A map of key-value properties attached to the securable.
+        credentialId:
+          type: string
+          description: Unique ID of the location's storage credential.
+        createAt:
+          type: string
+          description: Time at which this catalog was created, in epoch milliseconds.
+        createdBy:
+          type: string
+          description: Username of catalog creator.
+        updateAt:
+          type: string
+          description: Time at which this catalog was last updated, in epoch milliseconds.
+        updatedBy:
+          type: string
+          description: Username of user who last modified catalog.
+        id:
+          type: string
     Format:
       type: object
       properties:
@@ -1389,6 +1455,18 @@ components:
           type: string
           description: The next_page_token value to include in the next List request.
       description: List catalogs response.
+    ListExternalLocationsResponse:
+      type: object
+      properties:
+        externalLocations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExternalLocationInfo'
+          description: The external locations returned.
+        nextPageToken:
+          type: string
+          description: The next_page_token value to include in the next List request.
+      description: List external locations response.
     ListRecipientsResponse:
       type: object
       properties:
@@ -1467,18 +1545,6 @@ components:
             Token that can be used to retrieve the next page of schemas.
              An empty or missing token means that no more schemas are available for retrieval.
       description: Response for ListSharingSchemasRequest.
-    ListStorageLocationsResponse:
-      type: object
-      properties:
-        storageLocations:
-          type: array
-          items:
-            $ref: '#/components/schemas/StorageLocation'
-          description: The storage locations returned.
-        nextPageToken:
-          type: string
-          description: The next_page_token value to include in the next List request.
-      description: List storage locations response.
     MetadatDelta:
       type: object
       properties:
@@ -1798,50 +1864,6 @@ components:
             $ref: '#/components/schemas/GoogleProtobufAny'
           description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
       description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
-    StorageLocation:
-      required:
-        - name
-        - url
-        - type
-        - credential
-      type: object
-      properties:
-        id:
-          readOnly: true
-          type: string
-        name:
-          type: string
-        url:
-          type: string
-        type:
-          type: integer
-          format: enum
-        credential:
-          type: string
-        description:
-          type: string
-        properties:
-          type: object
-        owner:
-          readOnly: true
-          type: string
-          description: Username of current owner of storage location.
-        createAt:
-          readOnly: true
-          type: string
-          description: Time at which this storage location was created, in epoch milliseconds.
-        createdBy:
-          readOnly: true
-          type: string
-          description: Username of storage location creator.
-        updateAt:
-          readOnly: true
-          type: string
-          description: Time at which this storage location was last updated, in epoch milliseconds.
-        updatedBy:
-          readOnly: true
-          type: string
-          description: Username of user who last modified storage location.
     UpdateCatalogRequest:
       required:
         - name
@@ -1860,6 +1882,39 @@ components:
           type: string
           description: Name of catalog.
       description: Update a catalog
+    UpdateExternalLocationRequest:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of external location.
+        url:
+          type: string
+          description: Path URL of the external location.
+        credentialName:
+          type: string
+          description: Name of the storage credential used with this location.
+        readOnly:
+          type: boolean
+          description: Indicates whether the external location is read-only.
+        owner:
+          type: string
+          description: owner of the external location.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        newName:
+          type: string
+          description: new name of the external location.
+        force:
+          type: boolean
+          description: force update of the external location.
+        skipValidation:
+          type: boolean
+          description: Skips validation of the storage credential associated with the external location.
+      description: Update an external location
     UpdateRecipientRequest:
       required:
         - name

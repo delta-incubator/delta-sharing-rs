@@ -2,10 +2,9 @@ use delta_sharing_derive::object_conversions;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::ResourceExt;
+use super::{ExternalLocationInfo, ResourceExt};
 use crate::models::{
-    CatalogInfo, Credential, SchemaInfo, ShareInfo, SharingSchemaInfo, SharingTable,
-    StorageLocation, TableInfo,
+    CatalogInfo, Credential, SchemaInfo, ShareInfo, SharingSchemaInfo, SharingTable, TableInfo,
 };
 use crate::{Error, ObjectLabel, Resource, ResourceName, ResourceRef};
 
@@ -51,10 +50,10 @@ impl ResourceExt for Resource {
             Resource::SharingSchemaInfo(_) => &ObjectLabel::SharingSchemaInfo,
             Resource::SharingTable(_) => &ObjectLabel::SharingTable,
             Resource::Credential(_) => &ObjectLabel::Credential,
-            Resource::StorageLocation(_) => &ObjectLabel::StorageLocation,
             Resource::CatalogInfo(_) => &ObjectLabel::CatalogInfo,
             Resource::SchemaInfo(_) => &ObjectLabel::SchemaInfo,
             Resource::TableInfo(_) => &ObjectLabel::TableInfo,
+            Resource::ExternalLocationInfo(_) => &ObjectLabel::ExternalLocationInfo,
         }
     }
 
@@ -64,10 +63,10 @@ impl ResourceExt for Resource {
             Resource::SharingSchemaInfo(obj) => obj.resource_name(),
             Resource::SharingTable(obj) => obj.resource_name(),
             Resource::Credential(_) => todo!(),
-            Resource::StorageLocation(obj) => obj.resource_name(),
             Resource::CatalogInfo(obj) => obj.resource_name(),
             Resource::SchemaInfo(obj) => obj.resource_name(),
             Resource::TableInfo(obj) => obj.resource_name(),
+            Resource::ExternalLocationInfo(obj) => obj.resource_name(),
         }
     }
 
@@ -77,10 +76,10 @@ impl ResourceExt for Resource {
             Resource::SharingSchemaInfo(obj) => obj.resource_ref(),
             Resource::SharingTable(obj) => obj.resource_ref(),
             Resource::Credential(_) => todo!(),
-            Resource::StorageLocation(obj) => obj.resource_ref(),
             Resource::CatalogInfo(obj) => obj.resource_ref(),
             Resource::SchemaInfo(obj) => obj.resource_ref(),
             Resource::TableInfo(obj) => obj.resource_ref(),
+            Resource::ExternalLocationInfo(obj) => obj.resource_ref(),
         }
     }
 }
@@ -94,10 +93,10 @@ impl TryFrom<Resource> for Object {
             Resource::SharingSchemaInfo(obj) => obj.try_into(),
             Resource::SharingTable(obj) => obj.try_into(),
             Resource::Credential(_) => Err(Error::generic("Cannot convert credential to object")),
-            Resource::StorageLocation(obj) => obj.try_into(),
             Resource::CatalogInfo(obj) => obj.try_into(),
             Resource::SchemaInfo(obj) => obj.try_into(),
             Resource::TableInfo(obj) => obj.try_into(),
+            Resource::ExternalLocationInfo(obj) => obj.try_into(),
         }
     }
 }
@@ -111,16 +110,18 @@ impl TryFrom<Object> for Resource {
             ObjectLabel::SharingSchemaInfo => Ok(Resource::SharingSchemaInfo(obj.try_into()?)),
             ObjectLabel::SharingTable => Ok(Resource::SharingTable(obj.try_into()?)),
             ObjectLabel::Credential => todo!("Convert Object to Resource"),
-            ObjectLabel::StorageLocation => Ok(Resource::StorageLocation(obj.try_into()?)),
             ObjectLabel::CatalogInfo => Ok(Resource::CatalogInfo(obj.try_into()?)),
             ObjectLabel::SchemaInfo => Ok(Resource::SchemaInfo(obj.try_into()?)),
             ObjectLabel::TableInfo => Ok(Resource::TableInfo(obj.try_into()?)),
+            ObjectLabel::ExternalLocationInfo => {
+                Ok(Resource::ExternalLocationInfo(obj.try_into()?))
+            }
         }
     }
 }
 
 object_conversions!(
-    StorageLocation, ObjectLabel::StorageLocation, id, [name];
+    ExternalLocationInfo, ObjectLabel::ExternalLocationInfo, id, [name], true;
     ShareInfo, ObjectLabel::ShareInfo, id, [name];
     SharingSchemaInfo, ObjectLabel::SharingSchemaInfo, id, [share, name];
     SharingTable, ObjectLabel::SharingTable, id, [share, schema, name], true;

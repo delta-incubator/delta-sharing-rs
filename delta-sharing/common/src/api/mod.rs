@@ -1,5 +1,6 @@
 pub(crate) mod catalogs;
 pub(crate) mod credentials;
+pub(crate) mod external_locations;
 pub(crate) mod schemas;
 pub(crate) mod sharing;
 

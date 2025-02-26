@@ -1,17 +1,15 @@
 // @generated
 /// Generated client implementations.
-pub mod credential_service_client {
+pub mod external_locations_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
-    /** Manage credentials to access external data sources and services
- as well as generate signed urls for the Delta Sharing service.
-*/
+    ///
     #[derive(Debug, Clone)]
-    pub struct CredentialServiceClient<T> {
+    pub struct ExternalLocationsServiceClient<T> {
         inner: tonic::client::Grpc<T>,
     }
-    impl CredentialServiceClient<tonic::transport::Channel> {
+    impl ExternalLocationsServiceClient<tonic::transport::Channel> {
         /// Attempt to create a new client by connecting to a given endpoint.
         pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
         where
@@ -22,7 +20,7 @@ pub mod credential_service_client {
             Ok(Self::new(conn))
         }
     }
-    impl<T> CredentialServiceClient<T>
+    impl<T> ExternalLocationsServiceClient<T>
     where
         T: tonic::client::GrpcService<tonic::body::BoxBody>,
         T::Error: Into<StdError>,
@@ -40,7 +38,7 @@ pub mod credential_service_client {
         pub fn with_interceptor<F>(
             inner: T,
             interceptor: F,
-        ) -> CredentialServiceClient<InterceptedService<T, F>>
+        ) -> ExternalLocationsServiceClient<InterceptedService<T, F>>
         where
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
@@ -54,7 +52,9 @@ pub mod credential_service_client {
                 http::Request<tonic::body::BoxBody>,
             >>::Error: Into<StdError> + Send + Sync,
         {
-            CredentialServiceClient::new(InterceptedService::new(inner, interceptor))
+            ExternalLocationsServiceClient::new(
+                InterceptedService::new(inner, interceptor),
+            )
         }
         /// Compress requests with the given encoding.
         ///
@@ -87,11 +87,15 @@ pub mod credential_service_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        ///
-        pub async fn create_credential(
+        /** List external locations
+*/
+        pub async fn list_external_locations(
             &mut self,
-            request: impl tonic::IntoRequest<super::CreateCredentialRequest>,
-        ) -> std::result::Result<tonic::Response<super::Credential>, tonic::Status> {
+            request: impl tonic::IntoRequest<super::ListExternalLocationsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListExternalLocationsResponse>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -103,23 +107,27 @@ pub mod credential_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.credentials.v1.CredentialService/CreateCredential",
+                "/delta_sharing.external_locations.v1.ExternalLocationsService/ListExternalLocations",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "delta_sharing.credentials.v1.CredentialService",
-                        "CreateCredential",
+                        "delta_sharing.external_locations.v1.ExternalLocationsService",
+                        "ListExternalLocations",
                     ),
                 );
             self.inner.unary(req, path, codec).await
         }
-        ///
-        pub async fn get_credential(
+        /** Create a new external location
+*/
+        pub async fn create_external_location(
             &mut self,
-            request: impl tonic::IntoRequest<super::GetCredentialRequest>,
-        ) -> std::result::Result<tonic::Response<super::Credential>, tonic::Status> {
+            request: impl tonic::IntoRequest<super::CreateExternalLocationRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ExternalLocationInfo>,
+            tonic::Status,
+        > {
             self.inner
                 .ready()
                 .await
@@ -131,22 +139,87 @@ pub mod credential_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.credentials.v1.CredentialService/GetCredential",
+                "/delta_sharing.external_locations.v1.ExternalLocationsService/CreateExternalLocation",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "delta_sharing.credentials.v1.CredentialService",
-                        "GetCredential",
+                        "delta_sharing.external_locations.v1.ExternalLocationsService",
+                        "CreateExternalLocation",
                     ),
                 );
             self.inner.unary(req, path, codec).await
         }
-        ///
-        pub async fn delete_credential(
+        /** Get an external location
+*/
+        pub async fn get_external_location(
             &mut self,
-            request: impl tonic::IntoRequest<super::DeleteCredentialRequest>,
+            request: impl tonic::IntoRequest<super::GetExternalLocationRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ExternalLocationInfo>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.external_locations.v1.ExternalLocationsService/GetExternalLocation",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.external_locations.v1.ExternalLocationsService",
+                        "GetExternalLocation",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Update an external location
+*/
+        pub async fn update_external_location(
+            &mut self,
+            request: impl tonic::IntoRequest<super::UpdateExternalLocationRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ExternalLocationInfo>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.external_locations.v1.ExternalLocationsService/UpdateExternalLocation",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.external_locations.v1.ExternalLocationsService",
+                        "UpdateExternalLocation",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Delete an external location
+*/
+        pub async fn delete_external_location(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteExternalLocationRequest>,
         ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
             self.inner
                 .ready()
@@ -159,14 +232,14 @@ pub mod credential_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.credentials.v1.CredentialService/DeleteCredential",
+                "/delta_sharing.external_locations.v1.ExternalLocationsService/DeleteExternalLocation",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "delta_sharing.credentials.v1.CredentialService",
-                        "DeleteCredential",
+                        "delta_sharing.external_locations.v1.ExternalLocationsService",
+                        "DeleteExternalLocation",
                     ),
                 );
             self.inner.unary(req, path, codec).await

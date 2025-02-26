@@ -6,9 +6,12 @@ use axum::{
 use http_body_util::BodyExt;
 use tower::ServiceExt;
 
-pub use super::credentials::integration::*;
 use crate::models::catalogs::v1::*;
 use crate::models::schemas::v1::*;
+
+pub use self::external_locations::*;
+
+mod external_locations;
 
 pub async fn collect_body<T>(response: axum::http::Response<Body>) -> T
 where

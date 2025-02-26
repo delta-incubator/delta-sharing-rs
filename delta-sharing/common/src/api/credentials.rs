@@ -14,14 +14,6 @@ rest_handlers!(
         DeleteCredentialRequest, Credential, Manage with [
             name: path as String,
         ];
-        CreateStorageLocationRequest, StorageLocation, Create, StorageLocation;
-        ListStorageLocationsRequest, StorageLocation, Read, ListStorageLocationsResponse;
-        GetStorageLocationRequest, StorageLocation, Read, StorageLocation with [
-            name: path as String,
-        ];
-        DeleteStorageLocationRequest, StorageLocation, Manage with [
-            name: path as String,
-        ];
     ]
 );
 
@@ -47,32 +39,4 @@ pub trait CredentialsHandler: Send + Sync + 'static {
         request: GetCredentialRequest,
         context: RequestContext,
     ) -> Result<Credential>;
-
-    /// Create a new storage location.
-    async fn create_storage_location(
-        &self,
-        request: CreateStorageLocationRequest,
-        context: RequestContext,
-    ) -> Result<StorageLocation>;
-
-    /// Delete a storage location.
-    async fn delete_storage_location(
-        &self,
-        request: DeleteStorageLocationRequest,
-        context: RequestContext,
-    ) -> Result<()>;
-
-    /// Get a storage location.
-    async fn get_storage_location(
-        &self,
-        request: GetStorageLocationRequest,
-        context: RequestContext,
-    ) -> Result<StorageLocation>;
-
-    /// List storage locations.
-    async fn list_storage_locations(
-        &self,
-        request: ListStorageLocationsRequest,
-        context: RequestContext,
-    ) -> Result<ListStorageLocationsResponse>;
 }

@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package delta_sharing.external_locations.v1;
+
+import "google/api/field_behavior.proto";
+import "google/protobuf/struct.proto";
+
+message ExternalLocationInfo {
+  // Name of the external location.
+  string name = 1;
+
+  // Path URL of the external location.
+  string url = 2;
+
+  // Name of the storage credential used with this location.
+  string credential_name = 3;
+
+  // Indicates whether the external location is read-only.
+  bool read_only = 4;
+
+  // User-provided free-form text description.
+  optional string comment = 5;
+
+  // A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 6;
+
+  // metastore id
+  // string metastore_id = 7;
+
+  // Unique ID of the location's storage credential.
+  string credential_id = 8;
+
+  // Time at which this catalog was created, in epoch milliseconds.
+  optional int64 create_at = 9;
+
+  // Username of catalog creator.
+  optional string created_by = 10;
+
+  // Time at which this catalog was last updated, in epoch milliseconds.
+  optional int64 update_at = 11;
+
+  // Username of user who last modified catalog.
+  optional string updated_by = 12;
+
+  optional string id = 100;
+}

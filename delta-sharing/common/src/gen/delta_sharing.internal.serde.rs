@@ -25,9 +25,6 @@ impl serde::Serialize for Resource {
                 resource::Resource::Credential(v) => {
                     struct_ser.serialize_field("credential", v)?;
                 }
-                resource::Resource::StorageLocation(v) => {
-                    struct_ser.serialize_field("storageLocation", v)?;
-                }
                 resource::Resource::CatalogInfo(v) => {
                     struct_ser.serialize_field("catalogInfo", v)?;
                 }
@@ -36,6 +33,9 @@ impl serde::Serialize for Resource {
                 }
                 resource::Resource::TableInfo(v) => {
                     struct_ser.serialize_field("tableInfo", v)?;
+                }
+                resource::Resource::ExternalLocationInfo(v) => {
+                    struct_ser.serialize_field("externalLocationInfo", v)?;
                 }
             }
         }
@@ -56,14 +56,14 @@ impl<'de> serde::Deserialize<'de> for Resource {
             "sharing_table",
             "sharingTable",
             "credential",
-            "storage_location",
-            "storageLocation",
             "catalog_info",
             "catalogInfo",
             "schema_info",
             "schemaInfo",
             "table_info",
             "tableInfo",
+            "external_location_info",
+            "externalLocationInfo",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -72,10 +72,10 @@ impl<'de> serde::Deserialize<'de> for Resource {
             SharingSchemaInfo,
             SharingTable,
             Credential,
-            StorageLocation,
             CatalogInfo,
             SchemaInfo,
             TableInfo,
+            ExternalLocationInfo,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -85,7 +85,7 @@ impl<'de> serde::Deserialize<'de> for Resource {
             {
                 struct GeneratedVisitor;
 
-                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -102,10 +102,10 @@ impl<'de> serde::Deserialize<'de> for Resource {
                             "sharingSchemaInfo" | "sharing_schema_info" => Ok(GeneratedField::SharingSchemaInfo),
                             "sharingTable" | "sharing_table" => Ok(GeneratedField::SharingTable),
                             "credential" => Ok(GeneratedField::Credential),
-                            "storageLocation" | "storage_location" => Ok(GeneratedField::StorageLocation),
                             "catalogInfo" | "catalog_info" => Ok(GeneratedField::CatalogInfo),
                             "schemaInfo" | "schema_info" => Ok(GeneratedField::SchemaInfo),
                             "tableInfo" | "table_info" => Ok(GeneratedField::TableInfo),
+                            "externalLocationInfo" | "external_location_info" => Ok(GeneratedField::ExternalLocationInfo),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -156,13 +156,6 @@ impl<'de> serde::Deserialize<'de> for Resource {
                             resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::Credential)
 ;
                         }
-                        GeneratedField::StorageLocation => {
-                            if resource__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("storageLocation"));
-                            }
-                            resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::StorageLocation)
-;
-                        }
                         GeneratedField::CatalogInfo => {
                             if resource__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("catalogInfo"));
@@ -182,6 +175,13 @@ impl<'de> serde::Deserialize<'de> for Resource {
                                 return Err(serde::de::Error::duplicate_field("tableInfo"));
                             }
                             resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::TableInfo)
+;
+                        }
+                        GeneratedField::ExternalLocationInfo => {
+                            if resource__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("externalLocationInfo"));
+                            }
+                            resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::ExternalLocationInfo)
 ;
                         }
                         GeneratedField::__SkipField__ => {

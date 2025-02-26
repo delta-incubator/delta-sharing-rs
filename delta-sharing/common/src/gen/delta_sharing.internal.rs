@@ -4,7 +4,7 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Resource {
-    #[prost(oneof="resource::Resource", tags="1, 2, 3, 4, 5, 6, 7, 8")]
+    #[prost(oneof="resource::Resource", tags="1, 2, 3, 4, 6, 7, 8, 9")]
     pub resource: ::core::option::Option<resource::Resource>,
 }
 /// Nested message and enum types in `Resource`.
@@ -27,14 +27,14 @@ pub mod resource {
         SharingTable(super::super::sharing::v1::SharingTable),
         #[prost(message, tag="4")]
         Credential(super::super::credentials::v1::Credential),
-        #[prost(message, tag="5")]
-        StorageLocation(super::super::credentials::v1::StorageLocation),
         #[prost(message, tag="6")]
         CatalogInfo(super::super::catalogs::v1::CatalogInfo),
         #[prost(message, tag="7")]
         SchemaInfo(super::super::schemas::v1::SchemaInfo),
         #[prost(message, tag="8")]
         TableInfo(super::super::tables::v1::TableInfo),
+        #[prost(message, tag="9")]
+        ExternalLocationInfo(super::super::external_locations::v1::ExternalLocationInfo),
     }
 }
 include!("delta_sharing.internal.serde.rs");

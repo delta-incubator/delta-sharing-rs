@@ -92,72 +92,6 @@ pub mod credential {
         Azure(super::AzureCredential),
     }
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct StorageLocation {
-    #[prost(string, tag="1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub url: ::prost::alloc::string::String,
-    #[prost(enumeration="StorageType", tag="4")]
-    pub r#type: i32,
-    #[prost(string, tag="5")]
-    pub credential: ::prost::alloc::string::String,
-    #[prost(string, optional, tag="6")]
-    pub description: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(message, optional, tag="7")]
-    pub properties: ::core::option::Option<::pbjson_types::Struct>,
-    /// Username of current owner of storage location.
-    #[prost(string, optional, tag="8")]
-    pub owner: ::core::option::Option<::prost::alloc::string::String>,
-    /// Time at which this storage location was created, in epoch milliseconds.
-    #[prost(int64, optional, tag="9")]
-    pub create_at: ::core::option::Option<i64>,
-    /// Username of storage location creator.
-    #[prost(string, optional, tag="10")]
-    pub created_by: ::core::option::Option<::prost::alloc::string::String>,
-    /// Time at which this storage location was last updated, in epoch milliseconds.
-    #[prost(int64, optional, tag="11")]
-    pub update_at: ::core::option::Option<i64>,
-    /// Username of user who last modified storage location.
-    #[prost(string, optional, tag="12")]
-    pub updated_by: ::core::option::Option<::prost::alloc::string::String>,
-}
-/// The type of storage service to use.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum StorageType {
-    Unspecified = 0,
-    Azure = 1,
-    Google = 2,
-    S3 = 3,
-}
-impl StorageType {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            StorageType::Unspecified => "STORAGE_TYPE_UNSPECIFIED",
-            StorageType::Azure => "STORAGE_TYPE_AZURE",
-            StorageType::Google => "STORAGE_TYPE_GOOGLE",
-            StorageType::S3 => "STORAGE_TYPE_S3",
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "STORAGE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
-            "STORAGE_TYPE_AZURE" => Some(Self::Azure),
-            "STORAGE_TYPE_GOOGLE" => Some(Self::Google),
-            "STORAGE_TYPE_S3" => Some(Self::S3),
-            _ => None,
-        }
-    }
-}
 /// Create a new credential
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -181,63 +115,6 @@ pub struct GetCredentialRequest {
     /// Name of credential.
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
-}
-/// Create a new storage location
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CreateStorageLocationRequest {
-    /// Storage location to create.
-    #[prost(string, tag="2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub url: ::prost::alloc::string::String,
-    #[prost(enumeration="StorageType", tag="4")]
-    pub r#type: i32,
-    #[prost(string, tag="5")]
-    pub credential: ::prost::alloc::string::String,
-    #[prost(string, optional, tag="6")]
-    pub description: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(message, optional, tag="7")]
-    pub properties: ::core::option::Option<::pbjson_types::Struct>,
-}
-/// Delete a storage location
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeleteStorageLocationRequest {
-    /// Name of storage location.
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
-/// Get a storage location
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GetStorageLocationRequest {
-    /// Name of storage location.
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-}
-/// List storage locations
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListStorageLocationsRequest {
-    /// The maximum number of results per page that should be returned.
-    #[prost(int32, optional, tag="2")]
-    pub max_results: ::core::option::Option<i32>,
-    /// Specifies a page token to use. Set pageToken to the nextPageToken returned
-    /// by a previous list request to get the next page of results.
-    #[prost(string, optional, tag="3")]
-    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
-}
-/// List storage locations response.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListStorageLocationsResponse {
-    /// The storage locations returned.
-    #[prost(message, repeated, tag="1")]
-    pub storage_locations: ::prost::alloc::vec::Vec<StorageLocation>,
-    /// The next_page_token value to include in the next List request.
-    #[prost(string, optional, tag="2")]
-    pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
 include!("delta_sharing.credentials.v1.serde.rs");
 include!("delta_sharing.credentials.v1.tonic.rs");
