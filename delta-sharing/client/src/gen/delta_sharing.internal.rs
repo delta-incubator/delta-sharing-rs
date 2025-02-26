@@ -23,9 +23,9 @@ pub mod resource {
         #[prost(message, tag="5")]
         StorageLocation(super::super::credentials::v1::StorageLocation),
         #[prost(message, tag="6")]
-        CatalogInfo(super::super::catalog::v1::CatalogInfo),
+        CatalogInfo(super::super::catalogs::v1::CatalogInfo),
         #[prost(message, tag="7")]
-        SchemaInfo(super::super::catalog::v1::SchemaInfo),
+        SchemaInfo(super::super::schemas::v1::SchemaInfo),
         #[prost(message, tag="8")]
         TableInfo(super::super::tables::v1::TableInfo),
     }

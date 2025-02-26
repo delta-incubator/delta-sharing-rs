@@ -7,14 +7,12 @@ info:
     url: https://www.gnu.org/licenses/agpl-3.0.en.html
   version: 0.0.0
 tags:
-  - name: CatalogService
+  - name: CatalogsService
     description: Manage catalogs and schemas in the service.
   - name: CredentialService
     description: |-
       Manage credentials to access external data sources and services
        as well as generate signed urls for the Delta Sharing service.
-  - name: DeltaSharingService
-    description: An Open Protocol for Secure Data Sharing
   - name: DeltaSharingService
     description: Service exposing the official APIs for Delta Sharing.
   - name: RecipientsService
@@ -34,29 +32,25 @@ tags:
        have the SELECT permission on the table or view.
   - name: SharesService
     description: Service for managing shares
-  - name: SharesService
-    description: Service for managing shares
 paths:
   /catalogs:
     get:
       tags:
-        - CatalogService
-        - catalogs
-        - unity
+        - CatalogsService
       description: List catalogs
       operationId: ListCatalogs
       parameters:
-        - name: pageToken
-          in: query
-          description: The next_page_token value returned from a previous List request, if any.
-          schema:
-            type: string
         - name: maxResults
           in: query
-          description: The maximum number of items to return.
+          description: The maximum number of results per page that should be returned.
           schema:
             type: integer
             format: int32
+        - name: pageToken
+          in: query
+          description: Opaque pagination token to go to next page based on previous query.
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -72,9 +66,7 @@ paths:
                 $ref: '#/components/schemas/Status'
     post:
       tags:
-        - CatalogService
-        - catalogs
-        - unity
+        - CatalogsService
       description: Create a new catalog
       operationId: CreateCatalog
       requestBody:
@@ -99,9 +91,7 @@ paths:
   /catalogs/{name}:
     get:
       tags:
-        - CatalogService
-        - catalogs
-        - unity
+        - CatalogsService
       description: Get a catalog
       operationId: GetCatalog
       parameters:
@@ -126,9 +116,7 @@ paths:
                 $ref: '#/components/schemas/Status'
     delete:
       tags:
-        - CatalogService
-        - catalogs
-        - unity
+        - CatalogsService
       description: Delete a catalog
       operationId: DeleteCatalog
       parameters:
@@ -155,9 +143,7 @@ paths:
                 $ref: '#/components/schemas/Status'
     patch:
       tags:
-        - CatalogService
-        - catalogs
-        - unity
+        - CatalogsService
       description: Update a catalog
       operationId: UpdateCatalog
       parameters:
@@ -524,17 +510,17 @@ paths:
           description: Name of parent catalog.
           schema:
             type: string
-        - name: pageToken
-          in: query
-          description: The next_page_token value returned from a previous List request, if any.
-          schema:
-            type: string
         - name: maxResults
           in: query
-          description: The maximum number of items to return.
+          description: The maximum number of results per page that should be returned.
           schema:
             type: integer
             format: int32
+        - name: pageToken
+          in: query
+          description: Opaque pagination token to go to next page based on previous query.
+          schema:
+            type: string
       responses:
         '200':
           description: OK

@@ -1,5 +1,5 @@
 // @generated
-impl serde::Serialize for CreateSchemaRequest {
+impl serde::Serialize for CatalogInfo {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
@@ -8,601 +8,12 @@ impl serde::Serialize for CreateSchemaRequest {
         use serde::ser::SerializeStruct;
         let mut len = 0;
         if !self.name.is_empty() {
-            len += 1;
-        }
-        if !self.catalog_name.is_empty() {
             len += 1;
         }
         if self.comment.is_some() {
             len += 1;
         }
         if self.properties.is_some() {
-            len += 1;
-        }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.schemas.v1.CreateSchemaRequest", len)?;
-        if !self.name.is_empty() {
-            struct_ser.serialize_field("name", &self.name)?;
-        }
-        if !self.catalog_name.is_empty() {
-            struct_ser.serialize_field("catalogName", &self.catalog_name)?;
-        }
-        if let Some(v) = self.comment.as_ref() {
-            struct_ser.serialize_field("comment", v)?;
-        }
-        if let Some(v) = self.properties.as_ref() {
-            struct_ser.serialize_field("properties", v)?;
-        }
-        struct_ser.end()
-    }
-}
-impl<'de> serde::Deserialize<'de> for CreateSchemaRequest {
-    #[allow(deprecated)]
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        const FIELDS: &[&str] = &[
-            "name",
-            "catalog_name",
-            "catalogName",
-            "comment",
-            "properties",
-        ];
-
-        #[allow(clippy::enum_variant_names)]
-        enum GeneratedField {
-            Name,
-            CatalogName,
-            Comment,
-            Properties,
-        }
-        impl<'de> serde::Deserialize<'de> for GeneratedField {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct GeneratedVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-                    type Value = GeneratedField;
-
-                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(formatter, "expected one of: {:?}", &FIELDS)
-                    }
-
-                    #[allow(unused_variables)]
-                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match value {
-                            "name" => Ok(GeneratedField::Name),
-                            "catalogName" | "catalog_name" => Ok(GeneratedField::CatalogName),
-                            "comment" => Ok(GeneratedField::Comment),
-                            "properties" => Ok(GeneratedField::Properties),
-                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(GeneratedVisitor)
-            }
-        }
-        struct GeneratedVisitor;
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = CreateSchemaRequest;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.schemas.v1.CreateSchemaRequest")
-            }
-
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<CreateSchemaRequest, V::Error>
-                where
-                    V: serde::de::MapAccess<'de>,
-            {
-                let mut name__ = None;
-                let mut catalog_name__ = None;
-                let mut comment__ = None;
-                let mut properties__ = None;
-                while let Some(k) = map_.next_key()? {
-                    match k {
-                        GeneratedField::Name => {
-                            if name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("name"));
-                            }
-                            name__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::CatalogName => {
-                            if catalog_name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("catalogName"));
-                            }
-                            catalog_name__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::Comment => {
-                            if comment__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("comment"));
-                            }
-                            comment__ = map_.next_value()?;
-                        }
-                        GeneratedField::Properties => {
-                            if properties__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("properties"));
-                            }
-                            properties__ = map_.next_value()?;
-                        }
-                    }
-                }
-                Ok(CreateSchemaRequest {
-                    name: name__.unwrap_or_default(),
-                    catalog_name: catalog_name__.unwrap_or_default(),
-                    comment: comment__,
-                    properties: properties__,
-                })
-            }
-        }
-        deserializer.deserialize_struct("delta_sharing.schemas.v1.CreateSchemaRequest", FIELDS, GeneratedVisitor)
-    }
-}
-impl serde::Serialize for DeleteSchemaRequest {
-    #[allow(deprecated)]
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeStruct;
-        let mut len = 0;
-        if !self.full_name.is_empty() {
-            len += 1;
-        }
-        if self.force.is_some() {
-            len += 1;
-        }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.schemas.v1.DeleteSchemaRequest", len)?;
-        if !self.full_name.is_empty() {
-            struct_ser.serialize_field("fullName", &self.full_name)?;
-        }
-        if let Some(v) = self.force.as_ref() {
-            struct_ser.serialize_field("force", v)?;
-        }
-        struct_ser.end()
-    }
-}
-impl<'de> serde::Deserialize<'de> for DeleteSchemaRequest {
-    #[allow(deprecated)]
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        const FIELDS: &[&str] = &[
-            "full_name",
-            "fullName",
-            "force",
-        ];
-
-        #[allow(clippy::enum_variant_names)]
-        enum GeneratedField {
-            FullName,
-            Force,
-        }
-        impl<'de> serde::Deserialize<'de> for GeneratedField {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct GeneratedVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-                    type Value = GeneratedField;
-
-                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(formatter, "expected one of: {:?}", &FIELDS)
-                    }
-
-                    #[allow(unused_variables)]
-                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match value {
-                            "fullName" | "full_name" => Ok(GeneratedField::FullName),
-                            "force" => Ok(GeneratedField::Force),
-                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(GeneratedVisitor)
-            }
-        }
-        struct GeneratedVisitor;
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = DeleteSchemaRequest;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.schemas.v1.DeleteSchemaRequest")
-            }
-
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<DeleteSchemaRequest, V::Error>
-                where
-                    V: serde::de::MapAccess<'de>,
-            {
-                let mut full_name__ = None;
-                let mut force__ = None;
-                while let Some(k) = map_.next_key()? {
-                    match k {
-                        GeneratedField::FullName => {
-                            if full_name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("fullName"));
-                            }
-                            full_name__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::Force => {
-                            if force__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("force"));
-                            }
-                            force__ = map_.next_value()?;
-                        }
-                    }
-                }
-                Ok(DeleteSchemaRequest {
-                    full_name: full_name__.unwrap_or_default(),
-                    force: force__,
-                })
-            }
-        }
-        deserializer.deserialize_struct("delta_sharing.schemas.v1.DeleteSchemaRequest", FIELDS, GeneratedVisitor)
-    }
-}
-impl serde::Serialize for GetSchemaRequest {
-    #[allow(deprecated)]
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeStruct;
-        let mut len = 0;
-        if !self.full_name.is_empty() {
-            len += 1;
-        }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.schemas.v1.GetSchemaRequest", len)?;
-        if !self.full_name.is_empty() {
-            struct_ser.serialize_field("fullName", &self.full_name)?;
-        }
-        struct_ser.end()
-    }
-}
-impl<'de> serde::Deserialize<'de> for GetSchemaRequest {
-    #[allow(deprecated)]
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        const FIELDS: &[&str] = &[
-            "full_name",
-            "fullName",
-        ];
-
-        #[allow(clippy::enum_variant_names)]
-        enum GeneratedField {
-            FullName,
-        }
-        impl<'de> serde::Deserialize<'de> for GeneratedField {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct GeneratedVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-                    type Value = GeneratedField;
-
-                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(formatter, "expected one of: {:?}", &FIELDS)
-                    }
-
-                    #[allow(unused_variables)]
-                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match value {
-                            "fullName" | "full_name" => Ok(GeneratedField::FullName),
-                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(GeneratedVisitor)
-            }
-        }
-        struct GeneratedVisitor;
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = GetSchemaRequest;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.schemas.v1.GetSchemaRequest")
-            }
-
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<GetSchemaRequest, V::Error>
-                where
-                    V: serde::de::MapAccess<'de>,
-            {
-                let mut full_name__ = None;
-                while let Some(k) = map_.next_key()? {
-                    match k {
-                        GeneratedField::FullName => {
-                            if full_name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("fullName"));
-                            }
-                            full_name__ = Some(map_.next_value()?);
-                        }
-                    }
-                }
-                Ok(GetSchemaRequest {
-                    full_name: full_name__.unwrap_or_default(),
-                })
-            }
-        }
-        deserializer.deserialize_struct("delta_sharing.schemas.v1.GetSchemaRequest", FIELDS, GeneratedVisitor)
-    }
-}
-impl serde::Serialize for ListSchemasRequest {
-    #[allow(deprecated)]
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeStruct;
-        let mut len = 0;
-        if !self.catalog_name.is_empty() {
-            len += 1;
-        }
-        if self.max_results.is_some() {
-            len += 1;
-        }
-        if self.page_token.is_some() {
-            len += 1;
-        }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.schemas.v1.ListSchemasRequest", len)?;
-        if !self.catalog_name.is_empty() {
-            struct_ser.serialize_field("catalogName", &self.catalog_name)?;
-        }
-        if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("maxResults", v)?;
-        }
-        if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("pageToken", v)?;
-        }
-        struct_ser.end()
-    }
-}
-impl<'de> serde::Deserialize<'de> for ListSchemasRequest {
-    #[allow(deprecated)]
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        const FIELDS: &[&str] = &[
-            "catalog_name",
-            "catalogName",
-            "max_results",
-            "maxResults",
-            "page_token",
-            "pageToken",
-        ];
-
-        #[allow(clippy::enum_variant_names)]
-        enum GeneratedField {
-            CatalogName,
-            MaxResults,
-            PageToken,
-        }
-        impl<'de> serde::Deserialize<'de> for GeneratedField {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct GeneratedVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-                    type Value = GeneratedField;
-
-                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(formatter, "expected one of: {:?}", &FIELDS)
-                    }
-
-                    #[allow(unused_variables)]
-                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match value {
-                            "catalogName" | "catalog_name" => Ok(GeneratedField::CatalogName),
-                            "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
-                            "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
-                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(GeneratedVisitor)
-            }
-        }
-        struct GeneratedVisitor;
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = ListSchemasRequest;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.schemas.v1.ListSchemasRequest")
-            }
-
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ListSchemasRequest, V::Error>
-                where
-                    V: serde::de::MapAccess<'de>,
-            {
-                let mut catalog_name__ = None;
-                let mut max_results__ = None;
-                let mut page_token__ = None;
-                while let Some(k) = map_.next_key()? {
-                    match k {
-                        GeneratedField::CatalogName => {
-                            if catalog_name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("catalogName"));
-                            }
-                            catalog_name__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::MaxResults => {
-                            if max_results__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("maxResults"));
-                            }
-                            max_results__ = 
-                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
-                            ;
-                        }
-                        GeneratedField::PageToken => {
-                            if page_token__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("pageToken"));
-                            }
-                            page_token__ = map_.next_value()?;
-                        }
-                    }
-                }
-                Ok(ListSchemasRequest {
-                    catalog_name: catalog_name__.unwrap_or_default(),
-                    max_results: max_results__,
-                    page_token: page_token__,
-                })
-            }
-        }
-        deserializer.deserialize_struct("delta_sharing.schemas.v1.ListSchemasRequest", FIELDS, GeneratedVisitor)
-    }
-}
-impl serde::Serialize for ListSchemasResponse {
-    #[allow(deprecated)]
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeStruct;
-        let mut len = 0;
-        if !self.schemas.is_empty() {
-            len += 1;
-        }
-        if self.next_page_token.is_some() {
-            len += 1;
-        }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.schemas.v1.ListSchemasResponse", len)?;
-        if !self.schemas.is_empty() {
-            struct_ser.serialize_field("schemas", &self.schemas)?;
-        }
-        if let Some(v) = self.next_page_token.as_ref() {
-            struct_ser.serialize_field("nextPageToken", v)?;
-        }
-        struct_ser.end()
-    }
-}
-impl<'de> serde::Deserialize<'de> for ListSchemasResponse {
-    #[allow(deprecated)]
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        const FIELDS: &[&str] = &[
-            "schemas",
-            "next_page_token",
-            "nextPageToken",
-        ];
-
-        #[allow(clippy::enum_variant_names)]
-        enum GeneratedField {
-            Schemas,
-            NextPageToken,
-        }
-        impl<'de> serde::Deserialize<'de> for GeneratedField {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
-            where
-                D: serde::Deserializer<'de>,
-            {
-                struct GeneratedVisitor;
-
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-                    type Value = GeneratedField;
-
-                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                        write!(formatter, "expected one of: {:?}", &FIELDS)
-                    }
-
-                    #[allow(unused_variables)]
-                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
-                    where
-                        E: serde::de::Error,
-                    {
-                        match value {
-                            "schemas" => Ok(GeneratedField::Schemas),
-                            "nextPageToken" | "next_page_token" => Ok(GeneratedField::NextPageToken),
-                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
-                        }
-                    }
-                }
-                deserializer.deserialize_identifier(GeneratedVisitor)
-            }
-        }
-        struct GeneratedVisitor;
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = ListSchemasResponse;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.schemas.v1.ListSchemasResponse")
-            }
-
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ListSchemasResponse, V::Error>
-                where
-                    V: serde::de::MapAccess<'de>,
-            {
-                let mut schemas__ = None;
-                let mut next_page_token__ = None;
-                while let Some(k) = map_.next_key()? {
-                    match k {
-                        GeneratedField::Schemas => {
-                            if schemas__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("schemas"));
-                            }
-                            schemas__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::NextPageToken => {
-                            if next_page_token__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("nextPageToken"));
-                            }
-                            next_page_token__ = map_.next_value()?;
-                        }
-                    }
-                }
-                Ok(ListSchemasResponse {
-                    schemas: schemas__.unwrap_or_default(),
-                    next_page_token: next_page_token__,
-                })
-            }
-        }
-        deserializer.deserialize_struct("delta_sharing.schemas.v1.ListSchemasResponse", FIELDS, GeneratedVisitor)
-    }
-}
-impl serde::Serialize for SchemaInfo {
-    #[allow(deprecated)]
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        use serde::ser::SerializeStruct;
-        let mut len = 0;
-        if !self.name.is_empty() {
-            len += 1;
-        }
-        if !self.catalog_name.is_empty() {
-            len += 1;
-        }
-        if self.comment.is_some() {
-            len += 1;
-        }
-        if self.properties.is_some() {
-            len += 1;
-        }
-        if self.full_name.is_some() {
             len += 1;
         }
         if self.owner.is_some() {
@@ -620,24 +31,18 @@ impl serde::Serialize for SchemaInfo {
         if self.updated_by.is_some() {
             len += 1;
         }
-        if self.schema_id.is_some() {
+        if self.id.is_some() {
             len += 1;
         }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.schemas.v1.SchemaInfo", len)?;
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.catalogs.v1.CatalogInfo", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
-        }
-        if !self.catalog_name.is_empty() {
-            struct_ser.serialize_field("catalogName", &self.catalog_name)?;
         }
         if let Some(v) = self.comment.as_ref() {
             struct_ser.serialize_field("comment", v)?;
         }
         if let Some(v) = self.properties.as_ref() {
             struct_ser.serialize_field("properties", v)?;
-        }
-        if let Some(v) = self.full_name.as_ref() {
-            struct_ser.serialize_field("fullName", v)?;
         }
         if let Some(v) = self.owner.as_ref() {
             struct_ser.serialize_field("owner", v)?;
@@ -658,13 +63,13 @@ impl serde::Serialize for SchemaInfo {
         if let Some(v) = self.updated_by.as_ref() {
             struct_ser.serialize_field("updatedBy", v)?;
         }
-        if let Some(v) = self.schema_id.as_ref() {
-            struct_ser.serialize_field("schemaId", v)?;
+        if let Some(v) = self.id.as_ref() {
+            struct_ser.serialize_field("id", v)?;
         }
         struct_ser.end()
     }
 }
-impl<'de> serde::Deserialize<'de> for SchemaInfo {
+impl<'de> serde::Deserialize<'de> for CatalogInfo {
     #[allow(deprecated)]
     fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
     where
@@ -672,12 +77,8 @@ impl<'de> serde::Deserialize<'de> for SchemaInfo {
     {
         const FIELDS: &[&str] = &[
             "name",
-            "catalog_name",
-            "catalogName",
             "comment",
             "properties",
-            "full_name",
-            "fullName",
             "owner",
             "create_at",
             "createAt",
@@ -687,23 +88,20 @@ impl<'de> serde::Deserialize<'de> for SchemaInfo {
             "updateAt",
             "updated_by",
             "updatedBy",
-            "schema_id",
-            "schemaId",
+            "id",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Name,
-            CatalogName,
             Comment,
             Properties,
-            FullName,
             Owner,
             CreateAt,
             CreatedBy,
             UpdateAt,
             UpdatedBy,
-            SchemaId,
+            Id,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -726,16 +124,14 @@ impl<'de> serde::Deserialize<'de> for SchemaInfo {
                     {
                         match value {
                             "name" => Ok(GeneratedField::Name),
-                            "catalogName" | "catalog_name" => Ok(GeneratedField::CatalogName),
                             "comment" => Ok(GeneratedField::Comment),
                             "properties" => Ok(GeneratedField::Properties),
-                            "fullName" | "full_name" => Ok(GeneratedField::FullName),
                             "owner" => Ok(GeneratedField::Owner),
                             "createAt" | "create_at" => Ok(GeneratedField::CreateAt),
                             "createdBy" | "created_by" => Ok(GeneratedField::CreatedBy),
                             "updateAt" | "update_at" => Ok(GeneratedField::UpdateAt),
                             "updatedBy" | "updated_by" => Ok(GeneratedField::UpdatedBy),
-                            "schemaId" | "schema_id" => Ok(GeneratedField::SchemaId),
+                            "id" => Ok(GeneratedField::Id),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -745,27 +141,25 @@ impl<'de> serde::Deserialize<'de> for SchemaInfo {
         }
         struct GeneratedVisitor;
         impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = SchemaInfo;
+            type Value = CatalogInfo;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.schemas.v1.SchemaInfo")
+                formatter.write_str("struct delta_sharing.catalogs.v1.CatalogInfo")
             }
 
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<SchemaInfo, V::Error>
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<CatalogInfo, V::Error>
                 where
                     V: serde::de::MapAccess<'de>,
             {
                 let mut name__ = None;
-                let mut catalog_name__ = None;
                 let mut comment__ = None;
                 let mut properties__ = None;
-                let mut full_name__ = None;
                 let mut owner__ = None;
                 let mut create_at__ = None;
                 let mut created_by__ = None;
                 let mut update_at__ = None;
                 let mut updated_by__ = None;
-                let mut schema_id__ = None;
+                let mut id__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Name => {
@@ -773,12 +167,6 @@ impl<'de> serde::Deserialize<'de> for SchemaInfo {
                                 return Err(serde::de::Error::duplicate_field("name"));
                             }
                             name__ = Some(map_.next_value()?);
-                        }
-                        GeneratedField::CatalogName => {
-                            if catalog_name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("catalogName"));
-                            }
-                            catalog_name__ = Some(map_.next_value()?);
                         }
                         GeneratedField::Comment => {
                             if comment__.is_some() {
@@ -791,12 +179,6 @@ impl<'de> serde::Deserialize<'de> for SchemaInfo {
                                 return Err(serde::de::Error::duplicate_field("properties"));
                             }
                             properties__ = map_.next_value()?;
-                        }
-                        GeneratedField::FullName => {
-                            if full_name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("fullName"));
-                            }
-                            full_name__ = map_.next_value()?;
                         }
                         GeneratedField::Owner => {
                             if owner__.is_some() {
@@ -832,33 +214,31 @@ impl<'de> serde::Deserialize<'de> for SchemaInfo {
                             }
                             updated_by__ = map_.next_value()?;
                         }
-                        GeneratedField::SchemaId => {
-                            if schema_id__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("schemaId"));
+                        GeneratedField::Id => {
+                            if id__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("id"));
                             }
-                            schema_id__ = map_.next_value()?;
+                            id__ = map_.next_value()?;
                         }
                     }
                 }
-                Ok(SchemaInfo {
+                Ok(CatalogInfo {
                     name: name__.unwrap_or_default(),
-                    catalog_name: catalog_name__.unwrap_or_default(),
                     comment: comment__,
                     properties: properties__,
-                    full_name: full_name__,
                     owner: owner__,
                     create_at: create_at__,
                     created_by: created_by__,
                     update_at: update_at__,
                     updated_by: updated_by__,
-                    schema_id: schema_id__,
+                    id: id__,
                 })
             }
         }
-        deserializer.deserialize_struct("delta_sharing.schemas.v1.SchemaInfo", FIELDS, GeneratedVisitor)
+        deserializer.deserialize_struct("delta_sharing.catalogs.v1.CatalogInfo", FIELDS, GeneratedVisitor)
     }
 }
-impl serde::Serialize for UpdateSchemaRequest {
+impl serde::Serialize for CreateCatalogRequest {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
@@ -866,7 +246,552 @@ impl serde::Serialize for UpdateSchemaRequest {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
-        if !self.full_name.is_empty() {
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if self.comment.is_some() {
+            len += 1;
+        }
+        if self.properties.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.catalogs.v1.CreateCatalogRequest", len)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.comment.as_ref() {
+            struct_ser.serialize_field("comment", v)?;
+        }
+        if let Some(v) = self.properties.as_ref() {
+            struct_ser.serialize_field("properties", v)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for CreateCatalogRequest {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "name",
+            "comment",
+            "properties",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Name,
+            Comment,
+            Properties,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "name" => Ok(GeneratedField::Name),
+                            "comment" => Ok(GeneratedField::Comment),
+                            "properties" => Ok(GeneratedField::Properties),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = CreateCatalogRequest;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.catalogs.v1.CreateCatalogRequest")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<CreateCatalogRequest, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut name__ = None;
+                let mut comment__ = None;
+                let mut properties__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
+                            }
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Comment => {
+                            if comment__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("comment"));
+                            }
+                            comment__ = map_.next_value()?;
+                        }
+                        GeneratedField::Properties => {
+                            if properties__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("properties"));
+                            }
+                            properties__ = map_.next_value()?;
+                        }
+                    }
+                }
+                Ok(CreateCatalogRequest {
+                    name: name__.unwrap_or_default(),
+                    comment: comment__,
+                    properties: properties__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.catalogs.v1.CreateCatalogRequest", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for DeleteCatalogRequest {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        if self.force.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.catalogs.v1.DeleteCatalogRequest", len)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.force.as_ref() {
+            struct_ser.serialize_field("force", v)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for DeleteCatalogRequest {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "name",
+            "force",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Name,
+            Force,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "name" => Ok(GeneratedField::Name),
+                            "force" => Ok(GeneratedField::Force),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = DeleteCatalogRequest;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.catalogs.v1.DeleteCatalogRequest")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<DeleteCatalogRequest, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut name__ = None;
+                let mut force__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
+                            }
+                            name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Force => {
+                            if force__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("force"));
+                            }
+                            force__ = map_.next_value()?;
+                        }
+                    }
+                }
+                Ok(DeleteCatalogRequest {
+                    name: name__.unwrap_or_default(),
+                    force: force__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.catalogs.v1.DeleteCatalogRequest", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for GetCatalogRequest {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.name.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.catalogs.v1.GetCatalogRequest", len)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for GetCatalogRequest {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "name",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Name,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "name" => Ok(GeneratedField::Name),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = GetCatalogRequest;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.catalogs.v1.GetCatalogRequest")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<GetCatalogRequest, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut name__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
+                            }
+                            name__ = Some(map_.next_value()?);
+                        }
+                    }
+                }
+                Ok(GetCatalogRequest {
+                    name: name__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.catalogs.v1.GetCatalogRequest", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for ListCatalogsRequest {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if self.max_results.is_some() {
+            len += 1;
+        }
+        if self.page_token.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.catalogs.v1.ListCatalogsRequest", len)?;
+        if let Some(v) = self.max_results.as_ref() {
+            struct_ser.serialize_field("maxResults", v)?;
+        }
+        if let Some(v) = self.page_token.as_ref() {
+            struct_ser.serialize_field("pageToken", v)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for ListCatalogsRequest {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "max_results",
+            "maxResults",
+            "page_token",
+            "pageToken",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            MaxResults,
+            PageToken,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
+                            "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = ListCatalogsRequest;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.catalogs.v1.ListCatalogsRequest")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ListCatalogsRequest, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut max_results__ = None;
+                let mut page_token__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::MaxResults => {
+                            if max_results__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("maxResults"));
+                            }
+                            max_results__ = 
+                                map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
+                            ;
+                        }
+                        GeneratedField::PageToken => {
+                            if page_token__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("pageToken"));
+                            }
+                            page_token__ = map_.next_value()?;
+                        }
+                    }
+                }
+                Ok(ListCatalogsRequest {
+                    max_results: max_results__,
+                    page_token: page_token__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.catalogs.v1.ListCatalogsRequest", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for ListCatalogsResponse {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.catalogs.is_empty() {
+            len += 1;
+        }
+        if self.next_page_token.is_some() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.catalogs.v1.ListCatalogsResponse", len)?;
+        if !self.catalogs.is_empty() {
+            struct_ser.serialize_field("catalogs", &self.catalogs)?;
+        }
+        if let Some(v) = self.next_page_token.as_ref() {
+            struct_ser.serialize_field("nextPageToken", v)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for ListCatalogsResponse {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "catalogs",
+            "next_page_token",
+            "nextPageToken",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            Catalogs,
+            NextPageToken,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "catalogs" => Ok(GeneratedField::Catalogs),
+                            "nextPageToken" | "next_page_token" => Ok(GeneratedField::NextPageToken),
+                            _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = ListCatalogsResponse;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.catalogs.v1.ListCatalogsResponse")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<ListCatalogsResponse, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut catalogs__ = None;
+                let mut next_page_token__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::Catalogs => {
+                            if catalogs__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("catalogs"));
+                            }
+                            catalogs__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::NextPageToken => {
+                            if next_page_token__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("nextPageToken"));
+                            }
+                            next_page_token__ = map_.next_value()?;
+                        }
+                    }
+                }
+                Ok(ListCatalogsResponse {
+                    catalogs: catalogs__.unwrap_or_default(),
+                    next_page_token: next_page_token__,
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.catalogs.v1.ListCatalogsResponse", FIELDS, GeneratedVisitor)
+    }
+}
+impl serde::Serialize for UpdateCatalogRequest {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.name.is_empty() {
             len += 1;
         }
         if self.comment.is_some() {
@@ -878,9 +803,9 @@ impl serde::Serialize for UpdateSchemaRequest {
         if !self.new_name.is_empty() {
             len += 1;
         }
-        let mut struct_ser = serializer.serialize_struct("delta_sharing.schemas.v1.UpdateSchemaRequest", len)?;
-        if !self.full_name.is_empty() {
-            struct_ser.serialize_field("fullName", &self.full_name)?;
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.catalogs.v1.UpdateCatalogRequest", len)?;
+        if !self.name.is_empty() {
+            struct_ser.serialize_field("name", &self.name)?;
         }
         if let Some(v) = self.comment.as_ref() {
             struct_ser.serialize_field("comment", v)?;
@@ -894,15 +819,14 @@ impl serde::Serialize for UpdateSchemaRequest {
         struct_ser.end()
     }
 }
-impl<'de> serde::Deserialize<'de> for UpdateSchemaRequest {
+impl<'de> serde::Deserialize<'de> for UpdateCatalogRequest {
     #[allow(deprecated)]
     fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
-            "full_name",
-            "fullName",
+            "name",
             "comment",
             "properties",
             "new_name",
@@ -911,7 +835,7 @@ impl<'de> serde::Deserialize<'de> for UpdateSchemaRequest {
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
-            FullName,
+            Name,
             Comment,
             Properties,
             NewName,
@@ -936,7 +860,7 @@ impl<'de> serde::Deserialize<'de> for UpdateSchemaRequest {
                         E: serde::de::Error,
                     {
                         match value {
-                            "fullName" | "full_name" => Ok(GeneratedField::FullName),
+                            "name" => Ok(GeneratedField::Name),
                             "comment" => Ok(GeneratedField::Comment),
                             "properties" => Ok(GeneratedField::Properties),
                             "newName" | "new_name" => Ok(GeneratedField::NewName),
@@ -949,27 +873,27 @@ impl<'de> serde::Deserialize<'de> for UpdateSchemaRequest {
         }
         struct GeneratedVisitor;
         impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
-            type Value = UpdateSchemaRequest;
+            type Value = UpdateCatalogRequest;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("struct delta_sharing.schemas.v1.UpdateSchemaRequest")
+                formatter.write_str("struct delta_sharing.catalogs.v1.UpdateCatalogRequest")
             }
 
-            fn visit_map<V>(self, mut map_: V) -> std::result::Result<UpdateSchemaRequest, V::Error>
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<UpdateCatalogRequest, V::Error>
                 where
                     V: serde::de::MapAccess<'de>,
             {
-                let mut full_name__ = None;
+                let mut name__ = None;
                 let mut comment__ = None;
                 let mut properties__ = None;
                 let mut new_name__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
-                        GeneratedField::FullName => {
-                            if full_name__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("fullName"));
+                        GeneratedField::Name => {
+                            if name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("name"));
                             }
-                            full_name__ = Some(map_.next_value()?);
+                            name__ = Some(map_.next_value()?);
                         }
                         GeneratedField::Comment => {
                             if comment__.is_some() {
@@ -991,14 +915,14 @@ impl<'de> serde::Deserialize<'de> for UpdateSchemaRequest {
                         }
                     }
                 }
-                Ok(UpdateSchemaRequest {
-                    full_name: full_name__.unwrap_or_default(),
+                Ok(UpdateCatalogRequest {
+                    name: name__.unwrap_or_default(),
                     comment: comment__,
                     properties: properties__,
                     new_name: new_name__.unwrap_or_default(),
                 })
             }
         }
-        deserializer.deserialize_struct("delta_sharing.schemas.v1.UpdateSchemaRequest", FIELDS, GeneratedVisitor)
+        deserializer.deserialize_struct("delta_sharing.catalogs.v1.UpdateCatalogRequest", FIELDS, GeneratedVisitor)
     }
 }

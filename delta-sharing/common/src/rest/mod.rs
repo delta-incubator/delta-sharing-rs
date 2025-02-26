@@ -6,47 +6,10 @@ pub use sharing::get_router as get_sharing_router;
 mod auth;
 mod catalog;
 mod credentials;
-mod sharing;
-
 #[cfg(any(test, feature = "integration"))]
-pub mod integration {
-    use axum::{
-        body::Body,
-        http::{self, Method, Request},
-    };
-    use http_body_util::BodyExt;
-
-    pub use super::catalog::integration::*;
-    pub use super::credentials::integration::*;
-
-    pub async fn collect_body<T>(response: axum::http::Response<Body>) -> T
-    where
-        T: serde::de::DeserializeOwned,
-    {
-        let body = response.into_body().collect().await.unwrap().to_bytes();
-        serde_json::from_slice(&body).unwrap()
-    }
-
-    pub fn create_request<T>(method: Method, uri: &str, body: Option<T>) -> Request<Body>
-    where
-        T: serde::Serialize,
-    {
-        if let Some(body) = body {
-            Request::builder()
-                .method(method)
-                .uri(uri)
-                .header(http::header::CONTENT_TYPE, mime::APPLICATION_JSON.as_ref())
-                .body(Body::from(serde_json::to_vec(&body).unwrap()))
-                .unwrap()
-        } else {
-            Request::builder()
-                .method(method)
-                .uri(uri)
-                .body(Body::empty())
-                .unwrap()
-        }
-    }
-}
+mod integration;
+mod schemas;
+mod sharing;
 
 #[cfg(test)]
 mod tests {

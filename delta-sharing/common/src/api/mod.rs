@@ -1,8 +1,9 @@
-pub(crate) mod catalog;
+pub(crate) mod catalogs;
 pub(crate) mod credentials;
+pub(crate) mod schemas;
 pub(crate) mod sharing;
 
-pub use catalog::CatalogHandler;
+pub use catalogs::CatalogHandler;
 pub use credentials::CredentialsHandler;
 pub use sharing::{SharingDiscoveryHandler, SharingQueryHandler};
 

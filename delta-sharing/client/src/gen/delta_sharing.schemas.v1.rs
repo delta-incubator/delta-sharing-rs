@@ -85,12 +85,12 @@ pub struct ListSchemasRequest {
     /// Name of parent catalog.
     #[prost(string, tag="1")]
     pub catalog_name: ::prost::alloc::string::String,
-    /// The next_page_token value returned from a previous List request, if any.
-    #[prost(string, optional, tag="2")]
-    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
-    /// The maximum number of items to return.
-    #[prost(int32, optional, tag="3")]
+    /// The maximum number of results per page that should be returned.
+    #[prost(int32, optional, tag="2")]
     pub max_results: ::core::option::Option<i32>,
+    /// Opaque pagination token to go to next page based on previous query.
+    #[prost(string, optional, tag="3")]
+    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// List Schemas response.
 #[allow(clippy::derive_partial_eq_without_eq)]

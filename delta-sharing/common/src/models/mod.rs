@@ -11,8 +11,9 @@ pub use tables::v1::TableInfo;
 mod object;
 mod properties;
 
-pub use catalog::v1::{CatalogInfo, SchemaInfo};
+pub use catalogs::v1::CatalogInfo;
 pub use profiles::v1::Profile;
+pub use schemas::v1::SchemaInfo;
 pub use sharing::v1::{Share, ShareInfo, SharingSchema, SharingSchemaInfo, SharingTable};
 
 #[allow(clippy::empty_docs, clippy::large_enum_variant)]
@@ -24,11 +25,19 @@ pub mod sharing {
     }
 }
 
-pub mod catalog {
+pub mod catalogs {
     pub mod v1 {
-        include!("../gen/delta_sharing.catalog.v1.rs");
+        include!("../gen/delta_sharing.catalogs.v1.rs");
         #[cfg(feature = "grpc")]
-        include!("../gen/delta_sharing.catalog.v1.tonic.rs");
+        include!("../gen/delta_sharing.catalogs.v1.tonic.rs");
+    }
+}
+
+pub mod schemas {
+    pub mod v1 {
+        include!("../gen/delta_sharing.schemas.v1.rs");
+        #[cfg(feature = "grpc")]
+        include!("../gen/delta_sharing.schemas.v1.tonic.rs");
     }
 }
 

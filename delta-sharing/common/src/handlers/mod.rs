@@ -9,6 +9,7 @@ use crate::{
 
 mod catalog;
 mod credentials;
+mod schemas;
 mod sharing;
 
 #[derive(Clone)]
