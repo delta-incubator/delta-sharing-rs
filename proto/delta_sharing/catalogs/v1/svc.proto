@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package delta_sharing.catalogs.v1;
+
+import "buf/validate/validate.proto";
+import "delta_sharing/catalogs/v1/models.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+import "openapiv3/annotations.proto";
+
+// Create a new catalog
+message CreateCatalogRequest {
+  // Name of catalog.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // User-provided free-form text description.
+  optional string comment = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Delete a catalog
+message DeleteCatalogRequest {
+  // Name of catalog.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Force deletion even if the catalog is not empty.
+  optional bool force = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Get a catalog
+message GetCatalogRequest {
+  // Name of catalog.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// List catalogs
+message ListCatalogsRequest {
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 2 [
+    (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lt = 1000,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Opaque pagination token to go to next page based on previous query.
+  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// List catalogs response.
+message ListCatalogsResponse {
+  // The catalogs returned.
+  repeated CatalogInfo catalogs = 1;
+
+  // The next_page_token value to include in the next List request.
+  optional string next_page_token = 2;
+}
+
+// Update a catalog
+message UpdateCatalogRequest {
+  // Name of catalog.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // User-provided free-form text description.
+  optional string comment = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Name of catalog.
+  string new_name = 4 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = OPTIONAL
+  ];
+}
+
+// Manage catalogs and schemas in the service.
+service CatalogsService {
+  // Create a new catalog
+  rpc CreateCatalog(CreateCatalogRequest) returns (CatalogInfo) {
+    option (google.api.http) = {
+      post: "/catalogs"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {operation_id: "CreateCatalog"};
+  }
+
+  // Get a catalog
+  rpc GetCatalog(GetCatalogRequest) returns (CatalogInfo) {
+    option (google.api.http) = {get: "/catalogs/{name}"};
+    option (openapi.v3.operation) = {operation_id: "GetCatalog"};
+  }
+
+  // List catalogs
+  rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
+    option (google.api.http) = {get: "/catalogs"};
+    option (openapi.v3.operation) = {operation_id: "ListCatalogs"};
+  }
+
+  // Delete a catalog
+  rpc DeleteCatalog(DeleteCatalogRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/catalogs/{name}"};
+    option (openapi.v3.operation) = {operation_id: "DeleteCatalog"};
+  }
+
+  // Update a catalog
+  rpc UpdateCatalog(UpdateCatalogRequest) returns (CatalogInfo) {
+    option (google.api.http) = {
+      patch: "/catalogs/{name}"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {operation_id: "UpdateCatalog"};
+  }
+}

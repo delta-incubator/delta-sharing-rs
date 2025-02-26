@@ -38,7 +38,7 @@ message SharingTable {
   string name = 1 [
     (buf.validate.field).string.min_len = 1,
     (buf.validate.field).string.max_len = 255,
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
     (google.api.field_behavior) = IDENTIFIER
   ];
 
@@ -53,7 +53,7 @@ message SharingTable {
   string share = 3 [
     (buf.validate.field).string.min_len = 1,
     (buf.validate.field).string.max_len = 255,
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$"
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$"
   ];
 
   // Unique identifier for the table.

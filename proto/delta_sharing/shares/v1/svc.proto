@@ -9,20 +9,12 @@ import "google/api/field_behavior.proto";
 import "google/protobuf/empty.proto";
 import "openapiv3/annotations.proto";
 
-option (openapi.v3.document) = {
-  tags: [
-    {
-      name: "SharesService"
-      description: "Service for managing shares"
-    }
-  ]
-};
-
 // Request to list shares.
 message ListSharesRequest {
   // The maximum number of results per page that should be returned.
   optional int32 max_results = 1 [
     (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lt = 1000,
     (google.api.field_behavior) = OPTIONAL
   ];
 
@@ -45,7 +37,10 @@ message ListSharesResponse {
 // The caller must be a metastore admin or have the CREATE_SHARE privilege on the metastore.
 message CreateShareRequest {
   // Name of the share.
-  string name = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
 
   // User-provided free-form text description.
   optional string comment = 2 [(google.api.field_behavior) = OPTIONAL];
@@ -57,7 +52,10 @@ message CreateShareRequest {
 // Get a share by name.
 message GetShareRequest {
   // Name of the share.
-  string name = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 enum Action {
@@ -85,13 +83,19 @@ message DataObjectUpdate {
 // The caller must be a metastore admin or have the UPDATE_SHARE privilege on the metastore.
 message UpdateShareRequest {
   // Name of the share.
-  string name = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
 
   // Array of shared data object updates.
   repeated DataObjectUpdate updates = 2 [(google.api.field_behavior) = OPTIONAL];
 
   // A new name for the share.
-  optional string new_name = 3 [(google.api.field_behavior) = OPTIONAL];
+  optional string new_name = 3 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = OPTIONAL
+  ];
 
   // Owner of the share.
   optional string owner = 4 [(google.api.field_behavior) = OPTIONAL];
@@ -105,7 +109,10 @@ message UpdateShareRequest {
 // The caller must be a metastore admin or have the DELETE_SHARE privilege on the metastore.
 message DeleteShareRequest {
   // Name of the share.
-  string name = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
 }
 
 // Service for managing shares

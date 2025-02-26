@@ -22,12 +22,6 @@ option (openapi.v3.document) = {
       url: "https://www.gnu.org/licenses/agpl-3.0.en.html"
     }
   }
-  tags: [
-    {
-      name: "DeltaSharingService"
-      description: "An Open Protocol for Secure Data Sharing"
-    }
-  ]
 };
 
 // Request to list shares.
@@ -35,6 +29,7 @@ message ListSharesRequest {
   // The maximum number of results per page that should be returned.
   optional int32 max_results = 1 [
     (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lt = 1000,
     (google.api.field_behavior) = OPTIONAL
   ];
 
@@ -58,7 +53,7 @@ message GetShareRequest {
   // The share name to query. It's case-insensitive.
   string name = 1 [
     (buf.validate.field).string.min_len = 1,
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
 }
@@ -68,7 +63,7 @@ message ListSharingSchemasRequest {
   // The share name to query. It's case-insensitive.
   string share = 1 [
     (buf.validate.field).string.min_len = 1,
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
 
@@ -99,14 +94,14 @@ message ListSchemaTablesRequest {
   // The schema name to query. It's case-insensitive.
   string name = 1 [
     (buf.validate.field).string.min_len = 1,
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
 
   // The share name to query. It's case-insensitive.
   string share = 2 [
     (buf.validate.field).string.min_len = 1,
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
 
@@ -135,7 +130,7 @@ message ListShareTablesRequest {
   // The share name to query. It's case-insensitive.
   string name = 1 [
     (buf.validate.field).string.min_len = 1,
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
 

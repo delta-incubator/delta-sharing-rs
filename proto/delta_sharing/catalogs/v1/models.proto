@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package delta_sharing.catalog.v1;
+package delta_sharing.catalogs.v1;
 
 import "google/api/field_behavior.proto";
 import "google/protobuf/struct.proto";

@@ -1,0 +1,153 @@
+syntax = "proto3";
+
+package delta_sharing.recipients.v1;
+
+import "buf/validate/validate.proto";
+import "delta_sharing/recipients/v1/models.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+import "openapiv3/annotations.proto";
+
+// Request to list recipients.
+message ListRecipientsRequest {
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 1 [
+    (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lt = 1000,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Opaque pagination token to go to next page based on previous query.
+  optional string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response to list recipients.
+message ListRecipientsResponse {
+  // List of recipients.
+  repeated RecipientInfo recipients = 1;
+
+  // Opaque pagination token to go to next page based on previous query.
+  optional string next_page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Creates a new recipient
+message CreateRecipientRequest {
+  // Name of the recipient.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // The delta sharing authentication type.
+  AuthenticationType authentication_type = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // Username of the recipient owner.
+  string owner = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Description about the recipient.
+  optional string comment = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Recipient properties as map of string key-value pairs.
+  //
+  // When provided in update request, the specified properties will override the existing properties.
+  // To add and remove properties, one would need to perform a read-modify-write.
+  optional google.protobuf.Struct properties = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // Expiration timestamp of the token, in epoch milliseconds.
+  optional int64 expiration_time = 6 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Get a recipient by name.
+message GetRecipientRequest {
+  // Name of the recipient.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// Update a recipient
+message UpdateRecipientRequest {
+  // Name of the recipient.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // New name for the recipient
+  optional string new_name = 2 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Username of the recipient owner.
+  optional string owner = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Description about the recipient.
+  optional string comment = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Recipient properties as map of string key-value pairs.
+  //
+  // When provided in update request, the specified properties will override the existing properties.
+  // To add and remove properties, one would need to perform a read-modify-write.
+  optional google.protobuf.Struct properties = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // Expiration timestamp of the token, in epoch milliseconds.
+  optional int64 expiration_time = 6 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Delete a recipient
+message DeleteRecipientRequest {
+  // Name of the recipient.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// Recipients
+//
+// A recipient is an object you create using recipients/create to represent an organization which
+// you want to allow access shares. when you create a recipient object, Unity Catalog generates an
+// activation link you can send to the recipient. The recipient follows the activation link to download
+// the credential file, and then uses the credential file to establish a secure connection to receive
+// the shared data. This sharing mode is called open sharing.
+service RecipientsService {
+  // List recipients.
+  rpc ListRecipients(ListRecipientsRequest) returns (ListRecipientsResponse) {
+    option (google.api.http) = {get: "/recipients"};
+    option (openapi.v3.operation) = {operation_id: "ListRecipients"};
+  }
+
+  // Create a new recipient.
+  rpc CreateRecipient(CreateRecipientRequest) returns (RecipientInfo) {
+    option (google.api.http) = {
+      post: "/recipients"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {operation_id: "CreateRecipient"};
+  }
+
+  // Get a recipient by name.
+  rpc GetRecipient(GetRecipientRequest) returns (RecipientInfo) {
+    option (google.api.http) = {get: "/recipients/{name}"};
+    option (openapi.v3.operation) = {operation_id: "GetRecipient"};
+  }
+
+  // Update a recipient.
+  rpc UpdateRecipient(UpdateRecipientRequest) returns (RecipientInfo) {
+    option (google.api.http) = {
+      patch: "/recipients/{name}"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {operation_id: "UpdateRecipient"};
+  }
+
+  // Delete a recipient.
+  rpc DeleteRecipient(DeleteRecipientRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/recipients/{name}"};
+    option (openapi.v3.operation) = {operation_id: "DeleteRecipient"};
+  }
+}

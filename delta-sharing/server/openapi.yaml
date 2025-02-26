@@ -17,6 +17,21 @@ tags:
     description: An Open Protocol for Secure Data Sharing
   - name: DeltaSharingService
     description: Service exposing the official APIs for Delta Sharing.
+  - name: RecipientsService
+    description: |-
+      Recipients
+
+       A recipient is an object you create using recipients/create to represent an organization which
+       you want to allow access shares. when you create a recipient object, Unity Catalog generates an
+       activation link you can send to the recipient. The recipient follows the activation link to download
+       the credential file, and then uses the credential file to establish a secure connection to receive
+       the shared data. This sharing mode is called open sharing.
+  - name: SchemasService
+    description: |-
+      A schema (also called a database) is the second layer of Unity Catalog’s three-level namespace.
+       A schema organizes tables, views and functions. To access (or list) a table or view in a schema,
+       users must have the USE_SCHEMA data permission on the schema and its parent catalog, and they must
+       have the SELECT permission on the table or view.
   - name: SharesService
     description: Service for managing shares
   - name: SharesService
@@ -359,13 +374,149 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
+  /recipients:
+    get:
+      tags:
+        - RecipientsService
+      description: List recipients.
+      operationId: ListRecipients
+      parameters:
+        - name: maxResults
+          in: query
+          description: The maximum number of results per page that should be returned.
+          schema:
+            type: integer
+            format: int32
+        - name: pageToken
+          in: query
+          description: Opaque pagination token to go to next page based on previous query.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRecipientsResponse'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    post:
+      tags:
+        - RecipientsService
+      description: Create a new recipient.
+      operationId: CreateRecipient
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRecipientRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipientInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /recipients/{name}:
+    get:
+      tags:
+        - RecipientsService
+      description: Get a recipient by name.
+      operationId: GetRecipient
+      parameters:
+        - name: name
+          in: path
+          description: Name of the recipient.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipientInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    delete:
+      tags:
+        - RecipientsService
+      description: Delete a recipient.
+      operationId: DeleteRecipient
+      parameters:
+        - name: name
+          in: path
+          description: Name of the recipient.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    patch:
+      tags:
+        - RecipientsService
+      description: Update a recipient.
+      operationId: UpdateRecipient
+      parameters:
+        - name: name
+          in: path
+          description: Name of the recipient.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecipientRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipientInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
   /schemas:
     get:
       tags:
-        - CatalogService
-        - schemas
-        - unity
-      description: List Schemas
+        - SchemasService
+      description: |-
+        Gets an array of schemas for a catalog in the metastore. If the caller is the metastore
+         admin or the owner of the parent catalog, all schemas for the catalog will be retrieved.
+         Otherwise, only schemas owned by the caller (or for which the caller has the USE_SCHEMA privilege)
+         will be retrieved. There is no guarantee of a specific ordering of the elements in the array.
       operationId: ListSchemas
       parameters:
         - name: catalogName
@@ -399,10 +550,10 @@ paths:
                 $ref: '#/components/schemas/Status'
     post:
       tags:
-        - CatalogService
-        - schemas
-        - unity
-      description: Create a new Schema
+        - SchemasService
+      description: |-
+        Creates a new schema for catalog in the Metatastore. The caller must be a metastore admin,
+         or have the CREATE_SCHEMA privilege in the parent catalog.
       operationId: CreateSchema
       requestBody:
         content:
@@ -426,10 +577,12 @@ paths:
   /schemas/{fullName}:
     patch:
       tags:
-        - CatalogService
-        - schemas
-        - unity
-      description: Update a Schema
+        - SchemasService
+      description: |-
+        Updates a schema for a catalog. The caller must be the owner of the schema or a metastore admin.
+         If the caller is a metastore admin, only the owner field can be changed in the update.
+         If the name field must be updated, the caller must be a metastore admin or have the CREATE_SCHEMA
+         privilege on the parent catalog.
       operationId: UpdateSchema
       parameters:
         - name: fullName
@@ -460,10 +613,11 @@ paths:
   /schemas/{name}:
     get:
       tags:
-        - CatalogService
-        - schemas
-        - unity
-      description: Get a Schema
+        - SchemasService
+      description: |-
+        Gets the specified schema within the metastore.
+         The caller must be a metastore admin, the owner of the schema,
+         or a user that has the USE_SCHEMA privilege on the schema.
       operationId: GetSchema
       parameters:
         - name: name
@@ -494,10 +648,10 @@ paths:
                 $ref: '#/components/schemas/Status'
     delete:
       tags:
-        - CatalogService
-        - schemas
-        - unity
-      description: Delete a Schema
+        - SchemasService
+      description: |-
+        Deletes the specified schema from the parent catalog. The caller must be the owner
+         of the schema or an owner of the parent catalog.
       operationId: DeleteSchema
       parameters:
         - name: name
@@ -1007,6 +1161,36 @@ components:
             - $ref: '#/components/schemas/Credential'
           description: Credential to create.
       description: Create a new credential
+    CreateRecipientRequest:
+      required:
+        - name
+        - authenticationType
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the recipient.
+        authenticationType:
+          type: integer
+          description: The delta sharing authentication type.
+          format: enum
+        owner:
+          type: string
+          description: Username of the recipient owner.
+        comment:
+          type: string
+          description: Description about the recipient.
+        properties:
+          type: object
+          description: |-
+            Recipient properties as map of string key-value pairs.
+
+             When provided in update request, the specified properties will override the existing properties.
+             To add and remove properties, one would need to perform a read-modify-write.
+        expirationTime:
+          type: string
+          description: Expiration timestamp of the token, in epoch milliseconds.
+      description: Creates a new recipient
     CreateSchemaRequest:
       required:
         - name
@@ -1219,6 +1403,18 @@ components:
           type: string
           description: The next_page_token value to include in the next List request.
       description: List catalogs response.
+    ListRecipientsResponse:
+      type: object
+      properties:
+        recipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipientInfo'
+          description: List of recipients.
+        nextPageToken:
+          type: string
+          description: Opaque pagination token to go to next page based on previous query.
+      description: Response to list recipients.
     ListSchemaTablesResponse:
       type: object
       properties:
@@ -1428,6 +1624,66 @@ components:
             - $ref: '#/components/schemas/DeltaResponse'
           description: Delta response format
       description: Response for a query against a table.
+    RecipientInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the recipient.
+        authenticationType:
+          type: integer
+          description: The delta sharing authentication type.
+          format: enum
+        owner:
+          type: string
+          description: Username of the recipient owner.
+        comment:
+          type: string
+          description: Description about the recipient.
+        properties:
+          type: object
+          description: A map of key-value properties attached to the securable.
+        createdAt:
+          type: string
+          description: Time at which this share was created, in epoch milliseconds.
+        createdBy:
+          type: string
+          description: Username of the creator of the share.
+        tokens:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipientToken'
+          description: This field is only present when the authentication_type is TOKEN.
+        updatedAt:
+          type: string
+          description: Time at which this share was updated, in epoch milliseconds.
+        updatedBy:
+          type: string
+          description: Username of share updater.
+    RecipientToken:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique ID of the recipient token.
+        createdAt:
+          type: string
+          description: Time at which this recipient token was created, in epoch milliseconds.
+        createdBy:
+          type: string
+          description: Username of recipient token creator.
+        activationUrl:
+          type: string
+          description: Full activation URL to retrieve the access token. It will be empty if the token is already retrieved.
+        expirationTime:
+          type: string
+          description: Expiration timestamp of the token in epoch milliseconds.
+        updatedAt:
+          type: string
+          description: Time at which this recipient token was updated, in epoch milliseconds.
+        updatedBy:
+          type: string
+          description: Username of recipient token updater.
     SchemaInfo:
       required:
         - name
@@ -1618,6 +1874,34 @@ components:
           type: string
           description: Name of catalog.
       description: Update a catalog
+    UpdateRecipientRequest:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the recipient.
+        newName:
+          type: string
+          description: New name for the recipient
+        owner:
+          type: string
+          description: Username of the recipient owner.
+        comment:
+          type: string
+          description: Description about the recipient.
+        properties:
+          type: object
+          description: |-
+            Recipient properties as map of string key-value pairs.
+
+             When provided in update request, the specified properties will override the existing properties.
+             To add and remove properties, one would need to perform a read-modify-write.
+        expirationTime:
+          type: string
+          description: Expiration timestamp of the token, in epoch milliseconds.
+      description: Update a recipient
     UpdateSchemaRequest:
       required:
         - fullName
