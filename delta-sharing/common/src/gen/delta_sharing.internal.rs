@@ -14,6 +14,7 @@ pub mod resource {
     #[strum_discriminants(derive(::strum::AsRefStr, ::strum::Display, ::strum::EnumIter, ::strum::EnumString), strum(serialize_all = "snake_case"))]
     #[strum_discriminants(derive(::serde::Serialize, ::serde::Deserialize, Hash))]
     #[strum_discriminants(serde(rename_all = "snake_case"))]
+    #[strum_discriminants(strum(ascii_case_insensitive))]
     #[strum_discriminants(cfg_attr(feature = "sqlx", derive(::sqlx::Type)))]
     #[strum_discriminants(cfg_attr(feature = "sqlx", sqlx(type_name = "object_label", rename_all = "snake_case")))]
     #[allow(clippy::derive_partial_eq_without_eq)]

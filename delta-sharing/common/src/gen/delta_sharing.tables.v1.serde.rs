@@ -45,7 +45,7 @@ impl<'de> serde::Deserialize<'de> for DataSourceFormat {
 
         struct GeneratedVisitor;
 
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+        impl serde::de::Visitor<'_> for GeneratedVisitor {
             type Value = DataSourceFormat;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -141,7 +141,7 @@ impl<'de> serde::Deserialize<'de> for GetTableRequest {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -358,7 +358,7 @@ impl<'de> serde::Deserialize<'de> for TableInfo {
             {
                 struct GeneratedVisitor;
 
-                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -562,7 +562,7 @@ impl<'de> serde::Deserialize<'de> for TableType {
 
         struct GeneratedVisitor;
 
-        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+        impl serde::de::Visitor<'_> for GeneratedVisitor {
             type Value = TableType;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

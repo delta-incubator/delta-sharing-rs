@@ -10,6 +10,7 @@ rest_handlers!(
         ListCatalogsRequest, Catalog, Read, ListCatalogsResponse;
         GetCatalogRequest, Catalog, Read, CatalogInfo with [
             name: path as String,
+            include_browse: query as Option<bool>,
         ];
         UpdateCatalogRequest, Catalog, Manage, CatalogInfo with [
             name: path as String,
@@ -21,9 +22,27 @@ rest_handlers!(
     ]
 );
 
+/// A catalog is the first layer of Unity Catalog’s three-level namespace.
+/// It’s used to organize your data assets. Users can see all catalogs on which
+/// they have been assigned the USE_CATALOG data permission.
 #[async_trait::async_trait]
 pub trait CatalogHandler: Send + Sync + 'static {
+    /// List catalogs.
+    ///
+    /// Gets an array of catalogs in the metastore. If the caller is the metastore admin,
+    /// all catalogs will be retrieved. Otherwise, only catalogs owned by the caller
+    /// (or for which the caller has the USE_CATALOG privilege) will be retrieved.
+    /// There is no guarantee of a specific ordering of the elements in the array.
+    async fn list_catalogs(
+        &self,
+        request: ListCatalogsRequest,
+        context: RequestContext,
+    ) -> Result<ListCatalogsResponse>;
+
     /// Create a new catalog.
+    ///
+    /// Creates a new catalog instance in the parent metastore if the caller
+    /// is a metastore admin or has the CREATE_CATALOG privilege.
     async fn create_catalog(
         &self,
         request: CreateCatalogRequest,
@@ -43,13 +62,6 @@ pub trait CatalogHandler: Send + Sync + 'static {
         request: GetCatalogRequest,
         context: RequestContext,
     ) -> Result<CatalogInfo>;
-
-    /// List catalogs.
-    async fn list_catalogs(
-        &self,
-        request: ListCatalogsRequest,
-        context: RequestContext,
-    ) -> Result<ListCatalogsResponse>;
 
     /// Update a catalog.
     async fn update_catalog(

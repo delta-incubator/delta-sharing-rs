@@ -16,7 +16,7 @@ import "openapiv3/annotations.proto";
 message CreateCatalogRequest {
   // Name of catalog.
   string name = 1 [
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
 
@@ -25,13 +25,33 @@ message CreateCatalogRequest {
 
   // A map of key-value properties attached to the securable.
   optional google.protobuf.Struct properties = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Storage root URL for managed tables within catalog.
+  optional string storage_root = 4 [
+    (buf.validate.field).string.uri = true,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // The name of delta sharing provider.
+  //
+  // A Delta Sharing catalog is a catalog that is based on a Delta share on a remote sharing server.
+  optional string provider_name = 5 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-_]*[0-9a-z]$",
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // The name of the share under the share provider.
+  optional string share_name = 6 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (google.api.field_behavior) = OPTIONAL
+  ];
 }
 
 // Delete a catalog
 message DeleteCatalogRequest {
   // Name of catalog.
   string name = 1 [
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
 
@@ -43,9 +63,12 @@ message DeleteCatalogRequest {
 message GetCatalogRequest {
   // Name of catalog.
   string name = 1 [
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
+
+  // Whether to include catalogs in the response for which the principal can only access selective metadata for
+  optional bool include_browse = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // List catalogs
@@ -74,7 +97,7 @@ message ListCatalogsResponse {
 message UpdateCatalogRequest {
   // Name of catalog.
   string name = 1 [
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
 
@@ -86,14 +109,28 @@ message UpdateCatalogRequest {
 
   // Name of catalog.
   string new_name = 4 [
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
     (google.api.field_behavior) = OPTIONAL
   ];
 }
 
 // Manage catalogs and schemas in the service.
 service CatalogsService {
+  // List catalogs
+  //
+  // Gets an array of catalogs in the metastore. If the caller is the metastore admin,
+  // all catalogs will be retrieved. Otherwise, only catalogs owned by the caller
+  // (or for which the caller has the USE_CATALOG privilege) will be retrieved.
+  // There is no guarantee of a specific ordering of the elements in the array.
+  rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
+    option (google.api.http) = {get: "/catalogs"};
+    option (openapi.v3.operation) = {operation_id: "ListCatalogs"};
+  }
+
   // Create a new catalog
+  //
+  // Creates a new catalog instance in the parent metastore if the caller
+  // is a metastore admin or has the CREATE_CATALOG privilege.
   rpc CreateCatalog(CreateCatalogRequest) returns (CatalogInfo) {
     option (google.api.http) = {
       post: "/catalogs"
@@ -103,24 +140,26 @@ service CatalogsService {
   }
 
   // Get a catalog
+  //
+  // Gets the specified catalog in a metastore. The caller must be a metastore admin,
+  // the owner of the catalog, or a user that has the USE_CATALOG privilege set for their account.
   rpc GetCatalog(GetCatalogRequest) returns (CatalogInfo) {
     option (google.api.http) = {get: "/catalogs/{name}"};
     option (openapi.v3.operation) = {operation_id: "GetCatalog"};
   }
 
-  // List catalogs
-  rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
-    option (google.api.http) = {get: "/catalogs"};
-    option (openapi.v3.operation) = {operation_id: "ListCatalogs"};
-  }
-
   // Delete a catalog
+  //
+  // Deletes the catalog that matches the supplied name. The caller must be a metastore admin or the owner of the catalog.
   rpc DeleteCatalog(DeleteCatalogRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/catalogs/{name}"};
     option (openapi.v3.operation) = {operation_id: "DeleteCatalog"};
   }
 
   // Update a catalog
+  //
+  // Updates the catalog that matches the supplied name. The caller must be either
+  // the owner of the catalog, or a metastore admin (when changing the owner field of the catalog).
   rpc UpdateCatalog(UpdateCatalogRequest) returns (CatalogInfo) {
     option (google.api.http) = {
       patch: "/catalogs/{name}"

@@ -39,7 +39,13 @@ paths:
     get:
       tags:
         - CatalogsService
-      description: List catalogs
+      description: |-
+        List catalogs
+
+         Gets an array of catalogs in the metastore. If the caller is the metastore admin,
+         all catalogs will be retrieved. Otherwise, only catalogs owned by the caller
+         (or for which the caller has the USE_CATALOG privilege) will be retrieved.
+         There is no guarantee of a specific ordering of the elements in the array.
       operationId: ListCatalogs
       parameters:
         - name: maxResults
@@ -69,7 +75,11 @@ paths:
     post:
       tags:
         - CatalogsService
-      description: Create a new catalog
+      description: |-
+        Create a new catalog
+
+         Creates a new catalog instance in the parent metastore if the caller
+         is a metastore admin or has the CREATE_CATALOG privilege.
       operationId: CreateCatalog
       requestBody:
         content:
@@ -94,7 +104,11 @@ paths:
     get:
       tags:
         - CatalogsService
-      description: Get a catalog
+      description: |-
+        Get a catalog
+
+         Gets the specified catalog in a metastore. The caller must be a metastore admin,
+         the owner of the catalog, or a user that has the USE_CATALOG privilege set for their account.
       operationId: GetCatalog
       parameters:
         - name: name
@@ -103,6 +117,11 @@ paths:
           required: true
           schema:
             type: string
+        - name: includeBrowse
+          in: query
+          description: Whether to include catalogs in the response for which the principal can only access selective metadata for
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -119,7 +138,10 @@ paths:
     delete:
       tags:
         - CatalogsService
-      description: Delete a catalog
+      description: |-
+        Delete a catalog
+
+         Deletes the catalog that matches the supplied name. The caller must be a metastore admin or the owner of the catalog.
       operationId: DeleteCatalog
       parameters:
         - name: name
@@ -146,7 +168,11 @@ paths:
     patch:
       tags:
         - CatalogsService
-      description: Update a catalog
+      description: |-
+        Update a catalog
+
+         Updates the catalog that matches the supplied name. The caller must be either
+         the owner of the catalog, or a metastore admin (when changing the owner field of the catalog).
       operationId: UpdateCatalog
       parameters:
         - name: name
@@ -1180,43 +1206,57 @@ components:
 
              Specifically useful for workload identity federation.
     CatalogInfo:
-      required:
-        - name
       type: object
       properties:
+        id:
+          type: string
+          description: Unique identifier for the catalog.
         name:
           type: string
           description: Name of catalog.
+        owner:
+          type: string
+          description: Username of current owner of catalog.
         comment:
           type: string
           description: User-provided free-form text description.
         properties:
           type: object
           description: A map of key-value properties attached to the securable.
-        owner:
-          readOnly: true
+        storageRoot:
           type: string
-          description: Username of current owner of catalog.
+          description: Storage root URL for managed tables within catalog.
+        providerName:
+          type: string
+          description: |-
+            The name of delta sharing provider.
+
+             A Delta Sharing catalog is a catalog that is based on a Delta share on a remote sharing server.
+        shareName:
+          type: string
+          description: The name of the share under the share provider.
+        catalogType:
+          type: integer
+          description: The type of the catalog.
+          format: enum
         createAt:
-          readOnly: true
           type: string
           description: Time at which this catalog was created, in epoch milliseconds.
         createdBy:
-          readOnly: true
           type: string
           description: Username of catalog creator.
         updateAt:
-          readOnly: true
           type: string
           description: Time at which this catalog was last updated, in epoch milliseconds.
         updatedBy:
-          readOnly: true
           type: string
           description: Username of user who last modified catalog.
-        id:
-          readOnly: true
-          type: string
-          description: Unique identifier for the catalog.
+        browseOnly:
+          type: boolean
+          description: |-
+            Indicates whether the principal is limited to retrieving metadata
+             for the associated object through the BROWSE privilege when include_browse
+             is enabled in the request.
       description: A catalog is a root-level namespace that contains schemas.
     CreateCatalogRequest:
       required:
@@ -1232,6 +1272,18 @@ components:
         properties:
           type: object
           description: A map of key-value properties attached to the securable.
+        storageRoot:
+          type: string
+          description: Storage root URL for managed tables within catalog.
+        providerName:
+          type: string
+          description: |-
+            The name of delta sharing provider.
+
+             A Delta Sharing catalog is a catalog that is based on a Delta share on a remote sharing server.
+        shareName:
+          type: string
+          description: The name of the share under the share provider.
       description: Create a new catalog
     CreateCredentialRequest:
       required:

@@ -7,6 +7,7 @@
 
 use bytes::Bytes;
 use std::sync::Arc;
+use strum::AsRefStr;
 
 use crate::{Error, ResourceExt, ResourceIdent, Result, SecuredAction};
 
@@ -36,25 +37,16 @@ impl Recipient {
 }
 
 /// Permission that a policy can authorize.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, AsRefStr, PartialEq, Eq, strum::EnumString)]
+#[strum(serialize_all = "snake_case", ascii_case_insensitive)]
 pub enum Permission {
     Read,
     Write,
     Manage,
     Create,
     Use,
-}
-
-impl AsRef<str> for Permission {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Read => "read",
-            Self::Write => "write",
-            Self::Manage => "manage",
-            Self::Create => "create",
-            Self::Use => "use",
-        }
-    }
+    Browse,
+    Select,
 }
 
 impl From<Permission> for String {

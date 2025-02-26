@@ -86,65 +86,12 @@ pub mod catalogs_service_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        /** Create a new catalog
-*/
-        pub async fn create_catalog(
-            &mut self,
-            request: impl tonic::IntoRequest<super::CreateCatalogRequest>,
-        ) -> std::result::Result<tonic::Response<super::CatalogInfo>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.catalogs.v1.CatalogsService/CreateCatalog",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "delta_sharing.catalogs.v1.CatalogsService",
-                        "CreateCatalog",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        /** Get a catalog
-*/
-        pub async fn get_catalog(
-            &mut self,
-            request: impl tonic::IntoRequest<super::GetCatalogRequest>,
-        ) -> std::result::Result<tonic::Response<super::CatalogInfo>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.catalogs.v1.CatalogsService/GetCatalog",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "delta_sharing.catalogs.v1.CatalogsService",
-                        "GetCatalog",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
         /** List catalogs
+
+ Gets an array of catalogs in the metastore. If the caller is the metastore admin,
+ all catalogs will be retrieved. Otherwise, only catalogs owned by the caller
+ (or for which the caller has the USE_CATALOG privilege) will be retrieved.
+ There is no guarantee of a specific ordering of the elements in the array.
 */
         pub async fn list_catalogs(
             &mut self,
@@ -176,7 +123,73 @@ pub mod catalogs_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /** Create a new catalog
+
+ Creates a new catalog instance in the parent metastore if the caller
+ is a metastore admin or has the CREATE_CATALOG privilege.
+*/
+        pub async fn create_catalog(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateCatalogRequest>,
+        ) -> std::result::Result<tonic::Response<super::CatalogInfo>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.catalogs.v1.CatalogsService/CreateCatalog",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.catalogs.v1.CatalogsService",
+                        "CreateCatalog",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Get a catalog
+
+ Gets the specified catalog in a metastore. The caller must be a metastore admin,
+ the owner of the catalog, or a user that has the USE_CATALOG privilege set for their account.
+*/
+        pub async fn get_catalog(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetCatalogRequest>,
+        ) -> std::result::Result<tonic::Response<super::CatalogInfo>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.catalogs.v1.CatalogsService/GetCatalog",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.catalogs.v1.CatalogsService",
+                        "GetCatalog",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /** Delete a catalog
+
+ Deletes the catalog that matches the supplied name. The caller must be a metastore admin or the owner of the catalog.
 */
         pub async fn delete_catalog(
             &mut self,
@@ -206,6 +219,9 @@ pub mod catalogs_service_client {
             self.inner.unary(req, path, codec).await
         }
         /** Update a catalog
+
+ Updates the catalog that matches the supplied name. The caller must be either
+ the owner of the catalog, or a metastore admin (when changing the owner field of the catalog).
 */
         pub async fn update_catalog(
             &mut self,
