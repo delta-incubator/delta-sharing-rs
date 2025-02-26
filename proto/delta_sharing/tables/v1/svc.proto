@@ -2,5 +2,21 @@ syntax = "proto3";
 
 package delta_sharing.tables.v1;
 
+import "delta_sharing/tables/v1/models.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/struct.proto";
+import "openapiv3/annotations.proto";
+
+// Get a table
+message GetTableRequest {
+  // Full name of the table.
+  string full_name = 1;
+}
+
+service TablesService {
+  // Get a table
+  rpc GetTable(GetTableRequest) returns (TableInfo) {
+    option (google.api.http) = {get: "/tables/{full_name}"};
+    option (openapi.v3.operation) = {operation_id: "GetTable"};
+  }
+}

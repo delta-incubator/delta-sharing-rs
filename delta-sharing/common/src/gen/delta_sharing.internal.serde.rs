@@ -37,6 +37,9 @@ impl serde::Serialize for Resource {
                 resource::Resource::ExternalLocationInfo(v) => {
                     struct_ser.serialize_field("externalLocationInfo", v)?;
                 }
+                resource::Resource::RecipientInfo(v) => {
+                    struct_ser.serialize_field("recipientInfo", v)?;
+                }
             }
         }
         struct_ser.end()
@@ -65,6 +68,8 @@ impl<'de> serde::Deserialize<'de> for Resource {
             "tableInfo",
             "external_location_info",
             "externalLocationInfo",
+            "recipient_info",
+            "recipientInfo",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -77,6 +82,7 @@ impl<'de> serde::Deserialize<'de> for Resource {
             SchemaInfo,
             TableInfo,
             ExternalLocationInfo,
+            RecipientInfo,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -86,7 +92,7 @@ impl<'de> serde::Deserialize<'de> for Resource {
             {
                 struct GeneratedVisitor;
 
-                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -107,6 +113,7 @@ impl<'de> serde::Deserialize<'de> for Resource {
                             "schemaInfo" | "schema_info" => Ok(GeneratedField::SchemaInfo),
                             "tableInfo" | "table_info" => Ok(GeneratedField::TableInfo),
                             "externalLocationInfo" | "external_location_info" => Ok(GeneratedField::ExternalLocationInfo),
+                            "recipientInfo" | "recipient_info" => Ok(GeneratedField::RecipientInfo),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -183,6 +190,13 @@ impl<'de> serde::Deserialize<'de> for Resource {
                                 return Err(serde::de::Error::duplicate_field("externalLocationInfo"));
                             }
                             resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::ExternalLocationInfo)
+;
+                        }
+                        GeneratedField::RecipientInfo => {
+                            if resource__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("recipientInfo"));
+                            }
+                            resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::RecipientInfo)
 ;
                         }
                         GeneratedField::__SkipField__ => {

@@ -688,6 +688,9 @@ impl serde::Serialize for RecipientInfo {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
+        if self.id.is_some() {
+            len += 1;
+        }
         if !self.name.is_empty() {
             len += 1;
         }
@@ -719,6 +722,9 @@ impl serde::Serialize for RecipientInfo {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.recipients.v1.RecipientInfo", len)?;
+        if let Some(v) = self.id.as_ref() {
+            struct_ser.serialize_field("id", v)?;
+        }
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
         }
@@ -765,6 +771,7 @@ impl<'de> serde::Deserialize<'de> for RecipientInfo {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
+            "id",
             "name",
             "authentication_type",
             "authenticationType",
@@ -784,6 +791,7 @@ impl<'de> serde::Deserialize<'de> for RecipientInfo {
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
+            Id,
             Name,
             AuthenticationType,
             Owner,
@@ -816,6 +824,7 @@ impl<'de> serde::Deserialize<'de> for RecipientInfo {
                         E: serde::de::Error,
                     {
                         match value {
+                            "id" => Ok(GeneratedField::Id),
                             "name" => Ok(GeneratedField::Name),
                             "authenticationType" | "authentication_type" => Ok(GeneratedField::AuthenticationType),
                             "owner" => Ok(GeneratedField::Owner),
@@ -845,6 +854,7 @@ impl<'de> serde::Deserialize<'de> for RecipientInfo {
                 where
                     V: serde::de::MapAccess<'de>,
             {
+                let mut id__ = None;
                 let mut name__ = None;
                 let mut authentication_type__ = None;
                 let mut owner__ = None;
@@ -857,6 +867,12 @@ impl<'de> serde::Deserialize<'de> for RecipientInfo {
                 let mut updated_by__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
+                        GeneratedField::Id => {
+                            if id__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("id"));
+                            }
+                            id__ = map_.next_value()?;
+                        }
                         GeneratedField::Name => {
                             if name__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("name"));
@@ -927,6 +943,7 @@ impl<'de> serde::Deserialize<'de> for RecipientInfo {
                     }
                 }
                 Ok(RecipientInfo {
+                    id: id__,
                     name: name__.unwrap_or_default(),
                     authentication_type: authentication_type__.unwrap_or_default(),
                     owner: owner__.unwrap_or_default(),

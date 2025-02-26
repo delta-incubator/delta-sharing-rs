@@ -131,5 +131,13 @@ impl DataSourceFormat {
         }
     }
 }
+/// Get a table
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetTableRequest {
+    /// Full name of the table.
+    #[prost(string, tag="1")]
+    pub full_name: ::prost::alloc::string::String,
+}
 include!("delta_sharing.tables.v1.serde.rs");
 // @@protoc_insertion_point(module)

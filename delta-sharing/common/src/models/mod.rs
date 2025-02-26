@@ -14,6 +14,7 @@ pub use catalogs::v1::CatalogInfo;
 pub use credentials::v1::CredentialInfo;
 pub use external_locations::v1::ExternalLocationInfo;
 pub use profiles::v1::Profile;
+pub use recipients::v1::RecipientInfo;
 pub use schemas::v1::SchemaInfo;
 pub use sharing::v1::{Share, ShareInfo, SharingSchema, SharingSchemaInfo, SharingTable};
 
@@ -42,6 +43,30 @@ pub mod schemas {
     }
 }
 
+pub mod tables {
+    pub mod v1 {
+        include!("../gen/delta_sharing.tables.v1.rs");
+        #[cfg(feature = "grpc")]
+        include!("../gen/delta_sharing.tables.v1.tonic.rs");
+    }
+}
+
+pub mod shares {
+    pub mod v1 {
+        include!("../gen/delta_sharing.shares.v1.rs");
+        #[cfg(feature = "grpc")]
+        include!("../gen/delta_sharing.shares.v1.tonic.rs");
+    }
+}
+
+pub mod recipients {
+    pub mod v1 {
+        include!("../gen/delta_sharing.recipients.v1.rs");
+        #[cfg(feature = "grpc")]
+        include!("../gen/delta_sharing.recipients.v1.tonic.rs");
+    }
+}
+
 pub mod external_locations {
     pub mod v1 {
         include!("../gen/delta_sharing.external_locations.v1.rs");
@@ -55,14 +80,6 @@ pub mod credentials {
         include!("../gen/delta_sharing.credentials.v1.rs");
         #[cfg(feature = "grpc")]
         include!("../gen/delta_sharing.credentials.v1.tonic.rs");
-    }
-}
-
-pub mod tables {
-    pub mod v1 {
-        include!("../gen/delta_sharing.tables.v1.rs");
-        // #[cfg(feature = "grpc")]
-        // include!("../gen/delta_sharing.tables.v1.tonic.rs");
     }
 }
 
@@ -89,6 +106,7 @@ impl ObjectLabel {
             ObjectLabel::SchemaInfo => ResourceIdent::schema(id),
             ObjectLabel::TableInfo => ResourceIdent::table(id),
             ObjectLabel::ExternalLocationInfo => ResourceIdent::external_location(id),
+            ObjectLabel::RecipientInfo => ResourceIdent::recipient(id),
         }
     }
 }
@@ -172,6 +190,7 @@ mod tests {
                 ObjectLabel::ExternalLocationInfo => {
                     assert_eq!(label.as_ref(), "external_location_info")
                 }
+                ObjectLabel::RecipientInfo => assert_eq!(label.as_ref(), "recipient_info"),
             }
         }
     }

@@ -39,6 +39,9 @@ message RecipientToken {
 }
 
 message RecipientInfo {
+  // Unique ID of the recipient.
+  optional string id = 100;
+
   // The name of the recipient.
   string name = 1;
 

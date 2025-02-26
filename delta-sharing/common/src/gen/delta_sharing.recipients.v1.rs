@@ -28,6 +28,9 @@ pub struct RecipientToken {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RecipientInfo {
+    /// Unique ID of the recipient.
+    #[prost(string, optional, tag="100")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
     /// The name of the recipient.
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,

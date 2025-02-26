@@ -73,6 +73,7 @@ pub enum ResourceIdent {
     Catalog(ResourceRef),
     Schema(ResourceRef),
     Table(ResourceRef),
+    Recipient(ResourceRef),
 }
 
 impl ResourceIdent {
@@ -115,6 +116,10 @@ impl ResourceIdent {
     pub fn external_location(name: impl Into<ResourceRef>) -> Self {
         Self::ExternalLocation(name.into())
     }
+
+    pub fn recipient(name: impl Into<ResourceRef>) -> Self {
+        Self::Recipient(name.into())
+    }
 }
 
 impl std::fmt::Display for ResourceIdent {
@@ -128,6 +133,7 @@ impl std::fmt::Display for ResourceIdent {
             ResourceIdent::Catalog(r) => write!(f, "catalog:{}", r),
             ResourceIdent::Schema(r) => write!(f, "schema:{}", r),
             ResourceIdent::Table(r) => write!(f, "table:{}", r),
+            ResourceIdent::Recipient(r) => write!(f, "recipient:{}", r),
         }
     }
 }
@@ -143,6 +149,7 @@ impl AsRef<ResourceRef> for ResourceIdent {
             ResourceIdent::Catalog(r) => r,
             ResourceIdent::Schema(r) => r,
             ResourceIdent::Table(r) => r,
+            ResourceIdent::Recipient(r) => r,
         }
     }
 }
@@ -158,6 +165,7 @@ impl AsRef<ObjectLabel> for ResourceIdent {
             ResourceIdent::Catalog(_) => &ObjectLabel::CatalogInfo,
             ResourceIdent::Schema(_) => &ObjectLabel::SchemaInfo,
             ResourceIdent::Table(_) => &ObjectLabel::TableInfo,
+            ResourceIdent::Recipient(_) => &ObjectLabel::RecipientInfo,
         }
     }
 }
@@ -173,6 +181,7 @@ impl From<ResourceIdent> for ResourceRef {
             ResourceIdent::Catalog(r) => r,
             ResourceIdent::Schema(r) => r,
             ResourceIdent::Table(r) => r,
+            ResourceIdent::Recipient(r) => r,
         }
     }
 }

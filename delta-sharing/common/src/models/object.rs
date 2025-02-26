@@ -4,7 +4,8 @@ use uuid::Uuid;
 
 use super::{ExternalLocationInfo, ResourceExt};
 use crate::models::{
-    CatalogInfo, CredentialInfo, SchemaInfo, ShareInfo, SharingSchemaInfo, SharingTable, TableInfo,
+    CatalogInfo, CredentialInfo, RecipientInfo, SchemaInfo, ShareInfo, SharingSchemaInfo,
+    SharingTable, TableInfo,
 };
 use crate::{Error, ObjectLabel, Resource, ResourceName, ResourceRef};
 
@@ -54,6 +55,7 @@ impl ResourceExt for Resource {
             Resource::SchemaInfo(_) => &ObjectLabel::SchemaInfo,
             Resource::TableInfo(_) => &ObjectLabel::TableInfo,
             Resource::ExternalLocationInfo(_) => &ObjectLabel::ExternalLocationInfo,
+            Resource::RecipientInfo(_) => &ObjectLabel::RecipientInfo,
         }
     }
 
@@ -67,6 +69,7 @@ impl ResourceExt for Resource {
             Resource::SchemaInfo(obj) => obj.resource_name(),
             Resource::TableInfo(obj) => obj.resource_name(),
             Resource::ExternalLocationInfo(obj) => obj.resource_name(),
+            Resource::RecipientInfo(obj) => obj.resource_name(),
         }
     }
 
@@ -80,6 +83,7 @@ impl ResourceExt for Resource {
             Resource::SchemaInfo(obj) => obj.resource_ref(),
             Resource::TableInfo(obj) => obj.resource_ref(),
             Resource::ExternalLocationInfo(obj) => obj.resource_ref(),
+            Resource::RecipientInfo(obj) => obj.resource_ref(),
         }
     }
 }
@@ -99,6 +103,7 @@ impl TryFrom<Resource> for Object {
             Resource::SchemaInfo(obj) => obj.try_into(),
             Resource::TableInfo(obj) => obj.try_into(),
             Resource::ExternalLocationInfo(obj) => obj.try_into(),
+            Resource::RecipientInfo(obj) => obj.try_into(),
         }
     }
 }
@@ -118,6 +123,7 @@ impl TryFrom<Object> for Resource {
             ObjectLabel::ExternalLocationInfo => {
                 Ok(Resource::ExternalLocationInfo(obj.try_into()?))
             }
+            ObjectLabel::RecipientInfo => Ok(Resource::RecipientInfo(obj.try_into()?)),
         }
     }
 }
@@ -131,4 +137,5 @@ object_conversions!(
     SchemaInfo, ObjectLabel::SchemaInfo, schema_id, [catalog_name, name], true;
     TableInfo, ObjectLabel::TableInfo, table_id, [catalog_name, schema_name, name], true;
     CredentialInfo, ObjectLabel::CredentialInfo, id, [name];
+    RecipientInfo, ObjectLabel::RecipientInfo, id, [name], true;
 );

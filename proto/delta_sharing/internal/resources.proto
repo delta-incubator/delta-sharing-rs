@@ -5,6 +5,7 @@ package delta_sharing.internal;
 import "delta_sharing/catalogs/v1/models.proto";
 import "delta_sharing/credentials/v1/models.proto";
 import "delta_sharing/external_locations/v1/models.proto";
+import "delta_sharing/recipients/v1/models.proto";
 import "delta_sharing/schemas/v1/models.proto";
 import "delta_sharing/sharing/v1/models.proto";
 import "delta_sharing/tables/v1/models.proto";
@@ -20,5 +21,6 @@ message Resource {
     delta_sharing.schemas.v1.SchemaInfo schema_info = 7;
     delta_sharing.tables.v1.TableInfo table_info = 8;
     delta_sharing.external_locations.v1.ExternalLocationInfo external_location_info = 9;
+    delta_sharing.recipients.v1.RecipientInfo recipient_info = 10;
   }
 }

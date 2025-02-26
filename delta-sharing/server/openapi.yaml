@@ -33,6 +33,7 @@ tags:
        have the SELECT permission on the table or view.
   - name: SharesService
     description: Service for managing shares
+  - name: TablesService
 paths:
   /catalogs:
     get:
@@ -1117,6 +1118,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
+  /tables/{fullName}:
+    get:
+      tags:
+        - TablesService
+      description: Get a table
+      operationId: GetTable
+      parameters:
+        - name: fullName
+          in: path
+          description: Full name of the table.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
 components:
   schemas:
     AzureManagedIdentity:
@@ -1773,6 +1800,9 @@ components:
     RecipientInfo:
       type: object
       properties:
+        id:
+          type: string
+          description: Unique ID of the recipient.
         name:
           type: string
           description: The name of the recipient.
@@ -1958,6 +1988,52 @@ components:
             $ref: '#/components/schemas/GoogleProtobufAny'
           description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
       description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+    TableInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of table, relative to parent schema.
+        schemaName:
+          type: string
+          description: Name of parent schema.
+        catalogName:
+          type: string
+          description: Name of parent catalog.
+        tableType:
+          type: integer
+          format: enum
+        dataSourceFormat:
+          type: integer
+          description: Data source format of the table.
+          format: enum
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        properties:
+          type: object
+          description: A map of key-value properties attached to the securable.
+        fullName:
+          type: string
+          description: Full name of table, in form of catalog_name.schema_name.table_name.
+        owner:
+          type: string
+          description: Username of current owner of table.
+        createAt:
+          type: string
+          description: Time at which this table was created, in epoch milliseconds.
+        createdBy:
+          type: string
+          description: Username of table creator.
+        updateAt:
+          type: string
+          description: Time at which this table was last updated, in epoch milliseconds.
+        updatedBy:
+          type: string
+          description: Username of user who last modified table.
+        tableId:
+          type: string
+          description: Unique identifier for the table.
     UpdateCatalogRequest:
       required:
         - name
