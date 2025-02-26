@@ -29,13 +29,13 @@ pub struct ExternalLocationInfo {
     pub credential_id: ::prost::alloc::string::String,
     /// Time at which this catalog was created, in epoch milliseconds.
     #[prost(int64, optional, tag="9")]
-    pub create_at: ::core::option::Option<i64>,
+    pub created_at: ::core::option::Option<i64>,
     /// Username of catalog creator.
     #[prost(string, optional, tag="10")]
     pub created_by: ::core::option::Option<::prost::alloc::string::String>,
     /// Time at which this catalog was last updated, in epoch milliseconds.
     #[prost(int64, optional, tag="11")]
-    pub update_at: ::core::option::Option<i64>,
+    pub updated_at: ::core::option::Option<i64>,
     /// Username of user who last modified catalog.
     #[prost(string, optional, tag="12")]
     pub updated_by: ::core::option::Option<::prost::alloc::string::String>,

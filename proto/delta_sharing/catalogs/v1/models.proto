@@ -49,13 +49,13 @@ message CatalogInfo {
   optional CatalogType catalog_type = 9;
 
   // Time at which this catalog was created, in epoch milliseconds.
-  optional int64 create_at = 1000;
+  optional int64 created_at = 1000;
 
   // Username of catalog creator.
   optional string created_by = 1001;
 
   // Time at which this catalog was last updated, in epoch milliseconds.
-  optional int64 update_at = 1002;
+  optional int64 updated_at = 1002;
 
   // Username of user who last modified catalog.
   optional string updated_by = 1003;

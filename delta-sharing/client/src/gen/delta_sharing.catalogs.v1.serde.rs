@@ -34,13 +34,13 @@ impl serde::Serialize for CatalogInfo {
         if self.catalog_type.is_some() {
             len += 1;
         }
-        if self.create_at.is_some() {
+        if self.created_at.is_some() {
             len += 1;
         }
         if self.created_by.is_some() {
             len += 1;
         }
-        if self.update_at.is_some() {
+        if self.updated_at.is_some() {
             len += 1;
         }
         if self.updated_by.is_some() {
@@ -79,18 +79,18 @@ impl serde::Serialize for CatalogInfo {
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", *v)))?;
             struct_ser.serialize_field("catalogType", &v)?;
         }
-        if let Some(v) = self.create_at.as_ref() {
+        if let Some(v) = self.created_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("createAt", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("createdAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.created_by.as_ref() {
             struct_ser.serialize_field("createdBy", v)?;
         }
-        if let Some(v) = self.update_at.as_ref() {
+        if let Some(v) = self.updated_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("updateAt", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("updatedAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.updated_by.as_ref() {
             struct_ser.serialize_field("updatedBy", v)?;
@@ -121,12 +121,12 @@ impl<'de> serde::Deserialize<'de> for CatalogInfo {
             "shareName",
             "catalog_type",
             "catalogType",
-            "create_at",
-            "createAt",
+            "created_at",
+            "createdAt",
             "created_by",
             "createdBy",
-            "update_at",
-            "updateAt",
+            "updated_at",
+            "updatedAt",
             "updated_by",
             "updatedBy",
             "browse_only",
@@ -144,9 +144,9 @@ impl<'de> serde::Deserialize<'de> for CatalogInfo {
             ProviderName,
             ShareName,
             CatalogType,
-            CreateAt,
+            CreatedAt,
             CreatedBy,
-            UpdateAt,
+            UpdatedAt,
             UpdatedBy,
             BrowseOnly,
         }
@@ -179,9 +179,9 @@ impl<'de> serde::Deserialize<'de> for CatalogInfo {
                             "providerName" | "provider_name" => Ok(GeneratedField::ProviderName),
                             "shareName" | "share_name" => Ok(GeneratedField::ShareName),
                             "catalogType" | "catalog_type" => Ok(GeneratedField::CatalogType),
-                            "createAt" | "create_at" => Ok(GeneratedField::CreateAt),
+                            "createdAt" | "created_at" => Ok(GeneratedField::CreatedAt),
                             "createdBy" | "created_by" => Ok(GeneratedField::CreatedBy),
-                            "updateAt" | "update_at" => Ok(GeneratedField::UpdateAt),
+                            "updatedAt" | "updated_at" => Ok(GeneratedField::UpdatedAt),
                             "updatedBy" | "updated_by" => Ok(GeneratedField::UpdatedBy),
                             "browseOnly" | "browse_only" => Ok(GeneratedField::BrowseOnly),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
@@ -212,9 +212,9 @@ impl<'de> serde::Deserialize<'de> for CatalogInfo {
                 let mut provider_name__ = None;
                 let mut share_name__ = None;
                 let mut catalog_type__ = None;
-                let mut create_at__ = None;
+                let mut created_at__ = None;
                 let mut created_by__ = None;
-                let mut update_at__ = None;
+                let mut updated_at__ = None;
                 let mut updated_by__ = None;
                 let mut browse_only__ = None;
                 while let Some(k) = map_.next_key()? {
@@ -273,11 +273,11 @@ impl<'de> serde::Deserialize<'de> for CatalogInfo {
                             }
                             catalog_type__ = map_.next_value::<::std::option::Option<CatalogType>>()?.map(|x| x as i32);
                         }
-                        GeneratedField::CreateAt => {
-                            if create_at__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("createAt"));
+                        GeneratedField::CreatedAt => {
+                            if created_at__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("createdAt"));
                             }
-                            create_at__ = 
+                            created_at__ = 
                                 map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
                             ;
                         }
@@ -287,11 +287,11 @@ impl<'de> serde::Deserialize<'de> for CatalogInfo {
                             }
                             created_by__ = map_.next_value()?;
                         }
-                        GeneratedField::UpdateAt => {
-                            if update_at__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("updateAt"));
+                        GeneratedField::UpdatedAt => {
+                            if updated_at__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("updatedAt"));
                             }
-                            update_at__ = 
+                            updated_at__ = 
                                 map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
                             ;
                         }
@@ -319,9 +319,9 @@ impl<'de> serde::Deserialize<'de> for CatalogInfo {
                     provider_name: provider_name__,
                     share_name: share_name__,
                     catalog_type: catalog_type__,
-                    create_at: create_at__,
+                    created_at: created_at__,
                     created_by: created_by__,
-                    update_at: update_at__,
+                    updated_at: updated_at__,
                     updated_by: updated_by__,
                     browse_only: browse_only__,
                 })

@@ -76,13 +76,13 @@ pub struct CredentialInfo {
     pub owner: ::core::option::Option<::prost::alloc::string::String>,
     /// Time at which this credential was created, in epoch milliseconds.
     #[prost(int64, optional, tag="7")]
-    pub create_at: ::core::option::Option<i64>,
+    pub created_at: ::core::option::Option<i64>,
     /// Username of credential creator.
     #[prost(string, optional, tag="8")]
     pub created_by: ::core::option::Option<::prost::alloc::string::String>,
     /// Time at which this credential was last updated, in epoch milliseconds.
     #[prost(int64, optional, tag="9")]
-    pub update_at: ::core::option::Option<i64>,
+    pub updated_at: ::core::option::Option<i64>,
     /// Username of user who last modified credential.
     #[prost(string, optional, tag="10")]
     pub updated_by: ::core::option::Option<::prost::alloc::string::String>,

@@ -105,7 +105,9 @@ mod tests {
     use crate::memory::InMemoryResourceStore;
     use crate::policy::ConstantPolicy;
     use crate::rest::auth::{AnonymousAuthenticator, AuthenticationLayer};
-    use crate::{Policy, ProvidesPolicy, ProvidesResourceStore, ResourceStore};
+    use crate::{
+        Policy, ProvidesPolicy, ProvidesResourceStore, ProvidesSecretManager, ResourceStore,
+    };
     use std::sync::Arc;
 
     #[derive(Clone)]
@@ -132,6 +134,12 @@ mod tests {
     impl ProvidesPolicy for Handler {
         fn policy(&self) -> &Arc<dyn Policy> {
             &self.policy
+        }
+    }
+
+    impl ProvidesSecretManager for Handler {
+        fn secret_manager(&self) -> &dyn crate::SecretManager {
+            &self.store
         }
     }
 

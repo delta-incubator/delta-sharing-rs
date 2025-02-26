@@ -31,13 +31,13 @@ message ExternalLocationInfo {
   string credential_id = 8;
 
   // Time at which this catalog was created, in epoch milliseconds.
-  optional int64 create_at = 9;
+  optional int64 created_at = 9;
 
   // Username of catalog creator.
   optional string created_by = 10;
 
   // Time at which this catalog was last updated, in epoch milliseconds.
-  optional int64 update_at = 11;
+  optional int64 updated_at = 11;
 
   // Username of user who last modified catalog.
   optional string updated_by = 12;

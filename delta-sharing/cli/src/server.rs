@@ -40,6 +40,7 @@ async fn get_db_handler() -> Result<ServerHandler> {
         ),
         store,
         policy,
+        secrets: Arc::new(InMemoryResourceStore::new()),
     };
     Ok(handler)
 }
@@ -48,6 +49,7 @@ fn get_memory_handler() -> ServerHandler {
     let store = Arc::new(InMemoryResourceStore::new());
     let policy = Arc::new(ConstantPolicy::default());
     ServerHandler {
+        secrets: store.clone(),
         query: KernelQueryHandler::new_multi_thread(
             store.clone(),
             Default::default(),

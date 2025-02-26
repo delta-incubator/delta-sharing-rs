@@ -3,8 +3,8 @@ use std::sync::Arc;
 use crate::policy::Policy;
 use crate::resources::ResourceStore;
 use crate::{
-    ProvidesPolicy, ProvidesResourceStore, ResourceRef, Result, SharingQueryHandler,
-    TableLocationResolver,
+    ProvidesPolicy, ProvidesResourceStore, ProvidesSecretManager, ResourceRef, Result,
+    SecretManager, SharingQueryHandler, TableLocationResolver,
 };
 
 mod catalog;
@@ -17,6 +17,7 @@ pub struct ServerHandler {
     pub policy: Arc<dyn Policy>,
     pub store: Arc<dyn ResourceStore>,
     pub query: Arc<dyn SharingQueryHandler>,
+    pub secrets: Arc<dyn SecretManager>,
 }
 
 impl ServerHandler {
@@ -24,11 +25,13 @@ impl ServerHandler {
         policy: Arc<dyn Policy>,
         store: Arc<dyn ResourceStore>,
         query: Arc<dyn SharingQueryHandler>,
+        secrets: Arc<dyn SecretManager>,
     ) -> Self {
         Self {
             policy,
             store,
             query,
+            secrets,
         }
     }
 }
@@ -42,6 +45,12 @@ impl ProvidesPolicy for ServerHandler {
 impl ProvidesResourceStore for ServerHandler {
     fn store(&self) -> &dyn ResourceStore {
         self.store.as_ref()
+    }
+}
+
+impl ProvidesSecretManager for ServerHandler {
+    fn secret_manager(&self) -> &dyn SecretManager {
+        self.secrets.as_ref()
     }
 }
 

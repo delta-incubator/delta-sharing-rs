@@ -26,13 +26,13 @@ message SchemaInfo {
   optional string owner = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // Time at which this schema was created, in epoch milliseconds.
-  optional int64 create_at = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  optional int64 created_at = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // Username of schema creator.
   optional string created_by = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // Time at which this schema was last updated, in epoch milliseconds.
-  optional int64 update_at = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  optional int64 updated_at = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // Username of user who last modified schema.
   optional string updated_by = 10 [(google.api.field_behavior) = OUTPUT_ONLY];

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use bytes::Bytes;
 use uuid::Uuid;
 
@@ -34,4 +36,64 @@ pub trait SecretManager: Send + Sync {
     /// The secret manager should return an error if the secret does not exist
     /// or if the secret value is invalid.
     async fn update_secret(&self, secret_name: &str, secret_value: Bytes) -> Result<Uuid>;
+
+    /// Delete the secret with the given name.
+    /// The secret manager should return an error if the secret does not exist
+    async fn delete_secret(&self, secret_name: &str) -> Result<()>;
+}
+
+pub trait ProvidesSecretManager: Send + Sync + 'static {
+    fn secret_manager(&self) -> &dyn SecretManager;
+}
+
+#[async_trait::async_trait]
+impl<T: SecretManager> SecretManager for Arc<T> {
+    async fn get_secret(&self, secret_name: &str) -> Result<(Uuid, Bytes)> {
+        T::get_secret(self, secret_name).await
+    }
+
+    async fn get_secret_version(&self, secret_name: &str, version: Uuid) -> Result<Bytes> {
+        T::get_secret_version(self, secret_name, version).await
+    }
+
+    async fn create_secret(&self, secret_name: &str, secret_value: Bytes) -> Result<Uuid> {
+        T::create_secret(self, secret_name, secret_value).await
+    }
+
+    async fn update_secret(&self, secret_name: &str, secret_value: Bytes) -> Result<Uuid> {
+        T::update_secret(self, secret_name, secret_value).await
+    }
+
+    async fn delete_secret(&self, secret_name: &str) -> Result<()> {
+        T::delete_secret(self, secret_name).await
+    }
+}
+
+#[async_trait::async_trait]
+impl<T: ProvidesSecretManager> SecretManager for T {
+    async fn get_secret(&self, secret_name: &str) -> Result<(Uuid, Bytes)> {
+        self.secret_manager().get_secret(secret_name).await
+    }
+
+    async fn get_secret_version(&self, secret_name: &str, version: Uuid) -> Result<Bytes> {
+        self.secret_manager()
+            .get_secret_version(secret_name, version)
+            .await
+    }
+
+    async fn create_secret(&self, secret_name: &str, secret_value: Bytes) -> Result<Uuid> {
+        self.secret_manager()
+            .create_secret(secret_name, secret_value)
+            .await
+    }
+
+    async fn update_secret(&self, secret_name: &str, secret_value: Bytes) -> Result<Uuid> {
+        self.secret_manager()
+            .update_secret(secret_name, secret_value)
+            .await
+    }
+
+    async fn delete_secret(&self, secret_name: &str) -> Result<()> {
+        self.secret_manager().delete_secret(secret_name).await
+    }
 }

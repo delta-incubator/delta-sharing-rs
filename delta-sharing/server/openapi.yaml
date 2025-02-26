@@ -1256,13 +1256,13 @@ components:
           type: integer
           description: The type of the catalog.
           format: enum
-        createAt:
+        createdAt:
           type: string
           description: Time at which this catalog was created, in epoch milliseconds.
         createdBy:
           type: string
           description: Username of catalog creator.
-        updateAt:
+        updatedAt:
           type: string
           description: Time at which this catalog was last updated, in epoch milliseconds.
         updatedBy:
@@ -1449,13 +1449,13 @@ components:
         owner:
           type: string
           description: Username of current owner of credential.
-        createAt:
+        createdAt:
           type: string
           description: Time at which this credential was created, in epoch milliseconds.
         createdBy:
           type: string
           description: Username of credential creator.
-        updateAt:
+        updatedAt:
           type: string
           description: Time at which this credential was last updated, in epoch milliseconds.
         updatedBy:
@@ -1581,13 +1581,13 @@ components:
         credentialId:
           type: string
           description: Unique ID of the location's storage credential.
-        createAt:
+        createdAt:
           type: string
           description: Time at which this catalog was created, in epoch milliseconds.
         createdBy:
           type: string
           description: Username of catalog creator.
-        updateAt:
+        updatedAt:
           type: string
           description: Time at which this catalog was last updated, in epoch milliseconds.
         updatedBy:
@@ -1955,7 +1955,7 @@ components:
           readOnly: true
           type: string
           description: Username of current owner of schema.
-        createAt:
+        createdAt:
           readOnly: true
           type: string
           description: Time at which this schema was created, in epoch milliseconds.
@@ -1963,7 +1963,7 @@ components:
           readOnly: true
           type: string
           description: Username of schema creator.
-        updateAt:
+        updatedAt:
           readOnly: true
           type: string
           description: Time at which this schema was last updated, in epoch milliseconds.
@@ -2088,13 +2088,13 @@ components:
         owner:
           type: string
           description: Username of current owner of table.
-        createAt:
+        createdAt:
           type: string
           description: Time at which this table was created, in epoch milliseconds.
         createdBy:
           type: string
           description: Username of table creator.
-        updateAt:
+        updatedAt:
           type: string
           description: Time at which this table was last updated, in epoch milliseconds.
         updatedBy:

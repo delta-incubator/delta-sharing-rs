@@ -35,13 +35,13 @@ pub struct CatalogInfo {
     pub catalog_type: ::core::option::Option<i32>,
     /// Time at which this catalog was created, in epoch milliseconds.
     #[prost(int64, optional, tag="1000")]
-    pub create_at: ::core::option::Option<i64>,
+    pub created_at: ::core::option::Option<i64>,
     /// Username of catalog creator.
     #[prost(string, optional, tag="1001")]
     pub created_by: ::core::option::Option<::prost::alloc::string::String>,
     /// Time at which this catalog was last updated, in epoch milliseconds.
     #[prost(int64, optional, tag="1002")]
-    pub update_at: ::core::option::Option<i64>,
+    pub updated_at: ::core::option::Option<i64>,
     /// Username of user who last modified catalog.
     #[prost(string, optional, tag="1003")]
     pub updated_by: ::core::option::Option<::prost::alloc::string::String>,

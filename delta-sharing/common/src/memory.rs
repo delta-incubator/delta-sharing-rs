@@ -320,8 +320,7 @@ impl SecretManager for InMemoryResourceStore {
             .and_then(|map| {
                 map.value()
                     .iter()
-                    .filter(|s| *s.key() == version)
-                    .next()
+                    .find(|s| *s.key() == version)
                     .map(|entry| (*entry.key(), entry.value().clone()))
             })
             .ok_or(Error::NotFound)?;
@@ -352,6 +351,11 @@ impl SecretManager for InMemoryResourceStore {
         let uuid = Uuid::now_v7();
         map.insert(uuid, secret_value);
         Ok(uuid)
+    }
+
+    async fn delete_secret(&self, secret_name: &str) -> Result<()> {
+        self.secrets.remove(secret_name).ok_or(Error::NotFound)?;
+        Ok(())
     }
 }
 

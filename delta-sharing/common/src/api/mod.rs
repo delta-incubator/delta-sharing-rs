@@ -18,6 +18,7 @@ pub use tables::TablesHandler;
 
 use crate::{Permission, Recipient, ResourceIdent};
 
+#[derive(Debug, Clone)]
 pub struct RequestContext {
     pub recipient: Recipient,
 }
