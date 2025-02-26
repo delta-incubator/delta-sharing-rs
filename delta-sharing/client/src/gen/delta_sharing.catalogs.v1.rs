@@ -82,6 +82,28 @@ impl CatalogType {
         }
     }
 }
+/// List catalogs
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListCatalogsRequest {
+    /// The maximum number of results per page that should be returned.
+    #[prost(int32, optional, tag="2")]
+    pub max_results: ::core::option::Option<i32>,
+    /// Opaque pagination token to go to next page based on previous query.
+    #[prost(string, optional, tag="3")]
+    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// List catalogs response.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListCatalogsResponse {
+    /// The catalogs returned.
+    #[prost(message, repeated, tag="1")]
+    pub catalogs: ::prost::alloc::vec::Vec<CatalogInfo>,
+    /// The next_page_token value to include in the next List request.
+    #[prost(string, optional, tag="2")]
+    pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
+}
 /// Create a new catalog
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -107,17 +129,6 @@ pub struct CreateCatalogRequest {
     #[prost(string, optional, tag="6")]
     pub share_name: ::core::option::Option<::prost::alloc::string::String>,
 }
-/// Delete a catalog
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeleteCatalogRequest {
-    /// Name of catalog.
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-    /// Force deletion even if the catalog is not empty.
-    #[prost(bool, optional, tag="2")]
-    pub force: ::core::option::Option<bool>,
-}
 /// Get a catalog
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -129,28 +140,6 @@ pub struct GetCatalogRequest {
     #[prost(bool, optional, tag="2")]
     pub include_browse: ::core::option::Option<bool>,
 }
-/// List catalogs
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListCatalogsRequest {
-    /// The maximum number of results per page that should be returned.
-    #[prost(int32, optional, tag="2")]
-    pub max_results: ::core::option::Option<i32>,
-    /// Opaque pagination token to go to next page based on previous query.
-    #[prost(string, optional, tag="3")]
-    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
-}
-/// List catalogs response.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListCatalogsResponse {
-    /// The catalogs returned.
-    #[prost(message, repeated, tag="1")]
-    pub catalogs: ::prost::alloc::vec::Vec<CatalogInfo>,
-    /// The next_page_token value to include in the next List request.
-    #[prost(string, optional, tag="2")]
-    pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
-}
 /// Update a catalog
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -158,15 +147,32 @@ pub struct UpdateCatalogRequest {
     /// Name of catalog.
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
-    /// User-provided free-form text description.
+    /// Username of new owner of catalog.
     #[prost(string, optional, tag="2")]
+    pub owner: ::core::option::Option<::prost::alloc::string::String>,
+    /// User-provided free-form text description.
+    #[prost(string, optional, tag="3")]
     pub comment: ::core::option::Option<::prost::alloc::string::String>,
     /// A map of key-value properties attached to the securable.
-    #[prost(message, optional, tag="3")]
+    ///
+    /// When provided in update request, the specified properties will override the existing properties.
+    /// To add and remove properties, one would need to perform a read-modify-write.
+    #[prost(message, optional, tag="4")]
     pub properties: ::core::option::Option<::pbjson_types::Struct>,
     /// Name of catalog.
-    #[prost(string, tag="4")]
+    #[prost(string, tag="5")]
     pub new_name: ::prost::alloc::string::String,
+}
+/// Delete a catalog
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteCatalogRequest {
+    /// Name of catalog.
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+    /// Force deletion even if the catalog is not empty.
+    #[prost(bool, optional, tag="2")]
+    pub force: ::core::option::Option<bool>,
 }
 include!("delta_sharing.catalogs.v1.serde.rs");
 include!("delta_sharing.catalogs.v1.tonic.rs");

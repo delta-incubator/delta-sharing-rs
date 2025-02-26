@@ -6,28 +6,6 @@ pub mod schemas_service_server {
     /// Generated trait containing gRPC methods that should be implemented for use with SchemasServiceServer.
     #[async_trait]
     pub trait SchemasService: Send + Sync + 'static {
-        /** Creates a new schema for catalog in the Metatastore. The caller must be a metastore admin,
- or have the CREATE_SCHEMA privilege in the parent catalog.
-*/
-        async fn create_schema(
-            &self,
-            request: tonic::Request<super::CreateSchemaRequest>,
-        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
-        /** Deletes the specified schema from the parent catalog. The caller must be the owner
- of the schema or an owner of the parent catalog.
-*/
-        async fn delete_schema(
-            &self,
-            request: tonic::Request<super::DeleteSchemaRequest>,
-        ) -> std::result::Result<tonic::Response<()>, tonic::Status>;
-        /** Gets the specified schema within the metastore.
- The caller must be a metastore admin, the owner of the schema,
- or a user that has the USE_SCHEMA privilege on the schema.
-*/
-        async fn get_schema(
-            &self,
-            request: tonic::Request<super::GetSchemaRequest>,
-        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
         /** Gets an array of schemas for a catalog in the metastore. If the caller is the metastore
  admin or the owner of the parent catalog, all schemas for the catalog will be retrieved.
  Otherwise, only schemas owned by the caller (or for which the caller has the USE_SCHEMA privilege)
@@ -40,6 +18,21 @@ pub mod schemas_service_server {
             tonic::Response<super::ListSchemasResponse>,
             tonic::Status,
         >;
+        /** Creates a new schema for catalog in the Metatastore. The caller must be a metastore admin,
+ or have the CREATE_SCHEMA privilege in the parent catalog.
+*/
+        async fn create_schema(
+            &self,
+            request: tonic::Request<super::CreateSchemaRequest>,
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
+        /** Gets the specified schema within the metastore.
+ The caller must be a metastore admin, the owner of the schema,
+ or a user that has the USE_SCHEMA privilege on the schema.
+*/
+        async fn get_schema(
+            &self,
+            request: tonic::Request<super::GetSchemaRequest>,
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
         /** Updates a schema for a catalog. The caller must be the owner of the schema or a metastore admin.
  If the caller is a metastore admin, only the owner field can be changed in the update.
  If the name field must be updated, the caller must be a metastore admin or have the CREATE_SCHEMA
@@ -49,6 +42,13 @@ pub mod schemas_service_server {
             &self,
             request: tonic::Request<super::UpdateSchemaRequest>,
         ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status>;
+        /** Deletes the specified schema from the parent catalog. The caller must be the owner
+ of the schema or an owner of the parent catalog.
+*/
+        async fn delete_schema(
+            &self,
+            request: tonic::Request<super::DeleteSchemaRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status>;
     }
     /** A schema (also called a database) is the second layer of Unity Catalog’s three-level namespace.
  A schema organizes tables, views and functions. To access (or list) a table or view in a schema,
@@ -131,6 +131,51 @@ pub mod schemas_service_server {
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             match req.uri().path() {
+                "/delta_sharing.schemas.v1.SchemasService/ListSchemas" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListSchemasSvc<T: SchemasService>(pub Arc<T>);
+                    impl<
+                        T: SchemasService,
+                    > tonic::server::UnaryService<super::ListSchemasRequest>
+                    for ListSchemasSvc<T> {
+                        type Response = super::ListSchemasResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListSchemasRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SchemasService>::list_schemas(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ListSchemasSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 "/delta_sharing.schemas.v1.SchemasService/CreateSchema" => {
                     #[allow(non_camel_case_types)]
                     struct CreateSchemaSvc<T: SchemasService>(pub Arc<T>);
@@ -161,51 +206,6 @@ pub mod schemas_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = CreateSchemaSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/delta_sharing.schemas.v1.SchemasService/DeleteSchema" => {
-                    #[allow(non_camel_case_types)]
-                    struct DeleteSchemaSvc<T: SchemasService>(pub Arc<T>);
-                    impl<
-                        T: SchemasService,
-                    > tonic::server::UnaryService<super::DeleteSchemaRequest>
-                    for DeleteSchemaSvc<T> {
-                        type Response = ();
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::DeleteSchemaRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as SchemasService>::delete_schema(&inner, request).await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = DeleteSchemaSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -266,51 +266,6 @@ pub mod schemas_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/delta_sharing.schemas.v1.SchemasService/ListSchemas" => {
-                    #[allow(non_camel_case_types)]
-                    struct ListSchemasSvc<T: SchemasService>(pub Arc<T>);
-                    impl<
-                        T: SchemasService,
-                    > tonic::server::UnaryService<super::ListSchemasRequest>
-                    for ListSchemasSvc<T> {
-                        type Response = super::ListSchemasResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::ListSchemasRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as SchemasService>::list_schemas(&inner, request).await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = ListSchemasSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
                 "/delta_sharing.schemas.v1.SchemasService/UpdateSchema" => {
                     #[allow(non_camel_case_types)]
                     struct UpdateSchemaSvc<T: SchemasService>(pub Arc<T>);
@@ -341,6 +296,51 @@ pub mod schemas_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = UpdateSchemaSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.schemas.v1.SchemasService/DeleteSchema" => {
+                    #[allow(non_camel_case_types)]
+                    struct DeleteSchemaSvc<T: SchemasService>(pub Arc<T>);
+                    impl<
+                        T: SchemasService,
+                    > tonic::server::UnaryService<super::DeleteSchemaRequest>
+                    for DeleteSchemaSvc<T> {
+                        type Response = ();
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::DeleteSchemaRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SchemasService>::delete_schema(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = DeleteSchemaSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

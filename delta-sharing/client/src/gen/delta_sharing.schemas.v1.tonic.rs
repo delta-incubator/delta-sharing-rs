@@ -89,97 +89,6 @@ pub mod schemas_service_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        /** Creates a new schema for catalog in the Metatastore. The caller must be a metastore admin,
- or have the CREATE_SCHEMA privilege in the parent catalog.
-*/
-        pub async fn create_schema(
-            &mut self,
-            request: impl tonic::IntoRequest<super::CreateSchemaRequest>,
-        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.schemas.v1.SchemasService/CreateSchema",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "delta_sharing.schemas.v1.SchemasService",
-                        "CreateSchema",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        /** Deletes the specified schema from the parent catalog. The caller must be the owner
- of the schema or an owner of the parent catalog.
-*/
-        pub async fn delete_schema(
-            &mut self,
-            request: impl tonic::IntoRequest<super::DeleteSchemaRequest>,
-        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.schemas.v1.SchemasService/DeleteSchema",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "delta_sharing.schemas.v1.SchemasService",
-                        "DeleteSchema",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        /** Gets the specified schema within the metastore.
- The caller must be a metastore admin, the owner of the schema,
- or a user that has the USE_SCHEMA privilege on the schema.
-*/
-        pub async fn get_schema(
-            &mut self,
-            request: impl tonic::IntoRequest<super::GetSchemaRequest>,
-        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.schemas.v1.SchemasService/GetSchema",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "delta_sharing.schemas.v1.SchemasService",
-                        "GetSchema",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
         /** Gets an array of schemas for a catalog in the metastore. If the caller is the metastore
  admin or the owner of the parent catalog, all schemas for the catalog will be retrieved.
  Otherwise, only schemas owned by the caller (or for which the caller has the USE_SCHEMA privilege)
@@ -215,6 +124,67 @@ pub mod schemas_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /** Creates a new schema for catalog in the Metatastore. The caller must be a metastore admin,
+ or have the CREATE_SCHEMA privilege in the parent catalog.
+*/
+        pub async fn create_schema(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateSchemaRequest>,
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.schemas.v1.SchemasService/CreateSchema",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.schemas.v1.SchemasService",
+                        "CreateSchema",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Gets the specified schema within the metastore.
+ The caller must be a metastore admin, the owner of the schema,
+ or a user that has the USE_SCHEMA privilege on the schema.
+*/
+        pub async fn get_schema(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetSchemaRequest>,
+        ) -> std::result::Result<tonic::Response<super::SchemaInfo>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.schemas.v1.SchemasService/GetSchema",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.schemas.v1.SchemasService",
+                        "GetSchema",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         /** Updates a schema for a catalog. The caller must be the owner of the schema or a metastore admin.
  If the caller is a metastore admin, only the owner field can be changed in the update.
  If the name field must be updated, the caller must be a metastore admin or have the CREATE_SCHEMA
@@ -243,6 +213,36 @@ pub mod schemas_service_client {
                     GrpcMethod::new(
                         "delta_sharing.schemas.v1.SchemasService",
                         "UpdateSchema",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Deletes the specified schema from the parent catalog. The caller must be the owner
+ of the schema or an owner of the parent catalog.
+*/
+        pub async fn delete_schema(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteSchemaRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.schemas.v1.SchemasService/DeleteSchema",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.schemas.v1.SchemasService",
+                        "DeleteSchema",
                     ),
                 );
             self.inner.unary(req, path, codec).await

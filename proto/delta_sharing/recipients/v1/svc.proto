@@ -29,7 +29,7 @@ message ListRecipientsResponse {
   repeated RecipientInfo recipients = 1;
 
   // Opaque pagination token to go to next page based on previous query.
-  optional string next_page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+  optional string next_page_token = 2;
 }
 
 // Creates a new recipient

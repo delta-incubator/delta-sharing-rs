@@ -994,12 +994,20 @@ impl serde::Serialize for ListCredentialsRequest {
         if self.page_token.is_some() {
             len += 1;
         }
+        if self.purpose.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.ListCredentialsRequest", len)?;
         if let Some(v) = self.max_results.as_ref() {
             struct_ser.serialize_field("maxResults", v)?;
         }
         if let Some(v) = self.page_token.as_ref() {
             struct_ser.serialize_field("pageToken", v)?;
+        }
+        if let Some(v) = self.purpose.as_ref() {
+            let v = Purpose::try_from(*v)
+                .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", *v)))?;
+            struct_ser.serialize_field("purpose", &v)?;
         }
         struct_ser.end()
     }
@@ -1015,12 +1023,14 @@ impl<'de> serde::Deserialize<'de> for ListCredentialsRequest {
             "maxResults",
             "page_token",
             "pageToken",
+            "purpose",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             MaxResults,
             PageToken,
+            Purpose,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -1044,6 +1054,7 @@ impl<'de> serde::Deserialize<'de> for ListCredentialsRequest {
                         match value {
                             "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
                             "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
+                            "purpose" => Ok(GeneratedField::Purpose),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -1065,6 +1076,7 @@ impl<'de> serde::Deserialize<'de> for ListCredentialsRequest {
             {
                 let mut max_results__ = None;
                 let mut page_token__ = None;
+                let mut purpose__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::MaxResults => {
@@ -1081,11 +1093,18 @@ impl<'de> serde::Deserialize<'de> for ListCredentialsRequest {
                             }
                             page_token__ = map_.next_value()?;
                         }
+                        GeneratedField::Purpose => {
+                            if purpose__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("purpose"));
+                            }
+                            purpose__ = map_.next_value::<::std::option::Option<Purpose>>()?.map(|x| x as i32);
+                        }
                     }
                 }
                 Ok(ListCredentialsRequest {
                     max_results: max_results__,
                     page_token: page_token__,
+                    purpose: purpose__,
                 })
             }
         }

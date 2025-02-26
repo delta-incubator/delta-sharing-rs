@@ -81,7 +81,7 @@ pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
     // HACK: we should prbably anmnotate the queryt fields that should be extracted for
     // the resource identification, but for now we just hardcode the fields that are
     // known to be excluded.
-    const KNOW_QUERY: [&str; 9] = [
+    const KNOW_QUERY: [&str; 10] = [
         "max_results",
         "page_token",
         "force",
@@ -91,6 +91,7 @@ pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
         "startingTimestamp",
         "include_browse",
         "includeBrowses",
+        "purpose",
     ];
     let field_names: Vec<_> = handler
         .fields
@@ -102,7 +103,7 @@ pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
         .map(|f| &f.name)
         .collect();
 
-    let resource = if handler.fields.is_empty() {
+    let resource = if field_names.is_empty() {
         quote! {
             ResourceIdent::#resource(ResourceRef::Undefined)
         }

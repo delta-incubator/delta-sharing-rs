@@ -372,6 +372,9 @@ impl serde::Serialize for ListSchemasRequest {
         if self.page_token.is_some() {
             len += 1;
         }
+        if self.include_browse.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.schemas.v1.ListSchemasRequest", len)?;
         if !self.catalog_name.is_empty() {
             struct_ser.serialize_field("catalogName", &self.catalog_name)?;
@@ -381,6 +384,9 @@ impl serde::Serialize for ListSchemasRequest {
         }
         if let Some(v) = self.page_token.as_ref() {
             struct_ser.serialize_field("pageToken", v)?;
+        }
+        if let Some(v) = self.include_browse.as_ref() {
+            struct_ser.serialize_field("includeBrowse", v)?;
         }
         struct_ser.end()
     }
@@ -398,6 +404,8 @@ impl<'de> serde::Deserialize<'de> for ListSchemasRequest {
             "maxResults",
             "page_token",
             "pageToken",
+            "include_browse",
+            "includeBrowse",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -405,6 +413,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemasRequest {
             CatalogName,
             MaxResults,
             PageToken,
+            IncludeBrowse,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -430,6 +439,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemasRequest {
                             "catalogName" | "catalog_name" => Ok(GeneratedField::CatalogName),
                             "maxResults" | "max_results" => Ok(GeneratedField::MaxResults),
                             "pageToken" | "page_token" => Ok(GeneratedField::PageToken),
+                            "includeBrowse" | "include_browse" => Ok(GeneratedField::IncludeBrowse),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -452,6 +462,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemasRequest {
                 let mut catalog_name__ = None;
                 let mut max_results__ = None;
                 let mut page_token__ = None;
+                let mut include_browse__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::CatalogName => {
@@ -474,6 +485,12 @@ impl<'de> serde::Deserialize<'de> for ListSchemasRequest {
                             }
                             page_token__ = map_.next_value()?;
                         }
+                        GeneratedField::IncludeBrowse => {
+                            if include_browse__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("includeBrowse"));
+                            }
+                            include_browse__ = map_.next_value()?;
+                        }
                         GeneratedField::__SkipField__ => {
                             let _ = map_.next_value::<serde::de::IgnoredAny>()?;
                         }
@@ -483,6 +500,7 @@ impl<'de> serde::Deserialize<'de> for ListSchemasRequest {
                     catalog_name: catalog_name__.unwrap_or_default(),
                     max_results: max_results__,
                     page_token: page_token__,
+                    include_browse: include_browse__,
                 })
             }
         }

@@ -1056,6 +1056,9 @@ impl serde::Serialize for UpdateCatalogRequest {
         if !self.name.is_empty() {
             len += 1;
         }
+        if self.owner.is_some() {
+            len += 1;
+        }
         if self.comment.is_some() {
             len += 1;
         }
@@ -1068,6 +1071,9 @@ impl serde::Serialize for UpdateCatalogRequest {
         let mut struct_ser = serializer.serialize_struct("delta_sharing.catalogs.v1.UpdateCatalogRequest", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.owner.as_ref() {
+            struct_ser.serialize_field("owner", v)?;
         }
         if let Some(v) = self.comment.as_ref() {
             struct_ser.serialize_field("comment", v)?;
@@ -1089,6 +1095,7 @@ impl<'de> serde::Deserialize<'de> for UpdateCatalogRequest {
     {
         const FIELDS: &[&str] = &[
             "name",
+            "owner",
             "comment",
             "properties",
             "new_name",
@@ -1098,6 +1105,7 @@ impl<'de> serde::Deserialize<'de> for UpdateCatalogRequest {
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Name,
+            Owner,
             Comment,
             Properties,
             NewName,
@@ -1124,6 +1132,7 @@ impl<'de> serde::Deserialize<'de> for UpdateCatalogRequest {
                     {
                         match value {
                             "name" => Ok(GeneratedField::Name),
+                            "owner" => Ok(GeneratedField::Owner),
                             "comment" => Ok(GeneratedField::Comment),
                             "properties" => Ok(GeneratedField::Properties),
                             "newName" | "new_name" => Ok(GeneratedField::NewName),
@@ -1147,6 +1156,7 @@ impl<'de> serde::Deserialize<'de> for UpdateCatalogRequest {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut name__ = None;
+                let mut owner__ = None;
                 let mut comment__ = None;
                 let mut properties__ = None;
                 let mut new_name__ = None;
@@ -1157,6 +1167,12 @@ impl<'de> serde::Deserialize<'de> for UpdateCatalogRequest {
                                 return Err(serde::de::Error::duplicate_field("name"));
                             }
                             name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::Owner => {
+                            if owner__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("owner"));
+                            }
+                            owner__ = map_.next_value()?;
                         }
                         GeneratedField::Comment => {
                             if comment__.is_some() {
@@ -1183,6 +1199,7 @@ impl<'de> serde::Deserialize<'de> for UpdateCatalogRequest {
                 }
                 Ok(UpdateCatalogRequest {
                     name: name__.unwrap_or_default(),
+                    owner: owner__,
                     comment: comment__,
                     properties: properties__,
                     new_name: new_name__.unwrap_or_default(),

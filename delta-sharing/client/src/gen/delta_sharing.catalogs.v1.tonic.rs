@@ -187,37 +187,6 @@ pub mod catalogs_service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        /** Delete a catalog
-
- Deletes the catalog that matches the supplied name. The caller must be a metastore admin or the owner of the catalog.
-*/
-        pub async fn delete_catalog(
-            &mut self,
-            request: impl tonic::IntoRequest<super::DeleteCatalogRequest>,
-        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.catalogs.v1.CatalogsService/DeleteCatalog",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "delta_sharing.catalogs.v1.CatalogsService",
-                        "DeleteCatalog",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
         /** Update a catalog
 
  Updates the catalog that matches the supplied name. The caller must be either
@@ -246,6 +215,38 @@ pub mod catalogs_service_client {
                     GrpcMethod::new(
                         "delta_sharing.catalogs.v1.CatalogsService",
                         "UpdateCatalog",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Delete a catalog
+
+ Deletes the catalog that matches the supplied name. The caller must
+ be a metastore admin or the owner of the catalog.
+*/
+        pub async fn delete_catalog(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteCatalogRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.catalogs.v1.CatalogsService/DeleteCatalog",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.catalogs.v1.CatalogsService",
+                        "DeleteCatalog",
                     ),
                 );
             self.inner.unary(req, path, codec).await

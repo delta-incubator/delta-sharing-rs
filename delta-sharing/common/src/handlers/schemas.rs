@@ -2,9 +2,8 @@ use itertools::Itertools;
 
 use crate::api::schemas::SchemasHandler;
 use crate::models::schemas::v1::*;
-use crate::{
-    ObjectLabel, Policy, RequestContext, ResourceName, ResourceStore, Result, SecuredAction,
-};
+use crate::policy::{process_resources, Permission, Policy};
+use crate::{ObjectLabel, RequestContext, ResourceName, ResourceStore, Result, SecuredAction};
 
 #[async_trait::async_trait]
 impl<T: ResourceStore + Policy> SchemasHandler for T {
@@ -21,6 +20,9 @@ impl<T: ResourceStore + Policy> SchemasHandler for T {
             properties: request.properties,
             ..Default::default()
         };
+        // TODO:
+        // - update the schema with the current actor as owner
+        // - create updated_* relations
         self.create(resource.into()).await?.0.try_into()
     }
 
@@ -39,7 +41,7 @@ impl<T: ResourceStore + Policy> SchemasHandler for T {
         context: RequestContext,
     ) -> Result<ListSchemasResponse> {
         self.check_required(&request, context.as_ref()).await?;
-        let (resources, next_page_token) = self
+        let (mut resources, next_page_token) = self
             .list(
                 &ObjectLabel::SchemaInfo,
                 Some(&ResourceName::new([&request.catalog_name])),
@@ -47,6 +49,7 @@ impl<T: ResourceStore + Policy> SchemasHandler for T {
                 request.page_token,
             )
             .await?;
+        process_resources(self, context.as_ref(), &Permission::Read, &mut resources).await?;
         Ok(ListSchemasResponse {
             schemas: resources.into_iter().map(|r| r.try_into()).try_collect()?,
             next_page_token,
@@ -83,6 +86,9 @@ impl<T: ResourceStore + Policy> SchemasHandler for T {
             full_name: Some(format!("{}.{}", catalog_name, request.new_name)),
             ..Default::default()
         };
+        // TODO:
+        // - add update_* relations
+        // - update owner if necessary
         self.update(&ident, resource.into()).await?.0.try_into()
     }
 }

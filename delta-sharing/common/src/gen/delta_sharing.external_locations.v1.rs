@@ -42,6 +42,31 @@ pub struct ExternalLocationInfo {
     #[prost(string, optional, tag="100")]
     pub id: ::core::option::Option<::prost::alloc::string::String>,
 }
+/// List external locations
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListExternalLocationsRequest {
+    /// The maximum number of results per page that should be returned.
+    #[prost(int32, optional, tag="2")]
+    pub max_results: ::core::option::Option<i32>,
+    /// Opaque pagination token to go to next page based on previous query.
+    #[prost(string, optional, tag="3")]
+    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
+    /// Whether to include schemas in the response for which the principal can only access selective metadata for
+    #[prost(bool, optional, tag="4")]
+    pub include_browse: ::core::option::Option<bool>,
+}
+/// List external locations response.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListExternalLocationsResponse {
+    /// The external locations returned.
+    #[prost(message, repeated, tag="1")]
+    pub external_locations: ::prost::alloc::vec::Vec<ExternalLocationInfo>,
+    /// The next_page_token value to include in the next List request.
+    #[prost(string, optional, tag="2")]
+    pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
+}
 /// Create a new external location
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -65,17 +90,6 @@ pub struct CreateExternalLocationRequest {
     #[prost(bool, optional, tag="6")]
     pub skip_validation: ::core::option::Option<bool>,
 }
-/// Delete an external location
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeleteExternalLocationRequest {
-    /// Name of external location.
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-    /// Force deletion even if the external location is not empty.
-    #[prost(bool, optional, tag="2")]
-    pub force: ::core::option::Option<bool>,
-}
 /// Get an external location
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -83,28 +97,6 @@ pub struct GetExternalLocationRequest {
     /// Name of external location.
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
-}
-/// List external locations
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListExternalLocationsRequest {
-    /// The maximum number of results per page that should be returned.
-    #[prost(int32, optional, tag="2")]
-    pub max_results: ::core::option::Option<i32>,
-    /// Opaque pagination token to go to next page based on previous query.
-    #[prost(string, optional, tag="3")]
-    pub page_token: ::core::option::Option<::prost::alloc::string::String>,
-}
-/// List external locations response.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ListExternalLocationsResponse {
-    /// The external locations returned.
-    #[prost(message, repeated, tag="1")]
-    pub external_locations: ::prost::alloc::vec::Vec<ExternalLocationInfo>,
-    /// The next_page_token value to include in the next List request.
-    #[prost(string, optional, tag="2")]
-    pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Update an external location
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -137,6 +129,17 @@ pub struct UpdateExternalLocationRequest {
     /// Skips validation of the storage credential associated with the external location.
     #[prost(bool, optional, tag="9")]
     pub skip_validation: ::core::option::Option<bool>,
+}
+/// Delete an external location
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteExternalLocationRequest {
+    /// Name of external location.
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+    /// Force deletion even if the external location is not empty.
+    #[prost(bool, optional, tag="2")]
+    pub force: ::core::option::Option<bool>,
 }
 include!("delta_sharing.external_locations.v1.serde.rs");
 // @@protoc_insertion_point(module)

@@ -49,21 +49,30 @@ pub trait CatalogHandler: Send + Sync + 'static {
         context: RequestContext,
     ) -> Result<CatalogInfo>;
 
-    /// Delete a catalog.
-    async fn delete_catalog(
-        &self,
-        request: DeleteCatalogRequest,
-        context: RequestContext,
-    ) -> Result<()>;
-
-    /// Get a catalog.
+    /// Get a catalog
+    ///
+    /// Gets the specified catalog in a metastore. The caller must be a metastore admin,
+    /// the owner of the catalog, or a user that has the USE_CATALOG privilege set for their account.
     async fn get_catalog(
         &self,
         request: GetCatalogRequest,
         context: RequestContext,
     ) -> Result<CatalogInfo>;
 
-    /// Update a catalog.
+    /// Delete a catalog
+    ///
+    /// Deletes the catalog that matches the supplied name. The caller must be a metastore admin
+    /// or the owner of the catalog.
+    async fn delete_catalog(
+        &self,
+        request: DeleteCatalogRequest,
+        context: RequestContext,
+    ) -> Result<()>;
+
+    /// Update a catalog
+    ///
+    /// Updates the catalog that matches the supplied name. The caller must be either
+    /// the owner of the catalog, or a metastore admin (when changing the owner field of the catalog).
     async fn update_catalog(
         &self,
         request: UpdateCatalogRequest,

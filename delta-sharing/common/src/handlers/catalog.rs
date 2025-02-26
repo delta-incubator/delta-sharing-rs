@@ -2,6 +2,7 @@ use itertools::Itertools;
 
 use crate::api::catalogs::CatalogHandler;
 use crate::models::catalogs::v1::*;
+use crate::policy::{process_resources, Permission};
 use crate::{ObjectLabel, Policy, RequestContext, ResourceStore, Result, SecuredAction};
 
 #[async_trait::async_trait]
@@ -12,13 +13,28 @@ impl<T: ResourceStore + Policy> CatalogHandler for T {
         context: RequestContext,
     ) -> Result<CatalogInfo> {
         self.check_required(&request, context.as_ref()).await?;
+        let catalog_type = if request.provider_name.is_some() {
+            CatalogType::DeltasharingCatalog
+        } else {
+            CatalogType::ManagedCatalog
+        };
         let resource = CatalogInfo {
             name: request.name,
             comment: request.comment,
             properties: request.properties,
+            storage_root: request.storage_root,
+            provider_name: request.provider_name,
+            share_name: request.share_name,
+            catalog_type: Some(catalog_type as i32),
             ..Default::default()
         };
-        self.create(resource.into()).await?.0.try_into()
+        let info = self.create(resource.into()).await?.0.try_into()?;
+
+        // TODO:
+        // - make current actor the owner of the catalog including permissions
+        // - create updated_* relations
+
+        Ok(info)
     }
 
     async fn delete_catalog(
@@ -45,7 +61,7 @@ impl<T: ResourceStore + Policy> CatalogHandler for T {
         context: RequestContext,
     ) -> Result<ListCatalogsResponse> {
         self.check_required(&request, context.as_ref()).await?;
-        let (resources, next_page_token) = self
+        let (mut resources, next_page_token) = self
             .list(
                 &ObjectLabel::CatalogInfo,
                 None,
@@ -53,6 +69,7 @@ impl<T: ResourceStore + Policy> CatalogHandler for T {
                 request.page_token,
             )
             .await?;
+        process_resources(self, context.as_ref(), &Permission::Read, &mut resources).await?;
         Ok(ListCatalogsResponse {
             catalogs: resources.into_iter().map(|r| r.try_into()).try_collect()?,
             next_page_token,
@@ -72,6 +89,9 @@ impl<T: ResourceStore + Policy> CatalogHandler for T {
             properties: request.properties,
             ..Default::default()
         };
+        // TODO:
+        // - add update_* relations
+        // - update owner if necessary
         self.update(&ident, resource.into()).await?.0.try_into()
     }
 }

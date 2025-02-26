@@ -8,7 +8,8 @@ rest_handlers!(
     SchemasHandler, [
         CreateSchemaRequest, Schema, Create, SchemaInfo;
         ListSchemasRequest, Catalog, Read, ListSchemasResponse with [
-            catalog_name: query as String
+            catalog_name: query as String,
+            include_browse: query as Option<bool>,
         ];
         GetSchemaRequest, Schema, Read, SchemaInfo with [
             full_name: path as String,

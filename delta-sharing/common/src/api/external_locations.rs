@@ -8,7 +8,9 @@ rest_handlers!(
     ExternalLocationsHandler,
     [
         CreateExternalLocationRequest, ExternalLocation, Create, ExternalLocationInfo;
-        ListExternalLocationsRequest, ExternalLocation, Read, ListExternalLocationsResponse;
+        ListExternalLocationsRequest, ExternalLocation, Read, ListExternalLocationsResponse with [
+            include_browse: query as Option<bool>,
+        ];
         GetExternalLocationRequest, ExternalLocation, Read, ExternalLocationInfo with [
             name: path as String,
         ];

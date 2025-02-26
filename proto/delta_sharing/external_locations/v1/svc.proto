@@ -12,6 +12,31 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 import "openapiv3/annotations.proto";
 
+// List external locations
+message ListExternalLocationsRequest {
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 2 [
+    (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lt = 1000,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Opaque pagination token to go to next page based on previous query.
+  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether to include schemas in the response for which the principal can only access selective metadata for
+  optional bool include_browse = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// List external locations response.
+message ListExternalLocationsResponse {
+  // The external locations returned.
+  repeated ExternalLocationInfo external_locations = 1;
+
+  // The next_page_token value to include in the next List request.
+  optional string next_page_token = 2;
+}
+
 // Create a new external location
 message CreateExternalLocationRequest {
   // Name of external location.
@@ -42,18 +67,6 @@ message CreateExternalLocationRequest {
   optional bool skip_validation = 6 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// Delete an external location
-message DeleteExternalLocationRequest {
-  // Name of external location.
-  string name = 1 [
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
-    (google.api.field_behavior) = REQUIRED
-  ];
-
-  // Force deletion even if the external location is not empty.
-  optional bool force = 2 [(google.api.field_behavior) = OPTIONAL];
-}
-
 // Get an external location
 message GetExternalLocationRequest {
   // Name of external location.
@@ -61,28 +74,6 @@ message GetExternalLocationRequest {
     (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
-}
-
-// List external locations
-message ListExternalLocationsRequest {
-  // The maximum number of results per page that should be returned.
-  optional int32 max_results = 2 [
-    (buf.validate.field).int32.gt = 0,
-    (buf.validate.field).int32.lt = 1000,
-    (google.api.field_behavior) = OPTIONAL
-  ];
-
-  // Opaque pagination token to go to next page based on previous query.
-  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
-}
-
-// List external locations response.
-message ListExternalLocationsResponse {
-  // The external locations returned.
-  repeated ExternalLocationInfo external_locations = 1;
-
-  // The next_page_token value to include in the next List request.
-  optional string next_page_token = 2;
 }
 
 // Update an external location
@@ -116,6 +107,18 @@ message UpdateExternalLocationRequest {
 
   // Skips validation of the storage credential associated with the external location.
   optional bool skip_validation = 9 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Delete an external location
+message DeleteExternalLocationRequest {
+  // Name of external location.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Force deletion even if the external location is not empty.
+  optional bool force = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
 service ExternalLocationsService {

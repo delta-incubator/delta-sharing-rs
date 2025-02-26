@@ -138,6 +138,7 @@ mod tests {
     #[tokio::test]
     async fn test_catalog_router() {
         let app = get_catalog_router(Handler::default())
+            .merge(get_schemas_router(Handler::default()))
             .layer(AuthenticationLayer::new(AnonymousAuthenticator));
         super::integration::test_catalog_router(app).await;
     }

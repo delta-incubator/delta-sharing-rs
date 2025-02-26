@@ -141,7 +141,8 @@ paths:
       description: |-
         Delete a catalog
 
-         Deletes the catalog that matches the supplied name. The caller must be a metastore admin or the owner of the catalog.
+         Deletes the catalog that matches the supplied name. The caller must
+         be a metastore admin or the owner of the catalog.
       operationId: DeleteCatalog
       parameters:
         - name: name
@@ -217,6 +218,12 @@ paths:
           description: Opaque pagination token to go to next page based on previous query.
           schema:
             type: string
+        - name: purpose
+          in: query
+          description: Return only credentials for the specified purpose.
+          schema:
+            type: integer
+            format: enum
       responses:
         '200':
           description: OK
@@ -347,6 +354,11 @@ paths:
           description: Opaque pagination token to go to next page based on previous query.
           schema:
             type: string
+        - name: includeBrowse
+          in: query
+          description: Whether to include schemas in the response for which the principal can only access selective metadata for
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -629,6 +641,11 @@ paths:
           description: Opaque pagination token to go to next page based on previous query.
           schema:
             type: string
+        - name: includeBrowse
+          in: query
+          description: Whether to include schemas in the response for which the principal can only access selective metadata for
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -2094,12 +2111,19 @@ components:
         name:
           type: string
           description: Name of catalog.
+        owner:
+          type: string
+          description: Username of new owner of catalog.
         comment:
           type: string
           description: User-provided free-form text description.
         properties:
           type: object
-          description: A map of key-value properties attached to the securable.
+          description: |-
+            A map of key-value properties attached to the securable.
+
+             When provided in update request, the specified properties will override the existing properties.
+             To add and remove properties, one would need to perform a read-modify-write.
         newName:
           type: string
           description: Name of catalog.
@@ -2211,7 +2235,11 @@ components:
           description: User-provided free-form text description.
         properties:
           type: object
-          description: A map of key-value properties attached to the securable.
+          description: |-
+            A map of key-value properties attached to the securable.
+
+             When provided in update request, the specified properties will override the existing properties.
+             To add and remove properties, one would need to perform a read-modify-write.
         newName:
           type: string
           description: Name of schema.

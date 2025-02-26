@@ -146,6 +146,9 @@ pub struct ListCredentialsRequest {
     /// Opaque pagination token to go to next page based on previous query.
     #[prost(string, optional, tag="3")]
     pub page_token: ::core::option::Option<::prost::alloc::string::String>,
+    /// Return only credentials for the specified purpose.
+    #[prost(enumeration="Purpose", optional, tag="4")]
+    pub purpose: ::core::option::Option<i32>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

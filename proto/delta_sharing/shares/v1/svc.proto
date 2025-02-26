@@ -28,7 +28,7 @@ message ListSharesResponse {
   repeated ShareInfo shares = 1;
 
   // Opaque pagination token to go to next page based on previous query.
-  optional string next_page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+  optional string next_page_token = 2;
 }
 
 // Creates a new share for data objects.

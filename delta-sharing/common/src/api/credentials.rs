@@ -7,7 +7,9 @@ use crate::{Error, Permission, Recipient, ResourceIdent, ResourceName, ResourceR
 rest_handlers!(
     CredentialsHandler,
     [
-        ListCredentialsRequest, Credential, Read, ListCredentialsResponse;
+        ListCredentialsRequest, Credential, Read, ListCredentialsResponse with [
+            purpose: query as Option<i32>,
+        ];
         CreateCredentialRequest, Credential, Create, CredentialInfo;
         GetCredentialRequest, Credential, Read, CredentialInfo with [
             name: path as String,
