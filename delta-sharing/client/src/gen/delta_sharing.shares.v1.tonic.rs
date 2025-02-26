@@ -1,16 +1,16 @@
 // @generated
 /// Generated client implementations.
-pub mod delta_sharing_service_client {
+pub mod shares_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
-    /** Service exposing the official APIs for Delta Sharing.
+    /** Service for managing shares
 */
     #[derive(Debug, Clone)]
-    pub struct DeltaSharingServiceClient<T> {
+    pub struct SharesServiceClient<T> {
         inner: tonic::client::Grpc<T>,
     }
-    impl DeltaSharingServiceClient<tonic::transport::Channel> {
+    impl SharesServiceClient<tonic::transport::Channel> {
         /// Attempt to create a new client by connecting to a given endpoint.
         pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
         where
@@ -21,7 +21,7 @@ pub mod delta_sharing_service_client {
             Ok(Self::new(conn))
         }
     }
-    impl<T> DeltaSharingServiceClient<T>
+    impl<T> SharesServiceClient<T>
     where
         T: tonic::client::GrpcService<tonic::body::BoxBody>,
         T::Error: Into<StdError>,
@@ -39,7 +39,7 @@ pub mod delta_sharing_service_client {
         pub fn with_interceptor<F>(
             inner: T,
             interceptor: F,
-        ) -> DeltaSharingServiceClient<InterceptedService<T, F>>
+        ) -> SharesServiceClient<InterceptedService<T, F>>
         where
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
@@ -53,7 +53,7 @@ pub mod delta_sharing_service_client {
                 http::Request<tonic::body::BoxBody>,
             >>::Error: Into<StdError> + Send + Sync,
         {
-            DeltaSharingServiceClient::new(InterceptedService::new(inner, interceptor))
+            SharesServiceClient::new(InterceptedService::new(inner, interceptor))
         }
         /// Compress requests with the given encoding.
         ///
@@ -86,7 +86,7 @@ pub mod delta_sharing_service_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        /** List shares accessible to a recipient.
+        /** List shares.
 */
         pub async fn list_shares(
             &mut self,
@@ -106,24 +106,53 @@ pub mod delta_sharing_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.sharing.v1.DeltaSharingService/ListShares",
+                "/delta_sharing.shares.v1.SharesService/ListShares",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "delta_sharing.sharing.v1.DeltaSharingService",
+                        "delta_sharing.shares.v1.SharesService",
                         "ListShares",
                     ),
                 );
             self.inner.unary(req, path, codec).await
         }
-        /** Get the metadata for a specific share.
+        /** Create a new share.
+*/
+        pub async fn create_share(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateShareRequest>,
+        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/delta_sharing.shares.v1.SharesService/CreateShare",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "delta_sharing.shares.v1.SharesService",
+                        "CreateShare",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /** Get a share by name.
 */
         pub async fn get_share(
             &mut self,
             request: impl tonic::IntoRequest<super::GetShareRequest>,
-        ) -> std::result::Result<tonic::Response<super::Share>, tonic::Status> {
+        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -135,27 +164,21 @@ pub mod delta_sharing_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.sharing.v1.DeltaSharingService/GetShare",
+                "/delta_sharing.shares.v1.SharesService/GetShare",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
-                    GrpcMethod::new(
-                        "delta_sharing.sharing.v1.DeltaSharingService",
-                        "GetShare",
-                    ),
+                    GrpcMethod::new("delta_sharing.shares.v1.SharesService", "GetShare"),
                 );
             self.inner.unary(req, path, codec).await
         }
-        /** List the schemas in a share.
+        /** Update a share.
 */
-        pub async fn list_sharing_schemas(
+        pub async fn update_share(
             &mut self,
-            request: impl tonic::IntoRequest<super::ListSharingSchemasRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ListSharingSchemasResponse>,
-            tonic::Status,
-        > {
+            request: impl tonic::IntoRequest<super::UpdateShareRequest>,
+        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -167,27 +190,24 @@ pub mod delta_sharing_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.sharing.v1.DeltaSharingService/ListSharingSchemas",
+                "/delta_sharing.shares.v1.SharesService/UpdateShare",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "delta_sharing.sharing.v1.DeltaSharingService",
-                        "ListSharingSchemas",
+                        "delta_sharing.shares.v1.SharesService",
+                        "UpdateShare",
                     ),
                 );
             self.inner.unary(req, path, codec).await
         }
-        /** List the tables in a given share's schema.
+        /** Deletes a share.
 */
-        pub async fn list_schema_tables(
+        pub async fn delete_share(
             &mut self,
-            request: impl tonic::IntoRequest<super::ListSchemaTablesRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ListSchemaTablesResponse>,
-            tonic::Status,
-        > {
+            request: impl tonic::IntoRequest<super::DeleteShareRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -199,106 +219,14 @@ pub mod delta_sharing_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.sharing.v1.DeltaSharingService/ListSchemaTables",
+                "/delta_sharing.shares.v1.SharesService/DeleteShare",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
-                        "delta_sharing.sharing.v1.DeltaSharingService",
-                        "ListSchemaTables",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        /** List all the tables under all schemas in a share.
-*/
-        pub async fn list_share_tables(
-            &mut self,
-            request: impl tonic::IntoRequest<super::ListShareTablesRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ListShareTablesResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.sharing.v1.DeltaSharingService/ListShareTables",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "delta_sharing.sharing.v1.DeltaSharingService",
-                        "ListShareTables",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        /** Get the current version for a table within a schema.
-*/
-        pub async fn get_table_version(
-            &mut self,
-            request: impl tonic::IntoRequest<super::GetTableVersionRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetTableVersionResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.sharing.v1.DeltaSharingService/GetTableVersion",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "delta_sharing.sharing.v1.DeltaSharingService",
-                        "GetTableVersion",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
-        ///
-        pub async fn get_table_metadata(
-            &mut self,
-            request: impl tonic::IntoRequest<super::GetTableMetadataRequest>,
-        ) -> std::result::Result<tonic::Response<super::QueryResponse>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/delta_sharing.sharing.v1.DeltaSharingService/GetTableMetadata",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "delta_sharing.sharing.v1.DeltaSharingService",
-                        "GetTableMetadata",
+                        "delta_sharing.shares.v1.SharesService",
+                        "DeleteShare",
                     ),
                 );
             self.inner.unary(req, path, codec).await

@@ -4,7 +4,7 @@ pub(crate) mod sharing;
 
 pub use catalog::CatalogHandler;
 pub use credentials::CredentialsHandler;
-pub use sharing::{SharingDiscoveryHandler, SharingExtensionHandler, SharingQueryHandler};
+pub use sharing::{SharingDiscoveryHandler, SharingQueryHandler};
 
 use crate::{Permission, Recipient, ResourceIdent};
 

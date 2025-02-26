@@ -58,54 +58,6 @@ pub trait SharingDiscoveryHandler: Send + Sync + 'static {
 }
 
 rest_handlers!(
-    SharingExtensionHandler, [
-        CreateShareRequest, Share, Create, ShareInfo;
-        DeleteShareRequest, Share, Manage with [
-            name: path as String,
-            force: query as Option<bool>
-        ];
-        CreateSharingSchemaRequest, SharingSchema, Create, SharingSchemaInfo with [
-            share: path as String,
-        ];
-        DeleteSharingSchemaRequest, SharingSchema, Manage with [
-            share: path as String,
-            name: path as String,
-        ];
-    ]
-);
-
-#[async_trait::async_trait]
-pub trait SharingExtensionHandler: Send + Sync + 'static {
-    /// Create a share.
-    async fn create_share(
-        &self,
-        request: CreateShareRequest,
-        context: RequestContext,
-    ) -> Result<ShareInfo>;
-
-    /// Delete a share.
-    async fn delete_share(
-        &self,
-        request: DeleteShareRequest,
-        context: RequestContext,
-    ) -> Result<()>;
-
-    /// Create a schema.
-    async fn create_sharing_schema(
-        &self,
-        request: CreateSharingSchemaRequest,
-        context: RequestContext,
-    ) -> Result<SharingSchemaInfo>;
-
-    /// Delete a schema.
-    async fn delete_sharing_schema(
-        &self,
-        request: DeleteSharingSchemaRequest,
-        context: RequestContext,
-    ) -> Result<()>;
-}
-
-rest_handlers!(
     SharingQueryHandler, [
         GetTableVersionRequest, SharingTable, Read, GetTableVersionResponse with [
             share: path as String,

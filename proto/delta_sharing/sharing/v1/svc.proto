@@ -24,24 +24,8 @@ option (openapi.v3.document) = {
   }
   tags: [
     {
-      name: "shares"
-      description: "Share discovery APIs"
-    },
-    {
-      name: "schemas"
-      description: "Schema discovery APIs"
-    },
-    {
-      name: "tables"
-      description: "Table query and inspection APIs"
-    },
-    {
-      name: "official"
-      description: "APIs which are part of published official document"
-    },
-    {
-      name: "unofficial"
-      description: "APIs which are custom to delta-sharing-rs"
+      name: "DeltaSharingService"
+      description: "An Open Protocol for Secure Data Sharing"
     }
   ]
 };
@@ -75,8 +59,7 @@ message GetShareRequest {
   string name = 1 [
     (buf.validate.field).string.min_len = 1,
     (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+    (google.api.field_behavior) = REQUIRED
   ];
 }
 
@@ -86,13 +69,13 @@ message ListSharingSchemasRequest {
   string share = 1 [
     (buf.validate.field).string.min_len = 1,
     (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+    (google.api.field_behavior) = REQUIRED
   ];
 
   // The maximum number of results per page that should be returned.
   optional int32 max_results = 2 [
     (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lt = 1000,
     (google.api.field_behavior) = OPTIONAL
   ];
 
@@ -117,16 +100,14 @@ message ListSchemaTablesRequest {
   string name = 1 [
     (buf.validate.field).string.min_len = 1,
     (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
+    (google.api.field_behavior) = REQUIRED
   ];
 
   // The share name to query. It's case-insensitive.
   string share = 2 [
     (buf.validate.field).string.min_len = 1,
     (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+    (google.api.field_behavior) = REQUIRED
   ];
 
   // The maximum number of results per page that should be returned.
@@ -155,13 +136,13 @@ message ListShareTablesRequest {
   string name = 1 [
     (buf.validate.field).string.min_len = 1,
     (buf.validate.field).string.pattern = "^[a-z][0-9a-z-]*[0-9a-z]$",
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
+    (google.api.field_behavior) = REQUIRED
   ];
 
   // The maximum number of results per page that should be returned.
   optional int32 max_results = 2 [
     (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lt = 1000,
     (google.api.field_behavior) = OPTIONAL
   ];
 
@@ -185,181 +166,41 @@ service DeltaSharingService {
   // List shares accessible to a recipient.
   rpc ListShares(ListSharesRequest) returns (ListSharesResponse) {
     option (google.api.http) = {get: "/shares"};
-    option (openapi.v3.operation) = {
-      tags: [
-        "shares",
-        "official"
-      ]
-      operation_id: "ListShares"
-    };
+    option (openapi.v3.operation) = {operation_id: "ListShares"};
   }
 
   // Get the metadata for a specific share.
   rpc GetShare(GetShareRequest) returns (Share) {
     option (google.api.http) = {get: "/{name=shares/*}"};
-    option (openapi.v3.operation) = {
-      tags: [
-        "shares",
-        "official"
-      ]
-      operation_id: "GetShare"
-    };
+    option (openapi.v3.operation) = {operation_id: "GetShare"};
   }
 
   // List the schemas in a share.
   rpc ListSharingSchemas(ListSharingSchemasRequest) returns (ListSharingSchemasResponse) {
-    option (google.api.http) = {get: "/{share=shares/*}/schemas"};
-    option (openapi.v3.operation) = {
-      tags: [
-        "schemas",
-        "official"
-      ]
-      operation_id: "ListSharingSchemas"
-    };
+    option (google.api.http) = {get: "/shares/{share}}/schemas"};
+    option (openapi.v3.operation) = {operation_id: "ListSharingSchemas"};
   }
 
   // List the tables in a given share's schema.
   rpc ListSchemaTables(ListSchemaTablesRequest) returns (ListSchemaTablesResponse) {
     option (google.api.http) = {get: "/shares/{share}/schemas/{name}/tables"};
-    option (openapi.v3.operation) = {
-      tags: [
-        "tables",
-        "official"
-      ]
-      operation_id: "ListSchemaTables"
-    };
+    option (openapi.v3.operation) = {operation_id: "ListSchemaTables"};
   }
 
   // List all the tables under all schemas in a share.
   rpc ListShareTables(ListShareTablesRequest) returns (ListShareTablesResponse) {
     option (google.api.http) = {get: "/{name=shares/*}/all-tables"};
-    option (openapi.v3.operation) = {
-      tags: [
-        "tables",
-        "official"
-      ]
-      operation_id: "ListShareTables"
-    };
+    option (openapi.v3.operation) = {operation_id: "ListShareTables"};
   }
 
   // Get the current version for a table within a schema.
   rpc GetTableVersion(GetTableVersionRequest) returns (GetTableVersionResponse) {
     option (google.api.http) = {get: "/shares/{share}/schemas/{schema}/tables/{name}/version"};
-    option (openapi.v3.operation) = {
-      tags: [
-        "tables",
-        "official"
-      ]
-      operation_id: "GetTableVersion"
-    };
+    option (openapi.v3.operation) = {operation_id: "GetTableVersion"};
   }
 
   rpc GetTableMetadata(GetTableMetadataRequest) returns (QueryResponse) {
     option (google.api.http) = {get: "/shares/{share}/schemas/{schema}/tables/{name}/metadata"};
-    option (openapi.v3.operation) = {
-      tags: [
-        "tables",
-        "official"
-      ]
-      operation_id: "GetTableMetadata"
-    };
-  }
-}
-
-// Create a new Share in the Delta Sharing service.
-message CreateShareRequest {
-  string name = 1 [(google.api.field_behavior) = REQUIRED];
-  optional string description = 2 [(google.api.field_behavior) = OPTIONAL];
-  optional google.protobuf.Struct properties = 3 [(google.api.field_behavior) = OPTIONAL];
-}
-
-// Delete a Share in the Delta Sharing service.
-message DeleteShareRequest {
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
-  ];
-
-  optional bool force = 2 [(google.api.field_behavior) = OPTIONAL];
-}
-
-// Create a new Schema in the Delta Sharing service.
-message CreateSharingSchemaRequest {
-  string share = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
-  ];
-
-  SharingSchemaInfo schema = 2 [(google.api.field_behavior) = REQUIRED];
-}
-
-// Delete a Schema in the Delta Sharing service.
-message DeleteSharingSchemaRequest {
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "sharing.delta.io/Schema"}
-  ];
-
-  string share = 2 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "sharing.delta.io/Share"}
-  ];
-}
-
-// Services exposing the unofficial APIs for Delta Sharing.
-// Mainly used to manage resoureces exposed by the Delta Sharing service.
-service DeltaSharingExtensionService {
-  // Create a new Share in the Delta Sharing service.
-  rpc CreateShare(CreateShareRequest) returns (ShareInfo) {
-    option (google.api.http) = {
-      post: "/shares"
-      body: "*"
-    };
-    option (openapi.v3.operation) = {
-      tags: [
-        "shares",
-        "unofficial"
-      ]
-      operation_id: "CreateShare"
-    };
-  }
-
-  // Delete a Share in the Delta Sharing service.
-  rpc DeleteShare(DeleteShareRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {delete: "/shares/{name}"};
-    option (openapi.v3.operation) = {
-      tags: [
-        "shares",
-        "unofficial"
-      ]
-      operation_id: "DeleteShare"
-    };
-  }
-
-  // Create a new Schema in the Delta Sharing service.
-  rpc CreateSchema(CreateSharingSchemaRequest) returns (SharingSchemaInfo) {
-    option (google.api.http) = {
-      post: "/shares/{share}/schemas"
-      body: "schema"
-    };
-    option (openapi.v3.operation) = {
-      tags: [
-        "schemas",
-        "unofficial"
-      ]
-      operation_id: "CreateSchema"
-    };
-  }
-
-  // Delete a Schema in the Delta Sharing service.
-  rpc DeleteSchema(DeleteSharingSchemaRequest) returns (SharingSchemaInfo) {
-    option (google.api.http) = {delete: "/shares/{share}/schemas/{name}"};
-    option (openapi.v3.operation) = {
-      tags: [
-        "schemas",
-        "unofficial"
-      ]
-      operation_id: "DeleteSchema"
-    };
+    option (openapi.v3.operation) = {operation_id: "GetTableMetadata"};
   }
 }

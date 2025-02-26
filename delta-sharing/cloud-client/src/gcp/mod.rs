@@ -48,10 +48,8 @@ enum Error {
 
 impl From<Error> for crate::Error {
     fn from(err: Error) -> Self {
-        match err {
-            _ => Self::Generic {
-                source: Box::new(err),
-            },
+        Self::Generic {
+            source: Box::new(err),
         }
     }
 }

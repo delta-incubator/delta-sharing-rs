@@ -1,9 +1,7 @@
 use itertools::Itertools;
 
 use super::ServerHandler;
-use crate::api::{
-    RequestContext, SharingDiscoveryHandler, SharingExtensionHandler, SharingQueryHandler,
-};
+use crate::api::{RequestContext, SharingDiscoveryHandler, SharingQueryHandler};
 use crate::models::sharing::v1::*;
 use crate::policy::{process_resources, Permission};
 use crate::{
@@ -85,51 +83,6 @@ impl<T: ResourceStore + Policy> SharingDiscoveryHandler for T {
     ) -> Result<ListShareTablesResponse> {
         // Scaffold method body (implementation to come later)
         todo!()
-    }
-}
-
-#[async_trait::async_trait]
-impl<T: ResourceStore + Policy> SharingExtensionHandler for T {
-    async fn create_share(
-        &self,
-        request: CreateShareRequest,
-        context: RequestContext,
-    ) -> Result<ShareInfo> {
-        self.check_required(&request, context.recipient()).await?;
-        let resource = ShareInfo {
-            name: request.name,
-            description: request.description,
-            properties: request.properties,
-            ..Default::default()
-        };
-        self.create(resource.into()).await?.0.try_into()
-    }
-
-    async fn delete_share(
-        &self,
-        request: DeleteShareRequest,
-        context: RequestContext,
-    ) -> Result<()> {
-        self.check_required(&request, context.recipient()).await?;
-        self.delete(&request.resource()).await
-    }
-
-    async fn create_sharing_schema(
-        &self,
-        request: CreateSharingSchemaRequest,
-        context: RequestContext,
-    ) -> Result<SharingSchemaInfo> {
-        self.check_required(&request, context.recipient()).await?;
-        todo!()
-    }
-
-    async fn delete_sharing_schema(
-        &self,
-        request: DeleteSharingSchemaRequest,
-        context: RequestContext,
-    ) -> Result<()> {
-        self.check_required(&request, context.recipient()).await?;
-        self.delete(&request.resource()).await
     }
 }
 

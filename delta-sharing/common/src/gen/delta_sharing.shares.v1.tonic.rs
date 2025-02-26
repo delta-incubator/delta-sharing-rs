@@ -1,12 +1,12 @@
 // @generated
 /// Generated server implementations.
-pub mod delta_sharing_service_server {
+pub mod shares_service_server {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
-    /// Generated trait containing gRPC methods that should be implemented for use with DeltaSharingServiceServer.
+    /// Generated trait containing gRPC methods that should be implemented for use with SharesServiceServer.
     #[async_trait]
-    pub trait DeltaSharingService: Send + Sync + 'static {
-        /** List shares accessible to a recipient.
+    pub trait SharesService: Send + Sync + 'static {
+        /** List shares.
 */
         async fn list_shares(
             &self,
@@ -15,65 +15,42 @@ pub mod delta_sharing_service_server {
             tonic::Response<super::ListSharesResponse>,
             tonic::Status,
         >;
-        /** Get the metadata for a specific share.
+        /** Create a new share.
+*/
+        async fn create_share(
+            &self,
+            request: tonic::Request<super::CreateShareRequest>,
+        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status>;
+        /** Get a share by name.
 */
         async fn get_share(
             &self,
             request: tonic::Request<super::GetShareRequest>,
-        ) -> std::result::Result<tonic::Response<super::Share>, tonic::Status>;
-        /** List the schemas in a share.
+        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status>;
+        /** Update a share.
 */
-        async fn list_sharing_schemas(
+        async fn update_share(
             &self,
-            request: tonic::Request<super::ListSharingSchemasRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ListSharingSchemasResponse>,
-            tonic::Status,
-        >;
-        /** List the tables in a given share's schema.
+            request: tonic::Request<super::UpdateShareRequest>,
+        ) -> std::result::Result<tonic::Response<super::ShareInfo>, tonic::Status>;
+        /** Deletes a share.
 */
-        async fn list_schema_tables(
+        async fn delete_share(
             &self,
-            request: tonic::Request<super::ListSchemaTablesRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ListSchemaTablesResponse>,
-            tonic::Status,
-        >;
-        /** List all the tables under all schemas in a share.
-*/
-        async fn list_share_tables(
-            &self,
-            request: tonic::Request<super::ListShareTablesRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::ListShareTablesResponse>,
-            tonic::Status,
-        >;
-        /** Get the current version for a table within a schema.
-*/
-        async fn get_table_version(
-            &self,
-            request: tonic::Request<super::GetTableVersionRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::GetTableVersionResponse>,
-            tonic::Status,
-        >;
-        ///
-        async fn get_table_metadata(
-            &self,
-            request: tonic::Request<super::GetTableMetadataRequest>,
-        ) -> std::result::Result<tonic::Response<super::QueryResponse>, tonic::Status>;
+            request: tonic::Request<super::DeleteShareRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status>;
     }
-    /** Service exposing the official APIs for Delta Sharing.
+    /** Service for managing shares
 */
     #[derive(Debug)]
-    pub struct DeltaSharingServiceServer<T: DeltaSharingService> {
+    pub struct SharesServiceServer<T: SharesService> {
         inner: Arc<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
         max_decoding_message_size: Option<usize>,
         max_encoding_message_size: Option<usize>,
     }
-    impl<T: DeltaSharingService> DeltaSharingServiceServer<T> {
+    impl<T: SharesService> SharesServiceServer<T> {
         pub fn new(inner: T) -> Self {
             Self::from_arc(Arc::new(inner))
         }
@@ -124,9 +101,9 @@ pub mod delta_sharing_service_server {
             self
         }
     }
-    impl<T, B> tonic::codegen::Service<http::Request<B>> for DeltaSharingServiceServer<T>
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for SharesServiceServer<T>
     where
-        T: DeltaSharingService,
+        T: SharesService,
         B: Body + Send + 'static,
         B::Error: Into<StdError> + Send + 'static,
     {
@@ -141,11 +118,11 @@ pub mod delta_sharing_service_server {
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             match req.uri().path() {
-                "/delta_sharing.sharing.v1.DeltaSharingService/ListShares" => {
+                "/delta_sharing.shares.v1.SharesService/ListShares" => {
                     #[allow(non_camel_case_types)]
-                    struct ListSharesSvc<T: DeltaSharingService>(pub Arc<T>);
+                    struct ListSharesSvc<T: SharesService>(pub Arc<T>);
                     impl<
-                        T: DeltaSharingService,
+                        T: SharesService,
                     > tonic::server::UnaryService<super::ListSharesRequest>
                     for ListSharesSvc<T> {
                         type Response = super::ListSharesResponse;
@@ -159,8 +136,7 @@ pub mod delta_sharing_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as DeltaSharingService>::list_shares(&inner, request)
-                                    .await
+                                <T as SharesService>::list_shares(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -187,14 +163,59 @@ pub mod delta_sharing_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/delta_sharing.sharing.v1.DeltaSharingService/GetShare" => {
+                "/delta_sharing.shares.v1.SharesService/CreateShare" => {
                     #[allow(non_camel_case_types)]
-                    struct GetShareSvc<T: DeltaSharingService>(pub Arc<T>);
+                    struct CreateShareSvc<T: SharesService>(pub Arc<T>);
                     impl<
-                        T: DeltaSharingService,
+                        T: SharesService,
+                    > tonic::server::UnaryService<super::CreateShareRequest>
+                    for CreateShareSvc<T> {
+                        type Response = super::ShareInfo;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::CreateShareRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as SharesService>::create_share(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = CreateShareSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.shares.v1.SharesService/GetShare" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetShareSvc<T: SharesService>(pub Arc<T>);
+                    impl<
+                        T: SharesService,
                     > tonic::server::UnaryService<super::GetShareRequest>
                     for GetShareSvc<T> {
-                        type Response = super::Share;
+                        type Response = super::ShareInfo;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
@@ -205,7 +226,7 @@ pub mod delta_sharing_service_server {
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as DeltaSharingService>::get_share(&inner, request).await
+                                <T as SharesService>::get_share(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -232,29 +253,25 @@ pub mod delta_sharing_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/delta_sharing.sharing.v1.DeltaSharingService/ListSharingSchemas" => {
+                "/delta_sharing.shares.v1.SharesService/UpdateShare" => {
                     #[allow(non_camel_case_types)]
-                    struct ListSharingSchemasSvc<T: DeltaSharingService>(pub Arc<T>);
+                    struct UpdateShareSvc<T: SharesService>(pub Arc<T>);
                     impl<
-                        T: DeltaSharingService,
-                    > tonic::server::UnaryService<super::ListSharingSchemasRequest>
-                    for ListSharingSchemasSvc<T> {
-                        type Response = super::ListSharingSchemasResponse;
+                        T: SharesService,
+                    > tonic::server::UnaryService<super::UpdateShareRequest>
+                    for UpdateShareSvc<T> {
+                        type Response = super::ShareInfo;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::ListSharingSchemasRequest>,
+                            request: tonic::Request<super::UpdateShareRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as DeltaSharingService>::list_sharing_schemas(
-                                        &inner,
-                                        request,
-                                    )
-                                    .await
+                                <T as SharesService>::update_share(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -265,7 +282,7 @@ pub mod delta_sharing_service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let method = ListSharingSchemasSvc(inner);
+                        let method = UpdateShareSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -281,29 +298,25 @@ pub mod delta_sharing_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/delta_sharing.sharing.v1.DeltaSharingService/ListSchemaTables" => {
+                "/delta_sharing.shares.v1.SharesService/DeleteShare" => {
                     #[allow(non_camel_case_types)]
-                    struct ListSchemaTablesSvc<T: DeltaSharingService>(pub Arc<T>);
+                    struct DeleteShareSvc<T: SharesService>(pub Arc<T>);
                     impl<
-                        T: DeltaSharingService,
-                    > tonic::server::UnaryService<super::ListSchemaTablesRequest>
-                    for ListSchemaTablesSvc<T> {
-                        type Response = super::ListSchemaTablesResponse;
+                        T: SharesService,
+                    > tonic::server::UnaryService<super::DeleteShareRequest>
+                    for DeleteShareSvc<T> {
+                        type Response = ();
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::ListSchemaTablesRequest>,
+                            request: tonic::Request<super::DeleteShareRequest>,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as DeltaSharingService>::list_schema_tables(
-                                        &inner,
-                                        request,
-                                    )
-                                    .await
+                                <T as SharesService>::delete_share(&inner, request).await
                             };
                             Box::pin(fut)
                         }
@@ -314,154 +327,7 @@ pub mod delta_sharing_service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let method = ListSchemaTablesSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/delta_sharing.sharing.v1.DeltaSharingService/ListShareTables" => {
-                    #[allow(non_camel_case_types)]
-                    struct ListShareTablesSvc<T: DeltaSharingService>(pub Arc<T>);
-                    impl<
-                        T: DeltaSharingService,
-                    > tonic::server::UnaryService<super::ListShareTablesRequest>
-                    for ListShareTablesSvc<T> {
-                        type Response = super::ListShareTablesResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::ListShareTablesRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as DeltaSharingService>::list_share_tables(
-                                        &inner,
-                                        request,
-                                    )
-                                    .await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = ListShareTablesSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/delta_sharing.sharing.v1.DeltaSharingService/GetTableVersion" => {
-                    #[allow(non_camel_case_types)]
-                    struct GetTableVersionSvc<T: DeltaSharingService>(pub Arc<T>);
-                    impl<
-                        T: DeltaSharingService,
-                    > tonic::server::UnaryService<super::GetTableVersionRequest>
-                    for GetTableVersionSvc<T> {
-                        type Response = super::GetTableVersionResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::GetTableVersionRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as DeltaSharingService>::get_table_version(
-                                        &inner,
-                                        request,
-                                    )
-                                    .await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = GetTableVersionSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/delta_sharing.sharing.v1.DeltaSharingService/GetTableMetadata" => {
-                    #[allow(non_camel_case_types)]
-                    struct GetTableMetadataSvc<T: DeltaSharingService>(pub Arc<T>);
-                    impl<
-                        T: DeltaSharingService,
-                    > tonic::server::UnaryService<super::GetTableMetadataRequest>
-                    for GetTableMetadataSvc<T> {
-                        type Response = super::QueryResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::GetTableMetadataRequest>,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as DeltaSharingService>::get_table_metadata(
-                                        &inner,
-                                        request,
-                                    )
-                                    .await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = GetTableMetadataSvc(inner);
+                        let method = DeleteShareSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -495,7 +361,7 @@ pub mod delta_sharing_service_server {
             }
         }
     }
-    impl<T: DeltaSharingService> Clone for DeltaSharingServiceServer<T> {
+    impl<T: SharesService> Clone for SharesServiceServer<T> {
         fn clone(&self) -> Self {
             let inner = self.inner.clone();
             Self {
@@ -507,8 +373,7 @@ pub mod delta_sharing_service_server {
             }
         }
     }
-    impl<T: DeltaSharingService> tonic::server::NamedService
-    for DeltaSharingServiceServer<T> {
-        const NAME: &'static str = "delta_sharing.sharing.v1.DeltaSharingService";
+    impl<T: SharesService> tonic::server::NamedService for SharesServiceServer<T> {
+        const NAME: &'static str = "delta_sharing.shares.v1.SharesService";
     }
 }

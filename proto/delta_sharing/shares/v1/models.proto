@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package delta_sharing.shares.v1;
+
+import "google/api/field_behavior.proto";
+
+enum DataObjectType {
+  // Unknown data object type.
+  DATA_OBJECT_TYPE_UNSPECIFIED = 0;
+
+  TABLE = 1;
+
+  SCHEMA = 2;
+
+  // VIEW = 3;
+
+  // MATERIALIZED_VIEW = 4;
+
+  // STREAMING_TABLE = 5;
+
+  // MODEL = 6;
+
+  // NOTEBOOK_FILE = 7;
+
+  // FUNCTION = 8;
+
+  // FEATURE_SPEC = 9;
+}
+
+enum HistoryStatus {
+  // Data history sharing is disabled.
+  DISABLED = 0;
+
+  // Data history sharing is enabled.
+  ENABLED = 1;
+}
+
+message DataObject {
+  // A fully qualified name that uniquely identifies a data object.
+  //
+  // For example, a table's fully qualified name is in the format of <catalog>.<schema>.<table>,
+  string name = 1;
+
+  // Type of the data object.
+  DataObjectType data_object_type = 2;
+
+  // The time when this data object is added to the share, in epoch milliseconds.
+  optional int64 added_at = 3;
+
+  // Username of the sharer.
+  optional string added_by = 4;
+
+  // A user-provided comment when adding the data object to the share.
+  optional string comment = 5;
+
+  // A user-provided new name for the data object within the share.
+  //
+  // If this new name is not provided, the object's original name will be used as the shared_as name.
+  // The shared_as name must be unique within a share.
+  // For tables, the new name must follow the format of <schema>.<table>.
+  optional string shared_as = 6;
+
+  // Array of partitions for the shared data.
+  repeated string partitions = 7;
+
+  // Whether to enable cdf or indicate if cdf is enabled on the shared object.
+  optional bool enable_cdf = 8;
+
+  // Whether to enable or disable sharing of data history. If not specified, the default is DISABLED.
+  optional HistoryStatus history_data_sharing_status = 9;
+
+  // The start version associated with the object.
+  //
+  // This allows data providers to control the lowest object version that is accessible by clients.
+  // If specified, clients can query snapshots or changes for versions >= start_version.
+  // If not specified, clients can only query starting from the version of the object at the time it was added to the share.
+  //
+  // NOTE: The start_version should be <= the current version of the object.
+  optional int64 start_version = 10;
+}
+
+message ShareInfo {
+  // Name of the share.
+  string name = 1;
+
+  // Username of current owner of share.
+  optional string owner = 2;
+
+  // User-provided free-form text description.
+  optional string comment = 3;
+
+  // Storage root URL for the share.
+  // optional string storage_root = 4;
+
+  // A list of shared data objects within the share.
+  repeated DataObject data_objects = 5;
+
+  // Time at which this share was created, in epoch milliseconds.
+  optional int64 created_at = 6;
+
+  // Username of the creator of the share.
+  optional string created_by = 7;
+
+  // Time at which this share was updated, in epoch milliseconds.
+  optional int64 updated_at = 8;
+
+  // Username of share updater.
+  optional string updated_by = 9;
+
+  // Storage Location URL (full path) for the share.
+  // optional string storage_location = 10;
+}
