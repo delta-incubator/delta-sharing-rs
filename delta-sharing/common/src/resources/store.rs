@@ -8,6 +8,10 @@ use crate::{
 };
 
 /// Generic store that can be used to store and retrieve resources.
+///
+/// Any implementation must conform to the following rules:
+/// - Id fields are managed by the store and must be globally unique.
+///   If the id field is set on a resource, it can be ignored.
 #[async_trait::async_trait]
 pub trait ResourceStore: Send + Sync + 'static {
     /// Get a resource by its identifier.
@@ -76,7 +80,7 @@ pub trait ResourceStore: Send + Sync + 'static {
 
     /// Add an association between two resources.
     ///
-    /// Assosications are directed edges between resources with a label and optional properties.
+    /// Associations are directed edges between resources with a label and optional properties.
     /// Between two resources must be at most one association with a given label.
     /// Associations are bi-directional, meaning that if an association is added from A to B,
     /// there is also an association from B to A with the inverse label. Some labels are symmetric,

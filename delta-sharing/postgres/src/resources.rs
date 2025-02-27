@@ -1,7 +1,7 @@
 use delta_sharing_common::models::PropertyMap;
 use delta_sharing_common::{
-    AssociationLabel, Error, IntoJson, Object, ObjectLabel, Resource, ResourceIdent,
-    ResourceName, ResourceRef, ResourceStore, Result, EMPTY_RESOURCE_NAME,
+    AssociationLabel, Error, Object, ObjectLabel, Resource, ResourceIdent, ResourceName,
+    ResourceRef, ResourceStore, Result, EMPTY_RESOURCE_NAME,
 };
 use itertools::Itertools;
 
@@ -156,8 +156,13 @@ impl ResourceStore for GraphStore {
                 ))
             }
         };
-        self.add_association(&from_id, label, &to_id, properties.map(|p| p.into_json()))
-            .await?;
+        self.add_association(
+            &from_id,
+            label,
+            &to_id,
+            properties.map(|p| serde_json::Value::Object(p.into_iter().collect())),
+        )
+        .await?;
         Ok(())
     }
 

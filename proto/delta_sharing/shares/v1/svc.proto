@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+package delta_sharing.shares.v1;
+
+import "buf/validate/validate.proto";
+import "delta_sharing/shares/v1/models.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/empty.proto";
+import "openapiv3/annotations.proto";
+
+// Request to list shares.
+message ListSharesRequest {
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 1 [
+    (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lt = 1000,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Opaque pagination token to go to next page based on previous query.
+  optional string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response to list shares.
+message ListSharesResponse {
+  // List of shares.
+  repeated ShareInfo shares = 1;
+
+  // Opaque pagination token to go to next page based on previous query.
+  optional string next_page_token = 2;
+}
+
+// Creates a new share for data objects.
+//
+// Data objects can be added after creation with update.
+// The caller must be a metastore admin or have the CREATE_SHARE privilege on the metastore.
+message CreateShareRequest {
+  // Name of the share.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // User-provided free-form text description.
+  optional string comment = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // A map of key-value properties attached to the securable.
+  // optional string storage_root = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Get a share by name.
+message GetShareRequest {
+  // Name of the share.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+enum Action {
+  // Unspecified action.
+  ACTION_UNSPECIFIED = 0;
+
+  ADD = 1;
+
+  REMOVE = 2;
+
+  UPDATE = 3;
+}
+
+// Data object update.
+message DataObjectUpdate {
+  // Name of the share.
+  Action action = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // User-provided free-form text description.
+  DataObject data_object = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Update a share.
+//
+// The caller must be a metastore admin or have the UPDATE_SHARE privilege on the metastore.
+message UpdateShareRequest {
+  // Name of the share.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Array of shared data object updates.
+  repeated DataObjectUpdate updates = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // A new name for the share.
+  optional string new_name = 3 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Owner of the share.
+  optional string owner = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // User-provided free-form text description.
+  optional string comment = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Delete a share.
+//
+// The caller must be a metastore admin or have the DELETE_SHARE privilege on the metastore.
+message DeleteShareRequest {
+  // Name of the share.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// Service for managing shares
+service SharesService {
+  // List shares.
+  rpc ListShares(ListSharesRequest) returns (ListSharesResponse) {
+    option (google.api.http) = {get: "/shares"};
+    option (openapi.v3.operation) = {operation_id: "ListShares"};
+  }
+
+  // Create a new share.
+  rpc CreateShare(CreateShareRequest) returns (ShareInfo) {
+    option (google.api.http) = {
+      post: "/shares"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {operation_id: "CreateShare"};
+  }
+
+  // Get a share by name.
+  rpc GetShare(GetShareRequest) returns (ShareInfo) {
+    option (google.api.http) = {get: "/shares/{name}"};
+    option (openapi.v3.operation) = {operation_id: "GetShare"};
+  }
+
+  // Update a share.
+  rpc UpdateShare(UpdateShareRequest) returns (ShareInfo) {
+    option (google.api.http) = {
+      patch: "/shares/{name}"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {operation_id: "UpdateShare"};
+  }
+
+  // Deletes a share.
+  rpc DeleteShare(DeleteShareRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/shares/{name}"};
+    option (openapi.v3.operation) = {operation_id: "DeleteShare"};
+  }
+}

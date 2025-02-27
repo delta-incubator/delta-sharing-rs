@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package delta_sharing.catalogs.v1;
+
+import "google/api/field_behavior.proto";
+import "google/protobuf/struct.proto";
+
+// The type of the catalog.
+enum CatalogType {
+  // Unknown catalog type.
+  CATALOG_TYPE_UNSPECIFIED = 0;
+
+  MANAGED_CATALOG = 1;
+
+  DELTASHARING_CATALOG = 2;
+
+  // SYSTEM_CATALOG = 3;
+}
+
+// A catalog is a root-level namespace that contains schemas.
+message CatalogInfo {
+  // Unique identifier for the catalog.
+  optional string id = 1;
+
+  // Name of catalog.
+  string name = 2;
+
+  // Username of current owner of catalog.
+  optional string owner = 3;
+
+  // User-provided free-form text description.
+  optional string comment = 4;
+
+  // A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 5;
+
+  // Storage root URL for managed tables within catalog.
+  optional string storage_root = 6;
+
+  // The name of delta sharing provider.
+  //
+  // A Delta Sharing catalog is a catalog that is based on a Delta share on a remote sharing server.
+  optional string provider_name = 7;
+
+  // The name of the share under the share provider.
+  optional string share_name = 8;
+
+  // The type of the catalog.
+  optional CatalogType catalog_type = 9;
+
+  // Time at which this catalog was created, in epoch milliseconds.
+  optional int64 created_at = 1000;
+
+  // Username of catalog creator.
+  optional string created_by = 1001;
+
+  // Time at which this catalog was last updated, in epoch milliseconds.
+  optional int64 updated_at = 1002;
+
+  // Username of user who last modified catalog.
+  optional string updated_by = 1003;
+
+  // Indicates whether the principal is limited to retrieving metadata
+  // for the associated object through the BROWSE privilege when include_browse
+  // is enabled in the request.
+  optional bool browse_only = 1004;
+}

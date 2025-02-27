@@ -2,10 +2,10 @@ use delta_sharing_derive::object_conversions;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::ResourceExt;
+use super::{ExternalLocationInfo, ResourceExt};
 use crate::models::{
-    CatalogInfo, Credential, SchemaInfo, ShareInfo, SharingSchemaInfo, SharingTable,
-    StorageLocation, TableInfo,
+    CatalogInfo, CredentialInfo, RecipientInfo, SchemaInfo, ShareInfo, SharingSchemaInfo,
+    SharingTable, TableInfo,
 };
 use crate::{Error, ObjectLabel, Resource, ResourceName, ResourceRef};
 
@@ -50,11 +50,12 @@ impl ResourceExt for Resource {
             Resource::ShareInfo(_) => &ObjectLabel::ShareInfo,
             Resource::SharingSchemaInfo(_) => &ObjectLabel::SharingSchemaInfo,
             Resource::SharingTable(_) => &ObjectLabel::SharingTable,
-            Resource::Credential(_) => &ObjectLabel::Credential,
-            Resource::StorageLocation(_) => &ObjectLabel::StorageLocation,
+            Resource::CredentialInfo(_) => &ObjectLabel::CredentialInfo,
             Resource::CatalogInfo(_) => &ObjectLabel::CatalogInfo,
             Resource::SchemaInfo(_) => &ObjectLabel::SchemaInfo,
             Resource::TableInfo(_) => &ObjectLabel::TableInfo,
+            Resource::ExternalLocationInfo(_) => &ObjectLabel::ExternalLocationInfo,
+            Resource::RecipientInfo(_) => &ObjectLabel::RecipientInfo,
         }
     }
 
@@ -63,11 +64,12 @@ impl ResourceExt for Resource {
             Resource::ShareInfo(obj) => obj.resource_name(),
             Resource::SharingSchemaInfo(obj) => obj.resource_name(),
             Resource::SharingTable(obj) => obj.resource_name(),
-            Resource::Credential(_) => todo!(),
-            Resource::StorageLocation(obj) => obj.resource_name(),
+            Resource::CredentialInfo(obj) => obj.resource_name(),
             Resource::CatalogInfo(obj) => obj.resource_name(),
             Resource::SchemaInfo(obj) => obj.resource_name(),
             Resource::TableInfo(obj) => obj.resource_name(),
+            Resource::ExternalLocationInfo(obj) => obj.resource_name(),
+            Resource::RecipientInfo(obj) => obj.resource_name(),
         }
     }
 
@@ -76,11 +78,12 @@ impl ResourceExt for Resource {
             Resource::ShareInfo(obj) => obj.resource_ref(),
             Resource::SharingSchemaInfo(obj) => obj.resource_ref(),
             Resource::SharingTable(obj) => obj.resource_ref(),
-            Resource::Credential(_) => todo!(),
-            Resource::StorageLocation(obj) => obj.resource_ref(),
+            Resource::CredentialInfo(obj) => obj.resource_ref(),
             Resource::CatalogInfo(obj) => obj.resource_ref(),
             Resource::SchemaInfo(obj) => obj.resource_ref(),
             Resource::TableInfo(obj) => obj.resource_ref(),
+            Resource::ExternalLocationInfo(obj) => obj.resource_ref(),
+            Resource::RecipientInfo(obj) => obj.resource_ref(),
         }
     }
 }
@@ -93,11 +96,12 @@ impl TryFrom<Resource> for Object {
             Resource::ShareInfo(obj) => obj.try_into(),
             Resource::SharingSchemaInfo(obj) => obj.try_into(),
             Resource::SharingTable(obj) => obj.try_into(),
-            Resource::Credential(_) => Err(Error::generic("Cannot convert credential to object")),
-            Resource::StorageLocation(obj) => obj.try_into(),
+            Resource::CredentialInfo(obj) => obj.try_into(),
             Resource::CatalogInfo(obj) => obj.try_into(),
             Resource::SchemaInfo(obj) => obj.try_into(),
             Resource::TableInfo(obj) => obj.try_into(),
+            Resource::ExternalLocationInfo(obj) => obj.try_into(),
+            Resource::RecipientInfo(obj) => obj.try_into(),
         }
     }
 }
@@ -110,22 +114,26 @@ impl TryFrom<Object> for Resource {
             ObjectLabel::ShareInfo => Ok(Resource::ShareInfo(obj.try_into()?)),
             ObjectLabel::SharingSchemaInfo => Ok(Resource::SharingSchemaInfo(obj.try_into()?)),
             ObjectLabel::SharingTable => Ok(Resource::SharingTable(obj.try_into()?)),
-            ObjectLabel::Credential => todo!("Convert Object to Resource"),
-            ObjectLabel::StorageLocation => Ok(Resource::StorageLocation(obj.try_into()?)),
+            ObjectLabel::CredentialInfo => todo!("Convert Object to Resource"),
             ObjectLabel::CatalogInfo => Ok(Resource::CatalogInfo(obj.try_into()?)),
             ObjectLabel::SchemaInfo => Ok(Resource::SchemaInfo(obj.try_into()?)),
             ObjectLabel::TableInfo => Ok(Resource::TableInfo(obj.try_into()?)),
+            ObjectLabel::ExternalLocationInfo => {
+                Ok(Resource::ExternalLocationInfo(obj.try_into()?))
+            }
+            ObjectLabel::RecipientInfo => Ok(Resource::RecipientInfo(obj.try_into()?)),
         }
     }
 }
 
 object_conversions!(
-    StorageLocation, ObjectLabel::StorageLocation, id, [name];
-    ShareInfo, ObjectLabel::ShareInfo, id, [name];
+    ExternalLocationInfo, ObjectLabel::ExternalLocationInfo, external_location_id, [name], true;
+    ShareInfo, ObjectLabel::ShareInfo, id, [name], true;
     SharingSchemaInfo, ObjectLabel::SharingSchemaInfo, id, [share, name];
     SharingTable, ObjectLabel::SharingTable, id, [share, schema, name], true;
     CatalogInfo, ObjectLabel::CatalogInfo, id, [name], true;
     SchemaInfo, ObjectLabel::SchemaInfo, schema_id, [catalog_name, name], true;
     TableInfo, ObjectLabel::TableInfo, table_id, [catalog_name, schema_name, name], true;
-    Credential, ObjectLabel::Credential, id, [name];
+    CredentialInfo, ObjectLabel::CredentialInfo, id, [name];
+    RecipientInfo, ObjectLabel::RecipientInfo, id, [name], true;
 );

@@ -11,12 +11,14 @@ mod resources;
 mod tests {
     use std::sync::Arc;
 
+    use delta_sharing_common::memory::InMemoryResourceStore;
     use delta_sharing_common::rest::integration::{test_catalog_router, test_credentials_router};
     use delta_sharing_common::rest::{
         get_catalog_router, get_credentials_router, AnonymousAuthenticator, AuthenticationLayer,
     };
     use delta_sharing_common::{
-        ConstantPolicy, Policy, ProvidesPolicy, ProvidesResourceStore, ResourceStore,
+        ConstantPolicy, Policy, ProvidesPolicy, ProvidesResourceStore, ProvidesSecretManager,
+        ResourceStore, SecretManager,
     };
 
     use super::*;
@@ -25,6 +27,7 @@ mod tests {
     struct Handler {
         store: GraphStore,
         policy: Arc<dyn Policy>,
+        secrets: Arc<dyn SecretManager>,
     }
 
     impl Handler {
@@ -32,6 +35,7 @@ mod tests {
             Self {
                 store: GraphStore::new(pool.into()),
                 policy: Arc::new(ConstantPolicy::default()),
+                secrets: Arc::new(InMemoryResourceStore::default()),
             }
         }
     }
@@ -45,6 +49,12 @@ mod tests {
     impl ProvidesPolicy for Handler {
         fn policy(&self) -> &Arc<dyn Policy> {
             &self.policy
+        }
+    }
+
+    impl ProvidesSecretManager for Handler {
+        fn secret_manager(&self) -> &dyn SecretManager {
+            self.secrets.as_ref()
         }
     }
 

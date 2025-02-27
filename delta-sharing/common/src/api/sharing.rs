@@ -1,22 +1,25 @@
 use delta_sharing_derive::rest_handlers;
+use itertools::Itertools;
 
 use super::{RequestContext, SecuredAction};
 use crate::models::sharing::v1::*;
-use crate::{Error, Permission, Recipient, ResourceIdent, ResourceName, ResourceRef, Result};
+use crate::policy::{process_resources, Permission, Policy};
+use crate::resources::{ResourceIdent, ResourceName, ResourceRef};
+use crate::{AssociationLabel, Error, ObjectLabel, Recipient, Resource, ResourceStore, Result};
 
 rest_handlers!(
     SharingDiscoveryHandler, [
-        ListSharesRequest, Share, Read, ListSharesResponse;
-        GetShareRequest, Share, Read, Share with [
+        ListSharesRequest, Share, Use, ListSharesResponse;
+        GetShareRequest, Share, Use, Share with [
             name: path as String,
         ];
-        ListSharingSchemasRequest, Share, Read, ListSharingSchemasResponse with [
+        ListSharingSchemasRequest, Share, Use, ListSharingSchemasResponse with [
             share: path as String,
         ];
-        ListShareTablesRequest, Share, Read, ListShareTablesResponse with [
+        ListShareTablesRequest, Share, Use, ListShareTablesResponse with [
             name: path as String,
         ];
-        ListSchemaTablesRequest, SharingSchema, Read, ListSchemaTablesResponse with [
+        ListSchemaTablesRequest, SharingSchema, Use, ListSchemaTablesResponse with [
             share: path as String,
             name: path as String,
         ];
@@ -58,54 +61,6 @@ pub trait SharingDiscoveryHandler: Send + Sync + 'static {
 }
 
 rest_handlers!(
-    SharingExtensionHandler, [
-        CreateShareRequest, Share, Create, ShareInfo;
-        DeleteShareRequest, Share, Manage with [
-            name: path as String,
-            force: query as Option<bool>
-        ];
-        CreateSharingSchemaRequest, SharingSchema, Create, SharingSchemaInfo with [
-            share: path as String,
-        ];
-        DeleteSharingSchemaRequest, SharingSchema, Manage with [
-            share: path as String,
-            name: path as String,
-        ];
-    ]
-);
-
-#[async_trait::async_trait]
-pub trait SharingExtensionHandler: Send + Sync + 'static {
-    /// Create a share.
-    async fn create_share(
-        &self,
-        request: CreateShareRequest,
-        context: RequestContext,
-    ) -> Result<ShareInfo>;
-
-    /// Delete a share.
-    async fn delete_share(
-        &self,
-        request: DeleteShareRequest,
-        context: RequestContext,
-    ) -> Result<()>;
-
-    /// Create a schema.
-    async fn create_sharing_schema(
-        &self,
-        request: CreateSharingSchemaRequest,
-        context: RequestContext,
-    ) -> Result<SharingSchemaInfo>;
-
-    /// Delete a schema.
-    async fn delete_sharing_schema(
-        &self,
-        request: DeleteSharingSchemaRequest,
-        context: RequestContext,
-    ) -> Result<()>;
-}
-
-rest_handlers!(
     SharingQueryHandler, [
         GetTableVersionRequest, SharingTable, Read, GetTableVersionResponse with [
             share: path as String,
@@ -134,4 +89,81 @@ pub trait SharingQueryHandler: Send + Sync + 'static {
         request: GetTableMetadataRequest,
         context: RequestContext,
     ) -> Result<QueryResponse>;
+}
+
+#[async_trait::async_trait]
+impl<T: ResourceStore + Policy> SharingDiscoveryHandler for T {
+    async fn list_shares(
+        &self,
+        request: ListSharesRequest,
+        context: RequestContext,
+    ) -> Result<ListSharesResponse> {
+        self.check_required(&request, context.as_ref()).await?;
+        let (mut resources, next_page_token) = self
+            .list(
+                &ObjectLabel::ShareInfo,
+                None,
+                request.max_results.map(|v| v as usize),
+                request.page_token.clone(),
+            )
+            .await?;
+        process_resources(self, context.as_ref(), &Permission::Read, &mut resources).await?;
+
+        // if all resources gor filtered, but there are more pages, try again
+        if resources.is_empty() && next_page_token.is_some() {
+            return self.list_shares(request, context).await;
+        }
+
+        Ok(ListSharesResponse {
+            items: resources.into_iter().map(|r| r.try_into()).try_collect()?,
+            next_page_token,
+        })
+    }
+
+    async fn get_share(&self, request: GetShareRequest, context: RequestContext) -> Result<Share> {
+        self.check_required(&request, context.recipient()).await?;
+        self.get(&request.resource()).await?.0.try_into()
+    }
+
+    async fn list_sharing_schemas(
+        &self,
+        request: ListSharingSchemasRequest,
+        context: RequestContext,
+    ) -> Result<ListSharingSchemasResponse> {
+        self.check_required(&request, context.recipient()).await?;
+        let (idents, next_page_token) = self
+            .list_associations(
+                &request.resource(),
+                &AssociationLabel::ParentOf,
+                Some(&ResourceIdent::SharingSchema(ResourceRef::Undefined)),
+                request.max_results.map(|m| m as usize),
+                request.page_token,
+            )
+            .await?;
+        let (mut resources, _): (Vec<Resource>, Vec<ResourceRef>) =
+            self.get_many(&idents).await?.into_iter().unzip();
+        process_resources(self, context.as_ref(), &Permission::Read, &mut resources).await?;
+        Ok(ListSharingSchemasResponse {
+            items: resources.into_iter().map(|r| r.try_into()).try_collect()?,
+            next_page_token,
+        })
+    }
+
+    async fn list_schema_tables(
+        &self,
+        _request: ListSchemaTablesRequest,
+        _context: RequestContext,
+    ) -> Result<ListSchemaTablesResponse> {
+        // Scaffold method body (implementation to come later)
+        todo!()
+    }
+
+    async fn list_share_tables(
+        &self,
+        _request: ListShareTablesRequest,
+        _context: RequestContext,
+    ) -> Result<ListShareTablesResponse> {
+        // Scaffold method body (implementation to come later)
+        todo!()
+    }
 }

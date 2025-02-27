@@ -3,8 +3,7 @@ use delta_sharing_common::rest::{
     Authenticator,
 };
 use delta_sharing_common::{
-    CatalogHandler, CredentialsHandler, SharingDiscoveryHandler, SharingExtensionHandler,
-    SharingQueryHandler,
+    CatalogHandler, CredentialsHandler, SharingDiscoveryHandler, SharingQueryHandler,
 };
 use delta_sharing_common::{Error, Result};
 use swagger_ui_dist::{ApiDefinition, OpenApiSource};
@@ -44,12 +43,7 @@ pub async fn run_server_full<T, A>(
     authenticator: A,
 ) -> Result<()>
 where
-    T: CatalogHandler
-        + CredentialsHandler
-        + SharingDiscoveryHandler
-        + SharingExtensionHandler
-        + SharingQueryHandler
-        + Clone,
+    T: CatalogHandler + CredentialsHandler + SharingDiscoveryHandler + SharingQueryHandler + Clone,
     A: Authenticator + Clone,
 {
     let api_def = ApiDefinition {

@@ -7,15 +7,17 @@ impl serde::Serialize for DataSourceFormat {
     {
         let variant = match self {
             Self::Unspecified => "DATA_SOURCE_FORMAT_UNSPECIFIED",
-            Self::Delta => "DATA_SOURCE_FORMAT_DELTA",
-            Self::Iceberg => "DATA_SOURCE_FORMAT_ICEBERG",
-            Self::Hudi => "DATA_SOURCE_FORMAT_HUDI",
-            Self::Parquet => "DATA_SOURCE_FORMAT_PARQUET",
-            Self::Csv => "DATA_SOURCE_FORMAT_CSV",
-            Self::Json => "DATA_SOURCE_FORMAT_JSON",
-            Self::Orc => "DATA_SOURCE_FORMAT_ORC",
-            Self::Avro => "DATA_SOURCE_FORMAT_AVRO",
-            Self::Text => "DATA_SOURCE_FORMAT_TEXT",
+            Self::Delta => "DELTA",
+            Self::Iceberg => "ICEBERG",
+            Self::Hudi => "HUDI",
+            Self::Parquet => "PARQUET",
+            Self::Csv => "CSV",
+            Self::Json => "JSON",
+            Self::Orc => "ORC",
+            Self::Avro => "AVRO",
+            Self::Text => "TEXT",
+            Self::UnityCatalog => "UNITY_CATALOG",
+            Self::Deltasharing => "DELTASHARING",
         };
         serializer.serialize_str(variant)
     }
@@ -28,15 +30,17 @@ impl<'de> serde::Deserialize<'de> for DataSourceFormat {
     {
         const FIELDS: &[&str] = &[
             "DATA_SOURCE_FORMAT_UNSPECIFIED",
-            "DATA_SOURCE_FORMAT_DELTA",
-            "DATA_SOURCE_FORMAT_ICEBERG",
-            "DATA_SOURCE_FORMAT_HUDI",
-            "DATA_SOURCE_FORMAT_PARQUET",
-            "DATA_SOURCE_FORMAT_CSV",
-            "DATA_SOURCE_FORMAT_JSON",
-            "DATA_SOURCE_FORMAT_ORC",
-            "DATA_SOURCE_FORMAT_AVRO",
-            "DATA_SOURCE_FORMAT_TEXT",
+            "DELTA",
+            "ICEBERG",
+            "HUDI",
+            "PARQUET",
+            "CSV",
+            "JSON",
+            "ORC",
+            "AVRO",
+            "TEXT",
+            "UNITY_CATALOG",
+            "DELTASHARING",
         ];
 
         struct GeneratedVisitor;
@@ -78,20 +82,118 @@ impl<'de> serde::Deserialize<'de> for DataSourceFormat {
             {
                 match value {
                     "DATA_SOURCE_FORMAT_UNSPECIFIED" => Ok(DataSourceFormat::Unspecified),
-                    "DATA_SOURCE_FORMAT_DELTA" => Ok(DataSourceFormat::Delta),
-                    "DATA_SOURCE_FORMAT_ICEBERG" => Ok(DataSourceFormat::Iceberg),
-                    "DATA_SOURCE_FORMAT_HUDI" => Ok(DataSourceFormat::Hudi),
-                    "DATA_SOURCE_FORMAT_PARQUET" => Ok(DataSourceFormat::Parquet),
-                    "DATA_SOURCE_FORMAT_CSV" => Ok(DataSourceFormat::Csv),
-                    "DATA_SOURCE_FORMAT_JSON" => Ok(DataSourceFormat::Json),
-                    "DATA_SOURCE_FORMAT_ORC" => Ok(DataSourceFormat::Orc),
-                    "DATA_SOURCE_FORMAT_AVRO" => Ok(DataSourceFormat::Avro),
-                    "DATA_SOURCE_FORMAT_TEXT" => Ok(DataSourceFormat::Text),
+                    "DELTA" => Ok(DataSourceFormat::Delta),
+                    "ICEBERG" => Ok(DataSourceFormat::Iceberg),
+                    "HUDI" => Ok(DataSourceFormat::Hudi),
+                    "PARQUET" => Ok(DataSourceFormat::Parquet),
+                    "CSV" => Ok(DataSourceFormat::Csv),
+                    "JSON" => Ok(DataSourceFormat::Json),
+                    "ORC" => Ok(DataSourceFormat::Orc),
+                    "AVRO" => Ok(DataSourceFormat::Avro),
+                    "TEXT" => Ok(DataSourceFormat::Text),
+                    "UNITY_CATALOG" => Ok(DataSourceFormat::UnityCatalog),
+                    "DELTASHARING" => Ok(DataSourceFormat::Deltasharing),
                     _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),
                 }
             }
         }
         deserializer.deserialize_any(GeneratedVisitor)
+    }
+}
+impl serde::Serialize for GetTableRequest {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.full_name.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.tables.v1.GetTableRequest", len)?;
+        if !self.full_name.is_empty() {
+            struct_ser.serialize_field("fullName", &self.full_name)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for GetTableRequest {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "full_name",
+            "fullName",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            FullName,
+            __SkipField__,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "fullName" | "full_name" => Ok(GeneratedField::FullName),
+                            _ => Ok(GeneratedField::__SkipField__),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = GetTableRequest;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.tables.v1.GetTableRequest")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<GetTableRequest, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut full_name__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::FullName => {
+                            if full_name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("fullName"));
+                            }
+                            full_name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::__SkipField__ => {
+                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
+                        }
+                    }
+                }
+                Ok(GetTableRequest {
+                    full_name: full_name__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.tables.v1.GetTableRequest", FIELDS, GeneratedVisitor)
     }
 }
 impl serde::Serialize for TableInfo {
@@ -129,13 +231,13 @@ impl serde::Serialize for TableInfo {
         if self.owner.is_some() {
             len += 1;
         }
-        if self.create_at.is_some() {
+        if self.created_at.is_some() {
             len += 1;
         }
         if self.created_by.is_some() {
             len += 1;
         }
-        if self.update_at.is_some() {
+        if self.updated_at.is_some() {
             len += 1;
         }
         if self.updated_by.is_some() {
@@ -176,18 +278,18 @@ impl serde::Serialize for TableInfo {
         if let Some(v) = self.owner.as_ref() {
             struct_ser.serialize_field("owner", v)?;
         }
-        if let Some(v) = self.create_at.as_ref() {
+        if let Some(v) = self.created_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("createAt", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("createdAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.created_by.as_ref() {
             struct_ser.serialize_field("createdBy", v)?;
         }
-        if let Some(v) = self.update_at.as_ref() {
+        if let Some(v) = self.updated_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("updateAt", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("updatedAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.updated_by.as_ref() {
             struct_ser.serialize_field("updatedBy", v)?;
@@ -219,12 +321,12 @@ impl<'de> serde::Deserialize<'de> for TableInfo {
             "full_name",
             "fullName",
             "owner",
-            "create_at",
-            "createAt",
+            "created_at",
+            "createdAt",
             "created_by",
             "createdBy",
-            "update_at",
-            "updateAt",
+            "updated_at",
+            "updatedAt",
             "updated_by",
             "updatedBy",
             "table_id",
@@ -242,9 +344,9 @@ impl<'de> serde::Deserialize<'de> for TableInfo {
             Properties,
             FullName,
             Owner,
-            CreateAt,
+            CreatedAt,
             CreatedBy,
-            UpdateAt,
+            UpdatedAt,
             UpdatedBy,
             TableId,
             __SkipField__,
@@ -278,9 +380,9 @@ impl<'de> serde::Deserialize<'de> for TableInfo {
                             "properties" => Ok(GeneratedField::Properties),
                             "fullName" | "full_name" => Ok(GeneratedField::FullName),
                             "owner" => Ok(GeneratedField::Owner),
-                            "createAt" | "create_at" => Ok(GeneratedField::CreateAt),
+                            "createdAt" | "created_at" => Ok(GeneratedField::CreatedAt),
                             "createdBy" | "created_by" => Ok(GeneratedField::CreatedBy),
-                            "updateAt" | "update_at" => Ok(GeneratedField::UpdateAt),
+                            "updatedAt" | "updated_at" => Ok(GeneratedField::UpdatedAt),
                             "updatedBy" | "updated_by" => Ok(GeneratedField::UpdatedBy),
                             "tableId" | "table_id" => Ok(GeneratedField::TableId),
                             _ => Ok(GeneratedField::__SkipField__),
@@ -311,9 +413,9 @@ impl<'de> serde::Deserialize<'de> for TableInfo {
                 let mut properties__ = None;
                 let mut full_name__ = None;
                 let mut owner__ = None;
-                let mut create_at__ = None;
+                let mut created_at__ = None;
                 let mut created_by__ = None;
-                let mut update_at__ = None;
+                let mut updated_at__ = None;
                 let mut updated_by__ = None;
                 let mut table_id__ = None;
                 while let Some(k) = map_.next_key()? {
@@ -372,11 +474,11 @@ impl<'de> serde::Deserialize<'de> for TableInfo {
                             }
                             owner__ = map_.next_value()?;
                         }
-                        GeneratedField::CreateAt => {
-                            if create_at__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("createAt"));
+                        GeneratedField::CreatedAt => {
+                            if created_at__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("createdAt"));
                             }
-                            create_at__ = 
+                            created_at__ = 
                                 map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
                             ;
                         }
@@ -386,11 +488,11 @@ impl<'de> serde::Deserialize<'de> for TableInfo {
                             }
                             created_by__ = map_.next_value()?;
                         }
-                        GeneratedField::UpdateAt => {
-                            if update_at__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("updateAt"));
+                        GeneratedField::UpdatedAt => {
+                            if updated_at__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("updatedAt"));
                             }
-                            update_at__ = 
+                            updated_at__ = 
                                 map_.next_value::<::std::option::Option<::pbjson::private::NumberDeserialize<_>>>()?.map(|x| x.0)
                             ;
                         }
@@ -421,9 +523,9 @@ impl<'de> serde::Deserialize<'de> for TableInfo {
                     properties: properties__,
                     full_name: full_name__,
                     owner: owner__,
-                    create_at: create_at__,
+                    created_at: created_at__,
                     created_by: created_by__,
-                    update_at: update_at__,
+                    updated_at: updated_at__,
                     updated_by: updated_by__,
                     table_id: table_id__,
                 })
@@ -439,6 +541,7 @@ impl serde::Serialize for TableType {
         S: serde::Serializer,
     {
         let variant = match self {
+            Self::Unspecified => "TABLE_TYPE_UNSPECIFIED",
             Self::Managed => "MANAGED",
             Self::External => "EXTERNAL",
         };
@@ -452,6 +555,7 @@ impl<'de> serde::Deserialize<'de> for TableType {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
+            "TABLE_TYPE_UNSPECIFIED",
             "MANAGED",
             "EXTERNAL",
         ];
@@ -494,6 +598,7 @@ impl<'de> serde::Deserialize<'de> for TableType {
                 E: serde::de::Error,
             {
                 match value {
+                    "TABLE_TYPE_UNSPECIFIED" => Ok(TableType::Unspecified),
                     "MANAGED" => Ok(TableType::Managed),
                     "EXTERNAL" => Ok(TableType::External),
                     _ => Err(serde::de::Error::unknown_variant(value, FIELDS)),

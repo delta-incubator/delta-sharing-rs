@@ -60,10 +60,8 @@ pub(crate) enum Error {
 
 impl From<Error> for crate::Error {
     fn from(err: Error) -> Self {
-        match err {
-            _ => Self::Generic {
-                source: Box::new(err),
-            },
+        Self::Generic {
+            source: Box::new(err),
         }
     }
 }
@@ -166,7 +164,7 @@ pub(crate) struct Request<'a> {
     retry_on_conflict: bool,
 }
 
-impl<'a> Request<'a> {
+impl Request<'_> {
     pub(crate) fn query<T: Serialize + ?Sized + Sync>(self, query: &T) -> Self {
         let builder = self.builder.query(query);
         Self { builder, ..self }

@@ -69,10 +69,11 @@ pub enum ResourceIdent {
     SharingSchema(ResourceRef),
     SharingTable(ResourceRef),
     Credential(ResourceRef),
-    StorageLocation(ResourceRef),
+    ExternalLocation(ResourceRef),
     Catalog(ResourceRef),
     Schema(ResourceRef),
     Table(ResourceRef),
+    Recipient(ResourceRef),
 }
 
 impl ResourceIdent {
@@ -100,10 +101,6 @@ impl ResourceIdent {
         Self::Credential(name.into())
     }
 
-    pub fn storage_location(name: impl Into<ResourceRef>) -> Self {
-        Self::StorageLocation(name.into())
-    }
-
     pub fn catalog(name: impl Into<ResourceRef>) -> Self {
         Self::Catalog(name.into())
     }
@@ -115,6 +112,14 @@ impl ResourceIdent {
     pub fn table(name: impl Into<ResourceRef>) -> Self {
         Self::Table(name.into())
     }
+
+    pub fn external_location(name: impl Into<ResourceRef>) -> Self {
+        Self::ExternalLocation(name.into())
+    }
+
+    pub fn recipient(name: impl Into<ResourceRef>) -> Self {
+        Self::Recipient(name.into())
+    }
 }
 
 impl std::fmt::Display for ResourceIdent {
@@ -124,10 +129,11 @@ impl std::fmt::Display for ResourceIdent {
             ResourceIdent::SharingSchema(r) => write!(f, "schema:{}", r),
             ResourceIdent::SharingTable(r) => write!(f, "table:{}", r),
             ResourceIdent::Credential(r) => write!(f, "credential:{}", r),
-            ResourceIdent::StorageLocation(r) => write!(f, "storage_location:{}", r),
+            ResourceIdent::ExternalLocation(r) => write!(f, "external_location:{}", r),
             ResourceIdent::Catalog(r) => write!(f, "catalog:{}", r),
             ResourceIdent::Schema(r) => write!(f, "schema:{}", r),
             ResourceIdent::Table(r) => write!(f, "table:{}", r),
+            ResourceIdent::Recipient(r) => write!(f, "recipient:{}", r),
         }
     }
 }
@@ -139,10 +145,11 @@ impl AsRef<ResourceRef> for ResourceIdent {
             ResourceIdent::SharingSchema(r) => r,
             ResourceIdent::SharingTable(r) => r,
             ResourceIdent::Credential(r) => r,
-            ResourceIdent::StorageLocation(r) => r,
+            ResourceIdent::ExternalLocation(r) => r,
             ResourceIdent::Catalog(r) => r,
             ResourceIdent::Schema(r) => r,
             ResourceIdent::Table(r) => r,
+            ResourceIdent::Recipient(r) => r,
         }
     }
 }
@@ -153,11 +160,12 @@ impl AsRef<ObjectLabel> for ResourceIdent {
             ResourceIdent::Share(_) => &ObjectLabel::ShareInfo,
             ResourceIdent::SharingSchema(_) => &ObjectLabel::SharingSchemaInfo,
             ResourceIdent::SharingTable(_) => &ObjectLabel::SharingTable,
-            ResourceIdent::Credential(_) => &ObjectLabel::Credential,
-            ResourceIdent::StorageLocation(_) => &ObjectLabel::StorageLocation,
+            ResourceIdent::Credential(_) => &ObjectLabel::CredentialInfo,
+            ResourceIdent::ExternalLocation(_) => &ObjectLabel::ExternalLocationInfo,
             ResourceIdent::Catalog(_) => &ObjectLabel::CatalogInfo,
             ResourceIdent::Schema(_) => &ObjectLabel::SchemaInfo,
             ResourceIdent::Table(_) => &ObjectLabel::TableInfo,
+            ResourceIdent::Recipient(_) => &ObjectLabel::RecipientInfo,
         }
     }
 }
@@ -169,10 +177,11 @@ impl From<ResourceIdent> for ResourceRef {
             ResourceIdent::SharingSchema(r) => r,
             ResourceIdent::SharingTable(r) => r,
             ResourceIdent::Credential(r) => r,
-            ResourceIdent::StorageLocation(r) => r,
+            ResourceIdent::ExternalLocation(r) => r,
             ResourceIdent::Catalog(r) => r,
             ResourceIdent::Schema(r) => r,
             ResourceIdent::Table(r) => r,
+            ResourceIdent::Recipient(r) => r,
         }
     }
 }

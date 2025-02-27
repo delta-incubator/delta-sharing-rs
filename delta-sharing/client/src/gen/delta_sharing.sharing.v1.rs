@@ -16,7 +16,7 @@ pub struct Share {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SharingSchema {
-    /// The name of the schama
+    /// The name of the schema
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
     /// The share name that the schema belongs to.
@@ -45,22 +45,6 @@ pub struct SharingTable {
     /// A unique identifier for the share this table belongs to.
     #[prost(string, optional, tag="5")]
     pub share_id: ::core::option::Option<::prost::alloc::string::String>,
-}
-/// A share in a delta sharing service.
-///
-/// A share is a logical grouping to share with recipients.
-/// It may contain multiple schemas and tables.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ShareInfo {
-    #[prost(string, tag="1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, optional, tag="3")]
-    pub description: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(message, optional, tag="4")]
-    pub properties: ::core::option::Option<::pbjson_types::Struct>,
 }
 /// A schema in a delta sharing service.
 ///
@@ -442,44 +426,6 @@ pub struct ListShareTablesResponse {
     /// An empty or missing token means that no more tables are available for retrieval.
     #[prost(string, optional, tag="2")]
     pub next_page_token: ::core::option::Option<::prost::alloc::string::String>,
-}
-/// Create a new Share in the Delta Sharing service.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CreateShareRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, optional, tag="2")]
-    pub description: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(message, optional, tag="3")]
-    pub properties: ::core::option::Option<::pbjson_types::Struct>,
-}
-/// Delete a Share in the Delta Sharing service.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeleteShareRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(bool, optional, tag="2")]
-    pub force: ::core::option::Option<bool>,
-}
-/// Create a new Schema in the Delta Sharing service.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CreateSharingSchemaRequest {
-    #[prost(string, tag="1")]
-    pub share: ::prost::alloc::string::String,
-    #[prost(message, optional, tag="2")]
-    pub schema: ::core::option::Option<SharingSchemaInfo>,
-}
-/// Delete a Schema in the Delta Sharing service.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct DeleteSharingSchemaRequest {
-    #[prost(string, tag="1")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub share: ::prost::alloc::string::String,
 }
 include!("delta_sharing.sharing.v1.serde.rs");
 include!("delta_sharing.sharing.v1.tonic.rs");

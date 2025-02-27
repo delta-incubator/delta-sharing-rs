@@ -31,13 +31,13 @@ pub struct TableInfo {
     pub owner: ::core::option::Option<::prost::alloc::string::String>,
     /// Time at which this table was created, in epoch milliseconds.
     #[prost(int64, optional, tag="11")]
-    pub create_at: ::core::option::Option<i64>,
+    pub created_at: ::core::option::Option<i64>,
     /// Username of table creator.
     #[prost(string, optional, tag="12")]
     pub created_by: ::core::option::Option<::prost::alloc::string::String>,
     /// Time at which this table was last updated, in epoch milliseconds.
     #[prost(int64, optional, tag="13")]
-    pub update_at: ::core::option::Option<i64>,
+    pub updated_at: ::core::option::Option<i64>,
     /// Username of user who last modified table.
     #[prost(string, optional, tag="14")]
     pub updated_by: ::core::option::Option<::prost::alloc::string::String>,
@@ -49,10 +49,9 @@ pub struct TableInfo {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum TableType {
-    /// A table that is stored in a file format.
-    Managed = 0,
-    /// A table that is stored in a stream format.
-    External = 1,
+    Unspecified = 0,
+    Managed = 1,
+    External = 2,
 }
 impl TableType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -61,6 +60,7 @@ impl TableType {
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
+            TableType::Unspecified => "TABLE_TYPE_UNSPECIFIED",
             TableType::Managed => "MANAGED",
             TableType::External => "EXTERNAL",
         }
@@ -68,6 +68,7 @@ impl TableType {
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
+            "TABLE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
             "MANAGED" => Some(Self::Managed),
             "EXTERNAL" => Some(Self::External),
             _ => None,
@@ -87,6 +88,8 @@ pub enum DataSourceFormat {
     Orc = 7,
     Avro = 8,
     Text = 9,
+    UnityCatalog = 10,
+    Deltasharing = 11,
 }
 impl DataSourceFormat {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -96,33 +99,45 @@ impl DataSourceFormat {
     pub fn as_str_name(&self) -> &'static str {
         match self {
             DataSourceFormat::Unspecified => "DATA_SOURCE_FORMAT_UNSPECIFIED",
-            DataSourceFormat::Delta => "DATA_SOURCE_FORMAT_DELTA",
-            DataSourceFormat::Iceberg => "DATA_SOURCE_FORMAT_ICEBERG",
-            DataSourceFormat::Hudi => "DATA_SOURCE_FORMAT_HUDI",
-            DataSourceFormat::Parquet => "DATA_SOURCE_FORMAT_PARQUET",
-            DataSourceFormat::Csv => "DATA_SOURCE_FORMAT_CSV",
-            DataSourceFormat::Json => "DATA_SOURCE_FORMAT_JSON",
-            DataSourceFormat::Orc => "DATA_SOURCE_FORMAT_ORC",
-            DataSourceFormat::Avro => "DATA_SOURCE_FORMAT_AVRO",
-            DataSourceFormat::Text => "DATA_SOURCE_FORMAT_TEXT",
+            DataSourceFormat::Delta => "DELTA",
+            DataSourceFormat::Iceberg => "ICEBERG",
+            DataSourceFormat::Hudi => "HUDI",
+            DataSourceFormat::Parquet => "PARQUET",
+            DataSourceFormat::Csv => "CSV",
+            DataSourceFormat::Json => "JSON",
+            DataSourceFormat::Orc => "ORC",
+            DataSourceFormat::Avro => "AVRO",
+            DataSourceFormat::Text => "TEXT",
+            DataSourceFormat::UnityCatalog => "UNITY_CATALOG",
+            DataSourceFormat::Deltasharing => "DELTASHARING",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
             "DATA_SOURCE_FORMAT_UNSPECIFIED" => Some(Self::Unspecified),
-            "DATA_SOURCE_FORMAT_DELTA" => Some(Self::Delta),
-            "DATA_SOURCE_FORMAT_ICEBERG" => Some(Self::Iceberg),
-            "DATA_SOURCE_FORMAT_HUDI" => Some(Self::Hudi),
-            "DATA_SOURCE_FORMAT_PARQUET" => Some(Self::Parquet),
-            "DATA_SOURCE_FORMAT_CSV" => Some(Self::Csv),
-            "DATA_SOURCE_FORMAT_JSON" => Some(Self::Json),
-            "DATA_SOURCE_FORMAT_ORC" => Some(Self::Orc),
-            "DATA_SOURCE_FORMAT_AVRO" => Some(Self::Avro),
-            "DATA_SOURCE_FORMAT_TEXT" => Some(Self::Text),
+            "DELTA" => Some(Self::Delta),
+            "ICEBERG" => Some(Self::Iceberg),
+            "HUDI" => Some(Self::Hudi),
+            "PARQUET" => Some(Self::Parquet),
+            "CSV" => Some(Self::Csv),
+            "JSON" => Some(Self::Json),
+            "ORC" => Some(Self::Orc),
+            "AVRO" => Some(Self::Avro),
+            "TEXT" => Some(Self::Text),
+            "UNITY_CATALOG" => Some(Self::UnityCatalog),
+            "DELTASHARING" => Some(Self::Deltasharing),
             _ => None,
         }
     }
+}
+/// Get a table
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetTableRequest {
+    /// Full name of the table.
+    #[prost(string, tag="1")]
+    pub full_name: ::prost::alloc::string::String,
 }
 include!("delta_sharing.tables.v1.serde.rs");
 // @@protoc_insertion_point(module)

@@ -1,0 +1,177 @@
+syntax = "proto3";
+
+package delta_sharing.catalogs.v1;
+
+import "buf/validate/validate.proto";
+import "delta_sharing/catalogs/v1/models.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+import "openapiv3/annotations.proto";
+
+// List catalogs
+message ListCatalogsRequest {
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 2 [
+    (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lt = 1000,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Opaque pagination token to go to next page based on previous query.
+  optional string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// List catalogs response.
+message ListCatalogsResponse {
+  // The catalogs returned.
+  repeated CatalogInfo catalogs = 1;
+
+  // The next_page_token value to include in the next List request.
+  optional string next_page_token = 2;
+}
+
+// Create a new catalog
+message CreateCatalogRequest {
+  // Name of catalog.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // User-provided free-form text description.
+  optional string comment = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Storage root URL for managed tables within catalog.
+  optional string storage_root = 4 [
+    (buf.validate.field).string.uri = true,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // The name of delta sharing provider.
+  //
+  // A Delta Sharing catalog is a catalog that is based on a Delta share on a remote sharing server.
+  optional string provider_name = 5 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z-_]*[0-9a-z]$",
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // The name of the share under the share provider.
+  optional string share_name = 6 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (google.api.field_behavior) = OPTIONAL
+  ];
+}
+
+// Get a catalog
+message GetCatalogRequest {
+  // Name of catalog.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Whether to include catalogs in the response for which the principal can only access selective metadata for
+  optional bool include_browse = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Update a catalog
+message UpdateCatalogRequest {
+  // Name of catalog.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Username of new owner of catalog.
+  optional string owner = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // User-provided free-form text description.
+  optional string comment = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // A map of key-value properties attached to the securable.
+  //
+  // When provided in update request, the specified properties will override the existing properties.
+  // To add and remove properties, one would need to perform a read-modify-write.
+  optional google.protobuf.Struct properties = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Name of catalog.
+  string new_name = 5 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (google.api.field_behavior) = OPTIONAL
+  ];
+}
+
+// Delete a catalog
+message DeleteCatalogRequest {
+  // Name of catalog.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Force deletion even if the catalog is not empty.
+  optional bool force = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Manage catalogs and schemas in the service.
+service CatalogsService {
+  // List catalogs
+  //
+  // Gets an array of catalogs in the metastore. If the caller is the metastore admin,
+  // all catalogs will be retrieved. Otherwise, only catalogs owned by the caller
+  // (or for which the caller has the USE_CATALOG privilege) will be retrieved.
+  // There is no guarantee of a specific ordering of the elements in the array.
+  rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
+    option (google.api.http) = {get: "/catalogs"};
+    option (openapi.v3.operation) = {operation_id: "ListCatalogs"};
+  }
+
+  // Create a new catalog
+  //
+  // Creates a new catalog instance in the parent metastore if the caller
+  // is a metastore admin or has the CREATE_CATALOG privilege.
+  rpc CreateCatalog(CreateCatalogRequest) returns (CatalogInfo) {
+    option (google.api.http) = {
+      post: "/catalogs"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {operation_id: "CreateCatalog"};
+  }
+
+  // Get a catalog
+  //
+  // Gets the specified catalog in a metastore. The caller must be a metastore admin,
+  // the owner of the catalog, or a user that has the USE_CATALOG privilege set for their account.
+  rpc GetCatalog(GetCatalogRequest) returns (CatalogInfo) {
+    option (google.api.http) = {get: "/catalogs/{name}"};
+    option (openapi.v3.operation) = {operation_id: "GetCatalog"};
+  }
+
+  // Update a catalog
+  //
+  // Updates the catalog that matches the supplied name. The caller must be either
+  // the owner of the catalog, or a metastore admin (when changing the owner field of the catalog).
+  rpc UpdateCatalog(UpdateCatalogRequest) returns (CatalogInfo) {
+    option (google.api.http) = {
+      patch: "/catalogs/{name}"
+      body: "*"
+    };
+    option (openapi.v3.operation) = {operation_id: "UpdateCatalog"};
+  }
+
+  // Delete a catalog
+  //
+  // Deletes the catalog that matches the supplied name. The caller must
+  // be a metastore admin or the owner of the catalog.
+  rpc DeleteCatalog(DeleteCatalogRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/catalogs/{name}"};
+    option (openapi.v3.operation) = {operation_id: "DeleteCatalog"};
+  }
+}

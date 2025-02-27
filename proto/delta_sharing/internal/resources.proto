@@ -2,21 +2,26 @@ syntax = "proto3";
 
 package delta_sharing.internal;
 
-import "delta_sharing/catalog/v1/models.proto";
+import "delta_sharing/catalogs/v1/models.proto";
 import "delta_sharing/credentials/v1/models.proto";
+import "delta_sharing/external_locations/v1/models.proto";
+import "delta_sharing/recipients/v1/models.proto";
+import "delta_sharing/schemas/v1/models.proto";
+import "delta_sharing/shares/v1/models.proto";
 import "delta_sharing/sharing/v1/models.proto";
 import "delta_sharing/tables/v1/models.proto";
 
 // Dummy message to hold all resources.
 message Resource {
   oneof resource {
-    delta_sharing.sharing.v1.ShareInfo share_info = 1;
+    delta_sharing.shares.v1.ShareInfo share_info = 1;
     delta_sharing.sharing.v1.SharingSchemaInfo sharing_schema_info = 2;
     delta_sharing.sharing.v1.SharingTable sharing_table = 3;
-    delta_sharing.credentials.v1.Credential credential = 4;
-    delta_sharing.credentials.v1.StorageLocation storage_location = 5;
-    delta_sharing.catalog.v1.CatalogInfo catalog_info = 6;
-    delta_sharing.catalog.v1.SchemaInfo schema_info = 7;
+    delta_sharing.credentials.v1.CredentialInfo credential_info = 4;
+    delta_sharing.catalogs.v1.CatalogInfo catalog_info = 6;
+    delta_sharing.schemas.v1.SchemaInfo schema_info = 7;
     delta_sharing.tables.v1.TableInfo table_info = 8;
+    delta_sharing.external_locations.v1.ExternalLocationInfo external_location_info = 9;
+    delta_sharing.recipients.v1.RecipientInfo recipient_info = 10;
   }
 }

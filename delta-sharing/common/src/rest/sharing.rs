@@ -1,7 +1,7 @@
 use axum::body::Body;
 use axum::extract::{Extension, State};
 use axum::response::Response;
-use axum::routing::{delete, get, post, Router};
+use axum::routing::{get, Router};
 use http::header::CONTENT_TYPE;
 
 use crate::api::sharing::*;
@@ -9,22 +9,11 @@ use crate::models::sharing::v1::*;
 use crate::{Error, Recipient, RequestContext, Result};
 
 /// Create a new [Router] for the Delta Sharing REST API.
-pub fn get_router<
-    T: SharingDiscoveryHandler + SharingQueryHandler + SharingExtensionHandler + Clone,
->(
-    state: T,
-) -> Router {
+pub fn get_router<T: SharingDiscoveryHandler + SharingQueryHandler + Clone>(state: T) -> Router {
     Router::new()
-        .route("/shares", post(create_share::<T>))
         .route("/shares", get(list_shares::<T>))
         .route("/shares/{share}", get(get_share::<T>))
-        .route("/shares/{share}", delete(delete_share::<T>))
-        .route("/shares/{share}/schemas", post(create_sharing_schema::<T>))
         .route("/shares/{share}/schemas", get(list_sharing_schemas::<T>))
-        .route(
-            "/shares/{share}/schemas/{name}",
-            delete(delete_sharing_schema::<T>),
-        )
         .route("/shares/{share}/all-tables", get(list_share_tables::<T>))
         .route(
             "/shares/{share}/schemas/{name}/tables",

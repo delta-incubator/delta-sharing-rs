@@ -7,49 +7,58 @@ info:
     url: https://www.gnu.org/licenses/agpl-3.0.en.html
   version: 0.0.0
 tags:
-  - name: CatalogService
+  - name: CatalogsService
     description: Manage catalogs and schemas in the service.
-  - name: CredentialService
+  - name: CredentialsService
     description: |-
       Manage credentials to access external data sources and services
        as well as generate signed urls for the Delta Sharing service.
-  - name: DeltaSharingExtensionService
-    description: |-
-      Services exposing the unofficial APIs for Delta Sharing.
-       Mainly used to manage resoureces exposed by the Delta Sharing service.
   - name: DeltaSharingService
     description: Service exposing the official APIs for Delta Sharing.
-  - name: official
-    description: APIs which are part of published official document
-  - name: schemas
-    description: Schema discovery APIs
-  - name: shares
-    description: Share discovery APIs
-  - name: tables
-    description: Table query and inspection APIs
-  - name: unofficial
-    description: APIs which are custom to delta-sharing-rs
+  - name: ExternalLocationsService
+  - name: RecipientsService
+    description: |-
+      Recipients
+
+       A recipient is an object you create using recipients/create to represent an organization which
+       you want to allow access shares. when you create a recipient object, Unity Catalog generates an
+       activation link you can send to the recipient. The recipient follows the activation link to download
+       the credential file, and then uses the credential file to establish a secure connection to receive
+       the shared data. This sharing mode is called open sharing.
+  - name: SchemasService
+    description: |-
+      A schema (also called a database) is the second layer of Unity Catalog’s three-level namespace.
+       A schema organizes tables, views and functions. To access (or list) a table or view in a schema,
+       users must have the USE_SCHEMA data permission on the schema and its parent catalog, and they must
+       have the SELECT permission on the table or view.
+  - name: SharesService
+    description: Service for managing shares
+  - name: TablesService
 paths:
   /catalogs:
     get:
       tags:
-        - CatalogService
-        - catalogs
-        - unity
-      description: List catalogs
+        - CatalogsService
+      description: |-
+        List catalogs
+
+         Gets an array of catalogs in the metastore. If the caller is the metastore admin,
+         all catalogs will be retrieved. Otherwise, only catalogs owned by the caller
+         (or for which the caller has the USE_CATALOG privilege) will be retrieved.
+         There is no guarantee of a specific ordering of the elements in the array.
       operationId: ListCatalogs
       parameters:
-        - name: pageToken
-          in: query
-          description: The next_page_token value returned from a previous List request, if any.
-          schema:
-            type: string
         - name: maxResults
           in: query
-          description: The maximum number of items to return.
+          description: The maximum number of results per page that should be returned.
           schema:
             type: integer
             format: int32
+        - name: pageToken
+          in: query
+          description: Opaque pagination token to go to next page based on previous query.
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -65,10 +74,12 @@ paths:
                 $ref: '#/components/schemas/Status'
     post:
       tags:
-        - CatalogService
-        - catalogs
-        - unity
-      description: Create a new catalog
+        - CatalogsService
+      description: |-
+        Create a new catalog
+
+         Creates a new catalog instance in the parent metastore if the caller
+         is a metastore admin or has the CREATE_CATALOG privilege.
       operationId: CreateCatalog
       requestBody:
         content:
@@ -92,10 +103,12 @@ paths:
   /catalogs/{name}:
     get:
       tags:
-        - CatalogService
-        - catalogs
-        - unity
-      description: Get a catalog
+        - CatalogsService
+      description: |-
+        Get a catalog
+
+         Gets the specified catalog in a metastore. The caller must be a metastore admin,
+         the owner of the catalog, or a user that has the USE_CATALOG privilege set for their account.
       operationId: GetCatalog
       parameters:
         - name: name
@@ -104,6 +117,11 @@ paths:
           required: true
           schema:
             type: string
+        - name: includeBrowse
+          in: query
+          description: Whether to include catalogs in the response for which the principal can only access selective metadata for
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -119,10 +137,12 @@ paths:
                 $ref: '#/components/schemas/Status'
     delete:
       tags:
-        - CatalogService
-        - catalogs
-        - unity
-      description: Delete a catalog
+        - CatalogsService
+      description: |-
+        Delete a catalog
+
+         Deletes the catalog that matches the supplied name. The caller must
+         be a metastore admin or the owner of the catalog.
       operationId: DeleteCatalog
       parameters:
         - name: name
@@ -148,10 +168,12 @@ paths:
                 $ref: '#/components/schemas/Status'
     patch:
       tags:
-        - CatalogService
-        - catalogs
-        - unity
-      description: Update a catalog
+        - CatalogsService
+      description: |-
+        Update a catalog
+
+         Updates the catalog that matches the supplied name. The caller must be either
+         the owner of the catalog, or a metastore admin (when changing the owner field of the catalog).
       operationId: UpdateCatalog
       parameters:
         - name: name
@@ -180,11 +202,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
   /credentials:
+    get:
+      tags:
+        - CredentialsService
+      operationId: ListCredentials
+      parameters:
+        - name: maxResults
+          in: query
+          description: The maximum number of results per page that should be returned.
+          schema:
+            type: integer
+            format: int32
+        - name: pageToken
+          in: query
+          description: Opaque pagination token to go to next page based on previous query.
+          schema:
+            type: string
+        - name: purpose
+          in: query
+          description: Return only credentials for the specified purpose.
+          schema:
+            type: integer
+            format: enum
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCredentialsResponse'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
     post:
       tags:
-        - CredentialService
-        - credentials
-        - unofficial
+        - CredentialsService
       operationId: CreateCredential
       requestBody:
         content:
@@ -198,7 +253,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Credential'
+                $ref: '#/components/schemas/CredentialInfo'
         default:
           description: Default error response
           content:
@@ -208,9 +263,7 @@ paths:
   /credentials/{name}:
     get:
       tags:
-        - CredentialService
-        - credentials
-        - unofficial
+        - CredentialsService
       operationId: GetCredential
       parameters:
         - name: name
@@ -225,7 +278,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Credential'
+                $ref: '#/components/schemas/CredentialInfo'
         default:
           description: Default error response
           content:
@@ -234,9 +287,7 @@ paths:
                 $ref: '#/components/schemas/Status'
     delete:
       tags:
-        - CredentialService
-        - credentials
-        - unofficial
+        - CredentialsService
       operationId: DeleteCredential
       parameters:
         - name: name
@@ -255,13 +306,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
-  /locations:
+    patch:
+      tags:
+        - CredentialsService
+      operationId: UpdateCredential
+      parameters:
+        - name: name
+          in: path
+          description: Name of credential.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCredentialRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredentialInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /external_locations:
     get:
       tags:
-        - CredentialService
-        - locations
-        - unofficial
-      operationId: ListStorageLocations
+        - ExternalLocationsService
+      description: List external locations
+      operationId: ListExternalLocations
       parameters:
         - name: maxResults
           in: query
@@ -271,18 +351,21 @@ paths:
             format: int32
         - name: pageToken
           in: query
-          description: |-
-            Specifies a page token to use. Set pageToken to the nextPageToken returned
-             by a previous list request to get the next page of results.
+          description: Opaque pagination token to go to next page based on previous query.
           schema:
             type: string
+        - name: includeBrowse
+          in: query
+          description: Whether to include schemas in the response for which the principal can only access selective metadata for
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ListStorageLocationsResponse'
+                $ref: '#/components/schemas/ListExternalLocationsResponse'
         default:
           description: Default error response
           content:
@@ -291,15 +374,14 @@ paths:
                 $ref: '#/components/schemas/Status'
     post:
       tags:
-        - CredentialService
-        - locations
-        - unofficial
-      operationId: CreateStorageLocation
+        - ExternalLocationsService
+      description: Create a new external location
+      operationId: CreateExternalLocation
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateStorageLocationRequest'
+              $ref: '#/components/schemas/CreateExternalLocationRequest'
         required: true
       responses:
         '200':
@@ -307,24 +389,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StorageLocation'
+                $ref: '#/components/schemas/ExternalLocationInfo'
         default:
           description: Default error response
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
-  /locations/{name}:
+  /external_locations/{name}:
     get:
       tags:
-        - CredentialService
-        - locations
-        - unofficial
-      operationId: GetStorageLocation
+        - ExternalLocationsService
+      description: Get an external location
+      operationId: GetExternalLocation
       parameters:
         - name: name
           in: path
-          description: Name of storage location.
+          description: Name of external location.
           required: true
           schema:
             type: string
@@ -334,7 +415,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StorageLocation'
+                $ref: '#/components/schemas/ExternalLocationInfo'
         default:
           description: Default error response
           content:
@@ -343,14 +424,127 @@ paths:
                 $ref: '#/components/schemas/Status'
     delete:
       tags:
-        - CredentialService
-        - locations
-        - unofficial
-      operationId: DeleteStorageLocation
+        - ExternalLocationsService
+      description: Delete an external location
+      operationId: DeleteExternalLocation
       parameters:
         - name: name
           in: path
-          description: Name of storage location.
+          description: Name of external location.
+          required: true
+          schema:
+            type: string
+        - name: force
+          in: query
+          description: Force deletion even if the external location is not empty.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content: {}
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    patch:
+      tags:
+        - ExternalLocationsService
+      description: Update an external location
+      operationId: UpdateExternalLocation
+      parameters:
+        - name: name
+          in: path
+          description: Name of external location.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExternalLocationRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalLocationInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /recipients:
+    get:
+      tags:
+        - RecipientsService
+      description: List recipients.
+      operationId: ListRecipients
+      parameters:
+        - name: maxResults
+          in: query
+          description: The maximum number of results per page that should be returned.
+          schema:
+            type: integer
+            format: int32
+        - name: pageToken
+          in: query
+          description: Opaque pagination token to go to next page based on previous query.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRecipientsResponse'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    post:
+      tags:
+        - RecipientsService
+      description: Create a new recipient.
+      operationId: CreateRecipient
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRecipientRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipientInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /recipients/{name}:
+    get:
+      tags:
+        - RecipientsService
+      description: Get a recipient by name.
+      operationId: GetRecipient
+      parameters:
+        - name: name
+          in: path
+          description: Name of the recipient.
           required: true
           schema:
             type: string
@@ -360,7 +554,60 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StorageLocation'
+                $ref: '#/components/schemas/RecipientInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    delete:
+      tags:
+        - RecipientsService
+      description: Delete a recipient.
+      operationId: DeleteRecipient
+      parameters:
+        - name: name
+          in: path
+          description: Name of the recipient.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    patch:
+      tags:
+        - RecipientsService
+      description: Update a recipient.
+      operationId: UpdateRecipient
+      parameters:
+        - name: name
+          in: path
+          description: Name of the recipient.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecipientRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipientInfo'
         default:
           description: Default error response
           content:
@@ -370,10 +617,12 @@ paths:
   /schemas:
     get:
       tags:
-        - CatalogService
-        - schemas
-        - unity
-      description: List Schemas
+        - SchemasService
+      description: |-
+        Gets an array of schemas for a catalog in the metastore. If the caller is the metastore
+         admin or the owner of the parent catalog, all schemas for the catalog will be retrieved.
+         Otherwise, only schemas owned by the caller (or for which the caller has the USE_SCHEMA privilege)
+         will be retrieved. There is no guarantee of a specific ordering of the elements in the array.
       operationId: ListSchemas
       parameters:
         - name: catalogName
@@ -381,17 +630,22 @@ paths:
           description: Name of parent catalog.
           schema:
             type: string
-        - name: pageToken
-          in: query
-          description: The next_page_token value returned from a previous List request, if any.
-          schema:
-            type: string
         - name: maxResults
           in: query
-          description: The maximum number of items to return.
+          description: The maximum number of results per page that should be returned.
           schema:
             type: integer
             format: int32
+        - name: pageToken
+          in: query
+          description: Opaque pagination token to go to next page based on previous query.
+          schema:
+            type: string
+        - name: includeBrowse
+          in: query
+          description: Whether to include schemas in the response for which the principal can only access selective metadata for
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -407,10 +661,10 @@ paths:
                 $ref: '#/components/schemas/Status'
     post:
       tags:
-        - CatalogService
-        - schemas
-        - unity
-      description: Create a new Schema
+        - SchemasService
+      description: |-
+        Creates a new schema for catalog in the Metatastore. The caller must be a metastore admin,
+         or have the CREATE_SCHEMA privilege in the parent catalog.
       operationId: CreateSchema
       requestBody:
         content:
@@ -434,10 +688,12 @@ paths:
   /schemas/{fullName}:
     patch:
       tags:
-        - CatalogService
-        - schemas
-        - unity
-      description: Update a Schema
+        - SchemasService
+      description: |-
+        Updates a schema for a catalog. The caller must be the owner of the schema or a metastore admin.
+         If the caller is a metastore admin, only the owner field can be changed in the update.
+         If the name field must be updated, the caller must be a metastore admin or have the CREATE_SCHEMA
+         privilege on the parent catalog.
       operationId: UpdateSchema
       parameters:
         - name: fullName
@@ -468,10 +724,11 @@ paths:
   /schemas/{name}:
     get:
       tags:
-        - CatalogService
-        - schemas
-        - unity
-      description: Get a Schema
+        - SchemasService
+      description: |-
+        Gets the specified schema within the metastore.
+         The caller must be a metastore admin, the owner of the schema,
+         or a user that has the USE_SCHEMA privilege on the schema.
       operationId: GetSchema
       parameters:
         - name: name
@@ -502,10 +759,10 @@ paths:
                 $ref: '#/components/schemas/Status'
     delete:
       tags:
-        - CatalogService
-        - schemas
-        - unity
-      description: Delete a Schema
+        - SchemasService
+      description: |-
+        Deletes the specified schema from the parent catalog. The caller must be the owner
+         of the schema or an owner of the parent catalog.
       operationId: DeleteSchema
       parameters:
         - name: name
@@ -540,8 +797,6 @@ paths:
     get:
       tags:
         - DeltaSharingService
-        - shares
-        - official
       description: List shares accessible to a recipient.
       operationId: ListShares
       parameters:
@@ -573,10 +828,8 @@ paths:
                 $ref: '#/components/schemas/Status'
     post:
       tags:
-        - DeltaSharingExtensionService
-        - shares
-        - unofficial
-      description: Create a new Share in the Delta Sharing service.
+        - SharesService
+      description: Create a new share.
       operationId: CreateShare
       requestBody:
         content:
@@ -598,23 +851,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
   /shares/{name}:
+    get:
+      tags:
+        - SharesService
+      description: Get a share by name.
+      operationId: GetShare
+      parameters:
+        - name: name
+          in: path
+          description: Name of the share.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
     delete:
       tags:
-        - DeltaSharingExtensionService
-        - shares
-        - unofficial
-      description: Delete a Share in the Delta Sharing service.
+        - SharesService
+      description: Deletes a share.
       operationId: DeleteShare
       parameters:
         - name: name
           in: path
+          description: Name of the share.
           required: true
           schema:
             type: string
-        - name: force
-          in: query
-          schema:
-            type: boolean
       responses:
         '200':
           description: OK
@@ -625,12 +898,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
+    patch:
+      tags:
+        - SharesService
+      description: Update a share.
+      operationId: UpdateShare
+      parameters:
+        - name: name
+          in: path
+          description: Name of the share.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShareRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
   /shares/{share}:
     get:
       tags:
         - DeltaSharingService
-        - shares
-        - official
       description: Get the metadata for a specific share.
       operationId: GetShare
       parameters:
@@ -657,8 +959,6 @@ paths:
     get:
       tags:
         - DeltaSharingService
-        - tables
-        - official
       description: List all the tables under all schemas in a share.
       operationId: ListShareTables
       parameters:
@@ -694,117 +994,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
-  /shares/{share}/schemas:
-    get:
-      tags:
-        - DeltaSharingService
-        - schemas
-        - official
-      description: List the schemas in a share.
-      operationId: ListSharingSchemas
-      parameters:
-        - name: share
-          in: path
-          description: The share id.
-          required: true
-          schema:
-            type: string
-        - name: maxResults
-          in: query
-          description: The maximum number of results per page that should be returned.
-          schema:
-            type: integer
-            format: int32
-        - name: pageToken
-          in: query
-          description: |-
-            Specifies a page token to use. Set pageToken to the nextPageToken returned
-             by a previous list request to get the next page of results.
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListSharingSchemasResponse'
-        default:
-          description: Default error response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Status'
-    post:
-      tags:
-        - DeltaSharingExtensionService
-        - schemas
-        - unofficial
-      description: Create a new Schema in the Delta Sharing service.
-      operationId: CreateSchema
-      parameters:
-        - name: share
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SharingSchemaInfo'
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SharingSchemaInfo'
-        default:
-          description: Default error response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Status'
-  /shares/{share}/schemas/{name}:
-    delete:
-      tags:
-        - DeltaSharingExtensionService
-        - schemas
-        - unofficial
-      description: Delete a Schema in the Delta Sharing service.
-      operationId: DeleteSchema
-      parameters:
-        - name: share
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SharingSchemaInfo'
-        default:
-          description: Default error response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Status'
   /shares/{share}/schemas/{name}/tables:
     get:
       tags:
         - DeltaSharingService
-        - tables
-        - official
       description: List the tables in a given share's schema.
       operationId: ListSchemaTables
       parameters:
@@ -850,8 +1043,6 @@ paths:
     get:
       tags:
         - DeltaSharingService
-        - tables
-        - official
       operationId: GetTableMetadata
       parameters:
         - name: share
@@ -889,8 +1080,6 @@ paths:
     get:
       tags:
         - DeltaSharingService
-        - tables
-        - official
       description: Get the current version for a table within a schema.
       operationId: GetTableVersion
       parameters:
@@ -933,91 +1122,158 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
+  /shares/{share}}/schemas:
+    get:
+      tags:
+        - DeltaSharingService
+      description: List the schemas in a share.
+      operationId: ListSharingSchemas
+      parameters:
+        - name: share
+          in: path
+          description: The share name to query. It's case-insensitive.
+          required: true
+          schema:
+            type: string
+        - name: maxResults
+          in: query
+          description: The maximum number of results per page that should be returned.
+          schema:
+            type: integer
+            format: int32
+        - name: pageToken
+          in: query
+          description: |-
+            Specifies a page token to use. Set pageToken to the nextPageToken returned
+             by a previous list request to get the next page of results.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSharingSchemasResponse'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /tables/{fullName}:
+    get:
+      tags:
+        - TablesService
+      description: Get a table
+      operationId: GetTable
+      parameters:
+        - name: fullName
+          in: path
+          description: Full name of the table.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
 components:
   schemas:
-    AzureClientCredential:
-      required:
-        - tenantId
-        - clientId
+    AzureManagedIdentity:
       type: object
       properties:
-        tenantId:
+        objectId:
           type: string
-        clientId:
+          description: Object id for use with managed identity authentication
+        applicationId:
           type: string
+          description: The application ID of the application registration within the referenced AAD tenant.
+        msiResourceId:
+          type: string
+          description: Msi resource id for use with managed identity authentication
+    AzureServicePrincipal:
+      required:
+        - directoryId
+        - applicationId
+      type: object
+      properties:
+        directoryId:
+          type: string
+          description: The directory ID corresponding to the Azure Active Directory (AAD) tenant of the application.
+        applicationId:
+          type: string
+          description: The application ID of the application registration within the referenced AAD tenant.
         clientSecret:
           type: string
-        clientCertificate:
-          type: string
+          description: The client secret generated for the above app ID in AAD.
         federatedTokenFile:
           type: string
-    AzureCredential:
-      type: object
-      properties:
-        accountKey:
-          $ref: '#/components/schemas/AzureKeyCredential'
-        sas:
-          $ref: '#/components/schemas/AzureSasCredential'
-        client:
-          $ref: '#/components/schemas/AzureClientCredential'
-    AzureKeyCredential:
-      required:
-        - accountName
-        - accountKey
-      type: object
-      properties:
-        accountName:
-          type: string
-        accountKey:
-          type: string
-    AzureSasCredential:
-      required:
-        - accountName
-        - sasToken
-      type: object
-      properties:
-        accountName:
-          type: string
-        sasToken:
-          type: string
+          description: |-
+            Location of the file containing a federated token.
+
+             Specifically useful for workload identity federation.
     CatalogInfo:
-      required:
-        - name
       type: object
       properties:
+        id:
+          type: string
+          description: Unique identifier for the catalog.
         name:
           type: string
           description: Name of catalog.
+        owner:
+          type: string
+          description: Username of current owner of catalog.
         comment:
           type: string
           description: User-provided free-form text description.
         properties:
           type: object
           description: A map of key-value properties attached to the securable.
-        owner:
-          readOnly: true
+        storageRoot:
           type: string
-          description: Username of current owner of catalog.
-        createAt:
-          readOnly: true
+          description: Storage root URL for managed tables within catalog.
+        providerName:
+          type: string
+          description: |-
+            The name of delta sharing provider.
+
+             A Delta Sharing catalog is a catalog that is based on a Delta share on a remote sharing server.
+        shareName:
+          type: string
+          description: The name of the share under the share provider.
+        catalogType:
+          type: integer
+          description: The type of the catalog.
+          format: enum
+        createdAt:
           type: string
           description: Time at which this catalog was created, in epoch milliseconds.
         createdBy:
-          readOnly: true
           type: string
           description: Username of catalog creator.
-        updateAt:
-          readOnly: true
+        updatedAt:
           type: string
           description: Time at which this catalog was last updated, in epoch milliseconds.
         updatedBy:
-          readOnly: true
           type: string
           description: Username of user who last modified catalog.
-        id:
-          readOnly: true
-          type: string
-          description: Unique identifier for the catalog.
+        browseOnly:
+          type: boolean
+          description: |-
+            Indicates whether the principal is limited to retrieving metadata
+             for the associated object through the BROWSE privilege when include_browse
+             is enabled in the request.
       description: A catalog is a root-level namespace that contains schemas.
     CreateCatalogRequest:
       required:
@@ -1033,17 +1289,103 @@ components:
         properties:
           type: object
           description: A map of key-value properties attached to the securable.
+        storageRoot:
+          type: string
+          description: Storage root URL for managed tables within catalog.
+        providerName:
+          type: string
+          description: |-
+            The name of delta sharing provider.
+
+             A Delta Sharing catalog is a catalog that is based on a Delta share on a remote sharing server.
+        shareName:
+          type: string
+          description: The name of the share under the share provider.
       description: Create a new catalog
     CreateCredentialRequest:
       required:
-        - credential
+        - name
+        - purpose
       type: object
       properties:
-        credential:
-          allOf:
-            - $ref: '#/components/schemas/Credential'
-          description: Credential to create.
+        name:
+          type: string
+          description: The credential name. The name must be unique among storage and service credentials within the metastore.
+        purpose:
+          type: integer
+          description: The credential purpose.
+          format: enum
+        comment:
+          type: string
+          description: Comment associated with the credential.
+        readOnly:
+          type: boolean
+          description: Whether the credential is usable only for read operations. Only applicable when purpose is STORAGE.
+        skipValidation:
+          type: boolean
+          description: Supplying true to this argument skips validation of the created set of credentials.
+        azureServicePrincipal:
+          $ref: '#/components/schemas/AzureServicePrincipal'
+        azureManagedIdentity:
+          $ref: '#/components/schemas/AzureManagedIdentity'
       description: Create a new credential
+    CreateExternalLocationRequest:
+      required:
+        - name
+        - url
+        - credentialName
+        - readOnly
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of external location.
+        url:
+          type: string
+          description: Path URL of the external location.
+        credentialName:
+          type: string
+          description: Name of the storage credential used with this location.
+        readOnly:
+          type: boolean
+          description: Indicates whether the external location is read-only.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        skipValidation:
+          type: boolean
+          description: Skips validation of the storage credential associated with the external location.
+      description: Create a new external location
+    CreateRecipientRequest:
+      required:
+        - name
+        - authenticationType
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the recipient.
+        authenticationType:
+          type: integer
+          description: The delta sharing authentication type.
+          format: enum
+        owner:
+          type: string
+          description: Username of the recipient owner.
+        comment:
+          type: string
+          description: Description about the recipient.
+        properties:
+          type: object
+          description: |-
+            Recipient properties as map of string key-value pairs.
+
+             When provided in update request, the specified properties will override the existing properties.
+             To add and remove properties, one would need to perform a read-modify-write.
+        expirationTime:
+          type: string
+          description: Expiration timestamp of the token, in epoch milliseconds.
+      description: Creates a new recipient
     CreateSchemaRequest:
       required:
         - name
@@ -1070,66 +1412,135 @@ components:
       properties:
         name:
           type: string
-        description:
+          description: Name of the share.
+        comment:
           type: string
-        properties:
-          type: object
-      description: Create a new Share in the Delta Sharing service.
-    CreateStorageLocationRequest:
-      required:
-        - name
-        - url
-        - type
-        - credential
-      type: object
-      properties:
-        name:
-          type: string
-          description: Storage location to create.
-        url:
-          type: string
-        type:
-          type: integer
-          format: enum
-        credential:
-          type: string
-        description:
-          type: string
-        properties:
-          type: object
-      description: Create a new storage location
-    Credential:
-      required:
-        - name
+          description: User-provided free-form text description.
+      description: |-
+        Creates a new share for data objects.
+
+         Data objects can be added after creation with update.
+         The caller must be a metastore admin or have the CREATE_SHARE privilege on the metastore.
+    CredentialInfo:
       type: object
       properties:
         id:
-          readOnly: true
           type: string
+          description: The unique identifier of the credential.
         name:
           type: string
-        azure:
-          $ref: '#/components/schemas/AzureCredential'
+          description: |-
+            The credential name.
+
+             The name must be unique among storage and service credentials within the metastore.
+        purpose:
+          type: integer
+          description: Indicates the purpose of the credential.
+          format: enum
+        readOnly:
+          type: boolean
+          description: |-
+            Whether the credential is usable only for read operations.
+
+             Only applicable when purpose is STORAGE.
+        comment:
+          type: string
+          description: User-provided free-form text description.
         owner:
-          readOnly: true
           type: string
-          description: Username of current owner of catalog.
-        createAt:
-          readOnly: true
+          description: Username of current owner of credential.
+        createdAt:
           type: string
-          description: Time at which this catalog was created, in epoch milliseconds.
+          description: Time at which this credential was created, in epoch milliseconds.
         createdBy:
-          readOnly: true
           type: string
-          description: Username of catalog creator.
-        updateAt:
-          readOnly: true
+          description: Username of credential creator.
+        updatedAt:
           type: string
-          description: Time at which this catalog was last updated, in epoch milliseconds.
+          description: Time at which this credential was last updated, in epoch milliseconds.
         updatedBy:
-          readOnly: true
           type: string
-          description: Username of user who last modified catalog.
+          description: Username of user who last modified credential.
+        usedForManagedStorage:
+          type: boolean
+          description: |-
+            Whether this credential is the current metastore's root storage credential.
+
+             Only applicable when purpose is STORAGE.
+        fullName:
+          type: string
+          description: The full name of the credential.
+        azureServicePrincipal:
+          $ref: '#/components/schemas/AzureServicePrincipal'
+        azureManagedIdentity:
+          $ref: '#/components/schemas/AzureManagedIdentity'
+    DataObject:
+      type: object
+      properties:
+        name:
+          type: string
+          description: |-
+            A fully qualified name that uniquely identifies a data object.
+
+             For example, a table's fully qualified name is in the format of <catalog>.<schema>.<table>,
+        dataObjectType:
+          type: integer
+          description: Type of the data object.
+          format: enum
+        addedAt:
+          type: string
+          description: The time when this data object is added to the share, in epoch milliseconds.
+        addedBy:
+          type: string
+          description: Username of the sharer.
+        comment:
+          type: string
+          description: A user-provided comment when adding the data object to the share.
+        sharedAs:
+          type: string
+          description: |-
+            A user-provided new name for the data object within the share.
+
+             If this new name is not provided, the object's original name will be used as the shared_as name.
+             The shared_as name must be unique within a share.
+             For tables, the new name must follow the format of <schema>.<table>.
+        partitions:
+          type: array
+          items:
+            type: string
+          description: Array of partitions for the shared data.
+        enableCdf:
+          type: boolean
+          description: Whether to enable cdf or indicate if cdf is enabled on the shared object.
+        historyDataSharingStatus:
+          type: integer
+          description: Whether to enable or disable sharing of data history. If not specified, the default is DISABLED.
+          format: enum
+        startVersion:
+          type: string
+          description: |-
+            The start version associated with the object.
+
+             This allows data providers to control the lowest object version that is accessible by clients.
+             If specified, clients can query snapshots or changes for versions >= start_version.
+             If not specified, clients can only query starting from the version of the object at the time it was added to the share.
+
+             NOTE: The start_version should be <= the current version of the object.
+    DataObjectUpdate:
+      required:
+        - action
+        - dataObject
+      type: object
+      properties:
+        action:
+          type: integer
+          description: Name of the share.
+          format: enum
+        dataObject:
+          allOf:
+            - $ref: '#/components/schemas/DataObject'
+          description: User-provided free-form text description.
+      description: Data object update.
     DeltaLogMessage:
       type: object
       properties:
@@ -1146,6 +1557,49 @@ components:
           items:
             $ref: '#/components/schemas/DeltaLogMessage'
       description: Response for a query against a table in Delta format.
+    ExternalLocationInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the external location.
+        url:
+          type: string
+          description: Path URL of the external location.
+        credentialName:
+          type: string
+          description: Name of the storage credential used with this location.
+        readOnly:
+          type: boolean
+          description: Indicates whether the external location is read-only.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        owner:
+          type: string
+          description: The owner of the external location.
+        credentialId:
+          type: string
+          description: Unique ID of the location's storage credential.
+        createdAt:
+          type: string
+          description: Time at which this catalog was created, in epoch milliseconds.
+        createdBy:
+          type: string
+          description: Username of catalog creator.
+        updatedAt:
+          type: string
+          description: Time at which this catalog was last updated, in epoch milliseconds.
+        updatedBy:
+          type: string
+          description: Username of user who last modified catalog.
+        browseOnly:
+          type: boolean
+          description: |-
+            Indicates whether the principal is limited to retrieving metadata
+             for the associated object through the BROWSE privilege when include_browse is enabled in the request.
+        externalLocationId:
+          type: string
     Format:
       type: object
       properties:
@@ -1185,6 +1639,41 @@ components:
           type: string
           description: The next_page_token value to include in the next List request.
       description: List catalogs response.
+    ListCredentialsResponse:
+      type: object
+      properties:
+        credentials:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialInfo'
+          description: The credentials returned.
+        nextPageToken:
+          type: string
+          description: The next_page_token value to include in the next List request.
+    ListExternalLocationsResponse:
+      type: object
+      properties:
+        externalLocations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExternalLocationInfo'
+          description: The external locations returned.
+        nextPageToken:
+          type: string
+          description: The next_page_token value to include in the next List request.
+      description: List external locations response.
+    ListRecipientsResponse:
+      type: object
+      properties:
+        recipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipientInfo'
+          description: List of recipients.
+        nextPageToken:
+          type: string
+          description: Opaque pagination token to go to next page based on previous query.
+      description: Response to list recipients.
     ListSchemaTablesResponse:
       type: object
       properties:
@@ -1228,17 +1717,15 @@ components:
     ListSharesResponse:
       type: object
       properties:
-        items:
+        shares:
           type: array
           items:
-            $ref: '#/components/schemas/Share'
-          description: The shares that were requested.
+            $ref: '#/components/schemas/ShareInfo'
+          description: List of shares.
         nextPageToken:
           type: string
-          description: |-
-            Token that can be used to retrieve the next page of shares.
-             An empty or missing token means that no more shares are available for retrieval.
-      description: Response for ListSharesRequest.
+          description: Opaque pagination token to go to next page based on previous query.
+      description: Response to list shares.
     ListSharingSchemasResponse:
       type: object
       properties:
@@ -1253,18 +1740,6 @@ components:
             Token that can be used to retrieve the next page of schemas.
              An empty or missing token means that no more schemas are available for retrieval.
       description: Response for ListSharingSchemasRequest.
-    ListStorageLocationsResponse:
-      type: object
-      properties:
-        storageLocations:
-          type: array
-          items:
-            $ref: '#/components/schemas/StorageLocation'
-          description: The storage locations returned.
-        nextPageToken:
-          type: string
-          description: The next_page_token value to include in the next List request.
-      description: List storage locations response.
     MetadatDelta:
       type: object
       properties:
@@ -1396,6 +1871,69 @@ components:
             - $ref: '#/components/schemas/DeltaResponse'
           description: Delta response format
       description: Response for a query against a table.
+    RecipientInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique ID of the recipient.
+        name:
+          type: string
+          description: The name of the recipient.
+        authenticationType:
+          type: integer
+          description: The delta sharing authentication type.
+          format: enum
+        owner:
+          type: string
+          description: Username of the recipient owner.
+        comment:
+          type: string
+          description: Description about the recipient.
+        properties:
+          type: object
+          description: A map of key-value properties attached to the securable.
+        createdAt:
+          type: string
+          description: Time at which this share was created, in epoch milliseconds.
+        createdBy:
+          type: string
+          description: Username of the creator of the share.
+        tokens:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipientToken'
+          description: This field is only present when the authentication_type is TOKEN.
+        updatedAt:
+          type: string
+          description: Time at which this share was updated, in epoch milliseconds.
+        updatedBy:
+          type: string
+          description: Username of share updater.
+    RecipientToken:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique ID of the recipient token.
+        createdAt:
+          type: string
+          description: Time at which this recipient token was created, in epoch milliseconds.
+        createdBy:
+          type: string
+          description: Username of recipient token creator.
+        activationUrl:
+          type: string
+          description: Full activation URL to retrieve the access token. It will be empty if the token is already retrieved.
+        expirationTime:
+          type: string
+          description: Expiration timestamp of the token in epoch milliseconds.
+        updatedAt:
+          type: string
+          description: Time at which this recipient token was updated, in epoch milliseconds.
+        updatedBy:
+          type: string
+          description: Username of recipient token updater.
     SchemaInfo:
       required:
         - name
@@ -1422,7 +1960,7 @@ components:
           readOnly: true
           type: string
           description: Username of current owner of schema.
-        createAt:
+        createdAt:
           readOnly: true
           type: string
           description: Time at which this schema was created, in epoch milliseconds.
@@ -1430,7 +1968,7 @@ components:
           readOnly: true
           type: string
           description: Username of schema creator.
-        updateAt:
+        updatedAt:
           readOnly: true
           type: string
           description: Time at which this schema was last updated, in epoch milliseconds.
@@ -1460,25 +1998,40 @@ components:
       type: object
       properties:
         id:
-          readOnly: true
           type: string
+          description: Unique ID of the recipient.
         name:
           type: string
-        description:
+          description: Name of the share.
+        owner:
           type: string
-        properties:
-          type: object
-      description: |-
-        A share in a delta sharing service.
-
-         A share is a logical grouping to share with recipients.
-         It may contain multiple schemas and tables.
+          description: Username of current owner of share.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        dataObjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataObject'
+          description: A list of shared data objects within the share.
+        createdAt:
+          type: string
+          description: Time at which this share was created, in epoch milliseconds.
+        createdBy:
+          type: string
+          description: Username of the creator of the share.
+        updatedAt:
+          type: string
+          description: Time at which this share was updated, in epoch milliseconds.
+        updatedBy:
+          type: string
+          description: Username of share updater.
     SharingSchema:
       type: object
       properties:
         name:
           type: string
-          description: The name of the schama
+          description: The name of the schema
         share:
           type: string
           description: The share name that the schema belongs to.
@@ -1487,35 +2040,6 @@ components:
           type: string
           description: Unique identifier for the schema.
       description: A schema is a logical grouping of tables. A schema may contain multiple tables.
-    SharingSchemaInfo:
-      type: object
-      properties:
-        id:
-          readOnly: true
-          type: string
-          description: Unique identifier for the schema.
-        name:
-          type: string
-          description: The name of the schema.
-        share:
-          readOnly: true
-          type: string
-          description: The share name that the schema belongs to.
-        shareId:
-          readOnly: true
-          type: string
-          description: The unique identifier for the share this schema belongs to.
-        description:
-          type: string
-          description: User-provided free-form text description.
-        properties:
-          type: object
-          description: A map of key-value properties attached to the securable.
-      description: |-
-        A schema in a delta sharing service.
-
-         A schema is a logical grouping of tables.
-         It may contain multiple tables.
     SharingTable:
       type: object
       properties:
@@ -1553,50 +2077,52 @@ components:
             $ref: '#/components/schemas/GoogleProtobufAny'
           description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
       description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
-    StorageLocation:
-      required:
-        - name
-        - url
-        - type
-        - credential
+    TableInfo:
       type: object
       properties:
-        id:
-          readOnly: true
-          type: string
         name:
           type: string
-        url:
+          description: Name of table, relative to parent schema.
+        schemaName:
           type: string
-        type:
+          description: Name of parent schema.
+        catalogName:
+          type: string
+          description: Name of parent catalog.
+        tableType:
           type: integer
           format: enum
-        credential:
+        dataSourceFormat:
+          type: integer
+          description: Data source format of the table.
+          format: enum
+        comment:
           type: string
-        description:
-          type: string
+          description: User-provided free-form text description.
         properties:
           type: object
+          description: A map of key-value properties attached to the securable.
+        fullName:
+          type: string
+          description: Full name of table, in form of catalog_name.schema_name.table_name.
         owner:
-          readOnly: true
           type: string
-          description: Username of current owner of storage location.
-        createAt:
-          readOnly: true
+          description: Username of current owner of table.
+        createdAt:
           type: string
-          description: Time at which this storage location was created, in epoch milliseconds.
+          description: Time at which this table was created, in epoch milliseconds.
         createdBy:
-          readOnly: true
           type: string
-          description: Username of storage location creator.
-        updateAt:
-          readOnly: true
+          description: Username of table creator.
+        updatedAt:
           type: string
-          description: Time at which this storage location was last updated, in epoch milliseconds.
+          description: Time at which this table was last updated, in epoch milliseconds.
         updatedBy:
-          readOnly: true
           type: string
-          description: Username of user who last modified storage location.
+          description: Username of user who last modified table.
+        tableId:
+          type: string
+          description: Unique identifier for the table.
     UpdateCatalogRequest:
       required:
         - name
@@ -1605,16 +2131,117 @@ components:
         name:
           type: string
           description: Name of catalog.
+        owner:
+          type: string
+          description: Username of new owner of catalog.
         comment:
           type: string
           description: User-provided free-form text description.
         properties:
           type: object
-          description: A map of key-value properties attached to the securable.
+          description: |-
+            A map of key-value properties attached to the securable.
+
+             When provided in update request, the specified properties will override the existing properties.
+             To add and remove properties, one would need to perform a read-modify-write.
         newName:
           type: string
           description: Name of catalog.
       description: Update a catalog
+    UpdateCredentialRequest:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of credential.
+        newName:
+          type: string
+          description: Name of credential.
+        comment:
+          type: string
+          description: Comment associated with the credential.
+        readOnly:
+          type: boolean
+          description: Whether the credential is usable only for read operations. Only applicable when purpose is STORAGE.
+        owner:
+          type: string
+          description: Username of current owner of credential.
+        skipValidation:
+          type: boolean
+          description: Supply true to this argument to skip validation of the updated credential.
+        force:
+          type: boolean
+          description: |-
+            Force an update even if there are dependent services (when purpose is SERVICE)
+             or dependent external locations and external tables (when purpose is STORAGE).
+        azureServicePrincipal:
+          $ref: '#/components/schemas/AzureServicePrincipal'
+        azureManagedIdentity:
+          $ref: '#/components/schemas/AzureManagedIdentity'
+      description: Update a credential
+    UpdateExternalLocationRequest:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of external location.
+        url:
+          type: string
+          description: Path URL of the external location.
+        credentialName:
+          type: string
+          description: Name of the storage credential used with this location.
+        readOnly:
+          type: boolean
+          description: Indicates whether the external location is read-only.
+        owner:
+          type: string
+          description: owner of the external location.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        newName:
+          type: string
+          description: new name of the external location.
+        force:
+          type: boolean
+          description: force update of the external location.
+        skipValidation:
+          type: boolean
+          description: Skips validation of the storage credential associated with the external location.
+      description: Update an external location
+    UpdateRecipientRequest:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the recipient.
+        newName:
+          type: string
+          description: New name for the recipient
+        owner:
+          type: string
+          description: Username of the recipient owner.
+        comment:
+          type: string
+          description: Description about the recipient.
+        properties:
+          type: object
+          description: |-
+            Recipient properties as map of string key-value pairs.
+
+             When provided in update request, the specified properties will override the existing properties.
+             To add and remove properties, one would need to perform a read-modify-write.
+        expirationTime:
+          type: string
+          description: Expiration timestamp of the token, in epoch milliseconds.
+      description: Update a recipient
     UpdateSchemaRequest:
       required:
         - fullName
@@ -1628,8 +2255,38 @@ components:
           description: User-provided free-form text description.
         properties:
           type: object
-          description: A map of key-value properties attached to the securable.
+          description: |-
+            A map of key-value properties attached to the securable.
+
+             When provided in update request, the specified properties will override the existing properties.
+             To add and remove properties, one would need to perform a read-modify-write.
         newName:
           type: string
           description: Name of schema.
       description: Update a Schema
+    UpdateShareRequest:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the share.
+        updates:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataObjectUpdate'
+          description: Array of shared data object updates.
+        newName:
+          type: string
+          description: A new name for the share.
+        owner:
+          type: string
+          description: Owner of the share.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+      description: |-
+        Update a share.
+
+         The caller must be a metastore admin or have the UPDATE_SHARE privilege on the metastore.

@@ -22,11 +22,8 @@ impl serde::Serialize for Resource {
                 resource::Resource::SharingTable(v) => {
                     struct_ser.serialize_field("sharingTable", v)?;
                 }
-                resource::Resource::Credential(v) => {
-                    struct_ser.serialize_field("credential", v)?;
-                }
-                resource::Resource::StorageLocation(v) => {
-                    struct_ser.serialize_field("storageLocation", v)?;
+                resource::Resource::CredentialInfo(v) => {
+                    struct_ser.serialize_field("credentialInfo", v)?;
                 }
                 resource::Resource::CatalogInfo(v) => {
                     struct_ser.serialize_field("catalogInfo", v)?;
@@ -36,6 +33,12 @@ impl serde::Serialize for Resource {
                 }
                 resource::Resource::TableInfo(v) => {
                     struct_ser.serialize_field("tableInfo", v)?;
+                }
+                resource::Resource::ExternalLocationInfo(v) => {
+                    struct_ser.serialize_field("externalLocationInfo", v)?;
+                }
+                resource::Resource::RecipientInfo(v) => {
+                    struct_ser.serialize_field("recipientInfo", v)?;
                 }
             }
         }
@@ -55,15 +58,18 @@ impl<'de> serde::Deserialize<'de> for Resource {
             "sharingSchemaInfo",
             "sharing_table",
             "sharingTable",
-            "credential",
-            "storage_location",
-            "storageLocation",
+            "credential_info",
+            "credentialInfo",
             "catalog_info",
             "catalogInfo",
             "schema_info",
             "schemaInfo",
             "table_info",
             "tableInfo",
+            "external_location_info",
+            "externalLocationInfo",
+            "recipient_info",
+            "recipientInfo",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -71,11 +77,12 @@ impl<'de> serde::Deserialize<'de> for Resource {
             ShareInfo,
             SharingSchemaInfo,
             SharingTable,
-            Credential,
-            StorageLocation,
+            CredentialInfo,
             CatalogInfo,
             SchemaInfo,
             TableInfo,
+            ExternalLocationInfo,
+            RecipientInfo,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -100,11 +107,12 @@ impl<'de> serde::Deserialize<'de> for Resource {
                             "shareInfo" | "share_info" => Ok(GeneratedField::ShareInfo),
                             "sharingSchemaInfo" | "sharing_schema_info" => Ok(GeneratedField::SharingSchemaInfo),
                             "sharingTable" | "sharing_table" => Ok(GeneratedField::SharingTable),
-                            "credential" => Ok(GeneratedField::Credential),
-                            "storageLocation" | "storage_location" => Ok(GeneratedField::StorageLocation),
+                            "credentialInfo" | "credential_info" => Ok(GeneratedField::CredentialInfo),
                             "catalogInfo" | "catalog_info" => Ok(GeneratedField::CatalogInfo),
                             "schemaInfo" | "schema_info" => Ok(GeneratedField::SchemaInfo),
                             "tableInfo" | "table_info" => Ok(GeneratedField::TableInfo),
+                            "externalLocationInfo" | "external_location_info" => Ok(GeneratedField::ExternalLocationInfo),
+                            "recipientInfo" | "recipient_info" => Ok(GeneratedField::RecipientInfo),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -148,18 +156,11 @@ impl<'de> serde::Deserialize<'de> for Resource {
                             resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::SharingTable)
 ;
                         }
-                        GeneratedField::Credential => {
+                        GeneratedField::CredentialInfo => {
                             if resource__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("credential"));
+                                return Err(serde::de::Error::duplicate_field("credentialInfo"));
                             }
-                            resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::Credential)
-;
-                        }
-                        GeneratedField::StorageLocation => {
-                            if resource__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("storageLocation"));
-                            }
-                            resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::StorageLocation)
+                            resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::CredentialInfo)
 ;
                         }
                         GeneratedField::CatalogInfo => {
@@ -181,6 +182,20 @@ impl<'de> serde::Deserialize<'de> for Resource {
                                 return Err(serde::de::Error::duplicate_field("tableInfo"));
                             }
                             resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::TableInfo)
+;
+                        }
+                        GeneratedField::ExternalLocationInfo => {
+                            if resource__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("externalLocationInfo"));
+                            }
+                            resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::ExternalLocationInfo)
+;
+                        }
+                        GeneratedField::RecipientInfo => {
+                            if resource__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("recipientInfo"));
+                            }
+                            resource__ = map_.next_value::<::std::option::Option<_>>()?.map(resource::Resource::RecipientInfo)
 ;
                         }
                     }
