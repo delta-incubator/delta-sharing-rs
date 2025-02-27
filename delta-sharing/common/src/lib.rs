@@ -4,7 +4,7 @@ mod api;
 pub mod error;
 #[cfg(feature = "grpc")]
 mod grpc;
-pub mod handlers;
+pub mod handler;
 mod kernel;
 #[cfg(feature = "memory")]
 pub mod memory;
@@ -19,12 +19,9 @@ pub use self::resources::*;
 pub use api::*;
 pub use delta_sharing_derive;
 pub use error::*;
-pub use handlers::*;
+pub use handler::*;
 pub use kernel::*;
 pub use models::*;
-pub use models::{
-    IntoJSONStruct, IntoJson, IntoProto, IntoProtoStruct, JsonValue, PropertyMapHandler,
-};
 pub use policy::*;
 pub use secrets::*;
 

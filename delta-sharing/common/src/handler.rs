@@ -4,16 +4,11 @@ use crate::policy::Policy;
 use crate::resources::ResourceStore;
 use crate::{
     ProvidesPolicy, ProvidesResourceStore, ProvidesSecretManager, ResourceRef, Result,
-    SecretManager, SharingQueryHandler, TableLocationResolver,
+    SecretManager, TableLocationResolver,
 };
 
-mod catalog;
-mod credentials;
-mod external_locations;
-mod recipients;
-mod schemas;
-mod shares;
-mod sharing;
+use crate::api::{RequestContext, SharingQueryHandler};
+use crate::models::sharing::v1::*;
 
 #[derive(Clone)]
 pub struct ServerHandler {
@@ -61,5 +56,26 @@ impl ProvidesSecretManager for ServerHandler {
 impl TableLocationResolver for ServerHandler {
     async fn resolve(&self, _table: &ResourceRef) -> Result<url::Url> {
         todo!("resolve table location")
+    }
+}
+
+#[async_trait::async_trait]
+impl SharingQueryHandler for ServerHandler {
+    async fn get_table_version(
+        &self,
+        request: GetTableVersionRequest,
+        context: RequestContext,
+    ) -> Result<GetTableVersionResponse> {
+        self.check_required(&request, context.recipient()).await?;
+        self.query.get_table_version(request, context).await
+    }
+
+    async fn get_table_metadata(
+        &self,
+        request: GetTableMetadataRequest,
+        context: RequestContext,
+    ) -> Result<QueryResponse> {
+        self.check_required(&request, context.recipient()).await?;
+        self.query.get_table_metadata(request, context).await
     }
 }

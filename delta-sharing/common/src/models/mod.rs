@@ -1,14 +1,13 @@
 use serde::Serialize;
+use std::collections::HashMap;
 
 use crate::{Error, ResourceIdent, ResourceName, ResourceRef};
 
 pub use internal::resource::{ObjectLabel, Resource};
 pub use object::*;
-pub use properties::*;
 pub use tables::v1::TableInfo;
 
 mod object;
-mod properties;
 
 pub use catalogs::v1::CatalogInfo;
 pub use credentials::v1::CredentialInfo;
@@ -18,6 +17,8 @@ pub use recipients::v1::RecipientInfo;
 pub use schemas::v1::SchemaInfo;
 pub use shares::v1::ShareInfo;
 pub use sharing::v1::{Share, SharingSchema, SharingSchemaInfo, SharingTable};
+
+pub type PropertyMap = HashMap<String, serde_json::Value>;
 
 #[allow(clippy::empty_docs, clippy::large_enum_variant)]
 pub mod sharing {
