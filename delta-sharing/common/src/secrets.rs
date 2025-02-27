@@ -12,7 +12,7 @@ use crate::Result;
 /// The secret manager is responsible for fetching the secret value from the secret store.
 /// The secret store can be a key-value store, a secret manager service, or any other secret store.
 #[async_trait::async_trait]
-pub trait SecretManager: Send + Sync {
+pub trait SecretManager: Send + Sync + 'static {
     /// Get the secret value for the given secret name.
     ///
     /// Secrets are identified by a unique name. The secret manager should return the secret value

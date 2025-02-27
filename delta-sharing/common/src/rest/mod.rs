@@ -145,15 +145,18 @@ mod tests {
 
     #[tokio::test]
     async fn test_catalog_router() {
-        let app = get_catalog_router(Handler::default())
-            .merge(get_schemas_router(Handler::default()))
+        let handler = Handler::default();
+        let app = get_catalog_router(handler.clone())
+            .merge(get_schemas_router(handler))
             .layer(AuthenticationLayer::new(AnonymousAuthenticator));
         super::integration::test_catalog_router(app).await;
     }
 
     #[tokio::test]
     async fn test_credentials_router() {
-        let app = get_credentials_router(Handler::default())
+        let handler = Handler::default();
+        let app = get_credentials_router(handler.clone())
+            .merge(get_external_locations_router(handler))
             .layer(AuthenticationLayer::new(AnonymousAuthenticator));
         super::integration::test_credentials_router(app).await;
     }

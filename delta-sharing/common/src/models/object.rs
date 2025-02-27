@@ -64,7 +64,7 @@ impl ResourceExt for Resource {
             Resource::ShareInfo(obj) => obj.resource_name(),
             Resource::SharingSchemaInfo(obj) => obj.resource_name(),
             Resource::SharingTable(obj) => obj.resource_name(),
-            Resource::CredentialInfo(_) => todo!(),
+            Resource::CredentialInfo(obj) => obj.resource_name(),
             Resource::CatalogInfo(obj) => obj.resource_name(),
             Resource::SchemaInfo(obj) => obj.resource_name(),
             Resource::TableInfo(obj) => obj.resource_name(),
@@ -78,7 +78,7 @@ impl ResourceExt for Resource {
             Resource::ShareInfo(obj) => obj.resource_ref(),
             Resource::SharingSchemaInfo(obj) => obj.resource_ref(),
             Resource::SharingTable(obj) => obj.resource_ref(),
-            Resource::CredentialInfo(_) => todo!(),
+            Resource::CredentialInfo(obj) => obj.resource_ref(),
             Resource::CatalogInfo(obj) => obj.resource_ref(),
             Resource::SchemaInfo(obj) => obj.resource_ref(),
             Resource::TableInfo(obj) => obj.resource_ref(),
@@ -96,9 +96,7 @@ impl TryFrom<Resource> for Object {
             Resource::ShareInfo(obj) => obj.try_into(),
             Resource::SharingSchemaInfo(obj) => obj.try_into(),
             Resource::SharingTable(obj) => obj.try_into(),
-            Resource::CredentialInfo(_) => {
-                Err(Error::generic("Cannot convert credential to object"))
-            }
+            Resource::CredentialInfo(obj) => obj.try_into(),
             Resource::CatalogInfo(obj) => obj.try_into(),
             Resource::SchemaInfo(obj) => obj.try_into(),
             Resource::TableInfo(obj) => obj.try_into(),

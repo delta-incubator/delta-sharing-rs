@@ -81,8 +81,9 @@ impl<T: ResourceStore + Policy> ExternalLocationsHandler for T {
             comment: request.comment,
             ..Default::default()
         };
-        let cred_ident =
-            ResourceIdent::Credential(ResourceName::from_naive_str_split(&resource.name).into());
+        let cred_ident = ResourceIdent::Credential(
+            ResourceName::from_naive_str_split(&resource.credential_name).into(),
+        );
         let (_credential, credential_ref) = self.get(&cred_ident).await?;
         if let ResourceRef::Uuid(uuid) = credential_ref {
             resource.credential_id = uuid.hyphenated().to_string();
@@ -124,7 +125,7 @@ impl<T: ResourceStore + Policy> ExternalLocationsHandler for T {
         self.check_required(&request, context.recipient()).await?;
         let (mut resources, next_page_token) = self
             .list(
-                &ObjectLabel::CatalogInfo,
+                &ObjectLabel::ExternalLocationInfo,
                 None,
                 request.max_results.map(|v| v as usize),
                 request.page_token,

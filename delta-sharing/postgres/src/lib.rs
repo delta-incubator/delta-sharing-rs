@@ -54,7 +54,7 @@ mod tests {
 
     impl ProvidesSecretManager for Handler {
         fn secret_manager(&self) -> &dyn SecretManager {
-            &self.secrets
+            self.secrets.as_ref()
         }
     }
 
