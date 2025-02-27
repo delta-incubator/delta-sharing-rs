@@ -309,7 +309,7 @@ impl serde::Serialize for ExternalLocationInfo {
         if self.comment.is_some() {
             len += 1;
         }
-        if self.properties.is_some() {
+        if self.owner.is_some() {
             len += 1;
         }
         if !self.credential_id.is_empty() {
@@ -327,7 +327,10 @@ impl serde::Serialize for ExternalLocationInfo {
         if self.updated_by.is_some() {
             len += 1;
         }
-        if self.id.is_some() {
+        if self.browse_only.is_some() {
+            len += 1;
+        }
+        if self.external_location_id.is_some() {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.external_locations.v1.ExternalLocationInfo", len)?;
@@ -346,8 +349,8 @@ impl serde::Serialize for ExternalLocationInfo {
         if let Some(v) = self.comment.as_ref() {
             struct_ser.serialize_field("comment", v)?;
         }
-        if let Some(v) = self.properties.as_ref() {
-            struct_ser.serialize_field("properties", v)?;
+        if let Some(v) = self.owner.as_ref() {
+            struct_ser.serialize_field("owner", v)?;
         }
         if !self.credential_id.is_empty() {
             struct_ser.serialize_field("credentialId", &self.credential_id)?;
@@ -368,8 +371,11 @@ impl serde::Serialize for ExternalLocationInfo {
         if let Some(v) = self.updated_by.as_ref() {
             struct_ser.serialize_field("updatedBy", v)?;
         }
-        if let Some(v) = self.id.as_ref() {
-            struct_ser.serialize_field("id", v)?;
+        if let Some(v) = self.browse_only.as_ref() {
+            struct_ser.serialize_field("browseOnly", v)?;
+        }
+        if let Some(v) = self.external_location_id.as_ref() {
+            struct_ser.serialize_field("externalLocationId", v)?;
         }
         struct_ser.end()
     }
@@ -388,7 +394,7 @@ impl<'de> serde::Deserialize<'de> for ExternalLocationInfo {
             "read_only",
             "readOnly",
             "comment",
-            "properties",
+            "owner",
             "credential_id",
             "credentialId",
             "created_at",
@@ -399,7 +405,10 @@ impl<'de> serde::Deserialize<'de> for ExternalLocationInfo {
             "updatedAt",
             "updated_by",
             "updatedBy",
-            "id",
+            "browse_only",
+            "browseOnly",
+            "external_location_id",
+            "externalLocationId",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -409,13 +418,14 @@ impl<'de> serde::Deserialize<'de> for ExternalLocationInfo {
             CredentialName,
             ReadOnly,
             Comment,
-            Properties,
+            Owner,
             CredentialId,
             CreatedAt,
             CreatedBy,
             UpdatedAt,
             UpdatedBy,
-            Id,
+            BrowseOnly,
+            ExternalLocationId,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
             fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
@@ -442,13 +452,14 @@ impl<'de> serde::Deserialize<'de> for ExternalLocationInfo {
                             "credentialName" | "credential_name" => Ok(GeneratedField::CredentialName),
                             "readOnly" | "read_only" => Ok(GeneratedField::ReadOnly),
                             "comment" => Ok(GeneratedField::Comment),
-                            "properties" => Ok(GeneratedField::Properties),
+                            "owner" => Ok(GeneratedField::Owner),
                             "credentialId" | "credential_id" => Ok(GeneratedField::CredentialId),
                             "createdAt" | "created_at" => Ok(GeneratedField::CreatedAt),
                             "createdBy" | "created_by" => Ok(GeneratedField::CreatedBy),
                             "updatedAt" | "updated_at" => Ok(GeneratedField::UpdatedAt),
                             "updatedBy" | "updated_by" => Ok(GeneratedField::UpdatedBy),
-                            "id" => Ok(GeneratedField::Id),
+                            "browseOnly" | "browse_only" => Ok(GeneratedField::BrowseOnly),
+                            "externalLocationId" | "external_location_id" => Ok(GeneratedField::ExternalLocationId),
                             _ => Err(serde::de::Error::unknown_field(value, FIELDS)),
                         }
                     }
@@ -473,13 +484,14 @@ impl<'de> serde::Deserialize<'de> for ExternalLocationInfo {
                 let mut credential_name__ = None;
                 let mut read_only__ = None;
                 let mut comment__ = None;
-                let mut properties__ = None;
+                let mut owner__ = None;
                 let mut credential_id__ = None;
                 let mut created_at__ = None;
                 let mut created_by__ = None;
                 let mut updated_at__ = None;
                 let mut updated_by__ = None;
-                let mut id__ = None;
+                let mut browse_only__ = None;
+                let mut external_location_id__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Name => {
@@ -512,11 +524,11 @@ impl<'de> serde::Deserialize<'de> for ExternalLocationInfo {
                             }
                             comment__ = map_.next_value()?;
                         }
-                        GeneratedField::Properties => {
-                            if properties__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("properties"));
+                        GeneratedField::Owner => {
+                            if owner__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("owner"));
                             }
-                            properties__ = map_.next_value()?;
+                            owner__ = map_.next_value()?;
                         }
                         GeneratedField::CredentialId => {
                             if credential_id__.is_some() {
@@ -552,11 +564,17 @@ impl<'de> serde::Deserialize<'de> for ExternalLocationInfo {
                             }
                             updated_by__ = map_.next_value()?;
                         }
-                        GeneratedField::Id => {
-                            if id__.is_some() {
-                                return Err(serde::de::Error::duplicate_field("id"));
+                        GeneratedField::BrowseOnly => {
+                            if browse_only__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("browseOnly"));
                             }
-                            id__ = map_.next_value()?;
+                            browse_only__ = map_.next_value()?;
+                        }
+                        GeneratedField::ExternalLocationId => {
+                            if external_location_id__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("externalLocationId"));
+                            }
+                            external_location_id__ = map_.next_value()?;
                         }
                     }
                 }
@@ -566,13 +584,14 @@ impl<'de> serde::Deserialize<'de> for ExternalLocationInfo {
                     credential_name: credential_name__.unwrap_or_default(),
                     read_only: read_only__.unwrap_or_default(),
                     comment: comment__,
-                    properties: properties__,
+                    owner: owner__,
                     credential_id: credential_id__.unwrap_or_default(),
                     created_at: created_at__,
                     created_by: created_by__,
                     updated_at: updated_at__,
                     updated_by: updated_by__,
-                    id: id__,
+                    browse_only: browse_only__,
+                    external_location_id: external_location_id__,
                 })
             }
         }

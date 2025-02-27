@@ -1575,9 +1575,9 @@ components:
         comment:
           type: string
           description: User-provided free-form text description.
-        properties:
-          type: object
-          description: A map of key-value properties attached to the securable.
+        owner:
+          type: string
+          description: The owner of the external location.
         credentialId:
           type: string
           description: Unique ID of the location's storage credential.
@@ -1593,7 +1593,12 @@ components:
         updatedBy:
           type: string
           description: Username of user who last modified catalog.
-        id:
+        browseOnly:
+          type: boolean
+          description: |-
+            Indicates whether the principal is limited to retrieving metadata
+             for the associated object through the BROWSE privilege when include_browse is enabled in the request.
+        externalLocationId:
           type: string
     Format:
       type: object

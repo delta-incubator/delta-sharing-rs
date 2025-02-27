@@ -9,6 +9,7 @@ use crate::{
 
 mod catalog;
 mod credentials;
+mod external_locations;
 mod schemas;
 mod sharing;
 

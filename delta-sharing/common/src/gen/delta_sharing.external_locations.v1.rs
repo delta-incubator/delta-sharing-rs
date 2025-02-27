@@ -18,9 +18,9 @@ pub struct ExternalLocationInfo {
     /// User-provided free-form text description.
     #[prost(string, optional, tag="5")]
     pub comment: ::core::option::Option<::prost::alloc::string::String>,
-    /// A map of key-value properties attached to the securable.
-    #[prost(message, optional, tag="6")]
-    pub properties: ::core::option::Option<::pbjson_types::Struct>,
+    /// The owner of the external location.
+    #[prost(string, optional, tag="6")]
+    pub owner: ::core::option::Option<::prost::alloc::string::String>,
     // metastore id
     // string metastore_id = 7;
 
@@ -39,8 +39,12 @@ pub struct ExternalLocationInfo {
     /// Username of user who last modified catalog.
     #[prost(string, optional, tag="12")]
     pub updated_by: ::core::option::Option<::prost::alloc::string::String>,
+    /// Indicates whether the principal is limited to retrieving metadata
+    /// for the associated object through the BROWSE privilege when include_browse is enabled in the request.
+    #[prost(bool, optional, tag="13")]
+    pub browse_only: ::core::option::Option<bool>,
     #[prost(string, optional, tag="100")]
-    pub id: ::core::option::Option<::prost::alloc::string::String>,
+    pub external_location_id: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// List external locations
 #[allow(clippy::derive_partial_eq_without_eq)]

@@ -21,8 +21,8 @@ message ExternalLocationInfo {
   // User-provided free-form text description.
   optional string comment = 5;
 
-  // A map of key-value properties attached to the securable.
-  optional google.protobuf.Struct properties = 6;
+  // The owner of the external location.
+  optional string owner = 6;
 
   // metastore id
   // string metastore_id = 7;
@@ -42,5 +42,9 @@ message ExternalLocationInfo {
   // Username of user who last modified catalog.
   optional string updated_by = 12;
 
-  optional string id = 100;
+  // Indicates whether the principal is limited to retrieving metadata
+  // for the associated object through the BROWSE privilege when include_browse is enabled in the request.
+  optional bool browse_only = 13;
+
+  optional string external_location_id = 100;
 }
