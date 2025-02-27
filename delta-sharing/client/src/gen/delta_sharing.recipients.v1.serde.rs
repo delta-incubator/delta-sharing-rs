@@ -680,7 +680,7 @@ impl serde::Serialize for RecipientInfo {
         if !self.owner.is_empty() {
             len += 1;
         }
-        if !self.comment.is_empty() {
+        if self.comment.is_some() {
             len += 1;
         }
         if self.properties.is_some() {
@@ -716,8 +716,8 @@ impl serde::Serialize for RecipientInfo {
         if !self.owner.is_empty() {
             struct_ser.serialize_field("owner", &self.owner)?;
         }
-        if !self.comment.is_empty() {
-            struct_ser.serialize_field("comment", &self.comment)?;
+        if let Some(v) = self.comment.as_ref() {
+            struct_ser.serialize_field("comment", v)?;
         }
         if let Some(v) = self.properties.as_ref() {
             struct_ser.serialize_field("properties", v)?;
@@ -874,7 +874,7 @@ impl<'de> serde::Deserialize<'de> for RecipientInfo {
                             if comment__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("comment"));
                             }
-                            comment__ = Some(map_.next_value()?);
+                            comment__ = map_.next_value()?;
                         }
                         GeneratedField::Properties => {
                             if properties__.is_some() {
@@ -923,7 +923,7 @@ impl<'de> serde::Deserialize<'de> for RecipientInfo {
                     name: name__.unwrap_or_default(),
                     authentication_type: authentication_type__.unwrap_or_default(),
                     owner: owner__.unwrap_or_default(),
-                    comment: comment__.unwrap_or_default(),
+                    comment: comment__,
                     properties: properties__,
                     created_at: created_at__,
                     created_by: created_by__,

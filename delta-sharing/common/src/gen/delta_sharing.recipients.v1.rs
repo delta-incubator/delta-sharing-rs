@@ -41,8 +41,8 @@ pub struct RecipientInfo {
     #[prost(string, tag="3")]
     pub owner: ::prost::alloc::string::String,
     /// Description about the recipient.
-    #[prost(string, tag="4")]
-    pub comment: ::prost::alloc::string::String,
+    #[prost(string, optional, tag="4")]
+    pub comment: ::core::option::Option<::prost::alloc::string::String>,
     /// A map of key-value properties attached to the securable.
     #[prost(message, optional, tag="6")]
     pub properties: ::core::option::Option<::pbjson_types::Struct>,

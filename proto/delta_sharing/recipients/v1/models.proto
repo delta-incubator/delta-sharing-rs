@@ -52,7 +52,7 @@ message RecipientInfo {
   string owner = 3;
 
   // Description about the recipient.
-  string comment = 4;
+  optional string comment = 4;
 
   // A map of key-value properties attached to the securable.
   optional google.protobuf.Struct properties = 6;

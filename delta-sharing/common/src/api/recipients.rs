@@ -22,10 +22,31 @@ rest_handlers!(
 
 #[async_trait::async_trait]
 pub trait RecipientsHandler: Send + Sync + 'static {
+    /// List recipients.
+    async fn list_recipients(
+        &self,
+        request: ListRecipientsRequest,
+        context: RequestContext,
+    ) -> Result<ListRecipientsResponse>;
+
     /// Create a new recipient.
     async fn create_recipient(
         &self,
         request: CreateRecipientRequest,
+        context: RequestContext,
+    ) -> Result<RecipientInfo>;
+
+    /// Get a recipient.
+    async fn get_recipient(
+        &self,
+        request: GetRecipientRequest,
+        context: RequestContext,
+    ) -> Result<RecipientInfo>;
+
+    /// Update a recipient.
+    async fn update_recipient(
+        &self,
+        request: UpdateRecipientRequest,
         context: RequestContext,
     ) -> Result<RecipientInfo>;
 
@@ -35,25 +56,4 @@ pub trait RecipientsHandler: Send + Sync + 'static {
         request: DeleteRecipientRequest,
         context: RequestContext,
     ) -> Result<()>;
-
-    /// Get a recipient.
-    async fn get_recipient(
-        &self,
-        request: GetRecipientRequest,
-        context: RequestContext,
-    ) -> Result<RecipientInfo>;
-
-    /// List recipients.
-    async fn list_recipients(
-        &self,
-        request: ListRecipientsRequest,
-        context: RequestContext,
-    ) -> Result<ListRecipientsResponse>;
-
-    /// Update a recipient.
-    async fn update_recipient(
-        &self,
-        request: UpdateRecipientRequest,
-        context: RequestContext,
-    ) -> Result<RecipientInfo>;
 }
