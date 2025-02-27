@@ -80,6 +80,9 @@ message DataObject {
 }
 
 message ShareInfo {
+  // Unique ID of the recipient.
+  optional string id = 100;
+
   // Name of the share.
   string name = 1;
 

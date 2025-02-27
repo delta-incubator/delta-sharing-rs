@@ -21,7 +21,7 @@ pub mod resource {
 #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Resource {
         #[prost(message, tag="1")]
-        ShareInfo(super::super::sharing::v1::ShareInfo),
+        ShareInfo(super::super::shares::v1::ShareInfo),
         #[prost(message, tag="2")]
         SharingSchemaInfo(super::super::sharing::v1::SharingSchemaInfo),
         #[prost(message, tag="3")]

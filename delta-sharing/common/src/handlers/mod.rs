@@ -12,6 +12,7 @@ mod credentials;
 mod external_locations;
 mod recipients;
 mod schemas;
+mod shares;
 mod sharing;
 
 #[derive(Clone)]

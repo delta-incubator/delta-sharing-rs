@@ -130,7 +130,7 @@ impl TryFrom<Object> for Resource {
 
 object_conversions!(
     ExternalLocationInfo, ObjectLabel::ExternalLocationInfo, external_location_id, [name], true;
-    ShareInfo, ObjectLabel::ShareInfo, id, [name];
+    ShareInfo, ObjectLabel::ShareInfo, id, [name], true;
     SharingSchemaInfo, ObjectLabel::SharingSchemaInfo, id, [share, name];
     SharingTable, ObjectLabel::SharingTable, id, [share, schema, name], true;
     CatalogInfo, ObjectLabel::CatalogInfo, id, [name], true;

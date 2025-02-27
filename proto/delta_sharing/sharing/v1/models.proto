@@ -63,23 +63,6 @@ message SharingTable {
   optional string share_id = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
-// A share in a delta sharing service.
-//
-// A share is a logical grouping to share with recipients.
-// It may contain multiple schemas and tables.
-message ShareInfo {
-  string id = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  string name = 2 [
-    (buf.validate.field).string.min_len = 1,
-    (google.api.field_behavior) = IDENTIFIER
-  ];
-
-  optional string description = 3 [(google.api.field_behavior) = OPTIONAL];
-
-  optional google.protobuf.Struct properties = 4 [(google.api.field_behavior) = OPTIONAL];
-}
-
 // A schema in a delta sharing service.
 //
 // A schema is a logical grouping of tables.

@@ -1998,19 +1998,34 @@ components:
       type: object
       properties:
         id:
-          readOnly: true
           type: string
+          description: Unique ID of the recipient.
         name:
           type: string
-        description:
+          description: Name of the share.
+        owner:
           type: string
-        properties:
-          type: object
-      description: |-
-        A share in a delta sharing service.
-
-         A share is a logical grouping to share with recipients.
-         It may contain multiple schemas and tables.
+          description: Username of current owner of share.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        dataObjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataObject'
+          description: A list of shared data objects within the share.
+        createdAt:
+          type: string
+          description: Time at which this share was created, in epoch milliseconds.
+        createdBy:
+          type: string
+          description: Username of the creator of the share.
+        updatedAt:
+          type: string
+          description: Time at which this share was updated, in epoch milliseconds.
+        updatedBy:
+          type: string
+          description: Username of share updater.
     SharingSchema:
       type: object
       properties:

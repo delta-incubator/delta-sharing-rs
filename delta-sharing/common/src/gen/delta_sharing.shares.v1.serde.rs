@@ -1142,6 +1142,9 @@ impl serde::Serialize for ShareInfo {
     {
         use serde::ser::SerializeStruct;
         let mut len = 0;
+        if self.id.is_some() {
+            len += 1;
+        }
         if !self.name.is_empty() {
             len += 1;
         }
@@ -1167,6 +1170,9 @@ impl serde::Serialize for ShareInfo {
             len += 1;
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.shares.v1.ShareInfo", len)?;
+        if let Some(v) = self.id.as_ref() {
+            struct_ser.serialize_field("id", v)?;
+        }
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
         }
@@ -1205,6 +1211,7 @@ impl<'de> serde::Deserialize<'de> for ShareInfo {
         D: serde::Deserializer<'de>,
     {
         const FIELDS: &[&str] = &[
+            "id",
             "name",
             "owner",
             "comment",
@@ -1222,6 +1229,7 @@ impl<'de> serde::Deserialize<'de> for ShareInfo {
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
+            Id,
             Name,
             Owner,
             Comment,
@@ -1252,6 +1260,7 @@ impl<'de> serde::Deserialize<'de> for ShareInfo {
                         E: serde::de::Error,
                     {
                         match value {
+                            "id" => Ok(GeneratedField::Id),
                             "name" => Ok(GeneratedField::Name),
                             "owner" => Ok(GeneratedField::Owner),
                             "comment" => Ok(GeneratedField::Comment),
@@ -1279,6 +1288,7 @@ impl<'de> serde::Deserialize<'de> for ShareInfo {
                 where
                     V: serde::de::MapAccess<'de>,
             {
+                let mut id__ = None;
                 let mut name__ = None;
                 let mut owner__ = None;
                 let mut comment__ = None;
@@ -1289,6 +1299,12 @@ impl<'de> serde::Deserialize<'de> for ShareInfo {
                 let mut updated_by__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
+                        GeneratedField::Id => {
+                            if id__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("id"));
+                            }
+                            id__ = map_.next_value()?;
+                        }
                         GeneratedField::Name => {
                             if name__.is_some() {
                                 return Err(serde::de::Error::duplicate_field("name"));
@@ -1347,6 +1363,7 @@ impl<'de> serde::Deserialize<'de> for ShareInfo {
                     }
                 }
                 Ok(ShareInfo {
+                    id: id__,
                     name: name__.unwrap_or_default(),
                     owner: owner__,
                     comment: comment__,

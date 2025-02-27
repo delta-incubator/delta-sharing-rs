@@ -16,7 +16,8 @@ pub use external_locations::v1::ExternalLocationInfo;
 pub use profiles::v1::Profile;
 pub use recipients::v1::RecipientInfo;
 pub use schemas::v1::SchemaInfo;
-pub use sharing::v1::{Share, ShareInfo, SharingSchema, SharingSchemaInfo, SharingTable};
+pub use shares::v1::ShareInfo;
+pub use sharing::v1::{Share, SharingSchema, SharingSchemaInfo, SharingTable};
 
 #[allow(clippy::empty_docs, clippy::large_enum_variant)]
 pub mod sharing {
@@ -122,7 +123,7 @@ pub trait ResourceExt {
     ///
     /// Depending on the resource type, this may be a UUID or a name.
     /// If possible, implementations should prefer to use the UUID
-    /// as it is globally unique. However not all repurce-like objects
+    /// as it is globally unique. However not all resource-like objects
     /// have a UUID field, or the UUID field may be optional.
     fn resource_ref(&self) -> ResourceRef;
 
@@ -152,7 +153,7 @@ impl TryFrom<Resource> for Share {
     fn try_from(resource: Resource) -> Result<Self, Self::Error> {
         let info = ShareInfo::try_from(resource)?;
         Ok(Share {
-            id: Some(info.id),
+            id: info.id,
             name: info.name,
         })
     }

@@ -6,15 +6,15 @@ use crate::{Error, Permission, Recipient, ResourceIdent, ResourceName, ResourceR
 
 rest_handlers!(
     SharesHandler, [
-        CreateShareRequest, Schema, Create, ShareInfo;
-        ListSharesRequest, Catalog, Read, ListSharesResponse;
-        GetShareRequest, Schema, Read, ShareInfo with [
+        CreateShareRequest, Share, Create, ShareInfo;
+        ListSharesRequest, Share, Read, ListSharesResponse;
+        GetShareRequest, Share, Read, ShareInfo with [
             name: path as String,
         ];
-        UpdateShareRequest, Schema, Manage, ShareInfo with [
+        UpdateShareRequest, Share, Manage, ShareInfo with [
             name: path as String,
         ];
-        DeleteShareRequest, Schema, Manage with [
+        DeleteShareRequest, Share, Manage with [
             name: path as String
         ];
     ]

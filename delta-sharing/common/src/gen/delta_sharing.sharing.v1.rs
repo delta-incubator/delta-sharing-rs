@@ -46,22 +46,6 @@ pub struct SharingTable {
     #[prost(string, optional, tag="5")]
     pub share_id: ::core::option::Option<::prost::alloc::string::String>,
 }
-/// A share in a delta sharing service.
-///
-/// A share is a logical grouping to share with recipients.
-/// It may contain multiple schemas and tables.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct ShareInfo {
-    #[prost(string, tag="1")]
-    pub id: ::prost::alloc::string::String,
-    #[prost(string, tag="2")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, optional, tag="3")]
-    pub description: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(message, optional, tag="4")]
-    pub properties: ::core::option::Option<::pbjson_types::Struct>,
-}
 /// A schema in a delta sharing service.
 ///
 /// A schema is a logical grouping of tables.

@@ -6,17 +6,17 @@ use crate::{Error, Permission, Recipient, ResourceIdent, ResourceName, ResourceR
 
 rest_handlers!(
     SharingDiscoveryHandler, [
-        ListSharesRequest, Share, Read, ListSharesResponse;
-        GetShareRequest, Share, Read, Share with [
+        ListSharesRequest, Share, Use, ListSharesResponse;
+        GetShareRequest, Share, Use, Share with [
             name: path as String,
         ];
-        ListSharingSchemasRequest, Share, Read, ListSharingSchemasResponse with [
+        ListSharingSchemasRequest, Share, Use, ListSharingSchemasResponse with [
             share: path as String,
         ];
-        ListShareTablesRequest, Share, Read, ListShareTablesResponse with [
+        ListShareTablesRequest, Share, Use, ListShareTablesResponse with [
             name: path as String,
         ];
-        ListSchemaTablesRequest, SharingSchema, Read, ListSchemaTablesResponse with [
+        ListSchemaTablesRequest, SharingSchema, Use, ListSchemaTablesResponse with [
             share: path as String,
             name: path as String,
         ];
