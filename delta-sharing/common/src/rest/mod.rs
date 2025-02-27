@@ -8,7 +8,7 @@ pub use sharing::get_router as get_sharing_router;
 
 mod auth;
 #[cfg(any(test, feature = "integration"))]
-mod integration;
+pub mod integration;
 mod sharing;
 
 mod catalogs {

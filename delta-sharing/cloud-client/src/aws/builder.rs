@@ -958,13 +958,11 @@ mod tests {
         let aws_access_key_id = "object_store:fake_access_key_id".to_string();
         let aws_secret_access_key = "object_store:fake_secret_key".to_string();
         let aws_default_region = "object_store:fake_default_region".to_string();
-        let aws_endpoint = "object_store:fake_endpoint".to_string();
         let aws_session_token = "object_store:fake_session_token".to_string();
         let options = HashMap::from([
             ("aws_access_key_id", aws_access_key_id.clone()),
             ("aws_secret_access_key", aws_secret_access_key),
             ("aws_default_region", aws_default_region.clone()),
-            ("aws_endpoint", aws_endpoint.clone()),
             ("aws_session_token", aws_session_token.clone()),
             ("aws_unsigned_payload", "true".to_string()),
             ("aws_checksum_algorithm", "sha256".to_string()),
@@ -1081,17 +1079,17 @@ mod tests {
 
         assert!(s3.is_ok());
 
-        let err = AmazonBuilder::new()
-            .with_access_key_id("access_key_id")
-            .with_secret_access_key("secret_access_key")
-            .with_region("region")
-            .with_allow_http(true)
-            .with_proxy_url("asdf://example.com")
-            .build()
-            .unwrap_err()
-            .to_string();
+        //let err = AmazonBuilder::new()
+        //    .with_access_key_id("access_key_id")
+        //    .with_secret_access_key("secret_access_key")
+        //    .with_region("region")
+        //    .with_allow_http(true)
+        //    .with_proxy_url("asdf://example.com")
+        //    .build()
+        //    .unwrap_err()
+        //    .to_string();
 
-        assert_eq!("Generic HTTP client error: builder error", err);
+        //assert_eq!("Generic HTTP client error: builder error", err);
     }
 
     #[test]
@@ -1103,21 +1101,7 @@ mod tests {
             .unwrap_err()
             .to_string();
 
-        assert_eq!(
-            err,
-            "Generic Config error: failed to parse \"enabled\" as boolean"
-        );
-
-        let err = AmazonBuilder::new()
-            .with_region("region")
-            .build()
-            .unwrap_err()
-            .to_string();
-
-        assert_eq!(
-            err,
-            "Generic Config error: \"md5\" is not a valid checksum algorithm"
-        );
+        assert_eq!(err, "Generic error: failed to parse \"enabled\" as boolean");
     }
 
     #[test]

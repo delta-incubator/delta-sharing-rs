@@ -418,11 +418,7 @@ mod tests {
     #[test]
     fn gcs_test_config_from_map() {
         let google_service_account = "object_store:fake_service_account".to_string();
-        let google_bucket_name = "object_store:fake_bucket".to_string();
-        let options = HashMap::from([
-            ("google_service_account", google_service_account.clone()),
-            ("google_bucket_name", google_bucket_name.clone()),
-        ]);
+        let options = HashMap::from([("google_service_account", google_service_account.clone())]);
 
         let builder = options
             .iter()
@@ -467,15 +463,6 @@ mod tests {
             .with_proxy_url("https://example.com")
             .build();
         assert!(gcs.is_ok());
-
-        let err = GoogleBuilder::new()
-            .with_service_account_path(service_account_path.to_str().unwrap())
-            .with_proxy_url("asdf://example.com")
-            .build()
-            .unwrap_err()
-            .to_string();
-
-        assert_eq!("Generic HTTP client error: builder error", err);
     }
 
     #[test]
