@@ -1,9 +1,11 @@
 use delta_sharing_common::rest::{
-    get_catalog_router, get_credentials_router, get_sharing_router, AuthenticationLayer,
+    get_catalog_router, get_credentials_router, get_external_locations_router,
+    get_recipients_router, get_schemas_router, get_sharing_router, AuthenticationLayer,
     Authenticator,
 };
 use delta_sharing_common::{
-    CatalogHandler, CredentialsHandler, SharingDiscoveryHandler, SharingQueryHandler,
+    CatalogHandler, CredentialsHandler, ExternalLocationsHandler, RecipientsHandler,
+    SchemasHandler, SharesHandler, SharingDiscoveryHandler, SharingQueryHandler,
 };
 use delta_sharing_common::{Error, Result};
 use swagger_ui_dist::{ApiDefinition, OpenApiSource};
@@ -43,7 +45,15 @@ pub async fn run_server_full<T, A>(
     authenticator: A,
 ) -> Result<()>
 where
-    T: CatalogHandler + CredentialsHandler + SharingDiscoveryHandler + SharingQueryHandler + Clone,
+    T: CatalogHandler
+        + CredentialsHandler
+        + SharingDiscoveryHandler
+        + SharingQueryHandler
+        + SharesHandler
+        + SchemasHandler
+        + ExternalLocationsHandler
+        + RecipientsHandler
+        + Clone,
     A: Authenticator + Clone,
 {
     let api_def = ApiDefinition {
@@ -52,8 +62,11 @@ where
         title: Some("My Super Duper API"),
     };
     let router = get_catalog_router(handler.clone())
+        .merge(get_schemas_router(handler.clone()))
         .merge(get_credentials_router(handler.clone()))
-        .merge(get_sharing_router(handler));
+        .merge(get_external_locations_router(handler.clone()))
+        .merge(get_recipients_router(handler.clone()))
+        .merge(get_sharing_router(handler.clone()));
     let server = router.layer(AuthenticationLayer::new(authenticator));
     run(server, host, port, api_def).await
 }

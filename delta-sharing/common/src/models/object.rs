@@ -114,7 +114,7 @@ impl TryFrom<Object> for Resource {
             ObjectLabel::ShareInfo => Ok(Resource::ShareInfo(obj.try_into()?)),
             ObjectLabel::SharingSchemaInfo => Ok(Resource::SharingSchemaInfo(obj.try_into()?)),
             ObjectLabel::SharingTable => Ok(Resource::SharingTable(obj.try_into()?)),
-            ObjectLabel::CredentialInfo => todo!("Convert Object to Resource"),
+            ObjectLabel::CredentialInfo => Ok(Resource::CredentialInfo(obj.try_into()?)),
             ObjectLabel::CatalogInfo => Ok(Resource::CatalogInfo(obj.try_into()?)),
             ObjectLabel::SchemaInfo => Ok(Resource::SchemaInfo(obj.try_into()?)),
             ObjectLabel::TableInfo => Ok(Resource::TableInfo(obj.try_into()?)),

@@ -6,7 +6,7 @@
 
 use std::sync::Arc;
 
-use delta_sharing_common::{ResourceIdent, ResourceRef};
+use delta_sharing_common::{ProvidesSecretManager, ResourceIdent, ResourceRef, SecretManager};
 use sqlx::migrate::Migrator;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -19,7 +19,7 @@ use crate::{error::Result, pagination::PaginateToken};
 
 static MIGRATOR: Migrator = sqlx::migrate!();
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Store {
     pool: Arc<PgPool>,
 }
