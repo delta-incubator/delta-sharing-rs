@@ -80,21 +80,31 @@ fn init_tracing() {
 /// Handle the rest server command.
 ///
 /// This function starts a delta-sharing server using the REST protocol.
-pub async fn handle_rest(args: ServerArgs) -> Result<()> {
+pub async fn handle_rest(args: &ServerArgs) -> Result<()> {
     init_tracing();
 
     println!("{}", WELCOME.as_str());
 
     if args.use_db {
         let handler = get_db_handler().await?;
-        run_rest_server_full(args.host, args.port, handler, AnonymousAuthenticator)
-            .await
-            .map_err(|_| Error::Generic("Server failed".to_string()))
+        run_rest_server_full(
+            args.host.clone(),
+            args.port,
+            handler,
+            AnonymousAuthenticator,
+        )
+        .await
+        .map_err(|_| Error::Generic("Server failed".to_string()))
     } else {
         let handler = get_memory_handler();
-        run_rest_server_full(args.host, args.port, handler, AnonymousAuthenticator)
-            .await
-            .map_err(|_| Error::Generic("Server failed".to_string()))
+        run_rest_server_full(
+            args.host.clone(),
+            args.port,
+            handler,
+            AnonymousAuthenticator,
+        )
+        .await
+        .map_err(|_| Error::Generic("Server failed".to_string()))
     }
 }
 

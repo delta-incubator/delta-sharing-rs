@@ -10,6 +10,8 @@ name = "delta-sharing"
 path = "src/main.rs"
 
 [dependencies]
+cloud-client = { path = "../cloud-client" }
+
 # path dependencies (in alphabetical order)
 delta-sharing-common = { path = "../common" }
 delta-sharing-client = { path = "../client" }
@@ -19,11 +21,12 @@ delta-sharing-server = { path = "../server", features = ["rest", "grpc"] }
 
 # workspace dependencies (in alphabetical order)
 chrono = { workspace = true }
-clap = { workspace = true }
+clap = { workspace = true, features = ["env"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+url = { workspace = true }
 
 tokio = { version = "1", features = ["full"] }
 serde_yml = { version = "0.0.12" }
@@ -32,3 +35,4 @@ tracing-subscriber = { version = "0.3", features = [
     "fmt",
     "env-filter",
 ] }
+futures = "0.3"

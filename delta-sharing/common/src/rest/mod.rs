@@ -7,6 +7,7 @@ pub use schemas::get_router as get_schemas_router;
 pub use sharing::get_router as get_sharing_router;
 
 mod auth;
+pub mod client;
 #[cfg(any(test, feature = "integration"))]
 pub mod integration;
 mod sharing;

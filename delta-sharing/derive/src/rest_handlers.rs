@@ -39,10 +39,9 @@ pub fn to_handler(handler: &HandlerDef, handler_type: &Type) -> proc_macro2::Tok
     }
 }
 
-pub fn to_client(handler: &HandlerDef, route: &[String]) -> proc_macro2::TokenStream {
+pub fn to_client(handler: &HandlerDef, path_segments: &[String]) -> proc_macro2::TokenStream {
     let handler_name = generate_handler_name(&handler.request_type);
     let fn_name = Ident::new(&handler_name, Span::call_site());
-    let handler_method = Ident::new(&handler_name, Span::call_site());
     let request_type = &handler.request_type;
 
     let type_name = get_type_name(request_type).unwrap();
@@ -98,11 +97,11 @@ pub fn to_client(handler: &HandlerDef, route: &[String]) -> proc_macro2::TokenSt
         });
     };
 
-    let used_segments: Vec<_> = route
+    let used_segments: Vec<_> = path_segments
         .iter()
         .enumerate()
         .filter_map(|(idx, it)| {
-            if idx < path_names.len() {
+            if idx < path_names.len() || idx == 0 {
                 Some(it.clone())
             } else {
                 None
@@ -110,16 +109,25 @@ pub fn to_client(handler: &HandlerDef, route: &[String]) -> proc_macro2::TokenSt
         })
         .collect();
     let mut template = used_segments.join("/{}/");
-    template.push_str("/{}");
+    if path_names.len() > 0 {
+        template.push_str("/{}");
+    }
+
     let template = LitStr::new(&template, Span::call_site());
 
     let url = if query_params.is_empty() {
-        quote! {
-            let url = base_url.join(&format!(#template, #(&req.#path_names,)*))?;
+        if path_names.is_empty() {
+            quote! {
+                let url = self.base_url.join(#template)?;
+            }
+        } else {
+            quote! {
+                let url = self.base_url.join(&format!(#template, #(&req.#path_names,)*))?;
+            }
         }
     } else {
         quote! {
-            let mut url = base_url.join(&format!(#template, #(&req.#path_names,)*))?;
+            let mut url = self.base_url.join(&format!(#template, #(&req.#path_names,)*))?;
         }
     };
 
@@ -127,13 +135,12 @@ pub fn to_client(handler: &HandlerDef, route: &[String]) -> proc_macro2::TokenSt
         (RequestType::Create, Some(response_type)) => {
             quote! {
                 pub async fn #fn_name(
-                    client: &::cloud_client::CloudClient,
-                    base_url: &::url::Url,
+                    &self,
                     req: &#request_type,
                 ) -> Result<#response_type> {
                     #url
                     #(#query_params)*
-                    let result = client.post(url).json(req).send().await?.bytes().await?;
+                    let result = self.client.post(url).json(req).send().await?.bytes().await?;
                     Ok(::serde_json::from_slice(&result)?)
                 }
             }
@@ -141,13 +148,12 @@ pub fn to_client(handler: &HandlerDef, route: &[String]) -> proc_macro2::TokenSt
         (RequestType::Get | RequestType::List, Some(response_type)) => {
             quote! {
                 pub async fn #fn_name(
-                    client: &::cloud_client::CloudClient,
-                    base_url: &::url::Url,
+                    &self,
                     req: &#request_type,
                 ) -> Result<#response_type> {
                     #url
                     #(#query_params)*
-                    let result = client.get(url).send().await?.bytes().await?;
+                    let result = self.client.get(url).send().await?.bytes().await?;
                     Ok(::serde_json::from_slice(&result)?)
                 }
             }
@@ -158,13 +164,12 @@ pub fn to_client(handler: &HandlerDef, route: &[String]) -> proc_macro2::TokenSt
         (RequestType::Delete, None) => {
             quote! {
                 pub async fn #fn_name(
-                    client: &::cloud_client::CloudClient,
-                    base_url: &::url::Url,
+                    &self,
                     req: &#request_type,
                 ) -> Result<()> {
                     #url
                     #(#query_params)*
-                    let result = client.delete(url).send().await?;
+                    let result = self.client.delete(url).send().await?;
                     Ok(())
                 }
             }
@@ -267,7 +272,7 @@ pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
 }
 
 /// Extracts the final segment of a Type’s path, e.g. SomeModule::FooBar => "FooBar".
-fn get_type_name(ty: &Type) -> Option<String> {
+pub fn get_type_name(ty: &Type) -> Option<String> {
     if let Type::Path(type_path) = ty {
         if let Some(segment) = type_path.path.segments.last() {
             return Some(segment.ident.to_string());

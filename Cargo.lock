@@ -838,11 +838,13 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "clap",
+ "cloud-client",
  "delta-sharing-client",
  "delta-sharing-common",
  "delta-sharing-postgres",
  "delta-sharing-profiles",
  "delta-sharing-server",
+ "futures",
  "serde",
  "serde_json",
  "serde_yml",
@@ -850,6 +852,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "url",
 ]
 
 [[package]]
@@ -891,6 +894,7 @@ dependencies = [
  "dashmap",
  "delta-sharing-derive",
  "delta_kernel",
+ "futures",
  "futures-util",
  "http",
  "http-body-util",

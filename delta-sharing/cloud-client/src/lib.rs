@@ -121,6 +121,14 @@ impl CloudClient {
         })
     }
 
+    pub fn new_unauthenticated() -> Self {
+        Self {
+            http_client: Client::new(),
+            retry_config: RetryConfig::default(),
+            credential: Credential::Unauthenticated,
+        }
+    }
+
     pub fn request<U: IntoUrl>(&self, method: Method, url: U) -> CloudRequestBuilder {
         CloudRequestBuilder {
             builder: self.http_client.request(method, url),
