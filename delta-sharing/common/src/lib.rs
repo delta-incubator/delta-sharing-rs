@@ -16,7 +16,6 @@ pub mod rest;
 pub mod secrets;
 
 pub use self::resources::*;
-pub use api::*;
 pub use delta_sharing_derive;
 pub use error::*;
 pub use handler::*;

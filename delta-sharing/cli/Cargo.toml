@@ -14,7 +14,6 @@ cloud-client = { path = "../cloud-client" }
 
 # path dependencies (in alphabetical order)
 delta-sharing-common = { path = "../common" }
-delta-sharing-client = { path = "../client" }
 delta-sharing-postgres = { path = "../postgres" }
 delta-sharing-profiles = { path = "../profiles" }
 delta-sharing-server = { path = "../server", features = ["rest", "grpc"] }

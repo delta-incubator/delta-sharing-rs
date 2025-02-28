@@ -839,7 +839,6 @@ dependencies = [
  "chrono",
  "clap",
  "cloud-client",
- "delta-sharing-client",
  "delta-sharing-common",
  "delta-sharing-postgres",
  "delta-sharing-profiles",
@@ -852,33 +851,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
- "url",
-]
-
-[[package]]
-name = "delta-sharing-client"
-version = "0.1.0"
-dependencies = [
- "async-trait",
- "cloud-client",
- "delta-sharing-common",
- "delta_kernel",
- "futures",
- "humantime",
- "hyper",
- "hyper-util",
- "parking_lot",
- "pbjson",
- "prost",
- "rand 0.8.5",
- "reqwest",
- "ring",
- "serde",
- "serde_json",
- "thiserror 2.0.11",
- "tokio",
- "tonic",
- "tracing",
  "url",
 ]
 

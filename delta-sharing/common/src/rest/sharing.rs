@@ -5,8 +5,9 @@ use axum::routing::{get, Router};
 use http::header::CONTENT_TYPE;
 
 use crate::api::sharing::*;
+use crate::api::RequestContext;
 use crate::models::sharing::v1::*;
-use crate::{Error, Recipient, RequestContext, Result};
+use crate::{Error, Recipient, Result};
 
 /// Create a new [Router] for the Delta Sharing REST API.
 pub fn get_router<T: SharingDiscoveryHandler + SharingQueryHandler + Clone>(state: T) -> Router {

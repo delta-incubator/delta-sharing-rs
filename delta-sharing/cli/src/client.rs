@@ -1,6 +1,6 @@
-use clap::{Args, Parser, Subcommand, ValueEnum};
+use clap::{Args, Subcommand};
 use delta_sharing_common::rest::client::UnityCatalogClient;
-use futures::{StreamExt, TryStreamExt};
+use futures::TryStreamExt;
 
 use crate::GlobalOpts;
 
