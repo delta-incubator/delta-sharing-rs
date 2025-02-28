@@ -113,7 +113,7 @@ impl serde::Serialize for GetTableRequest {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.tables.v1.GetTableRequest", len)?;
         if !self.full_name.is_empty() {
-            struct_ser.serialize_field("fullName", &self.full_name)?;
+            struct_ser.serialize_field("full_name", &self.full_name)?;
         }
         struct_ser.end()
     }
@@ -251,20 +251,20 @@ impl serde::Serialize for TableInfo {
             struct_ser.serialize_field("name", &self.name)?;
         }
         if !self.schema_name.is_empty() {
-            struct_ser.serialize_field("schemaName", &self.schema_name)?;
+            struct_ser.serialize_field("schema_name", &self.schema_name)?;
         }
         if !self.catalog_name.is_empty() {
-            struct_ser.serialize_field("catalogName", &self.catalog_name)?;
+            struct_ser.serialize_field("catalog_name", &self.catalog_name)?;
         }
         if self.table_type != 0 {
             let v = TableType::try_from(self.table_type)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.table_type)))?;
-            struct_ser.serialize_field("tableType", &v)?;
+            struct_ser.serialize_field("table_type", &v)?;
         }
         if self.data_source_format != 0 {
             let v = DataSourceFormat::try_from(self.data_source_format)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.data_source_format)))?;
-            struct_ser.serialize_field("dataSourceFormat", &v)?;
+            struct_ser.serialize_field("data_source_format", &v)?;
         }
         if let Some(v) = self.comment.as_ref() {
             struct_ser.serialize_field("comment", v)?;
@@ -273,7 +273,7 @@ impl serde::Serialize for TableInfo {
             struct_ser.serialize_field("properties", v)?;
         }
         if let Some(v) = self.full_name.as_ref() {
-            struct_ser.serialize_field("fullName", v)?;
+            struct_ser.serialize_field("full_name", v)?;
         }
         if let Some(v) = self.owner.as_ref() {
             struct_ser.serialize_field("owner", v)?;
@@ -281,21 +281,21 @@ impl serde::Serialize for TableInfo {
         if let Some(v) = self.created_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("createdAt", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("created_at", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.created_by.as_ref() {
-            struct_ser.serialize_field("createdBy", v)?;
+            struct_ser.serialize_field("created_by", v)?;
         }
         if let Some(v) = self.updated_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("updatedAt", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("updated_at", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.updated_by.as_ref() {
-            struct_ser.serialize_field("updatedBy", v)?;
+            struct_ser.serialize_field("updated_by", v)?;
         }
         if let Some(v) = self.table_id.as_ref() {
-            struct_ser.serialize_field("tableId", v)?;
+            struct_ser.serialize_field("table_id", v)?;
         }
         struct_ser.end()
     }

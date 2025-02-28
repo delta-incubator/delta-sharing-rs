@@ -38,7 +38,7 @@ message ListSharesResponse {
 message CreateShareRequest {
   // Name of the share.
   string name = 1 [
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
 
@@ -53,9 +53,12 @@ message CreateShareRequest {
 message GetShareRequest {
   // Name of the share.
   string name = 1 [
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
     (google.api.field_behavior) = REQUIRED
   ];
+
+  // Query for data to include in the share.
+  optional bool include_shared_data = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
 enum Action {

@@ -6,7 +6,7 @@
 
 use std::sync::Arc;
 
-use delta_sharing_common::{ProvidesSecretManager, ResourceIdent, ResourceRef, SecretManager};
+use delta_sharing_common::{ResourceIdent, ResourceRef};
 use sqlx::migrate::Migrator;
 use sqlx::PgPool;
 use uuid::Uuid;

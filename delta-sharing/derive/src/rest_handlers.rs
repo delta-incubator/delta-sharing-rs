@@ -1,7 +1,7 @@
 use convert_case::{Case, Casing};
 use proc_macro2::{Ident, Span};
 use quote::quote;
-use syn::Type;
+use syn::{LitStr, Type};
 
 use super::parsing::{FieldDef, FieldSource, HandlerDef};
 
@@ -36,6 +36,141 @@ pub fn to_handler(handler: &HandlerDef, handler_type: &Type) -> proc_macro2::Tok
                 Ok(())
             }
         },
+    }
+}
+
+pub fn to_client(handler: &HandlerDef, route: &[String]) -> proc_macro2::TokenStream {
+    let handler_name = generate_handler_name(&handler.request_type);
+    let fn_name = Ident::new(&handler_name, Span::call_site());
+    let handler_method = Ident::new(&handler_name, Span::call_site());
+    let request_type = &handler.request_type;
+
+    let type_name = get_type_name(request_type).unwrap();
+
+    let path_names: Vec<_> = handler
+        .fields
+        .iter()
+        .filter(|f| matches!(f.source, FieldSource::Path))
+        .map(|f| &f.name)
+        .collect();
+
+    let mut query_params: Vec<_> = handler
+        .fields
+        .iter()
+        .filter(|f| matches!(f.source, FieldSource::Query))
+        .filter_map(|f| {
+            let field_name = &f.name;
+            match &f.ty {
+                Type::Path(type_path) => {
+                    if let Some(segment) = type_path.path.segments.first() {
+                        if segment.ident == "Option" {
+                            Some(quote! {
+                                if let Some(val) = &req.#field_name {
+                                    url.query_pairs_mut().append_pair(stringify!(#field_name), &format!("{}", val));
+                                }
+                            })
+                        } else {
+                            Some(quote! {
+                                url.query_pairs_mut().append_pair(stringify!(#field_name), &format!("{}", &req.#field_name));
+                            })
+                        }
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            }
+        })
+        .collect();
+
+    let request_kind = get_request_type(&type_name);
+
+    if matches!(request_kind, RequestType::List) {
+        query_params.push(quote! {
+            if let Some(val) = &req.max_results {
+                url.query_pairs_mut().append_pair("max_results", &format!("{}", val));
+            }
+        });
+        query_params.push(quote! {
+            if let Some(val) = &req.page_token {
+                url.query_pairs_mut().append_pair("page_token", &val);
+            }
+        });
+    };
+
+    let used_segments: Vec<_> = route
+        .iter()
+        .enumerate()
+        .filter_map(|(idx, it)| {
+            if idx < path_names.len() {
+                Some(it.clone())
+            } else {
+                None
+            }
+        })
+        .collect();
+    let mut template = used_segments.join("/{}/");
+    template.push_str("/{}");
+    let template = LitStr::new(&template, Span::call_site());
+
+    let url = if query_params.is_empty() {
+        quote! {
+            let url = base_url.join(&format!(#template, #(&req.#path_names,)*))?;
+        }
+    } else {
+        quote! {
+            let mut url = base_url.join(&format!(#template, #(&req.#path_names,)*))?;
+        }
+    };
+
+    match (request_kind, &handler.response_type) {
+        (RequestType::Create, Some(response_type)) => {
+            quote! {
+                pub async fn #fn_name(
+                    client: &::cloud_client::CloudClient,
+                    base_url: &::url::Url,
+                    req: &#request_type,
+                ) -> Result<#response_type> {
+                    #url
+                    #(#query_params)*
+                    let result = client.post(url).json(req).send().await?.bytes().await?;
+                    Ok(::serde_json::from_slice(&result)?)
+                }
+            }
+        }
+        (RequestType::Get | RequestType::List, Some(response_type)) => {
+            quote! {
+                pub async fn #fn_name(
+                    client: &::cloud_client::CloudClient,
+                    base_url: &::url::Url,
+                    req: &#request_type,
+                ) -> Result<#response_type> {
+                    #url
+                    #(#query_params)*
+                    let result = client.get(url).send().await?.bytes().await?;
+                    Ok(::serde_json::from_slice(&result)?)
+                }
+            }
+        }
+        (RequestType::Update, Some(response_type)) => {
+            quote! {}
+        }
+        (RequestType::Delete, None) => {
+            quote! {
+                pub async fn #fn_name(
+                    client: &::cloud_client::CloudClient,
+                    base_url: &::url::Url,
+                    req: &#request_type,
+                ) -> Result<()> {
+                    #url
+                    #(#query_params)*
+                    let result = client.delete(url).send().await?;
+                    Ok(())
+                }
+            }
+        }
+        // error
+        _ => panic!(),
     }
 }
 
@@ -78,7 +213,7 @@ pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
     let resource = &handler.resource;
     let request_type = &handler.request_type;
     let permission = &handler.permission;
-    // HACK: we should prbably anmnotate the queryt fields that should be extracted for
+    // HACK: we should probably annotate the query fields that should be extracted for
     // the resource identification, but for now we just hardcode the fields that are
     // known to be excluded.
     const KNOW_QUERY: [&str; 10] = [

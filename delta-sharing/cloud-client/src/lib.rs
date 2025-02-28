@@ -30,6 +30,7 @@ mod util;
 pub use client::{ClientConfigKey, ClientOptions};
 pub use credential::*;
 pub use error::*;
+pub use pagination::stream_paginated;
 pub use retry::RetryConfig;
 
 #[derive(Clone)]

@@ -1,10 +1,10 @@
 use proc_macro2::{Ident, Span};
 use quote::{quote, quote_spanned};
-use syn::{bracketed, parse_macro_input, Error, Type};
+use syn::{bracketed, parse_macro_input, DeriveInput, Error, ItemTrait, Type};
 
 use conversions::{from_object, resource_impl, to_object, to_resource, ObjectDefs};
 use parsing::HandlerParams;
-use rest_handlers::{generate_handler_name, to_action, to_handler, to_request_impl};
+use rest_handlers::{generate_handler_name, to_action, to_client, to_handler, to_request_impl};
 
 mod conversions;
 /// Parser for macro parameters
@@ -68,6 +68,11 @@ pub fn rest_handlers(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
 
     // Generate FromRequest/FromRequestParts implementations
     let request_impls = input.handlers.iter().map(to_request_impl);
+
+    let client_impls = input.handlers.iter().map(|h| to_client(h, &input.segments));
+    let expanded = quote! {
+        #(#client_impls)*
+    };
 
     let mod_name = generate_handler_name(&handler_type);
     let mod_ident = Ident::new(&mod_name, Span::call_site());

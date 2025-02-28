@@ -2,10 +2,10 @@ use std::sync::Arc;
 
 use futures::{Stream, TryStreamExt};
 
-use crate::client::pagination::stream_paginated;
-use crate::models::v1::*;
 use crate::service::ServiceClient;
-use crate::Result;
+use cloud_client::stream_paginated;
+use delta_sharing_common::models::sharing::v1::*;
+use delta_sharing_common::Result;
 
 pub struct DeltaSharingClient {
     client: Arc<dyn ServiceClient>,
@@ -37,37 +37,12 @@ impl DeltaSharingClient {
         .try_flatten()
     }
 
-    pub async fn list_schemas(
-        &self,
-        share: impl Into<String>,
-        max_results: Option<i32>,
-    ) -> impl Stream<Item = Result<Schema>> + '_ {
-        stream_paginated(
-            (share.into(), max_results),
-            move |(share, max_results), page_token| async move {
-                let req = ListSchemasRequest {
-                    share: share.clone(),
-                    max_results,
-                    page_token,
-                };
-                let mut resp = self.client.list_schemas(req).await?;
-                let max_results = max_results
-                    .map(|m| m - resp.items.len() as i32)
-                    .filter(|m| *m > 0);
-                let page_token = resp.next_page_token.take();
-                Ok((resp, (share, max_results), page_token))
-            },
-        )
-        .map_ok(|resp| futures::stream::iter(resp.items.into_iter().map(Ok)))
-        .try_flatten()
-    }
-
     pub async fn list_schema_tables(
         &self,
         share: impl Into<String>,
         schema: impl Into<String>,
         max_results: Option<i32>,
-    ) -> impl Stream<Item = Result<Table>> + '_ {
+    ) -> impl Stream<Item = Result<SharingTable>> + '_ {
         stream_paginated(
             (share.into(), schema.into(), max_results),
             move |(share, schema, max_results), page_token| async move {
@@ -93,7 +68,7 @@ impl DeltaSharingClient {
         &self,
         share: impl Into<String>,
         max_results: Option<i32>,
-    ) -> impl Stream<Item = Result<Table>> + '_ {
+    ) -> impl Stream<Item = Result<SharingTable>> + '_ {
         stream_paginated(
             (share.into(), max_results),
             move |(share, max_results), page_token| async move {

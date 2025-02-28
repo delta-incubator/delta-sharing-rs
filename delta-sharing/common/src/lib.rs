@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-mod api;
+pub mod api;
 pub mod error;
 #[cfg(feature = "grpc")]
 mod grpc;

@@ -664,7 +664,7 @@ dependencies = [
  "parking_lot",
  "percent-encoding",
  "quick-xml",
- "rand 0.8.5",
+ "rand 0.9.0",
  "reqwest",
  "ring",
  "rustls-pemfile",
@@ -857,6 +857,8 @@ name = "delta-sharing-client"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "cloud-client",
+ "delta-sharing-common",
  "delta_kernel",
  "futures",
  "humantime",
@@ -885,6 +887,7 @@ dependencies = [
  "axum 0.8.1",
  "bytes",
  "chrono",
+ "cloud-client",
  "dashmap",
  "delta-sharing-derive",
  "delta_kernel",
@@ -897,6 +900,7 @@ dependencies = [
  "pbjson",
  "pbjson-types",
  "prost",
+ "reqwest",
  "serde",
  "serde_json",
  "sqlx",

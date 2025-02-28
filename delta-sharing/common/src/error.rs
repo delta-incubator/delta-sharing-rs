@@ -44,6 +44,15 @@ pub enum Error {
     #[error(transparent)]
     SerDe(#[from] serde_json::Error),
 
+    #[error(transparent)]
+    Client(#[from] cloud_client::Error),
+
+    #[error("invalid url: {0}")]
+    InvalidUrl(#[from] url::ParseError),
+
+    #[error("Reqwuest error: {0}")]
+    RequestError(#[from] reqwest::Error),
+
     #[cfg(feature = "axum")]
     #[error("Axum path: {0}")]
     AxumPath(#[from] PathRejection),
@@ -91,6 +100,9 @@ impl From<Error> for Status {
             Error::InvalidIdentifier(_) => Status::internal("Invalid uuid identifier"),
             Error::InvalidArgument(message) => Status::invalid_argument(message),
             Error::Generic(message) => Status::internal(message),
+            Error::Client(error) => Status::internal(error.to_string()),
+            Error::InvalidUrl(_) => Status::internal("Invalid url"),
+            Error::RequestError(error) => Status::internal(error.to_string()),
             #[cfg(feature = "axum")]
             Error::AxumPath(rejection) => Status::internal(format!("Axum path: {}", rejection)),
             #[cfg(feature = "axum")]
@@ -148,6 +160,20 @@ mod server {
                 Error::InvalidArgument(message) => {
                     error!("Invalid argument: {}", message);
                     INVALID_ARGUMENT
+                }
+                Error::Client(error) => {
+                    let message = format!("Client error: {}", error);
+                    error!("{}", message);
+                    INTERNAL_ERROR
+                }
+                Error::InvalidUrl(_) => {
+                    error!("Invalid url");
+                    INTERNAL_ERROR
+                }
+                Error::RequestError(error) => {
+                    let message = format!("Request error: {}", error);
+                    error!("{}", message);
+                    INTERNAL_ERROR
                 }
                 Error::InvalidPredicate(msg) => {
                     error!("Invalid predicate: {}", msg);

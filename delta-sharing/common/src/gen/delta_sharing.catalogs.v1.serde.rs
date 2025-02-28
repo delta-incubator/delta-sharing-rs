@@ -66,37 +66,37 @@ impl serde::Serialize for CatalogInfo {
             struct_ser.serialize_field("properties", v)?;
         }
         if let Some(v) = self.storage_root.as_ref() {
-            struct_ser.serialize_field("storageRoot", v)?;
+            struct_ser.serialize_field("storage_root", v)?;
         }
         if let Some(v) = self.provider_name.as_ref() {
-            struct_ser.serialize_field("providerName", v)?;
+            struct_ser.serialize_field("provider_name", v)?;
         }
         if let Some(v) = self.share_name.as_ref() {
-            struct_ser.serialize_field("shareName", v)?;
+            struct_ser.serialize_field("share_name", v)?;
         }
         if let Some(v) = self.catalog_type.as_ref() {
             let v = CatalogType::try_from(*v)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", *v)))?;
-            struct_ser.serialize_field("catalogType", &v)?;
+            struct_ser.serialize_field("catalog_type", &v)?;
         }
         if let Some(v) = self.created_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("createdAt", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("created_at", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.created_by.as_ref() {
-            struct_ser.serialize_field("createdBy", v)?;
+            struct_ser.serialize_field("created_by", v)?;
         }
         if let Some(v) = self.updated_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("updatedAt", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("updated_at", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.updated_by.as_ref() {
-            struct_ser.serialize_field("updatedBy", v)?;
+            struct_ser.serialize_field("updated_by", v)?;
         }
         if let Some(v) = self.browse_only.as_ref() {
-            struct_ser.serialize_field("browseOnly", v)?;
+            struct_ser.serialize_field("browse_only", v)?;
         }
         struct_ser.end()
     }
@@ -445,13 +445,13 @@ impl serde::Serialize for CreateCatalogRequest {
             struct_ser.serialize_field("properties", v)?;
         }
         if let Some(v) = self.storage_root.as_ref() {
-            struct_ser.serialize_field("storageRoot", v)?;
+            struct_ser.serialize_field("storage_root", v)?;
         }
         if let Some(v) = self.provider_name.as_ref() {
-            struct_ser.serialize_field("providerName", v)?;
+            struct_ser.serialize_field("provider_name", v)?;
         }
         if let Some(v) = self.share_name.as_ref() {
-            struct_ser.serialize_field("shareName", v)?;
+            struct_ser.serialize_field("share_name", v)?;
         }
         struct_ser.end()
     }
@@ -722,7 +722,7 @@ impl serde::Serialize for GetCatalogRequest {
             struct_ser.serialize_field("name", &self.name)?;
         }
         if let Some(v) = self.include_browse.as_ref() {
-            struct_ser.serialize_field("includeBrowse", v)?;
+            struct_ser.serialize_field("include_browse", v)?;
         }
         struct_ser.end()
     }
@@ -832,10 +832,10 @@ impl serde::Serialize for ListCatalogsRequest {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.catalogs.v1.ListCatalogsRequest", len)?;
         if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("maxResults", v)?;
+            struct_ser.serialize_field("max_results", v)?;
         }
         if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("pageToken", v)?;
+            struct_ser.serialize_field("page_token", v)?;
         }
         struct_ser.end()
     }
@@ -951,7 +951,7 @@ impl serde::Serialize for ListCatalogsResponse {
             struct_ser.serialize_field("catalogs", &self.catalogs)?;
         }
         if let Some(v) = self.next_page_token.as_ref() {
-            struct_ser.serialize_field("nextPageToken", v)?;
+            struct_ser.serialize_field("next_page_token", v)?;
         }
         struct_ser.end()
     }
@@ -1082,7 +1082,7 @@ impl serde::Serialize for UpdateCatalogRequest {
             struct_ser.serialize_field("properties", v)?;
         }
         if !self.new_name.is_empty() {
-            struct_ser.serialize_field("newName", &self.new_name)?;
+            struct_ser.serialize_field("new_name", &self.new_name)?;
         }
         struct_ser.end()
     }

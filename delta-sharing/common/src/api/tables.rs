@@ -5,7 +5,7 @@ use crate::models::tables::v1::*;
 use crate::{Error, Permission, Recipient, ResourceIdent, ResourceName, ResourceRef, Result};
 
 rest_handlers!(
-    TablesHandler, [
+    TablesHandler, "tables", [
         GetTableRequest, Table, Read, TableInfo with [
             full_name: path as String,
         ];

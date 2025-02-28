@@ -8,7 +8,7 @@ use crate::resources::{ResourceIdent, ResourceName, ResourceRef};
 use crate::{AssociationLabel, Error, ObjectLabel, Recipient, Resource, ResourceStore, Result};
 
 rest_handlers!(
-    SharingDiscoveryHandler, [
+    SharingDiscoveryHandler, "shares/schemas/tables", [
         ListSharesRequest, Share, Use, ListSharesResponse;
         GetShareRequest, Share, Use, Share with [
             name: path as String,
@@ -61,7 +61,7 @@ pub trait SharingDiscoveryHandler: Send + Sync + 'static {
 }
 
 rest_handlers!(
-    SharingQueryHandler, [
+    SharingQueryHandler, "shares/schemas/tables", [
         GetTableVersionRequest, SharingTable, Read, GetTableVersionResponse with [
             share: path as String,
             schema: path as String,
