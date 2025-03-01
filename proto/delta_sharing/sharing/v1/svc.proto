@@ -5,14 +5,14 @@ package delta_sharing.sharing.v1;
 import "buf/validate/validate.proto";
 import "delta_sharing/sharing/v1/models.proto";
 import "delta_sharing/sharing/v1/query.proto";
+import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
-import "openapiv3/annotations.proto";
 
-option (openapi.v3.document) = {
+option (gnostic.openapi.v3.document) = {
   info: {
     title: "Delta Sharing API"
     version: "0.0.0"
@@ -161,41 +161,41 @@ service DeltaSharingService {
   // List shares accessible to a recipient.
   rpc ListShares(ListSharesRequest) returns (ListSharesResponse) {
     option (google.api.http) = {get: "/shares"};
-    option (openapi.v3.operation) = {operation_id: "ListShares"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ListShares"};
   }
 
   // Get the metadata for a specific share.
   rpc GetShare(GetShareRequest) returns (Share) {
     option (google.api.http) = {get: "/{name=shares/*}"};
-    option (openapi.v3.operation) = {operation_id: "GetShare"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "GetShare"};
   }
 
   // List the schemas in a share.
   rpc ListSharingSchemas(ListSharingSchemasRequest) returns (ListSharingSchemasResponse) {
     option (google.api.http) = {get: "/shares/{share}}/schemas"};
-    option (openapi.v3.operation) = {operation_id: "ListSharingSchemas"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ListSharingSchemas"};
   }
 
   // List the tables in a given share's schema.
   rpc ListSchemaTables(ListSchemaTablesRequest) returns (ListSchemaTablesResponse) {
     option (google.api.http) = {get: "/shares/{share}/schemas/{name}/tables"};
-    option (openapi.v3.operation) = {operation_id: "ListSchemaTables"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ListSchemaTables"};
   }
 
   // List all the tables under all schemas in a share.
   rpc ListShareTables(ListShareTablesRequest) returns (ListShareTablesResponse) {
     option (google.api.http) = {get: "/{name=shares/*}/all-tables"};
-    option (openapi.v3.operation) = {operation_id: "ListShareTables"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ListShareTables"};
   }
 
   // Get the current version for a table within a schema.
   rpc GetTableVersion(GetTableVersionRequest) returns (GetTableVersionResponse) {
     option (google.api.http) = {get: "/shares/{share}/schemas/{schema}/tables/{name}/version"};
-    option (openapi.v3.operation) = {operation_id: "GetTableVersion"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "GetTableVersion"};
   }
 
   rpc GetTableMetadata(GetTableMetadataRequest) returns (QueryResponse) {
     option (google.api.http) = {get: "/shares/{share}/schemas/{schema}/tables/{name}/metadata"};
-    option (openapi.v3.operation) = {operation_id: "GetTableMetadata"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "GetTableMetadata"};
   }
 }

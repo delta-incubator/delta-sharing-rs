@@ -1,6 +1,6 @@
 use proc_macro2::{Ident, Span};
 use quote::{quote, quote_spanned};
-use syn::{bracketed, parse_macro_input, DeriveInput, Error, ItemTrait, Type};
+use syn::{bracketed, parse_macro_input, Error, Type};
 
 use conversions::{from_object, resource_impl, to_object, to_resource, ObjectDefs};
 use parsing::HandlerParams;

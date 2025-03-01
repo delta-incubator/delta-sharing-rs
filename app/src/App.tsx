@@ -1,51 +1,144 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
+import { useState, useRef, useCallback, useEffect } from "react";
 import "./App.css";
 
+import {
+    DrawerBody,
+    DrawerHeader,
+    DrawerHeaderTitle,
+    InlineDrawer,
+    makeStyles,
+    mergeClasses,
+    tokens,
+} from "@fluentui/react-components";
+
+const useStyles = makeStyles({
+    root: {
+        // border: "2px solid #ccc",
+        overflow: "hidden",
+
+        display: "flex",
+        height: "100vh",
+        width: "100vw",
+        // backgroundColor: "#fff",
+        userSelect: "auto",
+    },
+
+    rootResizerActive: {
+        userSelect: "none",
+    },
+
+    container: {
+        position: "relative",
+    },
+
+    drawer: {
+        willChange: "width",
+        transitionProperty: "width",
+        transitionDuration: "16.666ms", // 60fps
+    },
+
+    resizer: {
+        borderRight: `1px solid ${tokens.colorNeutralBackground5}`,
+
+        width: "8px",
+        position: "absolute",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        cursor: "col-resize",
+        resize: "horizontal",
+
+        ":hover": {
+            borderRightWidth: "4px",
+        },
+    },
+
+    resizerActive: {
+        borderRightWidth: "4px",
+        borderRightColor: tokens.colorNeutralBackground5Pressed,
+    },
+
+    content: {
+        margin: `${tokens.spacingVerticalXL} ${tokens.spacingHorizontalXL}`,
+        flex: "1",
+    },
+});
+
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+    const styles = useStyles();
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+    const animationFrame = useRef<number>(0);
+    const sidebarRef = useRef<HTMLDivElement>(null);
+    const [isResizing, setIsResizing] = useState(false);
+    const [sidebarWidth, setSidebarWidth] = useState(320);
 
-  return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+    const startResizing = useCallback(() => setIsResizing(true), []);
+    const stopResizing = useCallback(() => setIsResizing(false), []);
 
-      <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+    const resize = useCallback(
+        ({ clientX }: { clientX: number }) => {
+            animationFrame.current = requestAnimationFrame(() => {
+                if (isResizing && sidebarRef.current) {
+                    setSidebarWidth(
+                        clientX -
+                            sidebarRef.current.getBoundingClientRect().left,
+                    );
+                }
+            });
+        },
+        [isResizing],
+    );
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
+    const ResizeComponent: React.FC = () => (
+        <div
+            className={mergeClasses(
+                styles.resizer,
+                isResizing && styles.resizerActive,
+            )}
+            onMouseDown={startResizing}
         />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
-  );
+    );
+
+    useEffect(() => {
+        window.addEventListener("mousemove", resize);
+        window.addEventListener("mouseup", stopResizing);
+
+        return () => {
+            cancelAnimationFrame(animationFrame.current);
+            window.removeEventListener("mousemove", resize);
+            window.removeEventListener("mouseup", stopResizing);
+        };
+    }, [resize, stopResizing]);
+
+    return (
+        <div
+            className={mergeClasses(
+                styles.root,
+                isResizing && styles.rootResizerActive,
+            )}
+        >
+            <div className={styles.container}>
+                <InlineDrawer
+                    open
+                    ref={sidebarRef}
+                    className={styles.drawer}
+                    style={{ width: `${sidebarWidth}px` }}
+                    onMouseDown={(e) => e.preventDefault()}
+                >
+                    <DrawerHeader>
+                        <DrawerHeaderTitle>Catalog Browser</DrawerHeaderTitle>
+                    </DrawerHeader>
+                    <DrawerBody>
+                        <p>Resizable content</p>
+                    </DrawerBody>
+                </InlineDrawer>
+                <ResizeComponent />
+            </div>
+            <p className={styles.content}>
+                Resize the drawer to see the change
+            </p>
+        </div>
+    );
 }
 
 export default App;

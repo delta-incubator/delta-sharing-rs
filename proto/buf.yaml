@@ -4,4 +4,4 @@ deps:
   - buf.build/protocolbuffers/wellknowntypes:v29.3
   - buf.build/bufbuild/protovalidate
   - buf.build/googleapis/googleapis
-  - buf.build/qrkkk/openapiv3
+  - buf.build/gnostic/gnostic

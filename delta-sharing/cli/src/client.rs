@@ -105,7 +105,7 @@ pub async fn handle_client(
                 println!("Create catalog: {:?}", catalog);
             }
             Some(CatalogCommands::Delete { name, force }) => {
-                client.catalogs().delete(name, force.clone()).await?;
+                client.catalogs().delete(name, *force).await?;
                 println!("Deleted catalog: {:?}", name);
             }
             None => {

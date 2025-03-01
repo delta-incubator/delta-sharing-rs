@@ -863,6 +863,11 @@ paths:
           required: true
           schema:
             type: string
+        - name: includeSharedData
+          in: query
+          description: Query for data to include in the share.
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK

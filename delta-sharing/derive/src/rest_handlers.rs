@@ -109,7 +109,7 @@ pub fn to_client(handler: &HandlerDef, path_segments: &[String]) -> proc_macro2:
         })
         .collect();
     let mut template = used_segments.join("/{}/");
-    if path_names.len() > 0 {
+    if !path_names.is_empty() {
         template.push_str("/{}");
     }
 
@@ -221,7 +221,7 @@ pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
     // HACK: we should probably annotate the query fields that should be extracted for
     // the resource identification, but for now we just hardcode the fields that are
     // known to be excluded.
-    const KNOW_QUERY: [&str; 10] = [
+    const KNOW_QUERY: [&str; 12] = [
         "max_results",
         "page_token",
         "force",
@@ -232,6 +232,8 @@ pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
         "include_browse",
         "includeBrowses",
         "purpose",
+        "include_shared_data",
+        "includeSharedData",
     ];
     let field_names: Vec<_> = handler
         .fields

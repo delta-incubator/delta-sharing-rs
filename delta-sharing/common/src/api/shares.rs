@@ -13,6 +13,7 @@ rest_handlers!(
         ListSharesRequest, Share, Read, ListSharesResponse;
         GetShareRequest, Share, Read, ShareInfo with [
             name: path as String,
+            include_shared_data: query as Option<bool>,
         ];
         UpdateShareRequest, Share, Manage, ShareInfo with [
             name: path as String,

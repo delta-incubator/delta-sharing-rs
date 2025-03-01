@@ -45,10 +45,15 @@ docker:
 # generate delta-sharing types from proto files
 generate:
     buf generate proto
-    just delta-sharing/openfga/generate
     npx -y @redocly/cli bundle --remove-unused-components delta-sharing/server/openapi.yaml > tmp.yaml
     mv tmp.yaml delta-sharing/server/openapi.yaml
     cargo clippy --fix --allow-dirty --allow-staged
+
+generate-openfga:
+    just delta-sharing/openfga/generate
+
+generate-app:
+    just app/generate
 
 # load delta acceptance testing (dat) data from the release
 load-dat:

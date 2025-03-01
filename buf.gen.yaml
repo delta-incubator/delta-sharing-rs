@@ -39,3 +39,8 @@ plugins:
       - no_include=true
   - remote: buf.build/community/google-gnostic-openapi:v0.7.0
     out: delta-sharing/server
+  - remote: buf.build/bufbuild/es:v2.2.3
+    out: app/src/gen
+    opt:
+      - target=ts
+      - json_types=true
