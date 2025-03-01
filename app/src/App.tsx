@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import "./App.css";
-
 import {
     DrawerBody,
     DrawerHeader,
@@ -10,6 +9,7 @@ import {
     mergeClasses,
     tokens,
 } from "@fluentui/react-components";
+import TreeView from "./components/TreeView";
 
 const useStyles = makeStyles({
     root: {
@@ -129,7 +129,7 @@ function App() {
                         <DrawerHeaderTitle>Catalog Browser</DrawerHeaderTitle>
                     </DrawerHeader>
                     <DrawerBody>
-                        <p>Resizable content</p>
+                        <TreeView />
                     </DrawerBody>
                 </InlineDrawer>
                 <ResizeComponent />

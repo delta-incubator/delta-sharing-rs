@@ -9,12 +9,16 @@ mod error;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let client = CloudClient::new_unauthenticated();
-    let url = Url::parse("https://localhost:8080").unwrap();
+    let url = Url::parse("http://localhost:8080").unwrap();
     let unity_client = UnityCatalogClient::new(client, url);
 
     Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![client::list_catalogs])
+        .invoke_handler(tauri::generate_handler![
+            client::list_catalogs,
+            client::get_catalog,
+            client::create_catalog
+        ])
         .setup(|app| {
             app.manage(unity_client);
             Ok(())

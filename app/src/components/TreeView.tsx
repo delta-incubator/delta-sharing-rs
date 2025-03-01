@@ -1,19 +1,17 @@
-import { useEffect, useState, useRef, useCallback } from "react";
 import {
     FlatTree,
     FlatTreeItem,
-    TreeItemLayout,
-    TreeItemValue,
-    Spinner,
     makeStyles,
+    Spinner,
+    TreeItemLayout,
     TreeItemOpenChangeData,
     TreeItemOpenChangeEvent,
+    TreeItemValue,
 } from "@fluentui/react-components";
-
-interface Entity {
-    name: string;
-    value: string;
-}
+import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
+import ucClient from "../client";
+import CreateCatalog from "./CatalogCreate";
 
 type SubtreeProps = {
     value: TreeItemValue;
@@ -33,7 +31,7 @@ const useStyles = makeStyles({
     },
 });
 
-export const LazyLoading = () => {
+export const TreeView = () => {
     const [ariaMessage, setAriaMessage] = useState("");
 
     const styles = useStyles();
@@ -51,42 +49,6 @@ export const LazyLoading = () => {
                         [],
                     )}
                 />
-
-                <Subtree
-                    value="Shares"
-                    onDataLoaded={useCallback(
-                        () => setAriaMessage(`planet items loaded`),
-                        [],
-                    )}
-                    onDataLoading={useCallback(
-                        () => setAriaMessage(`loading planet items...`),
-                        [],
-                    )}
-                />
-
-                <Subtree
-                    value="Credentials"
-                    onDataLoaded={useCallback(
-                        () => setAriaMessage(`starship items loaded`),
-                        [],
-                    )}
-                    onDataLoading={useCallback(
-                        () => setAriaMessage(`loading starship items...`),
-                        [],
-                    )}
-                />
-
-                <Subtree
-                    value="External Locations"
-                    onDataLoaded={useCallback(
-                        () => setAriaMessage(`starship items loaded`),
-                        [],
-                    )}
-                    onDataLoading={useCallback(
-                        () => setAriaMessage(`loading starship items...`),
-                        [],
-                    )}
-                />
             </FlatTree>
             <div
                 aria-live="polite"
@@ -101,41 +63,32 @@ export const LazyLoading = () => {
 
 const Subtree = ({ onDataLoaded, onDataLoading, value }: SubtreeProps) => {
     const [open, setOpen] = useState(false);
-    // useQuery here is just a helper to simulate async data fetching
-    // you can use any other async data fetching library like react-query, swr, etc.
-    const { query, value: items, state } = useQuery<Entity[]>([]);
 
-    // we need to focus the first item when the subtree is opened
-    const firstItemRef = useRef<HTMLDivElement>(null);
+    const { data, status } = useQuery({
+        queryKey: ["catalogs", "list"],
+        queryFn: () => {
+            onDataLoading?.();
+            return ucClient.listCatalogs();
+        },
+        enabled: open,
+        refetchInterval: 30000,
+    });
 
     const handleOpenChange = useCallback(
-        (e: TreeItemOpenChangeEvent, data: TreeItemOpenChangeData) => {
+        (_e: TreeItemOpenChangeEvent, data: TreeItemOpenChangeData) => {
             setOpen(data.open);
         },
         [setOpen],
     );
 
+    // we need to focus the first item when the subtree is opened
+    const firstItemRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
-        if (open && state === "idle") {
-            onDataLoading?.();
-            query(async () => {
-                // mockFetch is just a helper to simulate an API endpoint.
-                // you probably will be using some custom API endpoint here.
-                const json = await mockFetch(value.toString());
-                return json.results.map<Entity>((entity) => ({
-                    value: `${value}/${entity.name}`,
-                    name: entity.name,
-                }));
-            });
-        }
-    }, [open, onDataLoading, query, state, value]);
-
-    useEffect(() => {
-        if (open && state === "loaded") {
+        if (open && status === "success") {
             onDataLoaded?.();
             firstItemRef.current?.focus();
         }
-    }, [open, state, onDataLoaded]);
+    }, [open, status, onDataLoaded]);
 
     return (
         <>
@@ -150,23 +103,25 @@ const Subtree = ({ onDataLoaded, onDataLoading, value }: SubtreeProps) => {
             >
                 <TreeItemLayout
                     expandIcon={
-                        state === "loading" ? (
+                        open && status === "pending" ? (
                             <Spinner size="tiny" />
                         ) : undefined
                     }
+                    actions={<CreateCatalog />}
                 >
                     {value.toString()}
                 </TreeItemLayout>
             </FlatTreeItem>
             {open &&
-                items.map((item, index) => (
+                status === "success" &&
+                data.map((item, index) => (
                     <FlatTreeItem
-                        key={item.value}
+                        key={`${value}.${item.name}`}
                         ref={index === 0 ? firstItemRef : null}
                         parentValue={value}
-                        value={item.value}
+                        value={item.name || "undefined"}
                         aria-level={2}
-                        aria-setsize={items.length}
+                        aria-setsize={data.length}
                         aria-posinset={index + 1}
                         itemType="leaf"
                     >
@@ -176,3 +131,5 @@ const Subtree = ({ onDataLoaded, onDataLoading, value }: SubtreeProps) => {
         </>
     );
 };
+
+export default TreeView;
