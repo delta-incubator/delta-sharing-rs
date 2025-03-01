@@ -1,84 +1,48 @@
 import {
     FlatTree,
     FlatTreeItem,
-    makeStyles,
     Spinner,
     TreeItemLayout,
-    TreeItemOpenChangeData,
-    TreeItemOpenChangeEvent,
     TreeItemValue,
 } from "@fluentui/react-components";
+import { DatabaseMultiple20Regular } from "@fluentui/react-icons";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ucClient from "../client";
 import CreateCatalog from "./CatalogCreate";
 import CatalogItem from "./CatalogItem";
-
-type SubtreeProps = {
-    value: TreeItemValue;
-    onDataLoading?(): void;
-    onDataLoaded?(): void;
-};
-
-const useStyles = makeStyles({
-    screenReadersOnly: {
-        position: "absolute",
-        width: "1px",
-        height: "1px",
-        margin: "-1",
-        overflow: "hidden",
-        clip: "rect(0,0,0,0)",
-        whiteSpace: "nowrap",
-    },
-});
+import { TreeItemOnChange } from "../types";
 
 export const TreeView = () => {
-    const [ariaMessage, setAriaMessage] = useState("");
-
-    const styles = useStyles();
     return (
         <>
             <FlatTree aria-label="Lazy Loading">
-                <CatalogTree
-                    value="Catalogs"
-                    onDataLoaded={useCallback(
-                        () => setAriaMessage(`people items loaded`),
-                        [],
-                    )}
-                    onDataLoading={useCallback(
-                        () => setAriaMessage(`loading people items...`),
-                        [],
-                    )}
-                />
+                <CatalogTree value="Catalogs" />
             </FlatTree>
-            <div
-                aria-live="polite"
-                aria-atomic="true"
-                className={styles.screenReadersOnly}
-            >
-                {ariaMessage}
-            </div>
         </>
     );
 };
 
-const CatalogTree = ({ onDataLoaded, onDataLoading, value }: SubtreeProps) => {
+type CatalogTreeProps = {
+    value: TreeItemValue;
+};
+
+const CATALOGS_ROOT = "catalogs";
+
+const CatalogTree = ({ value }: CatalogTreeProps) => {
     const [open, setOpen] = useState(false);
 
     const { data, status } = useQuery({
-        queryKey: ["catalogs", "list"],
+        queryKey: [CATALOGS_ROOT],
         queryFn: () => {
-            onDataLoading?.();
             return ucClient.listCatalogs();
         },
         enabled: open,
         refetchInterval: 30000,
     });
 
-    const handleOpenChange = useCallback(
-        (_e: TreeItemOpenChangeEvent, data: TreeItemOpenChangeData) => {
-            setOpen(data.open);
-        },
+    const onOpenChange: TreeItemOnChange = useCallback(
+        (_ev, data) => setOpen(data.open),
         [setOpen],
     );
 
@@ -86,24 +50,24 @@ const CatalogTree = ({ onDataLoaded, onDataLoading, value }: SubtreeProps) => {
     const firstItemRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         if (open && status === "success") {
-            onDataLoaded?.();
             firstItemRef.current?.focus();
         }
-    }, [open, status, onDataLoaded]);
+    }, [open, status]);
 
     return (
         <>
             <FlatTreeItem
-                value="catalogs"
+                value={CATALOGS_ROOT}
                 aria-level={1}
-                aria-setsize={3}
+                aria-setsize={4}
                 aria-posinset={1}
                 itemType="branch"
                 open={open}
-                onOpenChange={handleOpenChange}
+                onOpenChange={onOpenChange}
                 about="All catalogs"
             >
                 <TreeItemLayout
+                    iconBefore={<DatabaseMultiple20Regular />}
                     expandIcon={
                         open && status === "pending" ? (
                             <Spinner size="tiny" />
@@ -118,10 +82,10 @@ const CatalogTree = ({ onDataLoaded, onDataLoading, value }: SubtreeProps) => {
                 status === "success" &&
                 data.map(
                     (item) =>
-                        item.name !== undefined && (
+                        item.name && (
                             <CatalogItem
                                 key={`${value}.${item.name}`}
-                                parent={["catalogs"]}
+                                parent={[CATALOGS_ROOT]}
                                 catalog={item as { name: string }}
                             />
                         ),

@@ -157,7 +157,7 @@ impl SchemasClient {
         name: impl Into<String>,
     ) -> Result<schema::SchemaInfo> {
         let request = schema::GetSchemaRequest {
-            full_name: format!("{}/{}", catalog_name.into(), name.into()),
+            full_name: format!("{}.{}", catalog_name.into(), name.into()),
         };
         self.get_schema(&request).await
     }

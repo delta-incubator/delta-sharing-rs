@@ -2,11 +2,12 @@ import {
     FlatTreeItem,
     Spinner,
     TreeItemLayout,
-    TreeItemProps,
 } from "@fluentui/react-components";
+import { Database20Regular } from "@fluentui/react-icons";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ucClient, { CatalogInfo } from "../client";
+import { TreeItemOnChange } from "../types";
 import CreateSchema from "./SchemaCreate";
 import DeleteSchema from "./SchemaDelete";
 
@@ -14,8 +15,6 @@ import DeleteSchema from "./SchemaDelete";
 type LocCatalogInfo = {
     name: string;
 } & CatalogInfo;
-
-type TreeItemOnChange = NonNullable<TreeItemProps["onOpenChange"]>;
 
 type CatalogItemProps = {
     parent: string[];
@@ -66,6 +65,7 @@ const CatalogItem = ({ parent, catalog }: CatalogItemProps) => {
                 onOpenChange={handleOpenChange}
             >
                 <TreeItemLayout
+                    iconBefore={<Database20Regular />}
                     expandIcon={
                         open && status === "pending" ? (
                             <Spinner size="tiny" />

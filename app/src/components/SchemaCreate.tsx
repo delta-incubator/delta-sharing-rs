@@ -1,37 +1,26 @@
 import {
+    Button,
     Dialog,
-    DialogTrigger,
+    DialogActions,
+    DialogBody,
+    DialogContent,
     DialogSurface,
     DialogTitle,
-    DialogBody,
-    DialogActions,
-    DialogContent,
-    Button,
+    DialogTrigger,
     Field,
     Input,
-    InputProps,
-    useToastController,
     Toast,
-    ToastTitle,
-    useId,
     Toaster,
     ToastIntent,
+    ToastTitle,
+    useId,
+    useToastController,
 } from "@fluentui/react-components";
 import { Add20Regular } from "@fluentui/react-icons";
-import { useState, useCallback, Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 import ucClient, { CreateSchemaRequest } from "../client";
-
-type InputChange = NonNullable<InputProps["onChange"]>;
-
-const useCallbacs = (
-    setValues: Dispatch<SetStateAction<CreateSchemaRequest>>,
-) => {
-    const onNameChange: InputChange = useCallback((_ev, data) => {
-        setValues((curr) => ({ ...curr, name: data.value }));
-    }, []);
-    return { onNameChange };
-};
+import { InputChange } from "../types";
 
 type Props = { name: string };
 
@@ -70,7 +59,9 @@ const Default = ({ name }: Props) => {
         },
     });
 
-    const { onNameChange } = useCallbacs(setValues);
+    const onNameChange: InputChange = useCallback((_ev, data) => {
+        setValues((curr) => ({ ...curr, name: data.value }));
+    }, []);
 
     const onClick = useCallback(() => {
         mutation.mutate(values);

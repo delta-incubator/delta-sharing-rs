@@ -1,31 +1,31 @@
 import {
+    Button,
     Dialog,
-    DialogTrigger,
+    DialogActions,
+    DialogBody,
+    DialogContent,
     DialogSurface,
     DialogTitle,
-    DialogBody,
-    DialogActions,
-    DialogContent,
-    Button,
+    DialogTrigger,
     Field,
     Input,
     InputProps,
-    useToastController,
-    Toast,
-    ToastTitle,
-    useId,
-    Toaster,
-    ToastIntent,
+    makeStyles,
     Tab,
     TabList,
-    TabValue,
     TabListProps,
-    makeStyles,
+    TabValue,
+    Toast,
+    Toaster,
+    ToastIntent,
+    ToastTitle,
     tokens,
+    useId,
+    useToastController,
 } from "@fluentui/react-components";
 import { Add20Regular } from "@fluentui/react-icons";
-import { useState, useCallback, Dispatch, SetStateAction } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Dispatch, SetStateAction, useCallback, useState } from "react";
 import ucClient from "../client";
 import { CreateCatalogRequestJson } from "../gen/delta_sharing/catalogs/v1/svc_pb";
 

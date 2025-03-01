@@ -1,24 +1,24 @@
 import {
+    Button,
     Dialog,
-    DialogTrigger,
+    DialogActions,
+    DialogBody,
+    DialogContent,
     DialogSurface,
     DialogTitle,
-    DialogBody,
-    DialogActions,
-    DialogContent,
-    Button,
-    useToastController,
+    DialogTrigger,
+    makeStyles,
     Toast,
-    ToastTitle,
-    useId,
     Toaster,
     ToastIntent,
-    makeStyles,
+    ToastTitle,
     tokens,
+    useId,
+    useToastController,
 } from "@fluentui/react-components";
 import { Delete20Regular } from "@fluentui/react-icons";
-import { useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 import ucClient from "../client";
 
 const useStyles = makeStyles({
