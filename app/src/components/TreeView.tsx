@@ -34,9 +34,7 @@ const CatalogTree = ({ value }: CatalogTreeProps) => {
 
     const { data, status } = useQuery({
         queryKey: [CATALOGS_ROOT],
-        queryFn: () => {
-            return ucClient.listCatalogs();
-        },
+        queryFn: () => ucClient.listCatalogs(),
         enabled: open,
         refetchInterval: 30000,
     });
@@ -45,14 +43,6 @@ const CatalogTree = ({ value }: CatalogTreeProps) => {
         (_ev, data) => setOpen(data.open),
         [setOpen],
     );
-
-    // we need to focus the first item when the subtree is opened
-    const firstItemRef = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-        if (open && status === "success") {
-            firstItemRef.current?.focus();
-        }
-    }, [open, status]);
 
     return (
         <>

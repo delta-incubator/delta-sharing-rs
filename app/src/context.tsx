@@ -8,6 +8,8 @@ import {
 } from "@fluentui/react-components";
 import React, { createContext, useCallback } from "react";
 
+export const TreeContext = createContext<string[]>([]);
+
 export const NotifyContext = createContext<
     (intent: ToastIntent, message: string) => void
 >(() => {});

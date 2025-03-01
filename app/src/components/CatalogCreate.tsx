@@ -35,10 +35,7 @@ type TabSelect = NonNullable<TabListProps["onTabSelect"]>;
 
 const useStyles = makeStyles({
     tabs: {
-        marginTop: "1rem",
-        marginBottom: "1rem",
-        marginLeft: "1rem",
-        marginRight: "1rem",
+        padding: "0 10px",
         display: "flex",
         flexDirection: "column",
         rowGap: tokens.spacingVerticalL,

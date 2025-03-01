@@ -12,9 +12,9 @@ import {
 } from "@fluentui/react-components";
 import { Delete20Regular } from "@fluentui/react-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState, useContext } from "react";
+import { useCallback, useContext, useState } from "react";
 import ucClient from "../client";
-import { NotifyContext } from "../context";
+import { NotifyContext, TreeContext } from "../context";
 
 const useStyles = makeStyles({
     delete: {
@@ -31,30 +31,26 @@ const useStyles = makeStyles({
     },
 });
 
-type Props = { catalog: string; name: string };
+type Props = { name: string };
 
-const Default = ({ catalog, name }: Props) => {
+const Default = ({ name }: Props) => {
     const [open, setOpen] = useState(false);
     const styles = useStyles();
-
+    const queryKey = useContext(TreeContext);
     const notify = useContext(NotifyContext);
     const queryClient = useQueryClient();
     const mutation = useMutation({
         mutationFn: ucClient.deleteSchema,
-        onError: () => {
-            notify("error", "Failed to delete schema");
-        },
+        onError: () => notify("error", "Failed to delete schema"),
         onSuccess: () => {
             notify("success", "Schema deleted successfully");
-            queryClient.invalidateQueries({
-                queryKey: ["catalogs", catalog],
-            });
+            queryClient.invalidateQueries({ queryKey });
             setOpen(false);
         },
     });
 
     const onClick = useCallback(() => {
-        mutation.mutate({ catalog, name });
+        mutation.mutate({ catalog: queryKey[queryKey.length - 1], name });
     }, [mutation]);
 
     return (
@@ -63,12 +59,12 @@ const Default = ({ catalog, name }: Props) => {
                 <Button
                     icon={<Delete20Regular className={styles.deleteIcon} />}
                     appearance="subtle"
-                    title="Add"
+                    title="Delete"
                 />
             </DialogTrigger>
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>Create a new Schema</DialogTitle>
+                    <DialogTitle>Delete Schema</DialogTitle>
                     <DialogContent>
                         Are you sure you want to delete this schema?
                     </DialogContent>

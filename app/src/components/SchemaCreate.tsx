@@ -12,10 +12,10 @@ import {
 } from "@fluentui/react-components";
 import { Add20Regular } from "@fluentui/react-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState, useContext } from "react";
+import { useCallback, useContext, useState } from "react";
 import ucClient, { CreateSchemaRequest } from "../client";
-import { InputChange } from "../types";
 import { NotifyContext } from "../context";
+import { InputChange } from "../types";
 
 type Props = { name: string };
 

@@ -5,11 +5,13 @@ import {
 } from "@fluentui/react-components";
 import { Database20Regular } from "@fluentui/react-icons";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ucClient, { CatalogInfo } from "../client";
+import { TreeContext } from "../context";
 import { TreeItemOnChange } from "../types";
 import CreateSchema from "./SchemaCreate";
-import DeleteSchema from "./SchemaDelete";
+import { useTreeScope } from "../hooks";
+import SchemaItem from "./SchemaItem";
 
 // helper type that asserts the name property is a string
 type LocCatalogInfo = {
@@ -23,19 +25,18 @@ type CatalogItemProps = {
 
 const CatalogItem = ({ parent, catalog }: CatalogItemProps) => {
     const [open, setOpen] = useState(false);
-    const parentValue = useMemo(() => parent.join("."), [parent]);
-    const value = `${parentValue}.${catalog.name}`;
+
+    const { scope, value, parentValue } = useTreeScope(parent, catalog.name);
 
     const { data, status } = useQuery({
-        queryKey: [...parent, catalog.name],
-        queryFn: ({ queryKey }) => {
-            return ucClient.listSchemas(queryKey[queryKey.length - 1]);
-        },
+        queryKey: scope,
+        queryFn: ({ queryKey }) =>
+            ucClient.listSchemas(queryKey[queryKey.length - 1]),
         enabled: open,
         refetchInterval: 30000,
     });
 
-    const handleOpenChange: TreeItemOnChange = useCallback(
+    const onOpenChange: TreeItemOnChange = useCallback(
         (_ev, data) => setOpen(data.open),
         [],
     );
@@ -58,7 +59,7 @@ const CatalogItem = ({ parent, catalog }: CatalogItemProps) => {
                 itemType="branch"
                 parentValue={parentValue}
                 open={open}
-                onOpenChange={handleOpenChange}
+                onOpenChange={onOpenChange}
             >
                 <TreeItemLayout
                     iconBefore={<Database20Regular />}
@@ -74,31 +75,18 @@ const CatalogItem = ({ parent, catalog }: CatalogItemProps) => {
             </FlatTreeItem>
             {open &&
                 status === "success" &&
-                data.map((item, index) => (
-                    <FlatTreeItem
-                        key={`${value}.${item.name}`}
-                        ref={index === 0 ? firstItemRef : null}
-                        parentValue={value}
-                        value={`${value}.${item.name}`}
-                        aria-level={3}
-                        aria-setsize={data.length}
-                        aria-posinset={index + 1}
-                        itemType="leaf"
-                    >
-                        <TreeItemLayout
-                            actions={
-                                item.name && (
-                                    <DeleteSchema
-                                        catalog={catalog.name}
-                                        name={item.name}
-                                    />
-                                )
-                            }
-                        >
-                            {item.name}
-                        </TreeItemLayout>
-                    </FlatTreeItem>
-                ))}
+                data.map(
+                    (item, index) =>
+                        item.name && (
+                            <TreeContext.Provider value={scope}>
+                                <SchemaItem
+                                    key={`${value}.${item.name}`}
+                                    ref={index === 0 ? firstItemRef : null}
+                                    info={item as { name: string }}
+                                />
+                            </TreeContext.Provider>
+                        ),
+                )}
         </>
     );
 };
