@@ -15,19 +15,20 @@ import {
     TabList,
     TabListProps,
     TabValue,
-    Toast,
-    Toaster,
-    ToastIntent,
-    ToastTitle,
     tokens,
-    useId,
-    useToastController,
 } from "@fluentui/react-components";
 import { Add20Regular } from "@fluentui/react-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Dispatch, SetStateAction, useCallback, useState } from "react";
+import {
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useState,
+    useContext,
+} from "react";
 import ucClient from "../client";
 import { CreateCatalogRequestJson } from "../gen/delta_sharing/catalogs/v1/svc_pb";
+import { NotifyContext } from "../context";
 
 type InputChange = NonNullable<InputProps["onChange"]>;
 type TabSelect = NonNullable<TabListProps["onTabSelect"]>;
@@ -79,19 +80,7 @@ const Default = () => {
         setSelectedValue(data.value);
     }, []);
 
-    const toasterId = useId("toaster");
-    const { dispatchToast } = useToastController(toasterId);
-    const notify = useCallback(
-        (intent: ToastIntent, message: string) =>
-            dispatchToast(
-                <Toast>
-                    <ToastTitle>{message}</ToastTitle>
-                </Toast>,
-                { position: "top", intent },
-            ),
-        [],
-    );
-
+    const notify = useContext(NotifyContext);
     const queryClient = useQueryClient();
     const mutation = useMutation({
         mutationFn: ucClient.createCatalog,
@@ -114,75 +103,69 @@ const Default = () => {
     }, [mutation, values]);
 
     return (
-        <>
-            <Toaster toasterId={toasterId} />
-            <Dialog
-                open={open}
-                onOpenChange={(_ev, data) => setOpen(data.open)}
-            >
-                <DialogTrigger disableButtonEnhancement>
-                    <Button
-                        icon={<Add20Regular />}
-                        appearance="subtle"
-                        title="Add"
-                    />
-                </DialogTrigger>
-                <DialogSurface>
-                    <DialogBody>
-                        <DialogTitle>Create a new Catalog</DialogTitle>
-                        <DialogContent>
-                            <TabList
-                                selectedValue={selectedValue}
-                                onTabSelect={onTabSelect}
-                            >
-                                <Tab value="managed">Managed</Tab>
-                                <Tab value="sharing">Sharing</Tab>
-                            </TabList>
-                            <div className={styles.tabs}>
-                                <Field label="Name">
+        <Dialog open={open} onOpenChange={(_ev, data) => setOpen(data.open)}>
+            <DialogTrigger disableButtonEnhancement>
+                <Button
+                    icon={<Add20Regular />}
+                    appearance="subtle"
+                    title="Add"
+                />
+            </DialogTrigger>
+            <DialogSurface>
+                <DialogBody>
+                    <DialogTitle>Create a new Catalog</DialogTitle>
+                    <DialogContent>
+                        <TabList
+                            selectedValue={selectedValue}
+                            onTabSelect={onTabSelect}
+                        >
+                            <Tab value="managed">Managed</Tab>
+                            <Tab value="sharing">Sharing</Tab>
+                        </TabList>
+                        <div className={styles.tabs}>
+                            <Field label="Name">
+                                <Input
+                                    value={values.name}
+                                    onChange={onNameChange}
+                                />
+                            </Field>
+                            {selectedValue === "managed" && (
+                                <Field label="Storage root">
                                     <Input
-                                        value={values.name}
-                                        onChange={onNameChange}
+                                        value={values.storageRoot}
+                                        onChange={onStorageChange}
                                     />
                                 </Field>
-                                {selectedValue === "managed" && (
-                                    <Field label="Storage root">
+                            )}
+                            {selectedValue === "sharing" && (
+                                <>
+                                    <Field label="Provider name">
                                         <Input
-                                            value={values.storageRoot}
-                                            onChange={onStorageChange}
+                                            value={values.providerName}
+                                            onChange={onProviderChange}
                                         />
                                     </Field>
-                                )}
-                                {selectedValue === "sharing" && (
-                                    <>
-                                        <Field label="Provider name">
-                                            <Input
-                                                value={values.providerName}
-                                                onChange={onProviderChange}
-                                            />
-                                        </Field>
-                                        <Field label="Share name">
-                                            <Input
-                                                value={values.shareName}
-                                                onChange={onShareChange}
-                                            />
-                                        </Field>
-                                    </>
-                                )}
-                            </div>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button appearance="primary" onClick={onClick}>
-                                Create
-                            </Button>
-                            <DialogTrigger disableButtonEnhancement>
-                                <Button appearance="secondary">Close</Button>
-                            </DialogTrigger>
-                        </DialogActions>
-                    </DialogBody>
-                </DialogSurface>
-            </Dialog>
-        </>
+                                    <Field label="Share name">
+                                        <Input
+                                            value={values.shareName}
+                                            onChange={onShareChange}
+                                        />
+                                    </Field>
+                                </>
+                            )}
+                        </div>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button appearance="primary" onClick={onClick}>
+                            Create
+                        </Button>
+                        <DialogTrigger disableButtonEnhancement>
+                            <Button appearance="secondary">Close</Button>
+                        </DialogTrigger>
+                    </DialogActions>
+                </DialogBody>
+            </DialogSurface>
+        </Dialog>
     );
 };
 

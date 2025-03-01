@@ -9,18 +9,13 @@ import {
     DialogTrigger,
     Field,
     Input,
-    Toast,
-    Toaster,
-    ToastIntent,
-    ToastTitle,
-    useId,
-    useToastController,
 } from "@fluentui/react-components";
 import { Add20Regular } from "@fluentui/react-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useContext } from "react";
 import ucClient, { CreateSchemaRequest } from "../client";
 import { InputChange } from "../types";
+import { NotifyContext } from "../context";
 
 type Props = { name: string };
 
@@ -30,19 +25,7 @@ const Default = ({ name }: Props) => {
     });
     const [open, setOpen] = useState(false);
 
-    const toasterId = useId("toaster");
-    const { dispatchToast } = useToastController(toasterId);
-    const notify = useCallback(
-        (intent: ToastIntent, message: string) =>
-            dispatchToast(
-                <Toast>
-                    <ToastTitle>{message}</ToastTitle>
-                </Toast>,
-                { position: "top", intent },
-            ),
-        [],
-    );
-
+    const notify = useContext(NotifyContext);
     const queryClient = useQueryClient();
     const mutation = useMutation({
         mutationFn: ucClient.createSchema,
@@ -68,42 +51,36 @@ const Default = ({ name }: Props) => {
     }, [mutation, values]);
 
     return (
-        <>
-            <Toaster toasterId={toasterId} />
-            <Dialog
-                open={open}
-                onOpenChange={(_ev, data) => setOpen(data.open)}
-            >
-                <DialogTrigger disableButtonEnhancement>
-                    <Button
-                        icon={<Add20Regular />}
-                        appearance="subtle"
-                        title="Add"
-                    />
-                </DialogTrigger>
-                <DialogSurface>
-                    <DialogBody>
-                        <DialogTitle>Create a new Schema</DialogTitle>
-                        <DialogContent>
-                            <Field label="Name">
-                                <Input
-                                    value={values.name}
-                                    onChange={onNameChange}
-                                />
-                            </Field>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button appearance="primary" onClick={onClick}>
-                                Create
-                            </Button>
-                            <DialogTrigger disableButtonEnhancement>
-                                <Button appearance="secondary">Close</Button>
-                            </DialogTrigger>
-                        </DialogActions>
-                    </DialogBody>
-                </DialogSurface>
-            </Dialog>
-        </>
+        <Dialog open={open} onOpenChange={(_ev, data) => setOpen(data.open)}>
+            <DialogTrigger disableButtonEnhancement>
+                <Button
+                    icon={<Add20Regular />}
+                    appearance="subtle"
+                    title="Add"
+                />
+            </DialogTrigger>
+            <DialogSurface>
+                <DialogBody>
+                    <DialogTitle>Create a new Schema</DialogTitle>
+                    <DialogContent>
+                        <Field label="Name">
+                            <Input
+                                value={values.name}
+                                onChange={onNameChange}
+                            />
+                        </Field>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button appearance="primary" onClick={onClick}>
+                            Create
+                        </Button>
+                        <DialogTrigger disableButtonEnhancement>
+                            <Button appearance="secondary">Close</Button>
+                        </DialogTrigger>
+                    </DialogActions>
+                </DialogBody>
+            </DialogSurface>
+        </Dialog>
     );
 };
 

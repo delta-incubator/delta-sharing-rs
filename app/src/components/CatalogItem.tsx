@@ -26,8 +26,6 @@ const CatalogItem = ({ parent, catalog }: CatalogItemProps) => {
     const parentValue = useMemo(() => parent.join("."), [parent]);
     const value = `${parentValue}.${catalog.name}`;
 
-    console.log({ queryKey: [...parent, catalog.name, "list"] });
-
     const { data, status } = useQuery({
         queryKey: [...parent, catalog.name],
         queryFn: ({ queryKey }) => {
@@ -36,8 +34,6 @@ const CatalogItem = ({ parent, catalog }: CatalogItemProps) => {
         enabled: open,
         refetchInterval: 30000,
     });
-
-    console.log({ data, status });
 
     const handleOpenChange: TreeItemOnChange = useCallback(
         (_ev, data) => setOpen(data.open),
