@@ -21,6 +21,7 @@ import {
     TabValue,
     TabListProps,
     makeStyles,
+    tokens,
 } from "@fluentui/react-components";
 import { Add20Regular } from "@fluentui/react-icons";
 import { useState, useCallback, Dispatch, SetStateAction } from "react";
@@ -37,43 +38,27 @@ const useStyles = makeStyles({
         marginBottom: "1rem",
         marginLeft: "1rem",
         marginRight: "1rem",
+        display: "flex",
+        flexDirection: "column",
+        rowGap: tokens.spacingVerticalL,
     },
 });
 
-const Managed = ({
-    values,
-    setValues,
-}: {
-    values: CreateCatalogRequestJson;
-    setValues: Dispatch<SetStateAction<CreateCatalogRequestJson>>;
-}) => {
-    const onChange: InputChange = useCallback((_ev, data) => {
+const useCallbacs = (
+    setValues: Dispatch<SetStateAction<CreateCatalogRequestJson>>,
+) => {
+    const onNameChange: InputChange = useCallback((_ev, data) => {
+        setValues((curr) => ({ ...curr, name: data.value }));
+    }, []);
+    const onStorageChange: InputChange = useCallback((_ev, data) => {
         setValues((curr) => ({ ...curr, storageRoot: data.value }));
     }, []);
-
-    return (
-        <>
-            <Field label="Storage root">
-                <Input value={values.storageRoot} onChange={onChange} />
-            </Field>
-        </>
-    );
-};
-
-const Sharing = ({
-    values,
-    setValues,
-}: {
-    values: CreateCatalogRequestJson;
-    setValues: Dispatch<SetStateAction<CreateCatalogRequestJson>>;
-}) => {
     const onProviderChange: InputChange = useCallback(
         (_ev, data) => {
             setValues((curr) => ({ ...curr, providerName: data.value }));
         },
         [setValues],
     );
-
     const onShareChange: InputChange = useCallback(
         (_ev, data) => {
             setValues((curr) => ({ ...curr, shareName: data.value }));
@@ -81,19 +66,7 @@ const Sharing = ({
         [setValues],
     );
 
-    return (
-        <>
-            <Field label="Provider name">
-                <Input
-                    value={values.providerName}
-                    onChange={onProviderChange}
-                />
-            </Field>
-            <Field label="Share name">
-                <Input value={values.shareName} onChange={onShareChange} />
-            </Field>
-        </>
-    );
+    return { onNameChange, onStorageChange, onProviderChange, onShareChange };
 };
 
 const Default = () => {
@@ -133,9 +106,8 @@ const Default = () => {
         },
     });
 
-    const onChange: InputChange = useCallback((_ev, data) => {
-        setValues((curr) => ({ ...curr, name: data.value }));
-    }, []);
+    const { onNameChange, onStorageChange, onProviderChange, onShareChange } =
+        useCallbacs(setValues);
 
     const onClick = useCallback(() => {
         mutation.mutate(values);
@@ -153,21 +125,12 @@ const Default = () => {
                         icon={<Add20Regular />}
                         appearance="subtle"
                         title="Add"
-                        onClick={() => {
-                            console.log("Add clicked");
-                        }}
                     />
                 </DialogTrigger>
                 <DialogSurface>
                     <DialogBody>
                         <DialogTitle>Create a new Catalog</DialogTitle>
                         <DialogContent>
-                            <Field label="Name">
-                                <Input
-                                    value={values.name}
-                                    onChange={onChange}
-                                />
-                            </Field>
                             <TabList
                                 selectedValue={selectedValue}
                                 onTabSelect={onTabSelect}
@@ -176,17 +139,35 @@ const Default = () => {
                                 <Tab value="sharing">Sharing</Tab>
                             </TabList>
                             <div className={styles.tabs}>
-                                {selectedValue === "managed" && (
-                                    <Managed
-                                        values={values}
-                                        setValues={setValues}
+                                <Field label="Name">
+                                    <Input
+                                        value={values.name}
+                                        onChange={onNameChange}
                                     />
+                                </Field>
+                                {selectedValue === "managed" && (
+                                    <Field label="Storage root">
+                                        <Input
+                                            value={values.storageRoot}
+                                            onChange={onStorageChange}
+                                        />
+                                    </Field>
                                 )}
                                 {selectedValue === "sharing" && (
-                                    <Sharing
-                                        values={values}
-                                        setValues={setValues}
-                                    />
+                                    <>
+                                        <Field label="Provider name">
+                                            <Input
+                                                value={values.providerName}
+                                                onChange={onProviderChange}
+                                            />
+                                        </Field>
+                                        <Field label="Share name">
+                                            <Input
+                                                value={values.shareName}
+                                                onChange={onShareChange}
+                                            />
+                                        </Field>
+                                    </>
                                 )}
                             </div>
                         </DialogContent>

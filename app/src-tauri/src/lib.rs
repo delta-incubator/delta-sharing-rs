@@ -17,7 +17,12 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             client::list_catalogs,
             client::get_catalog,
-            client::create_catalog
+            client::create_catalog,
+            client::delete_catalog,
+            client::list_schemas,
+            client::get_schema,
+            client::create_schema,
+            client::delete_schema,
         ])
         .setup(|app| {
             app.manage(unity_client);

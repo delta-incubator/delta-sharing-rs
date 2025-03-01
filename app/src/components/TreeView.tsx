@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ucClient from "../client";
 import CreateCatalog from "./CatalogCreate";
+import CatalogItem from "./CatalogItem";
 
 type SubtreeProps = {
     value: TreeItemValue;
@@ -38,7 +39,7 @@ export const TreeView = () => {
     return (
         <>
             <FlatTree aria-label="Lazy Loading">
-                <Subtree
+                <CatalogTree
                     value="Catalogs"
                     onDataLoaded={useCallback(
                         () => setAriaMessage(`people items loaded`),
@@ -61,7 +62,7 @@ export const TreeView = () => {
     );
 };
 
-const Subtree = ({ onDataLoaded, onDataLoading, value }: SubtreeProps) => {
+const CatalogTree = ({ onDataLoaded, onDataLoading, value }: SubtreeProps) => {
     const [open, setOpen] = useState(false);
 
     const { data, status } = useQuery({
@@ -93,13 +94,14 @@ const Subtree = ({ onDataLoaded, onDataLoading, value }: SubtreeProps) => {
     return (
         <>
             <FlatTreeItem
-                value={value}
+                value="catalogs"
                 aria-level={1}
                 aria-setsize={3}
                 aria-posinset={1}
                 itemType="branch"
                 open={open}
                 onOpenChange={handleOpenChange}
+                about="All catalogs"
             >
                 <TreeItemLayout
                     expandIcon={
@@ -114,20 +116,16 @@ const Subtree = ({ onDataLoaded, onDataLoading, value }: SubtreeProps) => {
             </FlatTreeItem>
             {open &&
                 status === "success" &&
-                data.map((item, index) => (
-                    <FlatTreeItem
-                        key={`${value}.${item.name}`}
-                        ref={index === 0 ? firstItemRef : null}
-                        parentValue={value}
-                        value={item.name || "undefined"}
-                        aria-level={2}
-                        aria-setsize={data.length}
-                        aria-posinset={index + 1}
-                        itemType="leaf"
-                    >
-                        <TreeItemLayout>{item.name}</TreeItemLayout>
-                    </FlatTreeItem>
-                ))}
+                data.map(
+                    (item) =>
+                        item.name !== undefined && (
+                            <CatalogItem
+                                key={`${value}.${item.name}`}
+                                parent={["catalogs"]}
+                                catalog={item as { name: string }}
+                            />
+                        ),
+                )}
         </>
     );
 };

@@ -9,6 +9,7 @@ use crate::api::recipients::RecipientsClient;
 use crate::api::schemas::SchemasClient;
 use crate::api::shares::SharesClient;
 use crate::models::catalogs::v1 as catalog;
+use crate::models::schemas::v1 as schema;
 use crate::{Error, Result};
 
 pub struct UnityCatalogClient {
@@ -99,6 +100,80 @@ impl CatalogClient {
             force: force.into(),
         };
         self.delete_catalog(&request).await
+    }
+}
+
+impl SchemasClient {
+    pub fn list(
+        &self,
+        catalog_name: impl Into<String>,
+        max_results: impl Into<Option<i32>>,
+    ) -> BoxStream<'_, Result<schema::SchemaInfo>> {
+        let max_results = max_results.into();
+        let catalog_name = catalog_name.into();
+        stream_paginated(
+            (catalog_name, max_results),
+            move |(catalog_name, max_results), page_token| async move {
+                let request = schema::ListSchemasRequest {
+                    catalog_name: catalog_name.clone(),
+                    max_results,
+                    page_token,
+                    include_browse: None,
+                };
+                let res = self
+                    .list_schemas(&request)
+                    .await
+                    .map_err(|e| Error::generic(e.to_string()))?;
+                Ok((
+                    res.schemas,
+                    (catalog_name, max_results),
+                    res.next_page_token,
+                ))
+            },
+        )
+        .map_ok(|resp| futures::stream::iter(resp.into_iter().map(Ok)))
+        .try_flatten()
+        .boxed()
+    }
+
+    pub async fn create(
+        &self,
+        catalog_name: impl Into<String>,
+        name: impl Into<String>,
+        comment: impl Into<Option<String>>,
+    ) -> Result<schema::SchemaInfo> {
+        let request = schema::CreateSchemaRequest {
+            catalog_name: catalog_name.into(),
+            name: name.into(),
+            comment: comment.into(),
+            ..Default::default()
+        };
+        self.create_schema(&request).await
+    }
+
+    pub async fn get(
+        &self,
+        catalog_name: impl Into<String>,
+        name: impl Into<String>,
+    ) -> Result<schema::SchemaInfo> {
+        let request = schema::GetSchemaRequest {
+            full_name: format!("{}/{}", catalog_name.into(), name.into()),
+        };
+        self.get_schema(&request).await
+    }
+
+    pub async fn delete(
+        &self,
+        catalog_name: impl Into<String>,
+        name: impl Into<String>,
+        force: impl Into<Option<bool>>,
+    ) -> Result<()> {
+        let request = schema::DeleteSchemaRequest {
+            full_name: format!("{}.{}", catalog_name.into(), name.into()),
+            force: force.into(),
+        };
+        tracing::info!("deleting schema {}", request.full_name);
+        self.delete_schema(&request).await
     }
 }
 
