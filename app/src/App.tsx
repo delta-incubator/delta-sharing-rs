@@ -6,7 +6,7 @@ import {
     ToolbarButton,
     shorthands,
 } from "@fluentui/react-components";
-import Explorer from "./components/explorer";
+import Explorer from "./components/Explorer_";
 import { SettingsRegular } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
