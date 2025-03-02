@@ -274,6 +274,120 @@ impl<'de> serde::Deserialize<'de> for AzureServicePrincipal {
         deserializer.deserialize_struct("delta_sharing.credentials.v1.AzureServicePrincipal", FIELDS, GeneratedVisitor)
     }
 }
+impl serde::Serialize for AzureStorageKey {
+    #[allow(deprecated)]
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut len = 0;
+        if !self.account_name.is_empty() {
+            len += 1;
+        }
+        if !self.account_key.is_empty() {
+            len += 1;
+        }
+        let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.AzureStorageKey", len)?;
+        if !self.account_name.is_empty() {
+            struct_ser.serialize_field("account_name", &self.account_name)?;
+        }
+        if !self.account_key.is_empty() {
+            struct_ser.serialize_field("account_key", &self.account_key)?;
+        }
+        struct_ser.end()
+    }
+}
+impl<'de> serde::Deserialize<'de> for AzureStorageKey {
+    #[allow(deprecated)]
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        const FIELDS: &[&str] = &[
+            "account_name",
+            "accountName",
+            "account_key",
+            "accountKey",
+        ];
+
+        #[allow(clippy::enum_variant_names)]
+        enum GeneratedField {
+            AccountName,
+            AccountKey,
+            __SkipField__,
+        }
+        impl<'de> serde::Deserialize<'de> for GeneratedField {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<GeneratedField, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                struct GeneratedVisitor;
+
+                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                    type Value = GeneratedField;
+
+                    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        write!(formatter, "expected one of: {:?}", &FIELDS)
+                    }
+
+                    #[allow(unused_variables)]
+                    fn visit_str<E>(self, value: &str) -> std::result::Result<GeneratedField, E>
+                    where
+                        E: serde::de::Error,
+                    {
+                        match value {
+                            "accountName" | "account_name" => Ok(GeneratedField::AccountName),
+                            "accountKey" | "account_key" => Ok(GeneratedField::AccountKey),
+                            _ => Ok(GeneratedField::__SkipField__),
+                        }
+                    }
+                }
+                deserializer.deserialize_identifier(GeneratedVisitor)
+            }
+        }
+        struct GeneratedVisitor;
+        impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
+            type Value = AzureStorageKey;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("struct delta_sharing.credentials.v1.AzureStorageKey")
+            }
+
+            fn visit_map<V>(self, mut map_: V) -> std::result::Result<AzureStorageKey, V::Error>
+                where
+                    V: serde::de::MapAccess<'de>,
+            {
+                let mut account_name__ = None;
+                let mut account_key__ = None;
+                while let Some(k) = map_.next_key()? {
+                    match k {
+                        GeneratedField::AccountName => {
+                            if account_name__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("accountName"));
+                            }
+                            account_name__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::AccountKey => {
+                            if account_key__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("accountKey"));
+                            }
+                            account_key__ = Some(map_.next_value()?);
+                        }
+                        GeneratedField::__SkipField__ => {
+                            let _ = map_.next_value::<serde::de::IgnoredAny>()?;
+                        }
+                    }
+                }
+                Ok(AzureStorageKey {
+                    account_name: account_name__.unwrap_or_default(),
+                    account_key: account_key__.unwrap_or_default(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("delta_sharing.credentials.v1.AzureStorageKey", FIELDS, GeneratedVisitor)
+    }
+}
 impl serde::Serialize for CreateCredentialRequest {
     #[allow(deprecated)]
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
@@ -326,6 +440,9 @@ impl serde::Serialize for CreateCredentialRequest {
                 create_credential_request::Credential::AzureManagedIdentity(v) => {
                     struct_ser.serialize_field("azure_managed_identity", v)?;
                 }
+                create_credential_request::Credential::AzureStorageKey(v) => {
+                    struct_ser.serialize_field("azure_storage_key", v)?;
+                }
             }
         }
         struct_ser.end()
@@ -349,6 +466,8 @@ impl<'de> serde::Deserialize<'de> for CreateCredentialRequest {
             "azureServicePrincipal",
             "azure_managed_identity",
             "azureManagedIdentity",
+            "azure_storage_key",
+            "azureStorageKey",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -360,6 +479,7 @@ impl<'de> serde::Deserialize<'de> for CreateCredentialRequest {
             SkipValidation,
             AzureServicePrincipal,
             AzureManagedIdentity,
+            AzureStorageKey,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -389,6 +509,7 @@ impl<'de> serde::Deserialize<'de> for CreateCredentialRequest {
                             "skipValidation" | "skip_validation" => Ok(GeneratedField::SkipValidation),
                             "azureServicePrincipal" | "azure_service_principal" => Ok(GeneratedField::AzureServicePrincipal),
                             "azureManagedIdentity" | "azure_managed_identity" => Ok(GeneratedField::AzureManagedIdentity),
+                            "azureStorageKey" | "azure_storage_key" => Ok(GeneratedField::AzureStorageKey),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -458,6 +579,13 @@ impl<'de> serde::Deserialize<'de> for CreateCredentialRequest {
                                 return Err(serde::de::Error::duplicate_field("azureManagedIdentity"));
                             }
                             credential__ = map_.next_value::<::std::option::Option<_>>()?.map(create_credential_request::Credential::AzureManagedIdentity)
+;
+                        }
+                        GeneratedField::AzureStorageKey => {
+                            if credential__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("azureStorageKey"));
+                            }
+                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(create_credential_request::Credential::AzureStorageKey)
 ;
                         }
                         GeneratedField::__SkipField__ => {
@@ -576,6 +704,9 @@ impl serde::Serialize for CredentialInfo {
                 credential_info::Credential::AzureManagedIdentity(v) => {
                     struct_ser.serialize_field("azure_managed_identity", v)?;
                 }
+                credential_info::Credential::AzureStorageKey(v) => {
+                    struct_ser.serialize_field("azure_storage_key", v)?;
+                }
             }
         }
         struct_ser.end()
@@ -611,6 +742,8 @@ impl<'de> serde::Deserialize<'de> for CredentialInfo {
             "azureServicePrincipal",
             "azure_managed_identity",
             "azureManagedIdentity",
+            "azure_storage_key",
+            "azureStorageKey",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -629,6 +762,7 @@ impl<'de> serde::Deserialize<'de> for CredentialInfo {
             FullName,
             AzureServicePrincipal,
             AzureManagedIdentity,
+            AzureStorageKey,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -665,6 +799,7 @@ impl<'de> serde::Deserialize<'de> for CredentialInfo {
                             "fullName" | "full_name" => Ok(GeneratedField::FullName),
                             "azureServicePrincipal" | "azure_service_principal" => Ok(GeneratedField::AzureServicePrincipal),
                             "azureManagedIdentity" | "azure_managed_identity" => Ok(GeneratedField::AzureManagedIdentity),
+                            "azureStorageKey" | "azure_storage_key" => Ok(GeneratedField::AzureStorageKey),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -787,6 +922,13 @@ impl<'de> serde::Deserialize<'de> for CredentialInfo {
                                 return Err(serde::de::Error::duplicate_field("azureManagedIdentity"));
                             }
                             credential__ = map_.next_value::<::std::option::Option<_>>()?.map(credential_info::Credential::AzureManagedIdentity)
+;
+                        }
+                        GeneratedField::AzureStorageKey => {
+                            if credential__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("azureStorageKey"));
+                            }
+                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(credential_info::Credential::AzureStorageKey)
 ;
                         }
                         GeneratedField::__SkipField__ => {
@@ -1388,6 +1530,9 @@ impl serde::Serialize for UpdateCredentialRequest {
                 update_credential_request::Credential::AzureManagedIdentity(v) => {
                     struct_ser.serialize_field("azure_managed_identity", v)?;
                 }
+                update_credential_request::Credential::AzureStorageKey(v) => {
+                    struct_ser.serialize_field("azure_storage_key", v)?;
+                }
             }
         }
         struct_ser.end()
@@ -1414,6 +1559,8 @@ impl<'de> serde::Deserialize<'de> for UpdateCredentialRequest {
             "azureServicePrincipal",
             "azure_managed_identity",
             "azureManagedIdentity",
+            "azure_storage_key",
+            "azureStorageKey",
         ];
 
         #[allow(clippy::enum_variant_names)]
@@ -1427,6 +1574,7 @@ impl<'de> serde::Deserialize<'de> for UpdateCredentialRequest {
             Force,
             AzureServicePrincipal,
             AzureManagedIdentity,
+            AzureStorageKey,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -1458,6 +1606,7 @@ impl<'de> serde::Deserialize<'de> for UpdateCredentialRequest {
                             "force" => Ok(GeneratedField::Force),
                             "azureServicePrincipal" | "azure_service_principal" => Ok(GeneratedField::AzureServicePrincipal),
                             "azureManagedIdentity" | "azure_managed_identity" => Ok(GeneratedField::AzureManagedIdentity),
+                            "azureStorageKey" | "azure_storage_key" => Ok(GeneratedField::AzureStorageKey),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -1541,6 +1690,13 @@ impl<'de> serde::Deserialize<'de> for UpdateCredentialRequest {
                                 return Err(serde::de::Error::duplicate_field("azureManagedIdentity"));
                             }
                             credential__ = map_.next_value::<::std::option::Option<_>>()?.map(update_credential_request::Credential::AzureManagedIdentity)
+;
+                        }
+                        GeneratedField::AzureStorageKey => {
+                            if credential__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("azureStorageKey"));
+                            }
+                            credential__ = map_.next_value::<::std::option::Option<_>>()?.map(update_credential_request::Credential::AzureStorageKey)
 ;
                         }
                         GeneratedField::__SkipField__ => {

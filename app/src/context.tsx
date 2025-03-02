@@ -6,9 +6,16 @@ import {
     useToastController,
     useId,
 } from "@fluentui/react-components";
-import React, { createContext, useCallback } from "react";
+import React, {
+    createContext,
+    useCallback,
+    Dispatch,
+    SetStateAction,
+} from "react";
 
 export const TreeContext = createContext<string[]>([]);
+export const TreeProvider = TreeContext.Provider;
+export const useTreeScope = () => React.useContext(TreeContext);
 
 export const NotifyContext = createContext<
     (intent: ToastIntent, message: string) => void
@@ -37,3 +44,21 @@ export function NotifyProvider({ children }: { children: React.ReactNode }) {
         </NotifyContext.Provider>
     );
 }
+
+export const useNotify = () => React.useContext(NotifyContext);
+
+export type ExplorerPropsInner = {
+    display?: "create" | "view";
+    scope?: string[];
+};
+
+export type ExplorerProps = ExplorerPropsInner & {
+    update: Dispatch<SetStateAction<ExplorerPropsInner>>;
+};
+
+export const ExplorerContext = createContext<ExplorerProps>({
+    update: () => {},
+});
+export const ExplorerProvider = ExplorerContext.Provider;
+
+export const useExplorer = () => React.useContext(ExplorerContext);

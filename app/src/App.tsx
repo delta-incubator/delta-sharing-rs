@@ -18,10 +18,6 @@ const useStyles = makeStyles({
     },
 
     toolbar: {
-        display: "flex",
-        justifyContent: "space-between",
-        padding: "0 1rem",
-
         borderBottomColor: tokens.colorNeutralForeground4,
         borderBottomWidth: "1px",
         borderBottomStyle: "solid",

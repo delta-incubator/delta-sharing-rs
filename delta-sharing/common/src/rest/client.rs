@@ -8,7 +8,10 @@ use crate::api::external_locations::ExternalLocationsClient;
 use crate::api::recipients::RecipientsClient;
 use crate::api::schemas::SchemasClient;
 use crate::api::shares::SharesClient;
+use crate::credentials::v1::Purpose;
 use crate::models::catalogs::v1 as catalog;
+use crate::models::credentials::v1 as cred;
+use crate::models::external_locations::v1 as loc;
 use crate::models::schemas::v1 as schema;
 use crate::{Error, Result};
 
@@ -174,6 +177,112 @@ impl SchemasClient {
         };
         tracing::info!("deleting schema {}", request.full_name);
         self.delete_schema(&request).await
+    }
+}
+
+impl CredentialsClient {
+    pub fn list(
+        &self,
+        purpose: Option<Purpose>,
+        max_results: impl Into<Option<i32>>,
+    ) -> BoxStream<'_, Result<cred::CredentialInfo>> {
+        let max_results = max_results.into();
+        let purpose = purpose.map(|p| p as i32);
+        stream_paginated(max_results, move |max_results, page_token| async move {
+            let request = cred::ListCredentialsRequest {
+                max_results,
+                page_token,
+                purpose,
+            };
+            let res = self
+                .list_credentials(&request)
+                .await
+                .map_err(|e| Error::generic(e.to_string()))?;
+            Ok((res.credentials, max_results, res.next_page_token))
+        })
+        .map_ok(|resp| futures::stream::iter(resp.into_iter().map(Ok)))
+        .try_flatten()
+        .boxed()
+    }
+
+    pub async fn create(
+        &self,
+        name: impl Into<String>,
+        purpose: Purpose,
+        comment: impl Into<Option<String>>,
+    ) -> Result<cred::CredentialInfo> {
+        let request = cred::CreateCredentialRequest {
+            name: name.into(),
+            purpose: purpose.into(),
+            comment: comment.into(),
+            ..Default::default()
+        };
+        self.create_credential(&request).await
+    }
+
+    pub async fn get(&self, name: impl Into<String>) -> Result<cred::CredentialInfo> {
+        let request = cred::GetCredentialRequest { name: name.into() };
+        self.get_credential(&request).await
+    }
+
+    pub async fn delete(&self, name: impl Into<String>) -> Result<()> {
+        let request = cred::DeleteCredentialRequest { name: name.into() };
+        self.delete_credential(&request).await
+    }
+}
+
+impl ExternalLocationsClient {
+    pub fn list(
+        &self,
+        max_results: impl Into<Option<i32>>,
+    ) -> BoxStream<'_, Result<loc::ExternalLocationInfo>> {
+        let max_results = max_results.into();
+        stream_paginated(max_results, move |max_results, page_token| async move {
+            let request = loc::ListExternalLocationsRequest {
+                max_results,
+                page_token,
+                include_browse: None,
+            };
+            let res = self
+                .list_external_locations(&request)
+                .await
+                .map_err(|e| Error::generic(e.to_string()))?;
+            Ok((res.external_locations, max_results, res.next_page_token))
+        })
+        .map_ok(|resp| futures::stream::iter(resp.into_iter().map(Ok)))
+        .try_flatten()
+        .boxed()
+    }
+
+    pub async fn create(
+        &self,
+        name: impl Into<String>,
+        location: impl Into<String>,
+        comment: impl Into<Option<String>>,
+    ) -> Result<loc::ExternalLocationInfo> {
+        let request = loc::CreateExternalLocationRequest {
+            name: name.into(),
+            comment: comment.into(),
+            ..Default::default()
+        };
+        self.create_external_location(&request).await
+    }
+
+    pub async fn get(&self, name: impl Into<String>) -> Result<loc::ExternalLocationInfo> {
+        let request = loc::GetExternalLocationRequest { name: name.into() };
+        self.get_external_location(&request).await
+    }
+
+    pub async fn delete(
+        &self,
+        name: impl Into<String>,
+        force: impl Into<Option<bool>>,
+    ) -> Result<()> {
+        let request = loc::DeleteExternalLocationRequest {
+            name: name.into(),
+            force: force.into(),
+        };
+        self.delete_external_location(&request).await
     }
 }
 

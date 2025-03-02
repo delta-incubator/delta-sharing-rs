@@ -9,7 +9,6 @@ import {
     DialogTrigger,
     Field,
     Input,
-    InputProps,
     makeStyles,
     Tab,
     TabList,
@@ -24,14 +23,13 @@ import {
     FormEventHandler,
     SetStateAction,
     useCallback,
-    useContext,
     useState,
 } from "react";
 import ucClient from "../../client";
-import { NotifyContext, TreeContext } from "../../context";
+import { useNotify, useTreeScope } from "../../context";
 import { CreateCatalogRequestJson } from "../../gen/delta_sharing/catalogs/v1/svc_pb";
+import { InputChange } from "../../types";
 
-type InputChange = NonNullable<InputProps["onChange"]>;
 type TabSelect = NonNullable<TabListProps["onTabSelect"]>;
 
 const useStyles = makeStyles({
@@ -78,9 +76,9 @@ const Default = () => {
         setSelectedValue(data.value);
     }, []);
 
-    const notify = useContext(NotifyContext);
+    const notify = useNotify();
     const queryClient = useQueryClient();
-    const queryKey = useContext(TreeContext);
+    const queryKey = useTreeScope();
     const mutation = useMutation({
         mutationFn: ucClient.catalogs.create,
         onError: () => notify("error", "Failed to create catalog"),

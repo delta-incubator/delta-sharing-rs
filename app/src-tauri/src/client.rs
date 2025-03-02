@@ -1,4 +1,10 @@
 use delta_sharing_common::models::catalogs::v1::{CatalogInfo, CreateCatalogRequest};
+use delta_sharing_common::models::credentials::v1::{
+    CreateCredentialRequest, CredentialInfo, Purpose,
+};
+use delta_sharing_common::models::external_locations::v1::{
+    CreateExternalLocationRequest, ExternalLocationInfo,
+};
 use delta_sharing_common::models::schemas::v1::{CreateSchemaRequest, SchemaInfo};
 use delta_sharing_common::rest::client::UnityCatalogClient;
 use futures::TryStreamExt;
@@ -77,4 +83,78 @@ pub async fn delete_schema(
     force: Option<bool>,
 ) -> Result<()> {
     Ok(state.schemas().delete(catalog, name, force).await?)
+}
+
+#[tauri::command]
+pub async fn list_credentials(
+    state: State<'_, UnityCatalogClient>,
+    purpose: Option<Purpose>,
+    max_results: Option<i32>,
+) -> Result<Vec<CredentialInfo>> {
+    Ok(state
+        .credentials()
+        .list(purpose, max_results)
+        .try_collect()
+        .await?)
+}
+
+#[tauri::command]
+pub async fn get_credential(
+    state: State<'_, UnityCatalogClient>,
+    name: String,
+) -> Result<CredentialInfo> {
+    Ok(state.credentials().get(name).await?)
+}
+
+#[tauri::command]
+pub async fn create_credential(
+    state: State<'_, UnityCatalogClient>,
+    request: CreateCredentialRequest,
+) -> Result<CredentialInfo> {
+    Ok(state.credentials().create_credential(&request).await?)
+}
+
+#[tauri::command]
+pub async fn delete_credential(state: State<'_, UnityCatalogClient>, name: String) -> Result<()> {
+    Ok(state.credentials().delete(name).await?)
+}
+
+#[tauri::command]
+pub async fn list_external_locations(
+    state: State<'_, UnityCatalogClient>,
+    max_results: Option<i32>,
+) -> Result<Vec<ExternalLocationInfo>> {
+    Ok(state
+        .external_locations()
+        .list(max_results)
+        .try_collect()
+        .await?)
+}
+
+#[tauri::command]
+pub async fn get_external_location(
+    state: State<'_, UnityCatalogClient>,
+    name: String,
+) -> Result<ExternalLocationInfo> {
+    Ok(state.external_locations().get(name).await?)
+}
+
+#[tauri::command]
+pub async fn create_external_location(
+    state: State<'_, UnityCatalogClient>,
+    request: CreateExternalLocationRequest,
+) -> Result<ExternalLocationInfo> {
+    Ok(state
+        .external_locations()
+        .create_external_location(&request)
+        .await?)
+}
+
+#[tauri::command]
+pub async fn delete_external_location(
+    state: State<'_, UnityCatalogClient>,
+    name: String,
+    force: Option<bool>,
+) -> Result<()> {
+    Ok(state.external_locations().delete(name, force).await?)
 }

@@ -51,6 +51,16 @@ pub mod azure_managed_identity {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AzureStorageKey {
+    /// The name of the storage account.
+    #[prost(string, tag="1")]
+    pub account_name: ::prost::alloc::string::String,
+    /// The account key of the storage account.
+    #[prost(string, tag="2")]
+    pub account_key: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CredentialInfo {
     /// The unique identifier of the credential.
     #[prost(string, tag="1")]
@@ -94,7 +104,7 @@ pub struct CredentialInfo {
     /// The full name of the credential.
     #[prost(string, optional, tag="12")]
     pub full_name: ::core::option::Option<::prost::alloc::string::String>,
-    #[prost(oneof="credential_info::Credential", tags="100, 101")]
+    #[prost(oneof="credential_info::Credential", tags="100, 101, 102")]
     pub credential: ::core::option::Option<credential_info::Credential>,
 }
 /// Nested message and enum types in `CredentialInfo`.
@@ -106,6 +116,8 @@ pub mod credential_info {
         AzureServicePrincipal(super::AzureServicePrincipal),
         #[prost(message, tag="101")]
         AzureManagedIdentity(super::AzureManagedIdentity),
+        #[prost(message, tag="102")]
+        AzureStorageKey(super::AzureStorageKey),
     }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -179,7 +191,7 @@ pub struct CreateCredentialRequest {
     /// Supplying true to this argument skips validation of the created set of credentials.
     #[prost(bool, tag="5")]
     pub skip_validation: bool,
-    #[prost(oneof="create_credential_request::Credential", tags="100, 101")]
+    #[prost(oneof="create_credential_request::Credential", tags="100, 101, 102")]
     pub credential: ::core::option::Option<create_credential_request::Credential>,
 }
 /// Nested message and enum types in `CreateCredentialRequest`.
@@ -191,6 +203,8 @@ pub mod create_credential_request {
         AzureServicePrincipal(super::AzureServicePrincipal),
         #[prost(message, tag="101")]
         AzureManagedIdentity(super::AzureManagedIdentity),
+        #[prost(message, tag="102")]
+        AzureStorageKey(super::AzureStorageKey),
     }
 }
 /// Get a credential
@@ -227,7 +241,7 @@ pub struct UpdateCredentialRequest {
     /// or dependent external locations and external tables (when purpose is STORAGE).
     #[prost(bool, optional, tag="7")]
     pub force: ::core::option::Option<bool>,
-    #[prost(oneof="update_credential_request::Credential", tags="100, 101")]
+    #[prost(oneof="update_credential_request::Credential", tags="100, 101, 102")]
     pub credential: ::core::option::Option<update_credential_request::Credential>,
 }
 /// Nested message and enum types in `UpdateCredentialRequest`.
@@ -239,6 +253,8 @@ pub mod update_credential_request {
         AzureServicePrincipal(super::AzureServicePrincipal),
         #[prost(message, tag="101")]
         AzureManagedIdentity(super::AzureManagedIdentity),
+        #[prost(message, tag="102")]
+        AzureStorageKey(super::AzureStorageKey),
     }
 }
 /// Delete a credential

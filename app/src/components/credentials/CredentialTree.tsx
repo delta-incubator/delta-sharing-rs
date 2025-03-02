@@ -2,22 +2,46 @@ import {
     FlatTreeItem,
     TreeItemLayout,
     Spinner,
+    Button,
 } from "@fluentui/react-components";
-import { DatabaseMultiple20Regular } from "@fluentui/react-icons";
+import { KeyMultipleRegular, AddRegular } from "@fluentui/react-icons";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import ucClient from "../../client";
-import { TreeContext } from "../../context";
+import { TreeContext, useExplorer, useTreeScope } from "../../context";
 import { TreeItemOnChange } from "../../types";
-import CreateCatalog from "./CatalogCreate";
-import CatalogItem from "./CatalogItem";
+import CredentialItem from "./CredentialItem";
 
 type CatalogTreeProps = {
     setSize: number;
     setPos: number;
 };
 
-const CatalogTree = ({ setSize, setPos }: CatalogTreeProps) => {
+const useCredentials = (open: boolean) => {
+    const rootScope = useContext(TreeContext);
+    const { data, status } = useQuery({
+        queryKey: rootScope,
+        queryFn: () => ucClient.credentials.list(),
+        enabled: open,
+        refetchInterval: 30000,
+    });
+
+    return { data: data || [], status };
+};
+
+const CreateCredential = () => {
+    const { update } = useExplorer();
+    const scope = useTreeScope();
+    const onClick = useCallback(() => {
+        update({ display: "create", scope });
+    }, [update]);
+
+    return (
+        <Button appearance="subtle" onClick={onClick} icon={<AddRegular />} />
+    );
+};
+
+const CredentialTree = ({ setSize, setPos }: CatalogTreeProps) => {
     const [open, setOpen] = useState(false);
     const onOpenChange: TreeItemOnChange = useCallback(
         (_ev, data) => setOpen(data.open),
@@ -26,12 +50,7 @@ const CatalogTree = ({ setSize, setPos }: CatalogTreeProps) => {
 
     const rootScope = useContext(TreeContext);
     const rootValue = rootScope[0];
-    const { data, status } = useQuery({
-        queryKey: rootScope,
-        queryFn: () => ucClient.catalogs.list(),
-        enabled: open,
-        refetchInterval: 30000,
-    });
+    const { data, status } = useCredentials(open);
 
     const firstItemRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
@@ -50,15 +69,15 @@ const CatalogTree = ({ setSize, setPos }: CatalogTreeProps) => {
                 onOpenChange={onOpenChange}
             >
                 <TreeItemLayout
-                    iconBefore={<DatabaseMultiple20Regular />}
+                    iconBefore={<KeyMultipleRegular />}
                     expandIcon={
                         open && status === "pending" ? (
                             <Spinner size="extra-tiny" />
                         ) : undefined
                     }
-                    actions={<CreateCatalog />}
+                    actions={<CreateCredential />}
                 >
-                    Catalogs
+                    Credentials
                 </TreeItemLayout>
             </FlatTreeItem>
             {open &&
@@ -67,7 +86,7 @@ const CatalogTree = ({ setSize, setPos }: CatalogTreeProps) => {
                     (item, index) =>
                         item.name && (
                             <TreeContext.Provider value={rootScope}>
-                                <CatalogItem
+                                <CredentialItem
                                     key={`${rootValue}.${item.name}`}
                                     ref={index === 0 ? firstItemRef : null}
                                     info={item as { name: string }}
@@ -79,4 +98,4 @@ const CatalogTree = ({ setSize, setPos }: CatalogTreeProps) => {
     );
 };
 
-export default CatalogTree;
+export default CredentialTree;
