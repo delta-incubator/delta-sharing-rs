@@ -30,6 +30,7 @@ mod util;
 pub use client::{ClientConfigKey, ClientOptions};
 pub use credential::*;
 pub use error::*;
+pub use pagination::stream_paginated;
 pub use retry::RetryConfig;
 
 #[derive(Clone)]
@@ -118,6 +119,14 @@ impl CloudClient {
             retry_config: config.retry_config.clone(),
             credential: Credential::Azure(config),
         })
+    }
+
+    pub fn new_unauthenticated() -> Self {
+        Self {
+            http_client: Client::new(),
+            retry_config: RetryConfig::default(),
+            credential: Credential::Unauthenticated,
+        }
     }
 
     pub fn request<U: IntoUrl>(&self, method: Method, url: U) -> CloudRequestBuilder {

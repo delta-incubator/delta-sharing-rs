@@ -8,7 +8,7 @@ use crate::resources::{ResourceIdent, ResourceName, ResourceRef};
 use crate::{Error, ObjectLabel, Recipient, ResourceStore, Result};
 
 rest_handlers!(
-    CatalogHandler, [
+    CatalogHandler, "catalogs", [
         CreateCatalogRequest, Catalog, Create, CatalogInfo;
         ListCatalogsRequest, Catalog, Read, ListCatalogsResponse;
         GetCatalogRequest, Catalog, Read, CatalogInfo with [

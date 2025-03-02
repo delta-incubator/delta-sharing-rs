@@ -4,11 +4,11 @@ package delta_sharing.recipients.v1;
 
 import "buf/validate/validate.proto";
 import "delta_sharing/recipients/v1/models.proto";
+import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
-import "openapiv3/annotations.proto";
 
 // Request to list recipients.
 message ListRecipientsRequest {
@@ -118,7 +118,7 @@ service RecipientsService {
   // List recipients.
   rpc ListRecipients(ListRecipientsRequest) returns (ListRecipientsResponse) {
     option (google.api.http) = {get: "/recipients"};
-    option (openapi.v3.operation) = {operation_id: "ListRecipients"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ListRecipients"};
   }
 
   // Create a new recipient.
@@ -127,13 +127,13 @@ service RecipientsService {
       post: "/recipients"
       body: "*"
     };
-    option (openapi.v3.operation) = {operation_id: "CreateRecipient"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "CreateRecipient"};
   }
 
   // Get a recipient by name.
   rpc GetRecipient(GetRecipientRequest) returns (RecipientInfo) {
     option (google.api.http) = {get: "/recipients/{name}"};
-    option (openapi.v3.operation) = {operation_id: "GetRecipient"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "GetRecipient"};
   }
 
   // Update a recipient.
@@ -142,12 +142,12 @@ service RecipientsService {
       patch: "/recipients/{name}"
       body: "*"
     };
-    option (openapi.v3.operation) = {operation_id: "UpdateRecipient"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "UpdateRecipient"};
   }
 
   // Delete a recipient.
   rpc DeleteRecipient(DeleteRecipientRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/recipients/{name}"};
-    option (openapi.v3.operation) = {operation_id: "DeleteRecipient"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "DeleteRecipient"};
   }
 }

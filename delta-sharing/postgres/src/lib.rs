@@ -14,7 +14,8 @@ mod tests {
     use delta_sharing_common::memory::InMemoryResourceStore;
     use delta_sharing_common::rest::integration::{test_catalog_router, test_credentials_router};
     use delta_sharing_common::rest::{
-        get_catalog_router, get_credentials_router, AnonymousAuthenticator, AuthenticationLayer,
+        get_catalog_router, get_credentials_router, get_external_locations_router,
+        get_schemas_router, AnonymousAuthenticator, AuthenticationLayer,
     };
     use delta_sharing_common::{
         ConstantPolicy, Policy, ProvidesPolicy, ProvidesResourceStore, ProvidesSecretManager,
@@ -27,7 +28,7 @@ mod tests {
     struct Handler {
         store: GraphStore,
         policy: Arc<dyn Policy>,
-        secrets: Arc<dyn SecretManager>,
+        secrets: Arc<InMemoryResourceStore>,
     }
 
     impl Handler {
@@ -35,7 +36,7 @@ mod tests {
             Self {
                 store: GraphStore::new(pool.into()),
                 policy: Arc::new(ConstantPolicy::default()),
-                secrets: Arc::new(InMemoryResourceStore::default()),
+                secrets: Arc::new(InMemoryResourceStore::new()),
             }
         }
     }
@@ -61,16 +62,18 @@ mod tests {
     #[sqlx::test]
     async fn test_catalog(pool: sqlx::PgPool) {
         let handler = Handler::new(pool);
-        let router =
-            get_catalog_router(handler).layer(AuthenticationLayer::new(AnonymousAuthenticator));
+        let router = get_catalog_router(handler.clone())
+            .merge(get_schemas_router(handler))
+            .layer(AuthenticationLayer::new(AnonymousAuthenticator));
         test_catalog_router(router.clone()).await;
     }
 
     #[sqlx::test]
     async fn test_credentials(pool: sqlx::PgPool) {
         let handler = Handler::new(pool);
-        let router =
-            get_credentials_router(handler).layer(AuthenticationLayer::new(AnonymousAuthenticator));
+        let router = get_credentials_router(handler.clone())
+            .merge(get_external_locations_router(handler))
+            .layer(AuthenticationLayer::new(AnonymousAuthenticator));
         test_credentials_router(router).await;
     }
 }

@@ -80,21 +80,31 @@ fn init_tracing() {
 /// Handle the rest server command.
 ///
 /// This function starts a delta-sharing server using the REST protocol.
-pub async fn handle_rest(args: ServerArgs) -> Result<()> {
+pub async fn handle_rest(args: &ServerArgs) -> Result<()> {
     init_tracing();
 
     println!("{}", WELCOME.as_str());
 
     if args.use_db {
         let handler = get_db_handler().await?;
-        run_rest_server_full(args.host, args.port, handler, AnonymousAuthenticator)
-            .await
-            .map_err(|_| Error::Generic("Server failed".to_string()))
+        run_rest_server_full(
+            args.host.clone(),
+            args.port,
+            handler,
+            AnonymousAuthenticator,
+        )
+        .await
+        .map_err(|_| Error::Generic("Server failed".to_string()))
     } else {
         let handler = get_memory_handler();
-        run_rest_server_full(args.host, args.port, handler, AnonymousAuthenticator)
-            .await
-            .map_err(|_| Error::Generic("Server failed".to_string()))
+        run_rest_server_full(
+            args.host.clone(),
+            args.port,
+            handler,
+            AnonymousAuthenticator,
+        )
+        .await
+        .map_err(|_| Error::Generic("Server failed".to_string()))
     }
 }
 
@@ -102,13 +112,13 @@ static WELCOME: LazyLock<String> = LazyLock::new(|| {
     format!(
         r#"
      _____       _ _           _____ _                _                        _____   _____
-    |  __ \     | | |         / ____| |              (_)                      |  __ \ / ____|
+    |  __ \     | | |         / ____| |              (_)                      |  __ \ / ____|  v{}
     | |  | | ___| | |_ __ _  | (___ | |__   __ _ _ __ _ _ __   __ _   ______  | |__) | (___
     | |  | |/ _ \ | __/ _` |  \___ \| '_ \ / _` | '__| | '_ \ / _` | |______| |  _  / \___ \
     | |__| |  __/ | || (_| |  ____) | | | | (_| | |  | | | | | (_| |          | | \ \ ____) |
     |_____/ \___|_|\__\__,_| |_____/|_| |_|\__,_|_|  |_|_| |_|\__, |          |_|  \_\_____/
                                                                __/ |
-    version: {}                                            |___/
+                                                              |___/
     "#,
         env!("CARGO_PKG_VERSION")
     )

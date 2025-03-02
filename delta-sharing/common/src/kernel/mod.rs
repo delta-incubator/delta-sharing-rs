@@ -8,13 +8,12 @@ use delta_kernel::engine::default::{executor::TaskExecutor, DefaultEngine};
 use delta_kernel::snapshot::Snapshot;
 use delta_kernel::{Engine, Table};
 
+use crate::api::sharing::SharingQueryHandler;
+use crate::api::{RequestContext, SecuredAction};
 use crate::models::sharing::v1::{
     GetTableMetadataRequest, GetTableVersionRequest, GetTableVersionResponse, QueryResponse,
 };
-use crate::{
-    Policy, RequestContext, ResourceRef, Result, SecuredAction, SharingQueryHandler,
-    TableLocationResolver,
-};
+use crate::{Policy, ResourceRef, Result, TableLocationResolver};
 
 pub use predicate::json_predicate_to_expression;
 

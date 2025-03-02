@@ -8,11 +8,12 @@ use crate::resources::{ResourceIdent, ResourceName, ResourceRef};
 use crate::{Error, ObjectLabel, Recipient, ResourceStore, Result};
 
 rest_handlers!(
-    SharesHandler, [
+    SharesHandler, "shares", [
         CreateShareRequest, Share, Create, ShareInfo;
         ListSharesRequest, Share, Read, ListSharesResponse;
         GetShareRequest, Share, Read, ShareInfo with [
             name: path as String,
+            include_shared_data: query as Option<bool>,
         ];
         UpdateShareRequest, Share, Manage, ShareInfo with [
             name: path as String,

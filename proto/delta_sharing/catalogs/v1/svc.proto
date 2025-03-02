@@ -4,13 +4,14 @@ package delta_sharing.catalogs.v1;
 
 import "buf/validate/validate.proto";
 import "delta_sharing/catalogs/v1/models.proto";
+import "gnostic/openapi/v3/openapiv3.proto";
+import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
-import "openapiv3/annotations.proto";
 
 // List catalogs
 message ListCatalogsRequest {
@@ -130,7 +131,7 @@ service CatalogsService {
   // There is no guarantee of a specific ordering of the elements in the array.
   rpc ListCatalogs(ListCatalogsRequest) returns (ListCatalogsResponse) {
     option (google.api.http) = {get: "/catalogs"};
-    option (openapi.v3.operation) = {operation_id: "ListCatalogs"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ListCatalogs"};
   }
 
   // Create a new catalog
@@ -142,7 +143,7 @@ service CatalogsService {
       post: "/catalogs"
       body: "*"
     };
-    option (openapi.v3.operation) = {operation_id: "CreateCatalog"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "CreateCatalog"};
   }
 
   // Get a catalog
@@ -151,7 +152,7 @@ service CatalogsService {
   // the owner of the catalog, or a user that has the USE_CATALOG privilege set for their account.
   rpc GetCatalog(GetCatalogRequest) returns (CatalogInfo) {
     option (google.api.http) = {get: "/catalogs/{name}"};
-    option (openapi.v3.operation) = {operation_id: "GetCatalog"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "GetCatalog"};
   }
 
   // Update a catalog
@@ -163,7 +164,7 @@ service CatalogsService {
       patch: "/catalogs/{name}"
       body: "*"
     };
-    option (openapi.v3.operation) = {operation_id: "UpdateCatalog"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "UpdateCatalog"};
   }
 
   // Delete a catalog
@@ -172,6 +173,6 @@ service CatalogsService {
   // be a metastore admin or the owner of the catalog.
   rpc DeleteCatalog(DeleteCatalogRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/catalogs/{name}"};
-    option (openapi.v3.operation) = {operation_id: "DeleteCatalog"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "DeleteCatalog"};
   }
 }

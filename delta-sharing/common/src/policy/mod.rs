@@ -9,7 +9,8 @@ use bytes::Bytes;
 use std::sync::Arc;
 use strum::AsRefStr;
 
-use crate::{Error, ResourceExt, ResourceIdent, Result, SecuredAction};
+use crate::api::SecuredAction;
+use crate::{Error, ResourceExt, ResourceIdent, Result};
 
 pub use constant::*;
 

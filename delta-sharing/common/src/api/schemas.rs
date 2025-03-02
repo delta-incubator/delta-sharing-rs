@@ -8,7 +8,7 @@ use crate::resources::{ResourceIdent, ResourceName, ResourceRef};
 use crate::{Error, ObjectLabel, Recipient, ResourceStore, Result};
 
 rest_handlers!(
-    SchemasHandler, [
+    SchemasHandler, "schemas", [
         CreateSchemaRequest, Schema, Create, SchemaInfo;
         ListSchemasRequest, Catalog, Read, ListSchemasResponse with [
             catalog_name: query as String,

@@ -1,10 +1,12 @@
 use chrono::Days;
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 use delta_sharing_profiles::{DefaultClaims, DeltaProfileManager, ProfileManager, TokenManager};
 
+use self::client::{handle_client, ClientCommand};
 use crate::error::Result;
 use crate::server::{handle_rest, ServerArgs};
 
+mod client;
 mod config;
 mod error;
 mod server;
@@ -12,8 +14,23 @@ mod server;
 #[derive(Parser)]
 #[command(name = "delta-sharing", version, about = "CLI to manage delta.sharing services.", long_about = None)]
 struct Cli {
+    #[clap(flatten)]
+    global_opts: GlobalOpts,
+
     #[clap(subcommand)]
     command: Commands,
+}
+
+#[derive(Debug, Args)]
+struct GlobalOpts {
+    /// Server URL
+    #[clap(
+        long,
+        global = true,
+        env = "UC_SERVER_URL",
+        default_value = "http://localhost:8080"
+    )]
+    server: String,
 }
 
 #[derive(Subcommand)]
@@ -28,7 +45,7 @@ enum Commands {
         arg_required_else_help = true,
         about = "execute requests against a sharing server"
     )]
-    Client(ClientArgs),
+    Client(ClientCommand),
 
     #[clap(
         arg_required_else_help = true,
@@ -78,15 +95,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Parse the command-line arguments
     let args = Cli::parse();
 
-    match args.command {
+    dbg!("CLI");
+
+    match &args.command {
         Commands::Rest(server_args) => handle_rest(server_args).await?,
         Commands::Grpc(_) => todo!("gRPC server not implemented"),
         Commands::Client(client_args) => {
-            // Access the client arguments
-            let endpoint = client_args.endpoint;
-            // Start the client logic
-            println!("Connecting to server at {}", endpoint);
-            // Your client logic goes here
+            handle_client(client_args, args.global_opts).await?;
         }
         Commands::Profile(args) => handle_profile(args).await?,
         Commands::Migrate => todo!(),
@@ -96,9 +111,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Handle the profile command.
-async fn handle_profile(args: ProfileArgs) -> Result<()> {
+async fn handle_profile(args: &ProfileArgs) -> Result<()> {
     let token_manager = TokenManager::new_from_secret(args.secret.as_bytes(), None);
-    let profile_manager = DeltaProfileManager::new(args.endpoint, 1, token_manager);
+    let profile_manager = DeltaProfileManager::new(args.endpoint.clone(), 1, token_manager);
 
     let exp = args
         .validity
@@ -109,7 +124,7 @@ async fn handle_profile(args: ProfileArgs) -> Result<()> {
         .map(|s| s.trim().to_ascii_lowercase())
         .collect();
     let claims = DefaultClaims {
-        sub: args.subject,
+        sub: args.subject.clone(),
         issued_at: chrono::Utc::now().timestamp(),
         admin: args.admin,
         exp: exp.as_ref().map(|dt| dt.timestamp() as u64),

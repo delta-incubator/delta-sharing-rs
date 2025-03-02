@@ -3,7 +3,7 @@ use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     token::Comma,
-    Token,
+    LitStr, Token,
 };
 
 /// Custom keywords for the macro
@@ -96,6 +96,7 @@ impl Parse for HandlerDef {
 /// The top-level “(MyHandler, […])” portion of the macro.
 pub struct HandlerParams {
     pub handler_type: Type,
+    pub segments: Vec<String>,
     pub handlers: Vec<HandlerDef>,
 }
 
@@ -103,6 +104,10 @@ impl Parse for HandlerParams {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let handler_type = input.parse()?;
         input.parse::<Token![,]>()?;
+
+        let route: LitStr = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let segments: Vec<_> = route.value().split('/').map(|v| v.to_string()).collect();
 
         let content;
         bracketed!(content in input);
@@ -112,6 +117,7 @@ impl Parse for HandlerParams {
 
         Ok(HandlerParams {
             handler_type,
+            segments,
             handlers,
         })
     }

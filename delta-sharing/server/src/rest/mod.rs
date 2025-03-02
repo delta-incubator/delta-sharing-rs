@@ -1,9 +1,14 @@
+use delta_sharing_common::api::catalogs::CatalogHandler;
+use delta_sharing_common::api::credentials::CredentialsHandler;
+use delta_sharing_common::api::external_locations::ExternalLocationsHandler;
+use delta_sharing_common::api::recipients::RecipientsHandler;
+use delta_sharing_common::api::schemas::SchemasHandler;
+use delta_sharing_common::api::shares::SharesHandler;
+use delta_sharing_common::api::sharing::{SharingDiscoveryHandler, SharingQueryHandler};
 use delta_sharing_common::rest::{
-    get_catalog_router, get_credentials_router, get_sharing_router, AuthenticationLayer,
+    get_catalog_router, get_credentials_router, get_external_locations_router,
+    get_recipients_router, get_schemas_router, get_sharing_router, AuthenticationLayer,
     Authenticator,
-};
-use delta_sharing_common::{
-    CatalogHandler, CredentialsHandler, SharingDiscoveryHandler, SharingQueryHandler,
 };
 use delta_sharing_common::{Error, Result};
 use swagger_ui_dist::{ApiDefinition, OpenApiSource};
@@ -14,28 +19,6 @@ use tracing::Level;
 
 use crate::shutdown::shutdown_signal;
 
-// #[cfg(test)]
-// mod tests;
-
-// pub async fn run_server<T, A>(
-//     host: impl AsRef<str>,
-//     port: u16,
-//     handler: T,
-//     authenticator: A,
-// ) -> Result<()>
-// where
-//     T: DiscoveryManager + TableQueryManager + Clone,
-//     A: Authenticator + Clone,
-// {
-//     let api_def = ApiDefinition {
-//         uri_prefix: "/api",
-//         api_definition: OpenApiSource::Inline(include_str!("../../openapi.yaml")),
-//         title: Some("My Super Duper API"),
-//     };
-//     let server = get_sharing_router(handler).layer(AuthenticationLayer::new(authenticator));
-//     run(server, host, port, api_def).await
-// }
-
 pub async fn run_server_full<T, A>(
     host: impl AsRef<str>,
     port: u16,
@@ -43,40 +26,31 @@ pub async fn run_server_full<T, A>(
     authenticator: A,
 ) -> Result<()>
 where
-    T: CatalogHandler + CredentialsHandler + SharingDiscoveryHandler + SharingQueryHandler + Clone,
+    T: CatalogHandler
+        + CredentialsHandler
+        + SharingDiscoveryHandler
+        + SharingQueryHandler
+        + SharesHandler
+        + SchemasHandler
+        + ExternalLocationsHandler
+        + RecipientsHandler
+        + Clone,
     A: Authenticator + Clone,
 {
     let api_def = ApiDefinition {
         uri_prefix: "/api",
         api_definition: OpenApiSource::Inline(include_str!("../../openapi.yaml")),
-        title: Some("My Super Duper API"),
+        title: Some("Unity Catalog API"),
     };
     let router = get_catalog_router(handler.clone())
+        .merge(get_schemas_router(handler.clone()))
         .merge(get_credentials_router(handler.clone()))
-        .merge(get_sharing_router(handler));
+        .merge(get_external_locations_router(handler.clone()))
+        .merge(get_recipients_router(handler.clone()))
+        .merge(get_sharing_router(handler.clone()));
     let server = router.layer(AuthenticationLayer::new(authenticator));
     run(server, host, port, api_def).await
 }
-
-// pub async fn run_server_full<T, A>(
-//     host: impl AsRef<str>,
-//     port: u16,
-//     handler: T,
-//     authenticator: A,
-// ) -> Result<()>
-// where
-//     T: DiscoveryManager + RepositoryManager + TableQueryManager + Clone,
-//     A: Authenticator + Clone,
-// {
-//     let api_def = ApiDefinition {
-//         uri_prefix: "/api",
-//         api_definition: OpenApiSource::Inline(include_str!("../../openapi.yaml")),
-//         title: Some("My Super Duper API"),
-//     };
-//     let router = get_sharing_router(handler.clone()).merge(get_sharing_repo_router(handler));
-//     let server = router.layer(AuthenticationLayer::new(authenticator));
-//     run(server, host, port, api_def).await
-// }
 
 async fn run<S: Into<String> + Clone>(
     router: axum::Router,

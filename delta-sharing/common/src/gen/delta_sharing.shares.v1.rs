@@ -181,6 +181,9 @@ pub struct GetShareRequest {
     /// Name of the share.
     #[prost(string, tag="1")]
     pub name: ::prost::alloc::string::String,
+    /// Query for data to include in the share.
+    #[prost(bool, optional, tag="2")]
+    pub include_shared_data: ::core::option::Option<bool>,
 }
 /// Data object update.
 #[allow(clippy::derive_partial_eq_without_eq)]

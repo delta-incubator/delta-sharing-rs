@@ -233,37 +233,37 @@ impl serde::Serialize for DataObject {
         if self.data_object_type != 0 {
             let v = DataObjectType::try_from(self.data_object_type)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.data_object_type)))?;
-            struct_ser.serialize_field("dataObjectType", &v)?;
+            struct_ser.serialize_field("data_object_type", &v)?;
         }
         if let Some(v) = self.added_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("addedAt", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("added_at", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.added_by.as_ref() {
-            struct_ser.serialize_field("addedBy", v)?;
+            struct_ser.serialize_field("added_by", v)?;
         }
         if let Some(v) = self.comment.as_ref() {
             struct_ser.serialize_field("comment", v)?;
         }
         if let Some(v) = self.shared_as.as_ref() {
-            struct_ser.serialize_field("sharedAs", v)?;
+            struct_ser.serialize_field("shared_as", v)?;
         }
         if !self.partitions.is_empty() {
             struct_ser.serialize_field("partitions", &self.partitions)?;
         }
         if let Some(v) = self.enable_cdf.as_ref() {
-            struct_ser.serialize_field("enableCdf", v)?;
+            struct_ser.serialize_field("enable_cdf", v)?;
         }
         if let Some(v) = self.history_data_sharing_status.as_ref() {
             let v = HistoryStatus::try_from(*v)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", *v)))?;
-            struct_ser.serialize_field("historyDataSharingStatus", &v)?;
+            struct_ser.serialize_field("history_data_sharing_status", &v)?;
         }
         if let Some(v) = self.start_version.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("startVersion", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("start_version", ToString::to_string(&v).as_str())?;
         }
         struct_ser.end()
     }
@@ -550,7 +550,7 @@ impl serde::Serialize for DataObjectUpdate {
             struct_ser.serialize_field("action", &v)?;
         }
         if let Some(v) = self.data_object.as_ref() {
-            struct_ser.serialize_field("dataObject", v)?;
+            struct_ser.serialize_field("data_object", v)?;
         }
         struct_ser.end()
     }
@@ -750,9 +750,15 @@ impl serde::Serialize for GetShareRequest {
         if !self.name.is_empty() {
             len += 1;
         }
+        if self.include_shared_data.is_some() {
+            len += 1;
+        }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.shares.v1.GetShareRequest", len)?;
         if !self.name.is_empty() {
             struct_ser.serialize_field("name", &self.name)?;
+        }
+        if let Some(v) = self.include_shared_data.as_ref() {
+            struct_ser.serialize_field("include_shared_data", v)?;
         }
         struct_ser.end()
     }
@@ -765,11 +771,14 @@ impl<'de> serde::Deserialize<'de> for GetShareRequest {
     {
         const FIELDS: &[&str] = &[
             "name",
+            "include_shared_data",
+            "includeSharedData",
         ];
 
         #[allow(clippy::enum_variant_names)]
         enum GeneratedField {
             Name,
+            IncludeSharedData,
             __SkipField__,
         }
         impl<'de> serde::Deserialize<'de> for GeneratedField {
@@ -793,6 +802,7 @@ impl<'de> serde::Deserialize<'de> for GetShareRequest {
                     {
                         match value {
                             "name" => Ok(GeneratedField::Name),
+                            "includeSharedData" | "include_shared_data" => Ok(GeneratedField::IncludeSharedData),
                             _ => Ok(GeneratedField::__SkipField__),
                         }
                     }
@@ -813,6 +823,7 @@ impl<'de> serde::Deserialize<'de> for GetShareRequest {
                     V: serde::de::MapAccess<'de>,
             {
                 let mut name__ = None;
+                let mut include_shared_data__ = None;
                 while let Some(k) = map_.next_key()? {
                     match k {
                         GeneratedField::Name => {
@@ -821,6 +832,12 @@ impl<'de> serde::Deserialize<'de> for GetShareRequest {
                             }
                             name__ = Some(map_.next_value()?);
                         }
+                        GeneratedField::IncludeSharedData => {
+                            if include_shared_data__.is_some() {
+                                return Err(serde::de::Error::duplicate_field("includeSharedData"));
+                            }
+                            include_shared_data__ = map_.next_value()?;
+                        }
                         GeneratedField::__SkipField__ => {
                             let _ = map_.next_value::<serde::de::IgnoredAny>()?;
                         }
@@ -828,6 +845,7 @@ impl<'de> serde::Deserialize<'de> for GetShareRequest {
                 }
                 Ok(GetShareRequest {
                     name: name__.unwrap_or_default(),
+                    include_shared_data: include_shared_data__,
                 })
             }
         }
@@ -921,10 +939,10 @@ impl serde::Serialize for ListSharesRequest {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.shares.v1.ListSharesRequest", len)?;
         if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("maxResults", v)?;
+            struct_ser.serialize_field("max_results", v)?;
         }
         if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("pageToken", v)?;
+            struct_ser.serialize_field("page_token", v)?;
         }
         struct_ser.end()
     }
@@ -1040,7 +1058,7 @@ impl serde::Serialize for ListSharesResponse {
             struct_ser.serialize_field("shares", &self.shares)?;
         }
         if let Some(v) = self.next_page_token.as_ref() {
-            struct_ser.serialize_field("nextPageToken", v)?;
+            struct_ser.serialize_field("next_page_token", v)?;
         }
         struct_ser.end()
     }
@@ -1183,23 +1201,23 @@ impl serde::Serialize for ShareInfo {
             struct_ser.serialize_field("comment", v)?;
         }
         if !self.data_objects.is_empty() {
-            struct_ser.serialize_field("dataObjects", &self.data_objects)?;
+            struct_ser.serialize_field("data_objects", &self.data_objects)?;
         }
         if let Some(v) = self.created_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("createdAt", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("created_at", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.created_by.as_ref() {
-            struct_ser.serialize_field("createdBy", v)?;
+            struct_ser.serialize_field("created_by", v)?;
         }
         if let Some(v) = self.updated_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("updatedAt", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("updated_at", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.updated_by.as_ref() {
-            struct_ser.serialize_field("updatedBy", v)?;
+            struct_ser.serialize_field("updated_by", v)?;
         }
         struct_ser.end()
     }
@@ -1409,7 +1427,7 @@ impl serde::Serialize for UpdateShareRequest {
             struct_ser.serialize_field("updates", &self.updates)?;
         }
         if let Some(v) = self.new_name.as_ref() {
-            struct_ser.serialize_field("newName", v)?;
+            struct_ser.serialize_field("new_name", v)?;
         }
         if let Some(v) = self.owner.as_ref() {
             struct_ser.serialize_field("owner", v)?;

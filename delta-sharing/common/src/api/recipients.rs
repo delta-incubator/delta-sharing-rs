@@ -8,7 +8,7 @@ use crate::resources::{ResourceIdent, ResourceName, ResourceRef};
 use crate::{Error, ObjectLabel, Recipient, ResourceStore, Result};
 
 rest_handlers!(
-    RecipientsHandler, [
+    RecipientsHandler, "recipients", [
         CreateRecipientRequest, Recipient, Create, RecipientInfo;
         ListRecipientsRequest, Recipient, Read, ListRecipientsResponse;
         GetRecipientRequest, Recipient, Read, RecipientInfo with [

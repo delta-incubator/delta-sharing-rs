@@ -1,0 +1,7 @@
+default:
+    @just --list
+
+generate:
+    @buf generate buf.build/gnostic/gnostic --template {{ source_directory() }}/buf.gen.yaml
+    @buf generate buf.build/googleapis/googleapis --template {{ source_directory() }}/buf.gen.yaml
+    @buf generate buf.build/bufbuild/protovalidate --template {{ source_directory() }}/buf.gen.yaml

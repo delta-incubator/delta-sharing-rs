@@ -8,7 +8,7 @@ use crate::resources::{ResourceIdent, ResourceName, ResourceRef};
 use crate::{Error, ObjectLabel, Recipient, ResourceExt, ResourceStore, Result};
 
 rest_handlers!(
-    ExternalLocationsHandler,
+    ExternalLocationsHandler, "external-locations",
     [
         CreateExternalLocationRequest, ExternalLocation, Create, ExternalLocationInfo;
         ListExternalLocationsRequest, ExternalLocation, Read, ListExternalLocationsResponse with [

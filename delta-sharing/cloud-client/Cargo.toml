@@ -31,7 +31,7 @@ hyper = { version = "1.2", default-features = false }
 quick-xml = { version = "0.37.0", features = ["serialize", "overlapped-lists"] }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde_json = { version = "1.0" }
-rand = { version = "0.8", default-features = false, features = [
+rand = { version = "0.9", default-features = false, features = [
     "std",
     "std_rng",
 ] }

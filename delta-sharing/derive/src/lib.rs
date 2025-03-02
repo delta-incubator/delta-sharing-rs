@@ -4,7 +4,9 @@ use syn::{bracketed, parse_macro_input, Error, Type};
 
 use conversions::{from_object, resource_impl, to_object, to_resource, ObjectDefs};
 use parsing::HandlerParams;
-use rest_handlers::{generate_handler_name, to_action, to_handler, to_request_impl};
+use rest_handlers::{
+    generate_handler_name, get_type_name, to_action, to_client, to_handler, to_request_impl,
+};
 
 mod conversions;
 /// Parser for macro parameters
@@ -69,11 +71,33 @@ pub fn rest_handlers(input: proc_macro::TokenStream) -> proc_macro::TokenStream 
     // Generate FromRequest/FromRequestParts implementations
     let request_impls = input.handlers.iter().map(to_request_impl);
 
+    let client_impls = input.handlers.iter().map(|h| to_client(h, &input.segments));
+    let handler_name = get_type_name(&handler_type).unwrap();
+    let client_name = format!("{}Client", handler_name.strip_suffix("Handler").unwrap());
+    let client_name = Ident::new(&client_name, Span::call_site());
+
+    let client = quote! {
+        pub struct #client_name {
+            client: ::cloud_client::CloudClient,
+            base_url: ::url::Url,
+        }
+
+        impl #client_name {
+            pub fn new(client: ::cloud_client::CloudClient, base_url: ::url::Url) -> Self {
+                Self { client, base_url }
+            }
+
+            #(#client_impls)*
+        }
+    };
+
     let mod_name = generate_handler_name(&handler_type);
     let mod_ident = Ident::new(&mod_name, Span::call_site());
 
     let expanded = quote! {
         #(#actions)*
+
+        #client
 
         #[cfg(feature = "axum")]
         pub use #mod_ident::*;

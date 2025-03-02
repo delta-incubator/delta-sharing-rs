@@ -4,13 +4,13 @@ package delta_sharing.schemas.v1;
 
 import "buf/validate/validate.proto";
 import "delta_sharing/schemas/v1/models.proto";
+import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
-import "openapiv3/annotations.proto";
 
 // List Schemas in a catalog
 message ListSchemasRequest {
@@ -115,7 +115,7 @@ service SchemasService {
   // will be retrieved. There is no guarantee of a specific ordering of the elements in the array.
   rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse) {
     option (google.api.http) = {get: "/schemas"};
-    option (openapi.v3.operation) = {operation_id: "ListSchemas"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ListSchemas"};
   }
 
   // Creates a new schema for catalog in the Metatastore. The caller must be a metastore admin,
@@ -125,7 +125,7 @@ service SchemasService {
       post: "/schemas"
       body: "*"
     };
-    option (openapi.v3.operation) = {operation_id: "CreateSchema"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "CreateSchema"};
   }
 
   // Gets the specified schema within the metastore.
@@ -133,7 +133,7 @@ service SchemasService {
   // or a user that has the USE_SCHEMA privilege on the schema.
   rpc GetSchema(GetSchemaRequest) returns (SchemaInfo) {
     option (google.api.http) = {get: "/schemas/{name}"};
-    option (openapi.v3.operation) = {operation_id: "GetSchema"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "GetSchema"};
   }
 
   // Updates a schema for a catalog. The caller must be the owner of the schema or a metastore admin.
@@ -145,13 +145,13 @@ service SchemasService {
       patch: "/schemas/{full_name}"
       body: "*"
     };
-    option (openapi.v3.operation) = {operation_id: "UpdateSchema"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "UpdateSchema"};
   }
 
   // Deletes the specified schema from the parent catalog. The caller must be the owner
   // of the schema or an owner of the parent catalog.
   rpc DeleteSchema(DeleteSchemaRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {delete: "/schemas/{name}"};
-    option (openapi.v3.operation) = {operation_id: "DeleteSchema"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "DeleteSchema"};
   }
 }

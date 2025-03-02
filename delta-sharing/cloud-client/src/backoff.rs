@@ -98,8 +98,8 @@ impl Backoff {
         let range = self.init_backoff..(self.next_backoff_secs * self.base);
 
         let rand_backoff = match self.rng.as_mut() {
-            Some(rng) => rng.gen_range(range),
-            None => thread_rng().gen_range(range),
+            Some(rng) => rng.random_range(range),
+            None => rand::rng().random_range(range),
         };
 
         let next_backoff = self.max_backoff_secs.min(rand_backoff);

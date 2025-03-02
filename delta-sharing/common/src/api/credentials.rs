@@ -9,7 +9,7 @@ use crate::resources::{ResourceIdent, ResourceName, ResourceRef};
 use crate::{Error, ObjectLabel, Recipient, ResourceExt, ResourceStore, Result, SecretManager};
 
 rest_handlers!(
-    CredentialsHandler,
+    CredentialsHandler, "credentials",
     [
         ListCredentialsRequest, Credential, Read, ListCredentialsResponse with [
             purpose: query as Option<i32>,
