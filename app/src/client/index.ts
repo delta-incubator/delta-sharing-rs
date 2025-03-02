@@ -50,12 +50,16 @@ export async function deleteSchema({
 }
 
 export default {
-    listCatalogs,
-    getCatalog,
-    createCatalog,
-    deleteCatalog,
-    listSchemas,
-    createSchema,
-    getSchema,
-    deleteSchema,
+    catalogs: {
+        list: listCatalogs,
+        get: getCatalog,
+        create: createCatalog,
+        delete: deleteCatalog,
+    },
+    schemas: {
+        list: listSchemas,
+        get: getSchema,
+        create: createSchema,
+        delete: deleteSchema,
+    },
 };

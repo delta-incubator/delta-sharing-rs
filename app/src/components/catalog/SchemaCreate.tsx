@@ -13,9 +13,9 @@ import {
 import { Add20Regular } from "@fluentui/react-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useContext, useState } from "react";
-import ucClient, { CreateSchemaRequest } from "../client";
-import { NotifyContext } from "../context";
-import { InputChange } from "../types";
+import ucClient, { CreateSchemaRequest } from "../../client";
+import { NotifyContext } from "../../context";
+import { InputChange } from "../../types";
 
 type Props = { name: string };
 
@@ -28,10 +28,8 @@ const Default = ({ name }: Props) => {
     const notify = useContext(NotifyContext);
     const queryClient = useQueryClient();
     const mutation = useMutation({
-        mutationFn: ucClient.createSchema,
-        onError: () => {
-            notify("error", "Failed to create schema");
-        },
+        mutationFn: ucClient.schemas.create,
+        onError: () => notify("error", "Failed to create schema"),
         onSuccess: () => {
             notify("success", "Schema created successfully");
             queryClient.invalidateQueries({

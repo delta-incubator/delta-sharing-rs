@@ -1,25 +1,25 @@
 import {
     FlatTreeItem,
-    Spinner,
     TreeItemLayout,
+    Spinner,
 } from "@fluentui/react-components";
 import { Database20Regular } from "@fluentui/react-icons";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+    RefObject,
     useCallback,
+    useContext,
     useEffect,
     useRef,
     useState,
-    useContext,
-    RefObject,
 } from "react";
-import ucClient, { CatalogInfo } from "../client";
-import { TreeContext, NotifyContext } from "../context";
-import { TreeItemOnChange } from "../types";
+import ucClient, { CatalogInfo } from "../../client";
+import { NotifyContext, TreeContext } from "../../context";
+import { useTreeScope } from "../../hooks";
+import { TreeItemOnChange } from "../../types";
+import DeleteDialog from "../DeleteDialog";
 import CreateSchema from "./SchemaCreate";
-import { useTreeScope } from "../hooks";
 import SchemaItem from "./SchemaItem";
-import DeleteDialog from "./DeleteDialog";
 
 // helper type that asserts the name property is a string
 type LocCatalogInfo = {
@@ -43,7 +43,7 @@ const CatalogItem = ({ info, ref }: CatalogItemProps) => {
     const { data, status } = useQuery({
         queryKey: scope,
         queryFn: ({ queryKey }) =>
-            ucClient.listSchemas(queryKey[queryKey.length - 1]),
+            ucClient.schemas.list(queryKey[queryKey.length - 1]),
         enabled: open,
         refetchInterval: 30000,
     });
@@ -51,7 +51,7 @@ const CatalogItem = ({ info, ref }: CatalogItemProps) => {
     const queryClient = useQueryClient();
     const notify = useContext(NotifyContext);
     const mutation = useMutation({
-        mutationFn: ucClient.deleteCatalog,
+        mutationFn: ucClient.catalogs.delete,
         onError: () => notify("error", `Failed to delete schema`),
         onSuccess: () => {
             notify("success", "Deleted schema successfully.");
@@ -89,7 +89,7 @@ const CatalogItem = ({ info, ref }: CatalogItemProps) => {
                     iconBefore={<Database20Regular />}
                     expandIcon={
                         open && status === "pending" ? (
-                            <Spinner size="tiny" />
+                            <Spinner size="extra-tiny" />
                         ) : undefined
                     }
                     actions={

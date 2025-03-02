@@ -23,12 +23,12 @@ import {
     Dispatch,
     SetStateAction,
     useCallback,
-    useState,
     useContext,
+    useState,
 } from "react";
-import ucClient from "../client";
-import { CreateCatalogRequestJson } from "../gen/delta_sharing/catalogs/v1/svc_pb";
-import { NotifyContext } from "../context";
+import ucClient from "../../client";
+import { NotifyContext } from "../../context";
+import { CreateCatalogRequestJson } from "../../gen/delta_sharing/catalogs/v1/svc_pb";
 
 type InputChange = NonNullable<InputProps["onChange"]>;
 type TabSelect = NonNullable<TabListProps["onTabSelect"]>;
@@ -80,7 +80,7 @@ const Default = () => {
     const notify = useContext(NotifyContext);
     const queryClient = useQueryClient();
     const mutation = useMutation({
-        mutationFn: ucClient.createCatalog,
+        mutationFn: ucClient.catalogs.create,
         onError: () => {
             notify("error", "Failed to create catalog");
         },

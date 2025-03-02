@@ -1,10 +1,10 @@
 import { FlatTreeItem, TreeItemLayout } from "@fluentui/react-components";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefObject, useCallback, useContext } from "react";
-import ucClient, { SchemaInfo } from "../client";
-import { NotifyContext, TreeContext } from "../context";
-import { useTreeScope } from "../hooks";
-import DeleteDialog from "./DeleteDialog";
+import ucClient, { SchemaInfo } from "../../client";
+import { NotifyContext, TreeContext } from "../../context";
+import { useTreeScope } from "../../hooks";
+import DeleteDialog from "../DeleteDialog";
 
 // helper type that asserts the name property is a string
 type LocCSchemaInfo = {
@@ -24,7 +24,7 @@ const SchemaItem = ({ info, ref }: SchemaItemProps) => {
     const notify = useContext(NotifyContext);
     const queryClient = useQueryClient();
     const mutation = useMutation({
-        mutationFn: ucClient.deleteSchema,
+        mutationFn: ucClient.schemas.delete,
         onError: () => notify("error", `Failed to delete schema`),
         onSuccess: () => {
             notify("success", "Deleted schema successfully.");
