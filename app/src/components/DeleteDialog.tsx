@@ -11,7 +11,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { Delete20Regular } from "@fluentui/react-icons";
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 
 const useStyles = makeStyles({
     delete: {
@@ -30,9 +30,11 @@ const useStyles = makeStyles({
 
 type DeleteDialogProps = {
     onClick: () => void;
+    title: ReactNode;
+    content: ReactNode;
 };
 
-function DeleteDialog({ onClick }: DeleteDialogProps) {
+function DeleteDialog({ onClick, title, content }: DeleteDialogProps) {
     const [open, setOpen] = useState(false);
     const styles = useStyles();
 
@@ -47,10 +49,8 @@ function DeleteDialog({ onClick }: DeleteDialogProps) {
             </DialogTrigger>
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>Delete Thing.</DialogTitle>
-                    <DialogContent>
-                        Are you sure you want to delete this?
-                    </DialogContent>
+                    <DialogTitle>{title}</DialogTitle>
+                    <DialogContent>{content}</DialogContent>
                     <DialogActions>
                         <Button
                             className={styles.delete}

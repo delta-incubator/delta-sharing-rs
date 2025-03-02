@@ -1,11 +1,10 @@
 import { FlatTreeItem, TreeItemLayout } from "@fluentui/react-components";
-import { RefObject, useContext, useCallback } from "react";
-import { SchemaInfo } from "../client";
-import DeleteSchema from "./SchemaDelete";
-import { useTreeScope } from "../hooks";
-import { TreeContext, NotifyContext } from "../context";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import ucClient from "../client";
+import { RefObject, useCallback, useContext } from "react";
+import ucClient, { SchemaInfo } from "../client";
+import { NotifyContext, TreeContext } from "../context";
+import { useTreeScope } from "../hooks";
+import DeleteDialog from "./DeleteDialog";
 
 // helper type that asserts the name property is a string
 type LocCSchemaInfo = {
@@ -18,8 +17,8 @@ type SchemaItemProps = {
 };
 
 const SchemaItem = ({ info, ref }: SchemaItemProps) => {
-    const scope = useContext(TreeContext);
-    const { value, parentValue } = useTreeScope(scope, info.name);
+    const parentScope = useContext(TreeContext);
+    const { value, parentValue } = useTreeScope(parentScope, info.name);
 
     const queryKey = useContext(TreeContext);
     const notify = useContext(NotifyContext);
@@ -33,8 +32,14 @@ const SchemaItem = ({ info, ref }: SchemaItemProps) => {
         },
     });
 
+    // properties for the delete dialog
+    const title = `Delete ${info.name}?`;
+    const content = `Are you sure you want to delete ${info.name}?`;
     const onClick = useCallback(() => {
-        mutation.mutate({ catalog: scope[scope.length - 1], name: info.name });
+        mutation.mutate({
+            catalog: parentScope[parentScope.length - 1],
+            name: info.name,
+        });
     }, [mutation, queryKey, info]);
 
     return (
@@ -42,12 +47,20 @@ const SchemaItem = ({ info, ref }: SchemaItemProps) => {
             ref={ref}
             parentValue={parentValue}
             value={value}
-            aria-level={scope.length + 1}
+            aria-level={parentScope.length + 1}
             aria-setsize={1}
             aria-posinset={1}
             itemType="leaf"
         >
-            <TreeItemLayout actions={<DeleteSchema onClick={onClick} />}>
+            <TreeItemLayout
+                actions={
+                    <DeleteDialog
+                        onClick={onClick}
+                        title={title}
+                        content={content}
+                    />
+                }
+            >
                 {info.name}
             </TreeItemLayout>
         </FlatTreeItem>

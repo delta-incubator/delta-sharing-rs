@@ -5,7 +5,14 @@ import {
 } from "@fluentui/react-components";
 import { Database20Regular } from "@fluentui/react-icons";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useState, useContext } from "react";
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+    useContext,
+    RefObject,
+} from "react";
 import ucClient, { CatalogInfo } from "../client";
 import { TreeContext, NotifyContext } from "../context";
 import { TreeItemOnChange } from "../types";
@@ -20,21 +27,21 @@ type LocCatalogInfo = {
 } & CatalogInfo;
 
 type CatalogItemProps = {
-    parent: string[];
-    catalog: LocCatalogInfo;
+    info: LocCatalogInfo;
+    ref: RefObject<HTMLDivElement> | null;
 };
 
-const CatalogItem = ({ parent, catalog }: CatalogItemProps) => {
+const CatalogItem = ({ info, ref }: CatalogItemProps) => {
     const [open, setOpen] = useState(false);
+    const onOpenChange: TreeItemOnChange = useCallback(
+        (_ev, data) => setOpen(data.open),
+        [],
+    );
 
-    const {
-        scope: queryKey,
-        value,
-        parentValue,
-    } = useTreeScope(parent, catalog.name);
-
+    const parentScope = useContext(TreeContext);
+    const { scope, value, parentValue } = useTreeScope(parentScope, info.name);
     const { data, status } = useQuery({
-        queryKey,
+        queryKey: scope,
         queryFn: ({ queryKey }) =>
             ucClient.listSchemas(queryKey[queryKey.length - 1]),
         enabled: open,
@@ -48,33 +55,29 @@ const CatalogItem = ({ parent, catalog }: CatalogItemProps) => {
         onError: () => notify("error", `Failed to delete schema`),
         onSuccess: () => {
             notify("success", "Deleted schema successfully.");
-            queryClient.invalidateQueries({
-                queryKey: queryKey.slice(0, queryKey.length - 1),
-            });
+            queryClient.invalidateQueries({ queryKey: parentScope });
         },
     });
-    const onClick = useCallback(() => {
-        mutation.mutate(catalog.name);
-    }, [mutation, catalog]);
 
-    const onOpenChange: TreeItemOnChange = useCallback(
-        (_ev, data) => setOpen(data.open),
-        [],
-    );
+    // properties for the delete dialog
+    const title = `Delete ${info.name}?`;
+    const content = `Are you sure you want to delete ${info.name}?`;
+    const onClick = useCallback(() => {
+        mutation.mutate(info.name);
+    }, [mutation, info]);
 
     // we need to focus the first item when the subtree is opened
     const firstItemRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
-        if (open && status === "success") {
-            firstItemRef.current?.focus();
-        }
+        if (open && status === "success") firstItemRef.current?.focus();
     }, [open, status]);
 
     return (
         <>
             <FlatTreeItem
+                ref={ref}
                 value={value}
-                aria-level={parent.length + 1}
+                aria-level={parentScope.length + 1}
                 aria-setsize={data ? data.length : 1}
                 aria-posinset={1}
                 itemType="branch"
@@ -91,12 +94,16 @@ const CatalogItem = ({ parent, catalog }: CatalogItemProps) => {
                     }
                     actions={
                         <>
-                            <DeleteDialog onClick={onClick} />
-                            <CreateSchema name={catalog.name} />
+                            <DeleteDialog
+                                onClick={onClick}
+                                title={title}
+                                content={content}
+                            />
+                            <CreateSchema name={info.name} />
                         </>
                     }
                 >
-                    {catalog.name}
+                    {info.name}
                 </TreeItemLayout>
             </FlatTreeItem>
             {open &&
@@ -104,7 +111,7 @@ const CatalogItem = ({ parent, catalog }: CatalogItemProps) => {
                 data.map(
                     (item, index) =>
                         item.name && (
-                            <TreeContext.Provider value={queryKey}>
+                            <TreeContext.Provider value={scope}>
                                 <SchemaItem
                                     key={`${value}.${item.name}`}
                                     ref={index === 0 ? firstItemRef : null}

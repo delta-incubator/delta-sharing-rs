@@ -1,6 +1,0 @@
-{
-  "$id": "google.protobuf.Struct.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Struct",
-  "type": "object"
-}
