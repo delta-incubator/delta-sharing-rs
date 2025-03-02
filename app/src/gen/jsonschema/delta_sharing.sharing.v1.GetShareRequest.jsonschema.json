@@ -1,0 +1,16 @@
+{
+  "$id": "delta_sharing.sharing.v1.GetShareRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Get a share by name.",
+  "properties": {
+    "name": {
+      "description": "The share name to query. It's case-insensitive.",
+      "minLength": 1,
+      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "type": "string"
+    }
+  },
+  "title": "Get Share Request",
+  "type": "object"
+}

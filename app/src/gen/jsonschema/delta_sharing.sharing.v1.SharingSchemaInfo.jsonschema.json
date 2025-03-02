@@ -1,0 +1,41 @@
+{
+  "$id": "delta_sharing.sharing.v1.SharingSchemaInfo.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A schema in a delta sharing service.\n\n A schema is a logical grouping of tables.\n It may contain multiple tables.",
+  "patternProperties": {
+    "^(share_id)$": {
+      "description": "The unique identifier for the share this schema belongs to.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "description": {
+      "description": "User-provided free-form text description.",
+      "type": "string"
+    },
+    "id": {
+      "description": "Unique identifier for the schema.",
+      "type": "string"
+    },
+    "name": {
+      "description": "The name of the schema.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "properties": {
+      "$ref": "google.protobuf.Struct.jsonschema.json",
+      "description": "A map of key-value properties attached to the securable."
+    },
+    "share": {
+      "description": "The share name that the schema belongs to.",
+      "type": "string"
+    },
+    "shareId": {
+      "description": "The unique identifier for the share this schema belongs to.",
+      "type": "string"
+    }
+  },
+  "title": "Sharing Schema Info",
+  "type": "object"
+}

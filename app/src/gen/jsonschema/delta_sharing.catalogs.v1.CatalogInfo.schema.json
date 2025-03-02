@@ -1,0 +1,174 @@
+{
+  "$id": "delta_sharing.catalogs.v1.CatalogInfo.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A catalog is a root-level namespace that contains schemas.",
+  "patternProperties": {
+    "^(browseOnly)$": {
+      "description": "Indicates whether the principal is limited to retrieving metadata\n for the associated object through the BROWSE privilege when include_browse\n is enabled in the request.",
+      "type": "boolean"
+    },
+    "^(catalogType)$": {
+      "anyOf": [
+        {
+          "enum": [
+            "CATALOG_TYPE_UNSPECIFIED",
+            "MANAGED_CATALOG",
+            "DELTASHARING_CATALOG"
+          ],
+          "title": "Catalog Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "The type of the catalog."
+    },
+    "^(createdAt)$": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854775808,
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this catalog was created, in epoch milliseconds."
+    },
+    "^(createdBy)$": {
+      "description": "Username of catalog creator.",
+      "type": "string"
+    },
+    "^(providerName)$": {
+      "description": "The name of delta sharing provider.\n\n A Delta Sharing catalog is a catalog that is based on a Delta share on a remote sharing server.",
+      "type": "string"
+    },
+    "^(shareName)$": {
+      "description": "The name of the share under the share provider.",
+      "type": "string"
+    },
+    "^(storageRoot)$": {
+      "description": "Storage root URL for managed tables within catalog.",
+      "type": "string"
+    },
+    "^(updatedAt)$": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this catalog was last updated, in epoch milliseconds."
+    },
+    "^(updatedBy)$": {
+      "description": "Username of user who last modified catalog.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "browse_only": {
+      "description": "Indicates whether the principal is limited to retrieving metadata\n for the associated object through the BROWSE privilege when include_browse\n is enabled in the request.",
+      "type": "boolean"
+    },
+    "catalog_type": {
+      "anyOf": [
+        {
+          "enum": [
+            "CATALOG_TYPE_UNSPECIFIED",
+            "MANAGED_CATALOG",
+            "DELTASHARING_CATALOG"
+          ],
+          "title": "Catalog Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "The type of the catalog."
+    },
+    "comment": {
+      "description": "User-provided free-form text description.",
+      "type": "string"
+    },
+    "created_at": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854775808,
+          "exclusiveMinimum": 0,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this catalog was created, in epoch milliseconds."
+    },
+    "created_by": {
+      "description": "Username of catalog creator.",
+      "type": "string"
+    },
+    "id": {
+      "description": "Unique identifier for the catalog.",
+      "type": "string"
+    },
+    "name": {
+      "description": "Name of catalog.",
+      "type": "string"
+    },
+    "owner": {
+      "description": "Username of current owner of catalog.",
+      "type": "string"
+    },
+    "properties": {
+      "$ref": "google.protobuf.Struct.schema.json",
+      "description": "A map of key-value properties attached to the securable."
+    },
+    "provider_name": {
+      "description": "The name of delta sharing provider.\n\n A Delta Sharing catalog is a catalog that is based on a Delta share on a remote sharing server.",
+      "type": "string"
+    },
+    "share_name": {
+      "description": "The name of the share under the share provider.",
+      "type": "string"
+    },
+    "storage_root": {
+      "description": "Storage root URL for managed tables within catalog.",
+      "type": "string"
+    },
+    "updated_at": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this catalog was last updated, in epoch milliseconds."
+    },
+    "updated_by": {
+      "description": "Username of user who last modified catalog.",
+      "type": "string"
+    }
+  },
+  "title": "Catalog Info",
+  "type": "object"
+}

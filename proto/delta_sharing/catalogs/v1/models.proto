@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package delta_sharing.catalogs.v1;
 
+import "buf/validate/validate.proto";
 import "google/api/field_behavior.proto";
 import "google/protobuf/struct.proto";
 
@@ -49,7 +50,7 @@ message CatalogInfo {
   optional CatalogType catalog_type = 9;
 
   // Time at which this catalog was created, in epoch milliseconds.
-  optional int64 created_at = 1000;
+  optional int64 created_at = 1000 [(buf.validate.field).int64.gt = 0];
 
   // Username of catalog creator.
   optional string created_by = 1001;

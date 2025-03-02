@@ -1,0 +1,16 @@
+{
+  "$id": "delta_sharing.sharing.v1.ParquetLogMessage.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Log message for Parquet response.",
+  "properties": {
+    "metadata": {
+      "$ref": "delta_sharing.sharing.v1.MetadataParquet.schema.json"
+    },
+    "protocol": {
+      "$ref": "delta_sharing.sharing.v1.ProtocolParquet.schema.json"
+    }
+  },
+  "title": "Parquet Log Message",
+  "type": "object"
+}

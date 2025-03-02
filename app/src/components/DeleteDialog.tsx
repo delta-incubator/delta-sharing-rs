@@ -11,10 +11,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { Delete20Regular } from "@fluentui/react-icons";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useContext, useState } from "react";
-import ucClient from "../client";
-import { NotifyContext, TreeContext } from "../context";
+import { useState } from "react";
 
 const useStyles = makeStyles({
     delete: {
@@ -31,27 +28,13 @@ const useStyles = makeStyles({
     },
 });
 
-type Props = { name: string };
+type DeleteDialogProps = {
+    onClick: () => void;
+};
 
-const Default = ({ name }: Props) => {
+function DeleteDialog({ onClick }: DeleteDialogProps) {
     const [open, setOpen] = useState(false);
     const styles = useStyles();
-    const queryKey = useContext(TreeContext);
-    const notify = useContext(NotifyContext);
-    const queryClient = useQueryClient();
-    const mutation = useMutation({
-        mutationFn: ucClient.deleteSchema,
-        onError: () => notify("error", "Failed to delete schema"),
-        onSuccess: () => {
-            notify("success", "Schema deleted successfully");
-            queryClient.invalidateQueries({ queryKey });
-            setOpen(false);
-        },
-    });
-
-    const onClick = useCallback(() => {
-        mutation.mutate({ catalog: queryKey[queryKey.length - 1], name });
-    }, [mutation]);
 
     return (
         <Dialog open={open} onOpenChange={(_ev, data) => setOpen(data.open)}>
@@ -64,15 +47,18 @@ const Default = ({ name }: Props) => {
             </DialogTrigger>
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>Delete Schema</DialogTitle>
+                    <DialogTitle>Delete Thing.</DialogTitle>
                     <DialogContent>
-                        Are you sure you want to delete this schema?
+                        Are you sure you want to delete this?
                     </DialogContent>
                     <DialogActions>
                         <Button
                             className={styles.delete}
                             appearance="primary"
-                            onClick={onClick}
+                            onClick={() => {
+                                onClick();
+                                setOpen(false);
+                            }}
                         >
                             Delete
                         </Button>
@@ -84,6 +70,6 @@ const Default = ({ name }: Props) => {
             </DialogSurface>
         </Dialog>
     );
-};
+}
 
-export default Default;
+export default DeleteDialog;

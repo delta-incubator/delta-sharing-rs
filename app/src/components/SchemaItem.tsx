@@ -1,9 +1,11 @@
 import { FlatTreeItem, TreeItemLayout } from "@fluentui/react-components";
-import { RefObject, useContext } from "react";
+import { RefObject, useContext, useCallback } from "react";
 import { SchemaInfo } from "../client";
 import DeleteSchema from "./SchemaDelete";
 import { useTreeScope } from "../hooks";
-import { TreeContext } from "../context";
+import { TreeContext, NotifyContext } from "../context";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import ucClient from "../client";
 
 // helper type that asserts the name property is a string
 type LocCSchemaInfo = {
@@ -19,6 +21,22 @@ const SchemaItem = ({ info, ref }: SchemaItemProps) => {
     const scope = useContext(TreeContext);
     const { value, parentValue } = useTreeScope(scope, info.name);
 
+    const queryKey = useContext(TreeContext);
+    const notify = useContext(NotifyContext);
+    const queryClient = useQueryClient();
+    const mutation = useMutation({
+        mutationFn: ucClient.deleteSchema,
+        onError: () => notify("error", `Failed to delete schema`),
+        onSuccess: () => {
+            notify("success", "Deleted schema successfully.");
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
+
+    const onClick = useCallback(() => {
+        mutation.mutate({ catalog: scope[scope.length - 1], name: info.name });
+    }, [mutation, queryKey, info]);
+
     return (
         <FlatTreeItem
             ref={ref}
@@ -29,7 +47,7 @@ const SchemaItem = ({ info, ref }: SchemaItemProps) => {
             aria-posinset={1}
             itemType="leaf"
         >
-            <TreeItemLayout actions={<DeleteSchema name={info.name} />}>
+            <TreeItemLayout actions={<DeleteSchema onClick={onClick} />}>
                 {info.name}
             </TreeItemLayout>
         </FlatTreeItem>

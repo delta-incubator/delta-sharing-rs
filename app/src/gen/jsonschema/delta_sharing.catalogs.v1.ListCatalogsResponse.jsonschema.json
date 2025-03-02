@@ -1,0 +1,27 @@
+{
+  "$id": "delta_sharing.catalogs.v1.ListCatalogsResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "List catalogs response.",
+  "patternProperties": {
+    "^(next_page_token)$": {
+      "description": "The next_page_token value to include in the next List request.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "catalogs": {
+      "description": "The catalogs returned.",
+      "items": {
+        "$ref": "delta_sharing.catalogs.v1.CatalogInfo.jsonschema.json"
+      },
+      "type": "array"
+    },
+    "nextPageToken": {
+      "description": "The next_page_token value to include in the next List request.",
+      "type": "string"
+    }
+  },
+  "title": "List Catalogs Response",
+  "type": "object"
+}

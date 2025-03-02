@@ -1,0 +1,16 @@
+{
+  "$id": "delta_sharing.sharing.v1.ParquetResponse.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Response for a query against a table in Parquet format.",
+  "properties": {
+    "entries": {
+      "items": {
+        "$ref": "delta_sharing.sharing.v1.ParquetLogMessage.schema.json"
+      },
+      "type": "array"
+    }
+  },
+  "title": "Parquet Response",
+  "type": "object"
+}

@@ -1,0 +1,223 @@
+{
+  "$id": "delta_sharing.tables.v1.TableInfo.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(catalog_name)$": {
+      "description": "Name of parent catalog.",
+      "type": "string"
+    },
+    "^(created_at)$": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this table was created, in epoch milliseconds."
+    },
+    "^(created_by)$": {
+      "description": "Username of table creator.",
+      "type": "string"
+    },
+    "^(data_source_format)$": {
+      "anyOf": [
+        {
+          "enum": [
+            "DATA_SOURCE_FORMAT_UNSPECIFIED",
+            "DELTA",
+            "ICEBERG",
+            "HUDI",
+            "PARQUET",
+            "CSV",
+            "JSON",
+            "ORC",
+            "AVRO",
+            "TEXT",
+            "UNITY_CATALOG",
+            "DELTASHARING"
+          ],
+          "title": "Data Source Format",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "Data source format of the table."
+    },
+    "^(full_name)$": {
+      "description": "Full name of table, in form of catalog_name.schema_name.table_name.",
+      "type": "string"
+    },
+    "^(schema_name)$": {
+      "description": "Name of parent schema.",
+      "type": "string"
+    },
+    "^(table_id)$": {
+      "description": "Unique identifier for the table.",
+      "type": "string"
+    },
+    "^(table_type)$": {
+      "anyOf": [
+        {
+          "enum": [
+            "TABLE_TYPE_UNSPECIFIED",
+            "MANAGED",
+            "EXTERNAL"
+          ],
+          "title": "Table Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ]
+    },
+    "^(updated_at)$": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this table was last updated, in epoch milliseconds."
+    },
+    "^(updated_by)$": {
+      "description": "Username of user who last modified table.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "catalogName": {
+      "description": "Name of parent catalog.",
+      "type": "string"
+    },
+    "comment": {
+      "description": "User-provided free-form text description.",
+      "type": "string"
+    },
+    "createdAt": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this table was created, in epoch milliseconds."
+    },
+    "createdBy": {
+      "description": "Username of table creator.",
+      "type": "string"
+    },
+    "dataSourceFormat": {
+      "anyOf": [
+        {
+          "enum": [
+            "DATA_SOURCE_FORMAT_UNSPECIFIED",
+            "DELTA",
+            "ICEBERG",
+            "HUDI",
+            "PARQUET",
+            "CSV",
+            "JSON",
+            "ORC",
+            "AVRO",
+            "TEXT",
+            "UNITY_CATALOG",
+            "DELTASHARING"
+          ],
+          "title": "Data Source Format",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "Data source format of the table."
+    },
+    "fullName": {
+      "description": "Full name of table, in form of catalog_name.schema_name.table_name.",
+      "type": "string"
+    },
+    "name": {
+      "description": "Name of table, relative to parent schema.",
+      "type": "string"
+    },
+    "owner": {
+      "description": "Username of current owner of table.",
+      "type": "string"
+    },
+    "properties": {
+      "$ref": "google.protobuf.Struct.jsonschema.json",
+      "description": "A map of key-value properties attached to the securable."
+    },
+    "schemaName": {
+      "description": "Name of parent schema.",
+      "type": "string"
+    },
+    "tableId": {
+      "description": "Unique identifier for the table.",
+      "type": "string"
+    },
+    "tableType": {
+      "anyOf": [
+        {
+          "enum": [
+            "TABLE_TYPE_UNSPECIFIED",
+            "MANAGED",
+            "EXTERNAL"
+          ],
+          "title": "Table Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ]
+    },
+    "updatedAt": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this table was last updated, in epoch milliseconds."
+    },
+    "updatedBy": {
+      "description": "Username of user who last modified table.",
+      "type": "string"
+    }
+  },
+  "title": "Table Info",
+  "type": "object"
+}
