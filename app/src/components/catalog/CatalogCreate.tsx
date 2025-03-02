@@ -21,13 +21,14 @@ import { Add20Regular } from "@fluentui/react-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     Dispatch,
+    FormEventHandler,
     SetStateAction,
     useCallback,
     useContext,
     useState,
 } from "react";
 import ucClient from "../../client";
-import { NotifyContext } from "../../context";
+import { NotifyContext, TreeContext } from "../../context";
 import { CreateCatalogRequestJson } from "../../gen/delta_sharing/catalogs/v1/svc_pb";
 
 type InputChange = NonNullable<InputProps["onChange"]>;
@@ -35,7 +36,7 @@ type TabSelect = NonNullable<TabListProps["onTabSelect"]>;
 
 const useStyles = makeStyles({
     tabs: {
-        padding: "0 10px",
+        padding: "10px 0 10px 10px",
         display: "flex",
         flexDirection: "column",
         rowGap: tokens.spacingVerticalL,
@@ -79,14 +80,13 @@ const Default = () => {
 
     const notify = useContext(NotifyContext);
     const queryClient = useQueryClient();
+    const queryKey = useContext(TreeContext);
     const mutation = useMutation({
         mutationFn: ucClient.catalogs.create,
-        onError: () => {
-            notify("error", "Failed to create catalog");
-        },
+        onError: () => notify("error", "Failed to create catalog"),
         onSuccess: () => {
             notify("success", "Catalog created successfully");
-            queryClient.invalidateQueries({ queryKey: ["catalogs", "list"] });
+            queryClient.invalidateQueries({ queryKey });
             setOpen(false);
             setValues({});
         },
@@ -95,9 +95,13 @@ const Default = () => {
     const { onNameChange, onStorageChange, onProviderChange, onShareChange } =
         useCallbacs(setValues);
 
-    const onClick = useCallback(() => {
-        mutation.mutate(values);
-    }, [mutation, values]);
+    const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
+        (ev) => {
+            ev.preventDefault();
+            mutation.mutate(values);
+        },
+        [mutation, values],
+    );
 
     return (
         <Dialog open={open} onOpenChange={(_ev, data) => setOpen(data.open)}>
@@ -109,58 +113,72 @@ const Default = () => {
                 />
             </DialogTrigger>
             <DialogSurface>
-                <DialogBody>
-                    <DialogTitle>Create a new Catalog</DialogTitle>
-                    <DialogContent>
-                        <TabList
-                            selectedValue={selectedValue}
-                            onTabSelect={onTabSelect}
-                        >
-                            <Tab value="managed">Managed</Tab>
-                            <Tab value="sharing">Sharing</Tab>
-                        </TabList>
-                        <div className={styles.tabs}>
-                            <Field label="Name">
-                                <Input
-                                    value={values.name}
-                                    onChange={onNameChange}
-                                />
-                            </Field>
-                            {selectedValue === "managed" && (
-                                <Field label="Storage root">
+                <form onSubmit={handleSubmit}>
+                    <DialogBody>
+                        <DialogTitle>Create a new Catalog</DialogTitle>
+                        <DialogContent>
+                            <TabList
+                                selectedValue={selectedValue}
+                                onTabSelect={onTabSelect}
+                            >
+                                <Tab value="managed">Managed</Tab>
+                                <Tab value="sharing">Sharing</Tab>
+                            </TabList>
+                            <div className={styles.tabs}>
+                                <Field label="Name">
                                     <Input
-                                        value={values.storageRoot}
-                                        onChange={onStorageChange}
+                                        value={values.name}
+                                        onChange={onNameChange}
+                                        autoComplete="off"
+                                        autoCapitalize="off"
+                                        autoCorrect="off"
                                     />
                                 </Field>
-                            )}
-                            {selectedValue === "sharing" && (
-                                <>
-                                    <Field label="Provider name">
+                                {selectedValue === "managed" && (
+                                    <Field label="Storage root">
                                         <Input
-                                            value={values.providerName}
-                                            onChange={onProviderChange}
+                                            value={values.storageRoot}
+                                            onChange={onStorageChange}
+                                            autoComplete="off"
+                                            autoCapitalize="off"
+                                            autoCorrect="off"
                                         />
                                     </Field>
-                                    <Field label="Share name">
-                                        <Input
-                                            value={values.shareName}
-                                            onChange={onShareChange}
-                                        />
-                                    </Field>
-                                </>
-                            )}
-                        </div>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button appearance="primary" onClick={onClick}>
-                            Create
-                        </Button>
-                        <DialogTrigger disableButtonEnhancement>
-                            <Button appearance="secondary">Close</Button>
-                        </DialogTrigger>
-                    </DialogActions>
-                </DialogBody>
+                                )}
+                                {selectedValue === "sharing" && (
+                                    <>
+                                        <Field label="Provider name">
+                                            <Input
+                                                value={values.providerName}
+                                                onChange={onProviderChange}
+                                                autoComplete="off"
+                                                autoCapitalize="off"
+                                                autoCorrect="off"
+                                            />
+                                        </Field>
+                                        <Field label="Share name">
+                                            <Input
+                                                value={values.shareName}
+                                                onChange={onShareChange}
+                                                autoComplete="off"
+                                                autoCapitalize="off"
+                                                autoCorrect="off"
+                                            />
+                                        </Field>
+                                    </>
+                                )}
+                            </div>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button type="submit" appearance="primary">
+                                Create
+                            </Button>
+                            <DialogTrigger disableButtonEnhancement>
+                                <Button appearance="secondary">Close</Button>
+                            </DialogTrigger>
+                        </DialogActions>
+                    </DialogBody>
+                </form>
             </DialogSurface>
         </Dialog>
     );
