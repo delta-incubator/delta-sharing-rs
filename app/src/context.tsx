@@ -30,7 +30,7 @@ export function NotifyProvider({ children }: { children: React.ReactNode }) {
                 <Toast>
                     <ToastTitle>{message}</ToastTitle>
                 </Toast>,
-                { position: "top", intent },
+                { position: "bottom-end", intent },
             ),
         [],
     );

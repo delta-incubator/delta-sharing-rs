@@ -1,33 +1,14 @@
 import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
-    DialogTrigger,
-    Field,
-    Input,
     makeStyles,
     Tab,
     TabList,
     TabValue,
     tokens,
 } from "@fluentui/react-components";
-import { Add20Regular } from "@fluentui/react-icons";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-    Dispatch,
-    FormEventHandler,
-    SetStateAction,
-    useCallback,
-    useState,
-} from "react";
-import ucClient from "../../client";
-import { useNotify, useTreeContext } from "../../context";
-import { CreateCatalogRequestJson } from "../../gen/delta_sharing/catalogs/v1/svc_pb";
+import { useCallback, useState } from "react";
+import ucClient, { CreateCatalogRequest } from "../../client";
 import { InputChange, TabSelect } from "../../types";
+import { CreateResource, CreateFormState, Input } from "../forms";
 
 const useStyles = makeStyles({
     tabs: {
@@ -38,11 +19,22 @@ const useStyles = makeStyles({
     },
 });
 
-const useCallbacks = (
-    setValues: Dispatch<SetStateAction<CreateCatalogRequestJson>>,
-) => {
+function CatalogForm({
+    values,
+    setValues,
+}: CreateFormState<CreateCatalogRequest>) {
+    const styles = useStyles();
+
+    const [selectedValue, setSelectedValue] = useState<TabValue>("managed");
+    const onTabSelect: TabSelect = useCallback((_ev, data) => {
+        setSelectedValue(data.value);
+    }, []);
+
     const onNameChange: InputChange = useCallback((_ev, data) => {
         setValues((curr) => ({ ...curr, name: data.value }));
+    }, []);
+    const onCommentChange: InputChange = useCallback((_ev, data) => {
+        setValues((curr) => ({ ...curr, comment: data.value }));
     }, []);
     const onStorageChange: InputChange = useCallback((_ev, data) => {
         setValues((curr) => ({ ...curr, storageRoot: data.value }));
@@ -60,123 +52,59 @@ const useCallbacks = (
         [setValues],
     );
 
-    return { onNameChange, onStorageChange, onProviderChange, onShareChange };
-};
-
-const Default = () => {
-    const [values, setValues] = useState<CreateCatalogRequestJson>({});
-    const [open, setOpen] = useState(false);
-    const styles = useStyles();
-
-    const [selectedValue, setSelectedValue] = useState<TabValue>("managed");
-    const onTabSelect: TabSelect = useCallback((_ev, data) => {
-        setSelectedValue(data.value);
-    }, []);
-
-    const notify = useNotify();
-    const queryClient = useQueryClient();
-    const queryKey = useTreeContext();
-    const mutation = useMutation({
-        mutationFn: ucClient.catalogs.create,
-        onError: () => notify("error", "Failed to create catalog"),
-        onSuccess: () => {
-            notify("success", "Catalog created successfully");
-            queryClient.invalidateQueries({ queryKey });
-            setOpen(false);
-            setValues({});
-        },
-    });
-
-    const { onNameChange, onStorageChange, onProviderChange, onShareChange } =
-        useCallbacks(setValues);
-
-    const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
-        (ev) => {
-            ev.preventDefault();
-            mutation.mutate(values);
-        },
-        [mutation, values],
-    );
-
     return (
-        <Dialog open={open} onOpenChange={(_ev, data) => setOpen(data.open)}>
-            <DialogTrigger disableButtonEnhancement>
-                <Button
-                    icon={<Add20Regular />}
-                    appearance="subtle"
-                    title="Add"
+        <>
+            <TabList selectedValue={selectedValue} onTabSelect={onTabSelect}>
+                <Tab value="managed">Managed</Tab>
+                <Tab value="sharing">Sharing</Tab>
+            </TabList>
+            <div className={styles.tabs}>
+                <Input
+                    label="Name"
+                    value={values.name}
+                    onChange={onNameChange}
                 />
-            </DialogTrigger>
-            <DialogSurface>
-                <form onSubmit={handleSubmit}>
-                    <DialogBody>
-                        <DialogTitle>Create a new Catalog</DialogTitle>
-                        <DialogContent>
-                            <TabList
-                                selectedValue={selectedValue}
-                                onTabSelect={onTabSelect}
-                            >
-                                <Tab value="managed">Managed</Tab>
-                                <Tab value="sharing">Sharing</Tab>
-                            </TabList>
-                            <div className={styles.tabs}>
-                                <Field label="Name">
-                                    <Input
-                                        value={values.name}
-                                        onChange={onNameChange}
-                                        autoComplete="off"
-                                        autoCapitalize="off"
-                                        autoCorrect="off"
-                                    />
-                                </Field>
-                                {selectedValue === "managed" && (
-                                    <Field label="Storage root">
-                                        <Input
-                                            value={values.storageRoot}
-                                            onChange={onStorageChange}
-                                            autoComplete="off"
-                                            autoCapitalize="off"
-                                            autoCorrect="off"
-                                        />
-                                    </Field>
-                                )}
-                                {selectedValue === "sharing" && (
-                                    <>
-                                        <Field label="Provider name">
-                                            <Input
-                                                value={values.providerName}
-                                                onChange={onProviderChange}
-                                                autoComplete="off"
-                                                autoCapitalize="off"
-                                                autoCorrect="off"
-                                            />
-                                        </Field>
-                                        <Field label="Share name">
-                                            <Input
-                                                value={values.shareName}
-                                                onChange={onShareChange}
-                                                autoComplete="off"
-                                                autoCapitalize="off"
-                                                autoCorrect="off"
-                                            />
-                                        </Field>
-                                    </>
-                                )}
-                            </div>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button type="submit" appearance="primary">
-                                Create
-                            </Button>
-                            <DialogTrigger disableButtonEnhancement>
-                                <Button appearance="secondary">Close</Button>
-                            </DialogTrigger>
-                        </DialogActions>
-                    </DialogBody>
-                </form>
-            </DialogSurface>
-        </Dialog>
-    );
-};
+                <Input
+                    label="Comment"
+                    value={values.comment}
+                    onChange={onCommentChange}
+                />
+                {selectedValue === "managed" && (
+                    <Input
+                        label="Storage root"
+                        value={values.storageRoot}
+                        onChange={onStorageChange}
+                    />
+                )}
+                {selectedValue === "sharing" && (
+                    <>
+                        <Input
+                            label="Provider name"
+                            value={values.providerName}
+                            onChange={onProviderChange}
+                        />
 
-export default Default;
+                        <Input
+                            label="Share name"
+                            value={values.shareName}
+                            onChange={onShareChange}
+                        />
+                    </>
+                )}
+            </div>
+        </>
+    );
+}
+
+function CreateCatalog() {
+    return (
+        <CreateResource
+            createFn={ucClient.catalogs.create}
+            formComponent={CatalogForm}
+            resourceType="catalog"
+            defaultValues={{}}
+        />
+    );
+}
+
+export default CreateCatalog;

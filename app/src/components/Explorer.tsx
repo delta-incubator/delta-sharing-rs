@@ -7,6 +7,8 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import TreeView from "./TreeView";
+import CreateSchema from "./catalog/SchemaCreate";
+import CreateCatalog from "./catalog/CatalogCreate";
 import CreateCredential from "./credentials/CredentialCreate";
 import CreateExternalLocation from "./external_locations/ExternalLocationCreate";
 import CreateRecipient from "./recipients/RecipientCreate";
@@ -41,28 +43,22 @@ const useStyles = makeStyles({
 function ExplorerContent() {
     const { display, scope } = useExplorer();
 
-    if (
-        display === "create" &&
-        scope?.length === 1 &&
-        scope[0] === "credentials"
-    ) {
-        return <CreateCredential />;
-    }
-
-    if (
-        display === "create" &&
-        scope?.length === 1 &&
-        scope[0] === "external_locations"
-    ) {
-        return <CreateExternalLocation />;
-    }
-
-    if (
-        display === "create" &&
-        scope?.length === 1 &&
-        scope[0] === "recipients"
-    ) {
-        return <CreateRecipient />;
+    if (display === "create") {
+        if (scope?.length === 1) {
+            if (scope[0] === "catalogs") {
+                return <CreateCatalog />;
+            } else if (scope[0] === "credentials") {
+                return <CreateCredential />;
+            } else if (scope[0] === "external_locations") {
+                return <CreateExternalLocation />;
+            } else if (scope[0] === "recipients") {
+                return <CreateRecipient />;
+            }
+        } else if (scope?.length === 2) {
+            if (scope[0] === "catalogs") {
+                return <CreateSchema />;
+            }
+        }
     }
 
     return "No content";

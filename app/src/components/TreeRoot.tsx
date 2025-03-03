@@ -25,7 +25,7 @@ type TreeRootProps<Item> = {
     rootName: string;
 };
 
-const CreateItem = ({ scope }: { scope: string[] }) => {
+export const CreateItem = ({ scope }: { scope: string[] }) => {
     const { update } = useExplorer();
     const onClick = useCallback(() => {
         update({ display: "create", scope });

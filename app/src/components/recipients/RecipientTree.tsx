@@ -77,7 +77,7 @@ const ExtLocTree = ({ setSize, setPos }: TreeProps) => {
         <ItemTree
             setSize={setSize}
             setPos={setPos}
-            listFn={() => ucClient.externalLocations.list()}
+            listFn={() => ucClient.recipients.list()}
             itemComponent={RecipientItem}
             icon={<DatabasePlugConnectedRegular />}
             rootName="Recipients"

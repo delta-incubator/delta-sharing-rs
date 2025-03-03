@@ -18,7 +18,7 @@ import { NotifyContext, TreeContext } from "../../context";
 import { useTreeScope } from "../../hooks";
 import { TreeItemOnChange } from "../../types";
 import DeleteDialog from "../DeleteDialog";
-import CreateSchema from "./SchemaCreate";
+import { CreateItem } from "../TreeRoot";
 import SchemaItem from "./SchemaItem";
 
 // helper type that asserts the name property is a string
@@ -52,9 +52,9 @@ const CatalogItem = ({ info, ref }: CatalogItemProps) => {
     const notify = useContext(NotifyContext);
     const mutation = useMutation({
         mutationFn: ucClient.catalogs.delete,
-        onError: () => notify("error", `Failed to delete schema`),
+        onError: () => notify("error", `Failed to delete catalog`),
         onSuccess: () => {
-            notify("success", "Deleted schema successfully.");
+            notify("success", "Deleted catalog successfully.");
             queryClient.invalidateQueries({ queryKey: parentScope });
         },
     });
@@ -99,7 +99,7 @@ const CatalogItem = ({ info, ref }: CatalogItemProps) => {
                                 title={title}
                                 content={content}
                             />
-                            <CreateSchema name={info.name} />
+                            <CreateItem scope={scope} />
                         </>
                     }
                 >
