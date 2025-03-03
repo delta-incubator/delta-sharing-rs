@@ -9,8 +9,10 @@ import { ExternalLocationInfoJson } from "../gen/delta_sharing/external_location
 import { CreateExternalLocationRequestJson } from "../gen/delta_sharing/external_locations/v1/svc_pb";
 import { RecipientInfoJson } from "../gen/delta_sharing/recipients/v1/models_pb";
 import { CreateRecipientRequestJson } from "../gen/delta_sharing/recipients/v1/svc_pb";
+import { ShareInfoJson } from "../gen/delta_sharing/shares/v1/models_pb";
+import { CreateShareRequestJson } from "../gen/delta_sharing/shares/v1/svc_pb";
 
-export async function list_catalogs(maxResults: number | null = null) {
+export async function list_catalogs(maxResults?: number) {
     return await invoke<CatalogInfoJson[]>("list_catalogs", { maxResults });
 }
 
@@ -26,8 +28,8 @@ export async function delete_catalog(name: string) {
     return await invoke<void>("delete_catalog", { name });
 }
 
-export async function list_schemas(catalog: string) {
-    console.log("list_schemas", { catalog });
+export async function list_schemas(catalog: string, maxResults?: number) {
+    console.log("list_schemas", { catalog, maxResults });
     return await invoke<SchemaInfoJson[]>("list_schemas", { catalog });
 }
 
@@ -44,7 +46,7 @@ export async function delete_schema(catalog: string, name: string) {
     return await invoke<void>("delete_schema", { catalog, name });
 }
 
-export async function list_credentials(maxResults: number | null = null) {
+export async function list_credentials(maxResults?: number) {
     return await invoke<CredentialInfoJson[]>("list_credentials", {
         maxResults,
     });
@@ -62,9 +64,7 @@ export async function delete_credential(name: string) {
     return await invoke<void>("delete_credential", { name });
 }
 
-export async function list_external_locations(
-    maxResults: number | null = null,
-) {
+export async function list_external_locations(maxResults?: number) {
     return await invoke<ExternalLocationInfoJson[]>("list_external_locations", {
         maxResults,
     });
@@ -88,7 +88,7 @@ export async function delete_external_location(name: string) {
     return await invoke<void>("delete_external_location", { name });
 }
 
-export async function list_recipients(maxResults: number | null = null) {
+export async function list_recipients(maxResults?: number) {
     return await invoke<RecipientInfoJson[]>("list_recipients", { maxResults });
 }
 
@@ -102,6 +102,25 @@ export async function get_recipient(name: string) {
 
 export async function delete_recipient(name: string) {
     return await invoke<void>("delete_recipient", { name });
+}
+
+export async function list_shares(maxResults?: number) {
+    return await invoke<ShareInfoJson[]>("list_shares", { maxResults });
+}
+
+export async function create_share(request: CreateShareRequestJson) {
+    return await invoke<ShareInfoJson>("create_share", { request });
+}
+
+export async function get_share(name: string, includeSharedData?: boolean) {
+    return await invoke<ShareInfoJson>("get_share", {
+        name,
+        includeSharedData,
+    });
+}
+
+export async function delete_share(name: string) {
+    return await invoke<void>("delete_share", { name });
 }
 
 export default {
@@ -125,4 +144,8 @@ export default {
     create_recipient,
     get_recipient,
     delete_recipient,
+    list_shares,
+    create_share,
+    get_share,
+    delete_share,
 };

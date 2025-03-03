@@ -1,40 +1,35 @@
-import { FlatTreeItem, TreeItemLayout } from "@fluentui/react-components";
 import {
-    DatabasePlugConnectedRegular,
-    PlugConnectedRegular,
+    ShareMultipleRegular,
+    ShareAndroidRegular,
 } from "@fluentui/react-icons";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import ucClient, { ShareInfo } from "../../client";
+import ItemTree from "../TreeRoot";
 import { RefObject, useCallback } from "react";
-import ucClient, { RecipientInfo } from "../../client";
+import { FlatTreeItem, TreeItemLayout } from "@fluentui/react-components";
+import DeleteDialog from "../DeleteDialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNotify } from "../../context";
 import { useTreeScope } from "../../hooks";
-import DeleteDialog from "../DeleteDialog";
-import ItemTree from "../TreeRoot";
-
-type TreeProps = {
-    setSize: number;
-    setPos: number;
-};
 
 type LocInfo = {
     name: string;
-} & RecipientInfo;
+} & ShareInfo;
 
-type RecipientItemProps = {
+type ShareItemProps = {
     info: LocInfo;
     ref: RefObject<HTMLDivElement> | null;
 };
 
-const RecipientItem = ({ info, ref }: RecipientItemProps) => {
+const ShareItem = ({ info, ref }: ShareItemProps) => {
     const { scope, value, parentScope, parentValue } = useTreeScope(info.name);
 
     const notify = useNotify();
     const queryClient = useQueryClient();
     const mutation = useMutation({
-        mutationFn: ucClient.recipients.delete,
-        onError: () => notify("error", `Failed to delete recipient.`),
+        mutationFn: ucClient.shares.delete,
+        onError: () => notify("error", `Failed to delete share.`),
         onSuccess: () => {
-            notify("success", "Deleted recipient successfully.");
+            notify("success", "Deleted share successfully.");
             queryClient.invalidateQueries({ queryKey: parentScope });
         },
     });
@@ -57,7 +52,7 @@ const RecipientItem = ({ info, ref }: RecipientItemProps) => {
             itemType="leaf"
         >
             <TreeItemLayout
-                iconBefore={<PlugConnectedRegular />}
+                iconBefore={<ShareAndroidRegular />}
                 actions={
                     <DeleteDialog
                         onClick={onClick}
@@ -72,17 +67,22 @@ const RecipientItem = ({ info, ref }: RecipientItemProps) => {
     );
 };
 
-const RecipientTree = ({ setSize, setPos }: TreeProps) => {
+type ShareTreeProps = {
+    setSize: number;
+    setPos: number;
+};
+
+const ShareTree = ({ setSize, setPos }: ShareTreeProps) => {
     return (
         <ItemTree
             setSize={setSize}
             setPos={setPos}
-            listFn={() => ucClient.recipients.list()}
-            itemComponent={RecipientItem}
-            icon={<DatabasePlugConnectedRegular />}
-            rootName="Recipients"
+            listFn={() => ucClient.shares.list()}
+            itemComponent={ShareItem}
+            icon={<ShareMultipleRegular />}
+            rootName="Shares"
         />
     );
 };
 
-export default RecipientTree;
+export default ShareTree;

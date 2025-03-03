@@ -35,6 +35,10 @@ pub fn run() {
             client::get_recipient,
             client::create_recipient,
             client::delete_recipient,
+            client::list_shares,
+            client::get_share,
+            client::create_share,
+            client::delete_share,
         ])
         .setup(|app| {
             app.manage(unity_client);

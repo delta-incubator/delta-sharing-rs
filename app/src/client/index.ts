@@ -15,6 +15,8 @@ import {
     AuthenticationTypeJson,
 } from "../gen/delta_sharing/recipients/v1/models_pb";
 import { CreateRecipientRequestJson } from "../gen/delta_sharing/recipients/v1/svc_pb";
+import type { ShareInfoJson } from "../gen/delta_sharing/shares/v1/models_pb";
+import type { CreateShareRequestJson } from "../gen/delta_sharing/shares/v1/svc_pb";
 
 export type {
     CatalogInfoJson as CatalogInfo,
@@ -29,9 +31,11 @@ export type {
     RecipientInfoJson as RecipientInfo,
     AuthenticationTypeJson as AuthenticationType,
     CreateRecipientRequestJson as CreateRecipientRequest,
+    ShareInfoJson as ShareInfo,
+    CreateShareRequestJson as CreateShareRequest,
 };
 
-export async function listCatalogs(maxResults: number | null = null) {
+export async function listCatalogs(maxResults?: number) {
     return await tauri.list_catalogs(maxResults);
 }
 
@@ -69,7 +73,7 @@ export async function deleteSchema({
     return await tauri.delete_schema(catalog, name);
 }
 
-export async function listCredentials(maxResults: number | null = null) {
+export async function listCredentials(maxResults?: number) {
     return await tauri.list_credentials(maxResults);
 }
 
@@ -85,7 +89,7 @@ export async function deleteCredential(name: string) {
     return await tauri.delete_credential(name);
 }
 
-export async function listExternalLocations(maxResults: number | null = null) {
+export async function listExternalLocations(maxResults?: number) {
     return await tauri.list_external_locations(maxResults);
 }
 
@@ -103,7 +107,7 @@ export async function deleteExternalLocation(name: string) {
     return await tauri.delete_external_location(name);
 }
 
-export async function listRecipients(maxResults: number | null = null) {
+export async function listRecipients(maxResults?: number) {
     return await tauri.list_recipients(maxResults);
 }
 
@@ -117,6 +121,22 @@ export async function createRecipient(request: CreateRecipientRequestJson) {
 
 export async function deleteRecipient(name: string) {
     return await tauri.delete_recipient(name);
+}
+
+export async function listShares(maxResults?: number) {
+    return await tauri.list_shares(maxResults);
+}
+
+export async function getShare(name: string, includeSharedData?: boolean) {
+    return await tauri.get_share(name, includeSharedData);
+}
+
+export async function createShare(request: CreateShareRequestJson) {
+    return await tauri.create_share(request);
+}
+
+export async function deleteShare(name: string) {
+    return await tauri.delete_share(name);
 }
 
 export default {
@@ -149,5 +169,11 @@ export default {
         get: getRecipient,
         create: createRecipient,
         delete: deleteRecipient,
+    },
+    shares: {
+        list: listShares,
+        get: getShare,
+        create: createShare,
+        delete: deleteShare,
     },
 };

@@ -15,6 +15,7 @@ use crate::models::credentials::v1 as cred;
 use crate::models::external_locations::v1 as loc;
 use crate::models::recipients::v1 as rec;
 use crate::models::schemas::v1 as schema;
+use crate::models::shares::v1 as share;
 use crate::{Error, Result};
 
 pub struct UnityCatalogClient {
@@ -339,6 +340,59 @@ impl RecipientsClient {
     pub async fn delete(&self, name: impl Into<String>) -> Result<()> {
         let request = rec::DeleteRecipientRequest { name: name.into() };
         self.delete_recipient(&request).await
+    }
+}
+
+impl SharesClient {
+    pub fn list(
+        &self,
+        max_results: impl Into<Option<i32>>,
+    ) -> BoxStream<'_, Result<share::ShareInfo>> {
+        let max_results = max_results.into();
+        stream_paginated(max_results, move |max_results, page_token| async move {
+            let request = share::ListSharesRequest {
+                max_results,
+                page_token,
+            };
+            let res = self
+                .list_shares(&request)
+                .await
+                .map_err(|e| Error::generic(e.to_string()))?;
+            Ok((res.shares, max_results, res.next_page_token))
+        })
+        .map_ok(|resp| futures::stream::iter(resp.into_iter().map(Ok)))
+        .try_flatten()
+        .boxed()
+    }
+
+    pub async fn create(
+        &self,
+        name: impl Into<String>,
+        comment: impl Into<Option<String>>,
+    ) -> Result<share::ShareInfo> {
+        let request = share::CreateShareRequest {
+            name: name.into(),
+            comment: comment.into(),
+            ..Default::default()
+        };
+        self.create_share(&request).await
+    }
+
+    pub async fn get(
+        &self,
+        name: impl Into<String>,
+        include_shared_data: impl Into<Option<bool>>,
+    ) -> Result<share::ShareInfo> {
+        let request = share::GetShareRequest {
+            name: name.into(),
+            include_shared_data: include_shared_data.into(),
+        };
+        self.get_share(&request).await
+    }
+
+    pub async fn delete(&self, name: impl Into<String>) -> Result<()> {
+        let request = share::DeleteShareRequest { name: name.into() };
+        self.delete_share(&request).await
     }
 }
 

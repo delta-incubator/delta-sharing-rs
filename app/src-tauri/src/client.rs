@@ -7,6 +7,7 @@ use delta_sharing_common::models::external_locations::v1::{
 };
 use delta_sharing_common::models::recipients::v1::{CreateRecipientRequest, RecipientInfo};
 use delta_sharing_common::models::schemas::v1::{CreateSchemaRequest, SchemaInfo};
+use delta_sharing_common::models::shares::v1::{CreateShareRequest, ShareInfo};
 use delta_sharing_common::rest::client::UnityCatalogClient;
 use futures::TryStreamExt;
 use tauri::State;
@@ -187,4 +188,34 @@ pub async fn create_recipient(
 #[tauri::command]
 pub async fn delete_recipient(state: State<'_, UnityCatalogClient>, name: String) -> Result<()> {
     Ok(state.recipients().delete(name).await?)
+}
+
+#[tauri::command]
+pub async fn list_shares(
+    state: State<'_, UnityCatalogClient>,
+    max_results: Option<i32>,
+) -> Result<Vec<ShareInfo>> {
+    Ok(state.shares().list(max_results).try_collect().await?)
+}
+
+#[tauri::command]
+pub async fn get_share(
+    state: State<'_, UnityCatalogClient>,
+    name: String,
+    include_shared_data: Option<bool>,
+) -> Result<ShareInfo> {
+    Ok(state.shares().get(name, include_shared_data).await?)
+}
+
+#[tauri::command]
+pub async fn create_share(
+    state: State<'_, UnityCatalogClient>,
+    request: CreateShareRequest,
+) -> Result<ShareInfo> {
+    Ok(state.shares().create_share(&request).await?)
+}
+
+#[tauri::command]
+pub async fn delete_share(state: State<'_, UnityCatalogClient>, name: String) -> Result<()> {
+    Ok(state.shares().delete(name).await?)
 }

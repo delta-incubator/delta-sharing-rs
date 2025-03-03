@@ -12,6 +12,7 @@ import CreateCatalog from "./catalog/CatalogCreate";
 import CreateCredential from "./credentials/CredentialCreate";
 import CreateExternalLocation from "./external_locations/ExternalLocationCreate";
 import CreateRecipient from "./recipients/RecipientCreate";
+import CreateShare from "./shares/ShareCreate";
 import { ExplorerProvider, ExplorerPropsInner, useExplorer } from "../context";
 import { useState } from "react";
 
@@ -53,6 +54,8 @@ function ExplorerContent() {
                 return <CreateExternalLocation />;
             } else if (scope[0] === "recipients") {
                 return <CreateRecipient />;
+            } else if (scope[0] === "shares") {
+                return <CreateShare />;
             }
         } else if (scope?.length === 2) {
             if (scope[0] === "catalogs") {
