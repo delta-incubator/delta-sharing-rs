@@ -1,93 +1,30 @@
-import {
-    FlatTree,
-    FlatTreeItem,
-    Spinner,
-    TreeItemLayout,
-    TreeItemValue,
-} from "@fluentui/react-components";
-import { DatabaseMultiple20Regular } from "@fluentui/react-icons";
-import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useState } from "react";
-import ucClient from "../client";
-import CreateCatalog from "./CatalogCreate";
-import CatalogItem from "./CatalogItem";
-import { TreeItemOnChange } from "../types";
+import { FlatTree } from "@fluentui/react-components";
+import CatalogTree from "./catalog/CatalogTree";
+import CredentialTree from "./credentials/CredentialTree";
+import ExternalLocationTree from "./external_locations/ExternalLocationTree";
+import RecipientTree from "./recipients/RecipientTree";
+import ShareTree from "./shares/ShareTree";
 import { TreeContext } from "../context";
 
 export const TreeView = () => {
     return (
-        <>
-            <FlatTree appearance="subtle">
-                <CatalogTree value="Catalogs" />
-            </FlatTree>
-        </>
-    );
-};
-
-type CatalogTreeProps = {
-    value: TreeItemValue;
-};
-
-const CATALOGS_ROOT = "catalogs";
-const CATALOGS_SCOPE = [CATALOGS_ROOT];
-
-const CatalogTree = ({ value }: CatalogTreeProps) => {
-    const [open, setOpen] = useState(false);
-    const onOpenChange: TreeItemOnChange = useCallback(
-        (_ev, data) => setOpen(data.open),
-        [setOpen],
-    );
-
-    const { data, status } = useQuery({
-        queryKey: CATALOGS_SCOPE,
-        queryFn: () => ucClient.listCatalogs(),
-        enabled: open,
-        refetchInterval: 30000,
-    });
-
-    const firstItemRef = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-        if (open && status === "success") firstItemRef.current?.focus();
-    }, [open, status]);
-
-    return (
-        <>
-            <FlatTreeItem
-                value={CATALOGS_ROOT}
-                aria-level={1}
-                aria-setsize={5}
-                aria-posinset={1}
-                itemType="branch"
-                open={open}
-                onOpenChange={onOpenChange}
-            >
-                <TreeItemLayout
-                    iconBefore={<DatabaseMultiple20Regular />}
-                    expandIcon={
-                        open && status === "pending" ? (
-                            <Spinner size="extra-tiny" />
-                        ) : undefined
-                    }
-                    actions={<CreateCatalog />}
-                >
-                    {value.toString()}
-                </TreeItemLayout>
-            </FlatTreeItem>
-            {open &&
-                status === "success" &&
-                data.map(
-                    (item, index) =>
-                        item.name && (
-                            <TreeContext.Provider value={CATALOGS_SCOPE}>
-                                <CatalogItem
-                                    key={`${value}.${item.name}`}
-                                    ref={index === 0 ? firstItemRef : null}
-                                    info={item as { name: string }}
-                                />
-                            </TreeContext.Provider>
-                        ),
-                )}
-        </>
+        <FlatTree appearance="subtle">
+            <TreeContext.Provider value={["catalogs"]}>
+                <CatalogTree setSize={5} setPos={1} />
+            </TreeContext.Provider>
+            <TreeContext.Provider value={["credentials"]}>
+                <CredentialTree setSize={5} setPos={2} />
+            </TreeContext.Provider>
+            <TreeContext.Provider value={["external_locations"]}>
+                <ExternalLocationTree setSize={5} setPos={3} />
+            </TreeContext.Provider>
+            <TreeContext.Provider value={["recipients"]}>
+                <RecipientTree setSize={5} setPos={4} />
+            </TreeContext.Provider>
+            <TreeContext.Provider value={["shares"]}>
+                <ShareTree setSize={5} setPos={5} />
+            </TreeContext.Provider>
+        </FlatTree>
     );
 };
 

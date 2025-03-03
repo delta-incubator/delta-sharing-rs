@@ -69,6 +69,7 @@ pub trait CredentialsHandler: Send + Sync + 'static {
 struct CredentialContainer {
     pub azure_sp: Option<AzureServicePrincipal>,
     pub azure_msi: Option<AzureManagedIdentity>,
+    pub azure_key: Option<AzureStorageKey>,
 }
 
 impl CredentialContainer {
@@ -77,10 +78,17 @@ impl CredentialContainer {
             create_credential_request::Credential::AzureServicePrincipal(azure_sp) => Self {
                 azure_sp: Some(azure_sp),
                 azure_msi: None,
+                azure_key: None,
             },
             create_credential_request::Credential::AzureManagedIdentity(azure_msi) => Self {
                 azure_sp: None,
                 azure_msi: Some(azure_msi),
+                azure_key: None,
+            },
+            create_credential_request::Credential::AzureStorageKey(azure_key) => Self {
+                azure_sp: None,
+                azure_msi: None,
+                azure_key: Some(azure_key),
             },
         }
     }
@@ -90,10 +98,17 @@ impl CredentialContainer {
             update_credential_request::Credential::AzureServicePrincipal(azure_sp) => Self {
                 azure_sp: Some(azure_sp),
                 azure_msi: None,
+                azure_key: None,
             },
             update_credential_request::Credential::AzureManagedIdentity(azure_msi) => Self {
                 azure_sp: None,
                 azure_msi: Some(azure_msi),
+                azure_key: None,
+            },
+            update_credential_request::Credential::AzureStorageKey(azure_key) => Self {
+                azure_sp: None,
+                azure_msi: None,
+                azure_key: Some(azure_key),
             },
         }
     }

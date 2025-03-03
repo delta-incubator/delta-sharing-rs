@@ -255,7 +255,7 @@ fn drop_leading_whitespace(iter: &mut Peekable<impl Iterator<Item = char>>) {
 /// whitespace or unnecessary field escapes, e.g.:
 ///
 /// ```
-/// # use delta_sharing_common::resources::ResourceName;
+/// # use delta_sharing_common::ResourceName;
 /// let parsed: ResourceName = " `a` . `b.``c``.d` . `e` ".parse().unwrap();
 /// assert_eq!(parsed.to_string(), "a.`b.``c``.d`.e");
 /// ```
@@ -391,41 +391,6 @@ macro_rules! __resource_name {
 }
 #[doc(inline)]
 pub use __resource_name as resource_name;
-
-/// Joins two column names together, when one or both inputs might be literal strings representing
-/// simple (non-nested) column names. For example:
-///
-/// ```
-/// # use delta_kernel::expressions::{column_name, joined_resource_name};
-/// assert_eq!(joined_resource_name!("a.b", "c"), column_name!("a.b").join(&column_name!("c")))
-/// ```
-///
-/// To avoid accidental misuse, at least one argument must be a string literal. Thus, the following
-/// invocation would fail to compile:
-///
-/// ```fail_compile
-/// # use delta_kernel::expressions::joined_resource_name;
-/// let s = "s";
-/// let name = joined_resource_name!(s, s);
-/// ```
-#[macro_export]
-#[doc(hidden)]
-macro_rules! __joined_resource_name {
-    ( $left:literal, $right:literal ) => {
-        $crate::__resource_name!($left).join(&$crate::__resource_name!($right))
-    };
-    ( $left:literal, $right:expr ) => {
-        $crate::__resource_name!($left).join(&$right)
-    };
-    ( $left:expr, $right:literal) => {
-        $left.join(&$crate::__resource_name!($right))
-    };
-    ( $($other:tt)* ) => {
-        compile_error!("joined_resource_name!() requires at least one string literal input")
-    };
-}
-#[doc(inline)]
-pub use __joined_resource_name as joined_resource_name;
 use serde::{Deserialize, Serialize};
 
 #[cfg(test)]
@@ -450,39 +415,9 @@ mod test {
 
     #[test]
     fn test_column_name_macros() {
-        let simple = resource_name!("x");
-        let nested = resource_name!("x.y");
-
         assert_eq!(resource_name!("a"), ResourceName::new(["a"]));
         assert_eq!(resource_name!("a.b"), ResourceName::new(["a", "b"]));
         assert_eq!(resource_name!("a.b.c"), ResourceName::new(["a", "b", "c"]));
-
-        assert_eq!(
-            joined_resource_name!("a", "b"),
-            ResourceName::new(["a", "b"])
-        );
-        assert_eq!(
-            joined_resource_name!("a", "b"),
-            ResourceName::new(["a", "b"])
-        );
-
-        assert_eq!(
-            joined_resource_name!(simple, "b"),
-            ResourceName::new(["x", "b"])
-        );
-        assert_eq!(
-            joined_resource_name!(nested, "b"),
-            ResourceName::new(["x", "y", "b"])
-        );
-
-        assert_eq!(
-            joined_resource_name!("a", &simple),
-            ResourceName::new(["a", "x"])
-        );
-        assert_eq!(
-            joined_resource_name!("a", &nested),
-            ResourceName::new(["a", "x", "y"])
-        );
     }
 
     #[test]

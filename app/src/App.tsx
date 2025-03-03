@@ -1,142 +1,57 @@
-import { useState, useRef, useCallback, useEffect } from "react";
 import "./App.css";
 import {
-    DrawerBody,
-    DrawerHeader,
-    DrawerHeaderTitle,
-    InlineDrawer,
     makeStyles,
-    mergeClasses,
     tokens,
+    Toolbar,
+    ToolbarButton,
+    shorthands,
 } from "@fluentui/react-components";
-import TreeView from "./components/TreeView";
+import Explorer from "./components/Explorer";
+import { SettingsRegular } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
     root: {
-        // border: "2px solid #ccc",
-        overflow: "hidden",
-
         display: "flex",
         height: "100vh",
         width: "100vw",
-        // backgroundColor: "#fff",
-        userSelect: "auto",
+        flexDirection: "column",
     },
 
-    rootResizerActive: {
-        userSelect: "none",
+    toolbar: {
+        borderBottomColor: tokens.colorNeutralForeground4,
+        borderBottomWidth: "1px",
+        borderBottomStyle: "solid",
     },
 
-    container: {
-        position: "relative",
-    },
-
-    drawer: {
-        willChange: "width",
-        transitionProperty: "width",
-        transitionDuration: "16.666ms", // 60fps
-    },
-
-    resizer: {
-        borderRight: `1px solid ${tokens.colorNeutralBackground5}`,
-
-        width: "8px",
-        position: "absolute",
-        top: 0,
-        right: 0,
-        bottom: 0,
-        cursor: "col-resize",
-        resize: "horizontal",
-
+    button: {
+        ...shorthands.borderColor(tokens.colorBrandStroke2),
         ":hover": {
-            borderRightWidth: "4px",
+            ...shorthands.borderColor(tokens.colorNeutralStroke1),
         },
     },
 
-    resizerActive: {
-        borderRightWidth: "4px",
-        borderRightColor: tokens.colorNeutralBackground5Pressed,
-    },
-
     content: {
-        margin: `${tokens.spacingVerticalXL} ${tokens.spacingHorizontalXL}`,
-        flex: "1",
+        flex: 1,
     },
 });
 
 function App() {
     const styles = useStyles();
 
-    const animationFrame = useRef<number>(0);
-    const sidebarRef = useRef<HTMLDivElement>(null);
-    const [isResizing, setIsResizing] = useState(false);
-    const [sidebarWidth, setSidebarWidth] = useState(320);
-
-    const startResizing = useCallback(() => setIsResizing(true), []);
-    const stopResizing = useCallback(() => setIsResizing(false), []);
-
-    const resize = useCallback(
-        ({ clientX }: { clientX: number }) => {
-            animationFrame.current = requestAnimationFrame(() => {
-                if (isResizing && sidebarRef.current) {
-                    setSidebarWidth(
-                        clientX -
-                            sidebarRef.current.getBoundingClientRect().left,
-                    );
-                }
-            });
-        },
-        [isResizing],
-    );
-
-    const ResizeComponent: React.FC = () => (
-        <div
-            className={mergeClasses(
-                styles.resizer,
-                isResizing && styles.resizerActive,
-            )}
-            onMouseDown={startResizing}
-        />
-    );
-
-    useEffect(() => {
-        window.addEventListener("mousemove", resize);
-        window.addEventListener("mouseup", stopResizing);
-
-        return () => {
-            cancelAnimationFrame(animationFrame.current);
-            window.removeEventListener("mousemove", resize);
-            window.removeEventListener("mouseup", stopResizing);
-        };
-    }, [resize, stopResizing]);
-
     return (
-        <div
-            className={mergeClasses(
-                styles.root,
-                isResizing && styles.rootResizerActive,
-            )}
-        >
-            <div className={styles.container}>
-                <InlineDrawer
-                    open
-                    ref={sidebarRef}
-                    className={styles.drawer}
-                    style={{ width: `${sidebarWidth}px` }}
-                    onMouseDown={(e) => e.preventDefault()}
-                >
-                    <DrawerHeader>
-                        <DrawerHeaderTitle>Catalog Browser</DrawerHeaderTitle>
-                    </DrawerHeader>
-                    <DrawerBody>
-                        <TreeView />
-                    </DrawerBody>
-                </InlineDrawer>
-                <ResizeComponent />
+        <div className={styles.root}>
+            <div className={styles.toolbar}>
+                <Toolbar size="medium">
+                    <ToolbarButton
+                        className={styles.button}
+                        appearance="subtle"
+                        icon={<SettingsRegular />}
+                    />
+                </Toolbar>
             </div>
-            <p className={styles.content}>
-                Resize the drawer to see the change
-            </p>
+            <div className={styles.content}>
+                <Explorer />
+            </div>
         </div>
     );
 }

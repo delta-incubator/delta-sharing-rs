@@ -55,7 +55,7 @@ impl From<Error> for crate::Error {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct GoogleConfig {
+pub struct GoogleConfig {
     pub credentials: GcpCredentialProvider,
 
     pub retry_config: RetryConfig,

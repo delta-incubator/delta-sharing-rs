@@ -4,6 +4,7 @@ pub use credentials::get_router as get_credentials_router;
 pub use external_locations::get_router as get_external_locations_router;
 pub use recipients::get_router as get_recipients_router;
 pub use schemas::get_router as get_schemas_router;
+pub use shares::get_router as get_shares_router;
 pub use sharing::get_router as get_sharing_router;
 
 mod auth;
@@ -96,6 +97,21 @@ mod external_locations {
                 "/external-locations/{name}",
                 delete(delete_external_location::<T>),
             )
+            .with_state(handler)
+    }
+}
+
+mod shares {
+    use crate::api::shares::*;
+    use axum::routing::{delete, get, post, Router};
+
+    pub fn get_router<T: SharesHandler + Clone>(handler: T) -> Router {
+        Router::new()
+            .route("/shares", get(list_shares::<T>))
+            .route("/shares", post(create_share::<T>))
+            .route("/shares/{name}", get(get_share::<T>))
+            //.route("/shares/{name}", patch(update_share::<T>))
+            .route("/shares/{name}", delete(delete_share::<T>))
             .with_state(handler)
     }
 }

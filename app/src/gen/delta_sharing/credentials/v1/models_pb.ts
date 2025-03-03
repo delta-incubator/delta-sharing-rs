@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file delta_sharing/credentials/v1/models.proto.
  */
 export const file_delta_sharing_credentials_v1_models: GenFile = /*@__PURE__*/
-  fileDesc("CilkZWx0YV9zaGFyaW5nL2NyZWRlbnRpYWxzL3YxL21vZGVscy5wcm90bxIcZGVsdGFfc2hhcmluZy5jcmVkZW50aWFscy52MSKdAQoVQXp1cmVTZXJ2aWNlUHJpbmNpcGFsEhkKDGRpcmVjdG9yeV9pZBgBIAEoCUID4EECEhsKDmFwcGxpY2F0aW9uX2lkGAIgASgJQgPgQQISFwoNY2xpZW50X3NlY3JldBgDIAEoCUgAEh4KFGZlZGVyYXRlZF90b2tlbl9maWxlGAUgASgJSABCEwoKY3JlZGVudGlhbBIFukgCCAEifQoUQXp1cmVNYW5hZ2VkSWRlbnRpdHkSGAoJb2JqZWN0X2lkGAEgASgJQgPgQQFIABIdCg5hcHBsaWNhdGlvbl9pZBgCIAEoCUID4EEBSAASHgoPbXNpX3Jlc291cmNlX2lkGAMgASgJQgPgQQFIAEIMCgppZGVudGlmaWVyItkECg5DcmVkZW50aWFsSW5mbxIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEjYKB3B1cnBvc2UYAyABKA4yJS5kZWx0YV9zaGFyaW5nLmNyZWRlbnRpYWxzLnYxLlB1cnBvc2USEQoJcmVhZF9vbmx5GAQgASgIEhQKB2NvbW1lbnQYBSABKAlIAYgBARISCgVvd25lchgGIAEoCUgCiAEBEhcKCmNyZWF0ZWRfYXQYByABKANIA4gBARIXCgpjcmVhdGVkX2J5GAggASgJSASIAQESFwoKdXBkYXRlZF9hdBgJIAEoA0gFiAEBEhcKCnVwZGF0ZWRfYnkYCiABKAlIBogBARIgChh1c2VkX2Zvcl9tYW5hZ2VkX3N0b3JhZ2UYCyABKAgSFgoJZnVsbF9uYW1lGAwgASgJSAeIAQESVgoXYXp1cmVfc2VydmljZV9wcmluY2lwYWwYZCABKAsyMy5kZWx0YV9zaGFyaW5nLmNyZWRlbnRpYWxzLnYxLkF6dXJlU2VydmljZVByaW5jaXBhbEgAElQKFmF6dXJlX21hbmFnZWRfaWRlbnRpdHkYZSABKAsyMi5kZWx0YV9zaGFyaW5nLmNyZWRlbnRpYWxzLnYxLkF6dXJlTWFuYWdlZElkZW50aXR5SABCDAoKY3JlZGVudGlhbEIKCghfY29tbWVudEIICgZfb3duZXJCDQoLX2NyZWF0ZWRfYXRCDQoLX2NyZWF0ZWRfYnlCDQoLX3VwZGF0ZWRfYXRCDQoLX3VwZGF0ZWRfYnlCDAoKX2Z1bGxfbmFtZSo8CgdQdXJwb3NlEhcKE1BVUlBPU0VfVU5TUEVDSUZJRUQQABILCgdTVE9SQUdFEAESCwoHU0VSVklDRRACQpgCCiBjb20uZGVsdGFfc2hhcmluZy5jcmVkZW50aWFscy52MUILTW9kZWxzUHJvdG9QAVpZZ2l0aHViLmNvbS9kZWx0YS1pbmN1YmF0b3IvZGVsdGEtc2hhcmluZy1ycy9nby9kZWx0YV9zaGFyaW5nL2NyZWRlbnRpYWxzL3YxO2NyZWRlbnRpYWxzdjGiAgNEQ1iqAhtEZWx0YVNoYXJpbmcuQ3JlZGVudGlhbHMuVjHKAhtEZWx0YVNoYXJpbmdcQ3JlZGVudGlhbHNcVjHiAidEZWx0YVNoYXJpbmdcQ3JlZGVudGlhbHNcVjFcR1BCTWV0YWRhdGHqAh1EZWx0YVNoYXJpbmc6OkNyZWRlbnRpYWxzOjpWMWIGcHJvdG8z", [file_buf_validate_validate, file_google_api_annotations, file_google_api_client, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_struct]);
+  fileDesc("CilkZWx0YV9zaGFyaW5nL2NyZWRlbnRpYWxzL3YxL21vZGVscy5wcm90bxIcZGVsdGFfc2hhcmluZy5jcmVkZW50aWFscy52MSKdAQoVQXp1cmVTZXJ2aWNlUHJpbmNpcGFsEhkKDGRpcmVjdG9yeV9pZBgBIAEoCUID4EECEhsKDmFwcGxpY2F0aW9uX2lkGAIgASgJQgPgQQISFwoNY2xpZW50X3NlY3JldBgDIAEoCUgAEh4KFGZlZGVyYXRlZF90b2tlbl9maWxlGAUgASgJSABCEwoKY3JlZGVudGlhbBIFukgCCAEifQoUQXp1cmVNYW5hZ2VkSWRlbnRpdHkSGAoJb2JqZWN0X2lkGAEgASgJQgPgQQFIABIdCg5hcHBsaWNhdGlvbl9pZBgCIAEoCUID4EEBSAASHgoPbXNpX3Jlc291cmNlX2lkGAMgASgJQgPgQQFIAEIMCgppZGVudGlmaWVyIkYKD0F6dXJlU3RvcmFnZUtleRIZCgxhY2NvdW50X25hbWUYASABKAlCA+BBAhIYCgthY2NvdW50X2tleRgCIAEoCUID4EECIqUFCg5DcmVkZW50aWFsSW5mbxIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEjYKB3B1cnBvc2UYAyABKA4yJS5kZWx0YV9zaGFyaW5nLmNyZWRlbnRpYWxzLnYxLlB1cnBvc2USEQoJcmVhZF9vbmx5GAQgASgIEhQKB2NvbW1lbnQYBSABKAlIAYgBARISCgVvd25lchgGIAEoCUgCiAEBEhcKCmNyZWF0ZWRfYXQYByABKANIA4gBARIXCgpjcmVhdGVkX2J5GAggASgJSASIAQESFwoKdXBkYXRlZF9hdBgJIAEoA0gFiAEBEhcKCnVwZGF0ZWRfYnkYCiABKAlIBogBARIgChh1c2VkX2Zvcl9tYW5hZ2VkX3N0b3JhZ2UYCyABKAgSFgoJZnVsbF9uYW1lGAwgASgJSAeIAQESVgoXYXp1cmVfc2VydmljZV9wcmluY2lwYWwYZCABKAsyMy5kZWx0YV9zaGFyaW5nLmNyZWRlbnRpYWxzLnYxLkF6dXJlU2VydmljZVByaW5jaXBhbEgAElQKFmF6dXJlX21hbmFnZWRfaWRlbnRpdHkYZSABKAsyMi5kZWx0YV9zaGFyaW5nLmNyZWRlbnRpYWxzLnYxLkF6dXJlTWFuYWdlZElkZW50aXR5SAASSgoRYXp1cmVfc3RvcmFnZV9rZXkYZiABKAsyLS5kZWx0YV9zaGFyaW5nLmNyZWRlbnRpYWxzLnYxLkF6dXJlU3RvcmFnZUtleUgAQgwKCmNyZWRlbnRpYWxCCgoIX2NvbW1lbnRCCAoGX293bmVyQg0KC19jcmVhdGVkX2F0Qg0KC19jcmVhdGVkX2J5Qg0KC191cGRhdGVkX2F0Qg0KC191cGRhdGVkX2J5QgwKCl9mdWxsX25hbWUqPAoHUHVycG9zZRIXChNQVVJQT1NFX1VOU1BFQ0lGSUVEEAASCwoHU1RPUkFHRRABEgsKB1NFUlZJQ0UQAkKYAgogY29tLmRlbHRhX3NoYXJpbmcuY3JlZGVudGlhbHMudjFCC01vZGVsc1Byb3RvUAFaWWdpdGh1Yi5jb20vZGVsdGEtaW5jdWJhdG9yL2RlbHRhLXNoYXJpbmctcnMvZ28vZGVsdGFfc2hhcmluZy9jcmVkZW50aWFscy92MTtjcmVkZW50aWFsc3YxogIDRENYqgIbRGVsdGFTaGFyaW5nLkNyZWRlbnRpYWxzLlYxygIbRGVsdGFTaGFyaW5nXENyZWRlbnRpYWxzXFYx4gInRGVsdGFTaGFyaW5nXENyZWRlbnRpYWxzXFYxXEdQQk1ldGFkYXRh6gIdRGVsdGFTaGFyaW5nOjpDcmVkZW50aWFsczo6VjFiBnByb3RvMw", [file_buf_validate_validate, file_google_api_annotations, file_google_api_client, file_google_api_field_behavior, file_google_api_resource, file_google_protobuf_struct]);
 
 /**
  * @generated from message delta_sharing.credentials.v1.AzureServicePrincipal
@@ -170,6 +170,51 @@ export const AzureManagedIdentitySchema: GenMessage<AzureManagedIdentity, AzureM
   messageDesc(file_delta_sharing_credentials_v1_models, 1);
 
 /**
+ * @generated from message delta_sharing.credentials.v1.AzureStorageKey
+ */
+export type AzureStorageKey = Message<"delta_sharing.credentials.v1.AzureStorageKey"> & {
+  /**
+   * The name of the storage account.
+   *
+   * @generated from field: string account_name = 1;
+   */
+  accountName: string;
+
+  /**
+   * The account key of the storage account.
+   *
+   * @generated from field: string account_key = 2;
+   */
+  accountKey: string;
+};
+
+/**
+ * @generated from message delta_sharing.credentials.v1.AzureStorageKey
+ */
+export type AzureStorageKeyJson = {
+  /**
+   * The name of the storage account.
+   *
+   * @generated from field: string account_name = 1;
+   */
+  accountName?: string;
+
+  /**
+   * The account key of the storage account.
+   *
+   * @generated from field: string account_key = 2;
+   */
+  accountKey?: string;
+};
+
+/**
+ * Describes the message delta_sharing.credentials.v1.AzureStorageKey.
+ * Use `create(AzureStorageKeySchema)` to create a new message.
+ */
+export const AzureStorageKeySchema: GenMessage<AzureStorageKey, AzureStorageKeyJson> = /*@__PURE__*/
+  messageDesc(file_delta_sharing_credentials_v1_models, 2);
+
+/**
  * @generated from message delta_sharing.credentials.v1.CredentialInfo
  */
 export type CredentialInfo = Message<"delta_sharing.credentials.v1.CredentialInfo"> & {
@@ -278,6 +323,12 @@ export type CredentialInfo = Message<"delta_sharing.credentials.v1.CredentialInf
      */
     value: AzureManagedIdentity;
     case: "azureManagedIdentity";
+  } | {
+    /**
+     * @generated from field: delta_sharing.credentials.v1.AzureStorageKey azure_storage_key = 102;
+     */
+    value: AzureStorageKey;
+    case: "azureStorageKey";
   } | { case: undefined; value?: undefined };
 };
 
@@ -384,6 +435,11 @@ export type CredentialInfoJson = {
    * @generated from field: delta_sharing.credentials.v1.AzureManagedIdentity azure_managed_identity = 101;
    */
   azureManagedIdentity?: AzureManagedIdentityJson;
+
+  /**
+   * @generated from field: delta_sharing.credentials.v1.AzureStorageKey azure_storage_key = 102;
+   */
+  azureStorageKey?: AzureStorageKeyJson;
 };
 
 /**
@@ -391,7 +447,7 @@ export type CredentialInfoJson = {
  * Use `create(CredentialInfoSchema)` to create a new message.
  */
 export const CredentialInfoSchema: GenMessage<CredentialInfo, CredentialInfoJson> = /*@__PURE__*/
-  messageDesc(file_delta_sharing_credentials_v1_models, 2);
+  messageDesc(file_delta_sharing_credentials_v1_models, 3);
 
 /**
  * @generated from enum delta_sharing.credentials.v1.Purpose

@@ -1227,6 +1227,18 @@ components:
             Location of the file containing a federated token.
 
              Specifically useful for workload identity federation.
+    AzureStorageKey:
+      required:
+        - accountName
+        - accountKey
+      type: object
+      properties:
+        accountName:
+          type: string
+          description: The name of the storage account.
+        accountKey:
+          type: string
+          description: The account key of the storage account.
     CatalogInfo:
       type: object
       properties:
@@ -1333,6 +1345,8 @@ components:
           $ref: '#/components/schemas/AzureServicePrincipal'
         azureManagedIdentity:
           $ref: '#/components/schemas/AzureManagedIdentity'
+        azureStorageKey:
+          $ref: '#/components/schemas/AzureStorageKey'
       description: Create a new credential
     CreateExternalLocationRequest:
       required:
@@ -1479,6 +1493,8 @@ components:
           $ref: '#/components/schemas/AzureServicePrincipal'
         azureManagedIdentity:
           $ref: '#/components/schemas/AzureManagedIdentity'
+        azureStorageKey:
+          $ref: '#/components/schemas/AzureStorageKey'
     DataObject:
       type: object
       properties:
@@ -2185,6 +2201,8 @@ components:
           $ref: '#/components/schemas/AzureServicePrincipal'
         azureManagedIdentity:
           $ref: '#/components/schemas/AzureManagedIdentity'
+        azureStorageKey:
+          $ref: '#/components/schemas/AzureStorageKey'
       description: Update a credential
     UpdateExternalLocationRequest:
       required:

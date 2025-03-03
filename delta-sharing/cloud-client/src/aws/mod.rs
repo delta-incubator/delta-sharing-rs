@@ -67,7 +67,7 @@ impl From<Error> for crate::Error {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct AmazonConfig {
+pub struct AmazonConfig {
     pub region: String,
     pub credentials: AwsCredentialProvider,
     pub session_provider: Option<AwsCredentialProvider>,

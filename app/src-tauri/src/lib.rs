@@ -23,6 +23,22 @@ pub fn run() {
             client::get_schema,
             client::create_schema,
             client::delete_schema,
+            client::list_credentials,
+            client::get_credential,
+            client::create_credential,
+            client::delete_credential,
+            client::list_external_locations,
+            client::get_external_location,
+            client::create_external_location,
+            client::delete_external_location,
+            client::list_recipients,
+            client::get_recipient,
+            client::create_recipient,
+            client::delete_recipient,
+            client::list_shares,
+            client::get_share,
+            client::create_share,
+            client::delete_share,
         ])
         .setup(|app| {
             app.manage(unity_client);
