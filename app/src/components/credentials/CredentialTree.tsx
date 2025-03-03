@@ -1,100 +1,86 @@
-import {
-    FlatTreeItem,
-    TreeItemLayout,
-    Spinner,
-    Button,
-} from "@fluentui/react-components";
-import { KeyMultipleRegular, AddRegular } from "@fluentui/react-icons";
-import { useQuery } from "@tanstack/react-query";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import ucClient from "../../client";
-import { TreeContext, useExplorer, useTreeScope } from "../../context";
-import { TreeItemOnChange } from "../../types";
-import CredentialItem from "./CredentialItem";
+import { FlatTreeItem, TreeItemLayout } from "@fluentui/react-components";
+import { KeyMultipleRegular, KeyRegular } from "@fluentui/react-icons";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { RefObject, useCallback, useContext } from "react";
+import ucClient, { CredentialInfo } from "../../client";
+import { NotifyContext, TreeContext } from "../../context";
+import { useTreeScope } from "../../hooks";
+import DeleteDialog from "../DeleteDialog";
+import ItemTree from "../TreeRoot";
+
+// helper type that asserts the name property is a string
+type LocCredentialInfo = {
+    name: string;
+} & CredentialInfo;
+
+type SchemaItemProps = {
+    info: LocCredentialInfo;
+    ref: RefObject<HTMLDivElement> | null;
+};
+
+const CredentialItem = ({ info, ref }: SchemaItemProps) => {
+    const queryKey = useContext(TreeContext);
+    const { value, parentValue } = useTreeScope(info.name);
+
+    const notify = useContext(NotifyContext);
+    const queryClient = useQueryClient();
+    const mutation = useMutation({
+        mutationFn: ucClient.credentials.delete,
+        onError: () => notify("error", `Failed to delete credential`),
+        onSuccess: () => {
+            notify("success", "Deleted credential successfully.");
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
+
+    // properties for the delete dialog
+    const title = `Delete ${info.name}?`;
+    const content = `Are you sure you want to delete ${info.name}?`;
+    const onClick = useCallback(() => {
+        mutation.mutate(info.name);
+    }, [mutation, queryKey, info]);
+
+    return (
+        <FlatTreeItem
+            ref={ref}
+            parentValue={parentValue}
+            value={value}
+            aria-level={queryKey.length + 1}
+            aria-setsize={1}
+            aria-posinset={1}
+            itemType="leaf"
+        >
+            <TreeItemLayout
+                iconBefore={<KeyRegular />}
+                actions={
+                    <DeleteDialog
+                        onClick={onClick}
+                        title={title}
+                        content={content}
+                    />
+                }
+            >
+                {info.name}
+            </TreeItemLayout>
+        </FlatTreeItem>
+    );
+};
 
 type CatalogTreeProps = {
     setSize: number;
     setPos: number;
 };
 
-const useCredentials = (open: boolean) => {
-    const rootScope = useContext(TreeContext);
-    const { data, status } = useQuery({
-        queryKey: rootScope,
-        queryFn: () => ucClient.credentials.list(),
-        enabled: open,
-        refetchInterval: 30000,
-    });
-
-    return { data: data || [], status };
-};
-
-const CreateCredential = () => {
-    const { update } = useExplorer();
-    const scope = useTreeScope();
-    const onClick = useCallback(() => {
-        update({ display: "create", scope });
-    }, [update]);
-
-    return (
-        <Button appearance="subtle" onClick={onClick} icon={<AddRegular />} />
-    );
-};
-
 const CredentialTree = ({ setSize, setPos }: CatalogTreeProps) => {
-    const [open, setOpen] = useState(false);
-    const onOpenChange: TreeItemOnChange = useCallback(
-        (_ev, data) => setOpen(data.open),
-        [setOpen],
-    );
-
-    const rootScope = useContext(TreeContext);
-    const rootValue = rootScope[0];
-    const { data, status } = useCredentials(open);
-
-    const firstItemRef = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-        if (open && status === "success") firstItemRef.current?.focus();
-    }, [open, status]);
-
     return (
-        <>
-            <FlatTreeItem
-                value={rootValue}
-                aria-level={1}
-                aria-setsize={setSize}
-                aria-posinset={setPos}
-                itemType="branch"
-                open={open}
-                onOpenChange={onOpenChange}
-            >
-                <TreeItemLayout
-                    iconBefore={<KeyMultipleRegular />}
-                    expandIcon={
-                        open && status === "pending" ? (
-                            <Spinner size="extra-tiny" />
-                        ) : undefined
-                    }
-                    actions={<CreateCredential />}
-                >
-                    Credentials
-                </TreeItemLayout>
-            </FlatTreeItem>
-            {open &&
-                status === "success" &&
-                data.map(
-                    (item, index) =>
-                        item.name && (
-                            <TreeContext.Provider value={rootScope}>
-                                <CredentialItem
-                                    key={`${rootValue}.${item.name}`}
-                                    ref={index === 0 ? firstItemRef : null}
-                                    info={item as { name: string }}
-                                />
-                            </TreeContext.Provider>
-                        ),
-                )}
-        </>
+        <ItemTree
+            setSize={setSize}
+            setPos={setPos}
+            listFn={() => ucClient.credentials.list()}
+            itemComponent={CredentialItem}
+            icon={<KeyMultipleRegular />}
+            rootName="Credentials"
+        />
     );
 };
 

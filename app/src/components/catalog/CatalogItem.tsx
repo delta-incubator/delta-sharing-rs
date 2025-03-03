@@ -39,7 +39,7 @@ const CatalogItem = ({ info, ref }: CatalogItemProps) => {
     );
 
     const parentScope = useContext(TreeContext);
-    const { scope, value, parentValue } = useTreeScope(parentScope, info.name);
+    const { scope, value, parentValue } = useTreeScope(info.name);
     const { data, status } = useQuery({
         queryKey: scope,
         queryFn: ({ queryKey }) =>

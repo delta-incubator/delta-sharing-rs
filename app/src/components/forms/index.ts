@@ -1,7 +1,8 @@
 import { Dispatch, SetStateAction } from "react";
+import CreateResource from "./CreateResource";
 import Input from "./Input";
 
-export { Input };
+export { CreateResource, Input };
 
 export type CreateFormState<T> = {
     values: T;

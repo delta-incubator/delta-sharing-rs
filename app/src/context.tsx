@@ -15,7 +15,7 @@ import React, {
 
 export const TreeContext = createContext<string[]>([]);
 export const TreeProvider = TreeContext.Provider;
-export const useTreeScope = () => React.useContext(TreeContext);
+export const useTreeContext = () => React.useContext(TreeContext);
 
 export const NotifyContext = createContext<
     (intent: ToastIntent, message: string) => void

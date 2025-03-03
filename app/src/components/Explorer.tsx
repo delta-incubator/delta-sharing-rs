@@ -8,6 +8,7 @@ import {
 } from "@fluentui/react-components";
 import TreeView from "./TreeView";
 import CreateCredential from "./credentials/CredentialCreate";
+import CreateExternalLocation from "./external_locations/ExternalLocationCreate";
 import { ExplorerProvider, ExplorerPropsInner, useExplorer } from "../context";
 import { useState } from "react";
 
@@ -45,6 +46,14 @@ function ExplorerContent() {
         scope[0] === "credentials"
     ) {
         return <CreateCredential />;
+    }
+
+    if (
+        display === "create" &&
+        scope?.length === 1 &&
+        scope[0] === "external_locations"
+    ) {
+        return <CreateExternalLocation />;
     }
     return "No content";
 }

@@ -1,8 +1,8 @@
 import { FlatTreeItem, TreeItemLayout } from "@fluentui/react-components";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { RefObject, useCallback, useContext } from "react";
+import { RefObject, useCallback } from "react";
 import ucClient, { SchemaInfo } from "../../client";
-import { NotifyContext, TreeContext } from "../../context";
+import { useTreeContext, useNotify } from "../../context";
 import { useTreeScope } from "../../hooks";
 import DeleteDialog from "../DeleteDialog";
 
@@ -17,11 +17,10 @@ type SchemaItemProps = {
 };
 
 const SchemaItem = ({ info, ref }: SchemaItemProps) => {
-    const parentScope = useContext(TreeContext);
-    const { value, parentValue } = useTreeScope(parentScope, info.name);
+    const { value, parentValue } = useTreeScope(info.name);
 
-    const queryKey = useContext(TreeContext);
-    const notify = useContext(NotifyContext);
+    const queryKey = useTreeContext();
+    const notify = useNotify();
     const queryClient = useQueryClient();
     const mutation = useMutation({
         mutationFn: ucClient.schemas.delete,
@@ -37,7 +36,7 @@ const SchemaItem = ({ info, ref }: SchemaItemProps) => {
     const content = `Are you sure you want to delete ${info.name}?`;
     const onClick = useCallback(() => {
         mutation.mutate({
-            catalog: parentScope[parentScope.length - 1],
+            catalog: queryKey[queryKey.length - 1],
             name: info.name,
         });
     }, [mutation, queryKey, info]);
@@ -47,7 +46,7 @@ const SchemaItem = ({ info, ref }: SchemaItemProps) => {
             ref={ref}
             parentValue={parentValue}
             value={value}
-            aria-level={parentScope.length + 1}
+            aria-level={queryKey.length + 1}
             aria-setsize={1}
             aria-posinset={1}
             itemType="leaf"

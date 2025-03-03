@@ -12,7 +12,6 @@ import {
     makeStyles,
     Tab,
     TabList,
-    TabListProps,
     TabValue,
     tokens,
 } from "@fluentui/react-components";
@@ -26,11 +25,9 @@ import {
     useState,
 } from "react";
 import ucClient from "../../client";
-import { useNotify, useTreeScope } from "../../context";
+import { useNotify, useTreeContext } from "../../context";
 import { CreateCatalogRequestJson } from "../../gen/delta_sharing/catalogs/v1/svc_pb";
-import { InputChange } from "../../types";
-
-type TabSelect = NonNullable<TabListProps["onTabSelect"]>;
+import { InputChange, TabSelect } from "../../types";
 
 const useStyles = makeStyles({
     tabs: {
@@ -41,7 +38,7 @@ const useStyles = makeStyles({
     },
 });
 
-const useCallbacs = (
+const useCallbacks = (
     setValues: Dispatch<SetStateAction<CreateCatalogRequestJson>>,
 ) => {
     const onNameChange: InputChange = useCallback((_ev, data) => {
@@ -78,7 +75,7 @@ const Default = () => {
 
     const notify = useNotify();
     const queryClient = useQueryClient();
-    const queryKey = useTreeScope();
+    const queryKey = useTreeContext();
     const mutation = useMutation({
         mutationFn: ucClient.catalogs.create,
         onError: () => notify("error", "Failed to create catalog"),
@@ -91,7 +88,7 @@ const Default = () => {
     });
 
     const { onNameChange, onStorageChange, onProviderChange, onShareChange } =
-        useCallbacs(setValues);
+        useCallbacks(setValues);
 
     const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
         (ev) => {

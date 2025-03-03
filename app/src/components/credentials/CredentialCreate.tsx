@@ -14,7 +14,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import ucClient, { CreateCredentialRequest, Purpose } from "../../client";
-import { useNotify, useExplorer, useTreeScope } from "../../context";
+import { useNotify, useExplorer, useTreeContext } from "../../context";
 import {
     RadioChange,
     CheckboxChange,
@@ -311,7 +311,7 @@ const CreateCredential = () => {
 
     const notify = useNotify();
     const queryClient = useQueryClient();
-    const queryKey = useTreeScope();
+    const queryKey = useTreeContext();
     const { update } = useExplorer();
     const mutation = useMutation({
         mutationFn: ucClient.credentials.create,
