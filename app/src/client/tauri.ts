@@ -7,6 +7,8 @@ import { CredentialInfoJson } from "../gen/delta_sharing/credentials/v1/models_p
 import { CreateCredentialRequestJson } from "../gen/delta_sharing/credentials/v1/svc_pb";
 import { ExternalLocationInfoJson } from "../gen/delta_sharing/external_locations/v1/models_pb";
 import { CreateExternalLocationRequestJson } from "../gen/delta_sharing/external_locations/v1/svc_pb";
+import { RecipientInfoJson } from "../gen/delta_sharing/recipients/v1/models_pb";
+import { CreateRecipientRequestJson } from "../gen/delta_sharing/recipients/v1/svc_pb";
 
 export async function list_catalogs(maxResults: number | null = null) {
     return await invoke<CatalogInfoJson[]>("list_catalogs", { maxResults });
@@ -86,6 +88,22 @@ export async function delete_external_location(name: string) {
     return await invoke<void>("delete_external_location", { name });
 }
 
+export async function list_recipients(maxResults: number | null = null) {
+    return await invoke<RecipientInfoJson[]>("list_recipients", { maxResults });
+}
+
+export async function create_recipient(request: CreateRecipientRequestJson) {
+    return await invoke<RecipientInfoJson>("create_recipient", { request });
+}
+
+export async function get_recipient(name: string) {
+    return await invoke<RecipientInfoJson>("get_recipient", { name });
+}
+
+export async function delete_recipient(name: string) {
+    return await invoke<void>("delete_recipient", { name });
+}
+
 export default {
     list_catalogs,
     create_catalog,
@@ -103,4 +121,8 @@ export default {
     create_external_location,
     get_external_location,
     delete_external_location,
+    list_recipients,
+    create_recipient,
+    get_recipient,
+    delete_recipient,
 };

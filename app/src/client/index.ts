@@ -10,6 +10,11 @@ import type {
 import type { CreateCredentialRequestJson } from "../gen/delta_sharing/credentials/v1/svc_pb";
 import type { ExternalLocationInfoJson } from "../gen/delta_sharing/external_locations/v1/models_pb";
 import type { CreateExternalLocationRequestJson } from "../gen/delta_sharing/external_locations/v1/svc_pb";
+import {
+    RecipientInfoJson,
+    AuthenticationTypeJson,
+} from "../gen/delta_sharing/recipients/v1/models_pb";
+import { CreateRecipientRequestJson } from "../gen/delta_sharing/recipients/v1/svc_pb";
 
 export type {
     CatalogInfoJson as CatalogInfo,
@@ -21,6 +26,9 @@ export type {
     ExternalLocationInfoJson as ExternalLocationInfo,
     CreateExternalLocationRequestJson as CreateExternalLocationRequest,
     PurposeJson as Purpose,
+    RecipientInfoJson as RecipientInfo,
+    AuthenticationTypeJson as AuthenticationType,
+    CreateRecipientRequestJson as CreateRecipientRequest,
 };
 
 export async function listCatalogs(maxResults: number | null = null) {
@@ -95,6 +103,22 @@ export async function deleteExternalLocation(name: string) {
     return await tauri.delete_external_location(name);
 }
 
+export async function listRecipients(maxResults: number | null = null) {
+    return await tauri.list_recipients(maxResults);
+}
+
+export async function getRecipient(name: string) {
+    return await tauri.get_recipient(name);
+}
+
+export async function createRecipient(request: CreateRecipientRequestJson) {
+    return await tauri.create_recipient(request);
+}
+
+export async function deleteRecipient(name: string) {
+    return await tauri.delete_recipient(name);
+}
+
 export default {
     catalogs: {
         list: listCatalogs,
@@ -119,5 +143,11 @@ export default {
         get: getExternalLocation,
         create: createExternalLocation,
         delete: deleteExternalLocation,
+    },
+    recipients: {
+        list: listRecipients,
+        get: getRecipient,
+        create: createRecipient,
+        delete: deleteRecipient,
     },
 };

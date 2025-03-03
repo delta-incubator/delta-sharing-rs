@@ -5,6 +5,7 @@ use delta_sharing_common::models::credentials::v1::{
 use delta_sharing_common::models::external_locations::v1::{
     CreateExternalLocationRequest, ExternalLocationInfo,
 };
+use delta_sharing_common::models::recipients::v1::{CreateRecipientRequest, RecipientInfo};
 use delta_sharing_common::models::schemas::v1::{CreateSchemaRequest, SchemaInfo};
 use delta_sharing_common::rest::client::UnityCatalogClient;
 use futures::TryStreamExt;
@@ -157,4 +158,33 @@ pub async fn delete_external_location(
     force: Option<bool>,
 ) -> Result<()> {
     Ok(state.external_locations().delete(name, force).await?)
+}
+
+#[tauri::command]
+pub async fn list_recipients(
+    state: State<'_, UnityCatalogClient>,
+    max_results: Option<i32>,
+) -> Result<Vec<RecipientInfo>> {
+    Ok(state.recipients().list(max_results).try_collect().await?)
+}
+
+#[tauri::command]
+pub async fn get_recipient(
+    state: State<'_, UnityCatalogClient>,
+    name: String,
+) -> Result<RecipientInfo> {
+    Ok(state.recipients().get(name).await?)
+}
+
+#[tauri::command]
+pub async fn create_recipient(
+    state: State<'_, UnityCatalogClient>,
+    request: CreateRecipientRequest,
+) -> Result<RecipientInfo> {
+    Ok(state.recipients().create_recipient(&request).await?)
+}
+
+#[tauri::command]
+pub async fn delete_recipient(state: State<'_, UnityCatalogClient>, name: String) -> Result<()> {
+    Ok(state.recipients().delete(name).await?)
 }

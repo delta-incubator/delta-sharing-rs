@@ -1,12 +1,11 @@
 CREATE TYPE object_label AS ENUM (
     'share_info',
-    'sharing_schema_info',
-    'sharing_table',
     'catalog_info',
     'schema_info',
     'table_info',
     'credential_info',
-    'external_location_info'
+    'external_location_info',
+    'recipient_info'
 );
 
 CREATE TABLE objects (

@@ -31,6 +31,10 @@ pub fn run() {
             client::get_external_location,
             client::create_external_location,
             client::delete_external_location,
+            client::list_recipients,
+            client::get_recipient,
+            client::create_recipient,
+            client::delete_recipient,
         ])
         .setup(|app| {
             app.manage(unity_client);

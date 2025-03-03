@@ -9,6 +9,7 @@ import {
 import TreeView from "./TreeView";
 import CreateCredential from "./credentials/CredentialCreate";
 import CreateExternalLocation from "./external_locations/ExternalLocationCreate";
+import CreateRecipient from "./recipients/RecipientCreate";
 import { ExplorerProvider, ExplorerPropsInner, useExplorer } from "../context";
 import { useState } from "react";
 
@@ -55,6 +56,15 @@ function ExplorerContent() {
     ) {
         return <CreateExternalLocation />;
     }
+
+    if (
+        display === "create" &&
+        scope?.length === 1 &&
+        scope[0] === "recipients"
+    ) {
+        return <CreateRecipient />;
+    }
+
     return "No content";
 }
 

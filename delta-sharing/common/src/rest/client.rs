@@ -1,6 +1,7 @@
 use cloud_client::CloudClient;
 use futures::stream::BoxStream;
 use futures::{Future, Stream, StreamExt, TryStreamExt};
+use reqwest::IntoUrl;
 
 use crate::api::catalogs::CatalogClient;
 use crate::api::credentials::CredentialsClient;
@@ -12,6 +13,7 @@ use crate::credentials::v1::Purpose;
 use crate::models::catalogs::v1 as catalog;
 use crate::models::credentials::v1 as cred;
 use crate::models::external_locations::v1 as loc;
+use crate::models::recipients::v1 as rec;
 use crate::models::schemas::v1 as schema;
 use crate::{Error, Result};
 
@@ -257,11 +259,17 @@ impl ExternalLocationsClient {
     pub async fn create(
         &self,
         name: impl Into<String>,
-        location: impl Into<String>,
+        url: impl IntoUrl,
+        credential_name: impl Into<String>,
         comment: impl Into<Option<String>>,
     ) -> Result<loc::ExternalLocationInfo> {
         let request = loc::CreateExternalLocationRequest {
             name: name.into(),
+            url: url
+                .into_url()
+                .map(|u| u.to_string())
+                .map_err(|e| Error::generic(e.to_string()))?,
+            credential_name: credential_name.into(),
             comment: comment.into(),
             ..Default::default()
         };
@@ -283,6 +291,54 @@ impl ExternalLocationsClient {
             force: force.into(),
         };
         self.delete_external_location(&request).await
+    }
+}
+
+impl RecipientsClient {
+    pub fn list(
+        &self,
+        max_results: impl Into<Option<i32>>,
+    ) -> BoxStream<'_, Result<rec::RecipientInfo>> {
+        let max_results = max_results.into();
+        stream_paginated(max_results, move |max_results, page_token| async move {
+            let request = rec::ListRecipientsRequest {
+                max_results,
+                page_token,
+            };
+            let res = self
+                .list_recipients(&request)
+                .await
+                .map_err(|e| Error::generic(e.to_string()))?;
+            Ok((res.recipients, max_results, res.next_page_token))
+        })
+        .map_ok(|resp| futures::stream::iter(resp.into_iter().map(Ok)))
+        .try_flatten()
+        .boxed()
+    }
+
+    pub async fn create(
+        &self,
+        name: impl Into<String>,
+        authentication_type: rec::AuthenticationType,
+        comment: impl Into<Option<String>>,
+    ) -> Result<rec::RecipientInfo> {
+        let request = rec::CreateRecipientRequest {
+            name: name.into(),
+            authentication_type: authentication_type.into(),
+            comment: comment.into(),
+            ..Default::default()
+        };
+        self.create_recipient(&request).await
+    }
+
+    pub async fn get(&self, name: impl Into<String>) -> Result<rec::RecipientInfo> {
+        let request = rec::GetRecipientRequest { name: name.into() };
+        self.get_recipient(&request).await
+    }
+
+    pub async fn delete(&self, name: impl Into<String>) -> Result<()> {
+        let request = rec::DeleteRecipientRequest { name: name.into() };
+        self.delete_recipient(&request).await
     }
 }
 
