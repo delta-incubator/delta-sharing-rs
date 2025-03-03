@@ -1,0 +1,34 @@
+{
+  "$id": "delta_sharing.external_locations.v1.ListExternalLocationsResponse.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "List external locations response.",
+  "patternProperties": {
+    "^(externalLocations)$": {
+      "description": "The external locations returned.",
+      "items": {
+        "$ref": "delta_sharing.external_locations.v1.ExternalLocationInfo.schema.json"
+      },
+      "type": "array"
+    },
+    "^(nextPageToken)$": {
+      "description": "The next_page_token value to include in the next List request.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "external_locations": {
+      "description": "The external locations returned.",
+      "items": {
+        "$ref": "delta_sharing.external_locations.v1.ExternalLocationInfo.schema.json"
+      },
+      "type": "array"
+    },
+    "next_page_token": {
+      "description": "The next_page_token value to include in the next List request.",
+      "type": "string"
+    }
+  },
+  "title": "List External Locations Response",
+  "type": "object"
+}

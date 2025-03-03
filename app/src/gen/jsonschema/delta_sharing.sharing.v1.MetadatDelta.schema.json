@@ -1,0 +1,76 @@
+{
+  "$id": "delta_sharing.sharing.v1.MetadatDelta.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Metadata for Delta response.",
+  "patternProperties": {
+    "^(deltaMetadata)$": {
+      "$ref": "delta_sharing.sharing.v1.Metadata.schema.json",
+      "description": "Metadata from Delta protocol"
+    },
+    "^(numFiles)$": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "The number of files in the table, will be returned if available in the delta log."
+    }
+  },
+  "properties": {
+    "delta_metadata": {
+      "$ref": "delta_sharing.sharing.v1.Metadata.schema.json",
+      "description": "Metadata from Delta protocol"
+    },
+    "num_files": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "The number of files in the table, will be returned if available in the delta log."
+    },
+    "size": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "The size of the table in bytes, will be returned if available in the delta log."
+    },
+    "version": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "The table version the metadata corresponds to, returned when querying\n table data with a version or timestamp parameter, or cdf query\n with includeHistoricalMetadata set to true."
+    }
+  },
+  "title": "Metadat Delta",
+  "type": "object"
+}

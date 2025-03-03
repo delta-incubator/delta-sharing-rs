@@ -64,7 +64,7 @@ function ExplorerContent() {
         }
     }
 
-    return "No content";
+    return "no content";
 }
 
 function Explorer() {

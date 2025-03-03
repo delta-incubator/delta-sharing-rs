@@ -1,0 +1,39 @@
+{
+  "$id": "delta_sharing.catalogs.v1.UpdateCatalogRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Update a catalog",
+  "patternProperties": {
+    "^(new_name)$": {
+      "description": "Name of catalog.",
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "comment": {
+      "description": "User-provided free-form text description.",
+      "type": "string"
+    },
+    "name": {
+      "description": "Name of catalog.",
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    },
+    "newName": {
+      "description": "Name of catalog.",
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    },
+    "owner": {
+      "description": "Username of new owner of catalog.",
+      "type": "string"
+    },
+    "properties": {
+      "$ref": "google.protobuf.Struct.jsonschema.json",
+      "description": "A map of key-value properties attached to the securable.\n\n When provided in update request, the specified properties will override the existing properties.\n To add and remove properties, one would need to perform a read-modify-write."
+    }
+  },
+  "title": "Update Catalog Request",
+  "type": "object"
+}

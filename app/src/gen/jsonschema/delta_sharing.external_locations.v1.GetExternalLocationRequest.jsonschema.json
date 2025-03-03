@@ -1,0 +1,15 @@
+{
+  "$id": "delta_sharing.external_locations.v1.GetExternalLocationRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Get an external location",
+  "properties": {
+    "name": {
+      "description": "Name of external location.",
+      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "type": "string"
+    }
+  },
+  "title": "Get External Location Request",
+  "type": "object"
+}

@@ -1,0 +1,180 @@
+{
+  "$id": "delta_sharing.shares.v1.DataObject.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(added_at)$": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "The time when this data object is added to the share, in epoch milliseconds."
+    },
+    "^(added_by)$": {
+      "description": "Username of the sharer.",
+      "type": "string"
+    },
+    "^(data_object_type)$": {
+      "anyOf": [
+        {
+          "enum": [
+            "DATA_OBJECT_TYPE_UNSPECIFIED",
+            "TABLE",
+            "SCHEMA"
+          ],
+          "title": "Data Object Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "Type of the data object."
+    },
+    "^(enable_cdf)$": {
+      "description": "Whether to enable cdf or indicate if cdf is enabled on the shared object.",
+      "type": "boolean"
+    },
+    "^(history_data_sharing_status)$": {
+      "anyOf": [
+        {
+          "enum": [
+            "DISABLED",
+            "ENABLED"
+          ],
+          "title": "History Status",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "Whether to enable or disable sharing of data history. If not specified, the default is DISABLED."
+    },
+    "^(shared_as)$": {
+      "description": "A user-provided new name for the data object within the share.\n\n If this new name is not provided, the object's original name will be used as the shared_as name.\n The shared_as name must be unique within a share.\n For tables, the new name must follow the format of \u003cschema\u003e.\u003ctable\u003e.",
+      "type": "string"
+    },
+    "^(start_version)$": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "The start version associated with the object.\n\n This allows data providers to control the lowest object version that is accessible by clients.\n If specified, clients can query snapshots or changes for versions \u003e= start_version.\n If not specified, clients can only query starting from the version of the object at the time it was added to the share.\n\n NOTE: The start_version should be \u003c= the current version of the object."
+    }
+  },
+  "properties": {
+    "addedAt": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "The time when this data object is added to the share, in epoch milliseconds."
+    },
+    "addedBy": {
+      "description": "Username of the sharer.",
+      "type": "string"
+    },
+    "comment": {
+      "description": "A user-provided comment when adding the data object to the share.",
+      "type": "string"
+    },
+    "dataObjectType": {
+      "anyOf": [
+        {
+          "enum": [
+            "DATA_OBJECT_TYPE_UNSPECIFIED",
+            "TABLE",
+            "SCHEMA"
+          ],
+          "title": "Data Object Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "Type of the data object."
+    },
+    "enableCdf": {
+      "description": "Whether to enable cdf or indicate if cdf is enabled on the shared object.",
+      "type": "boolean"
+    },
+    "historyDataSharingStatus": {
+      "anyOf": [
+        {
+          "enum": [
+            "DISABLED",
+            "ENABLED"
+          ],
+          "title": "History Status",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "Whether to enable or disable sharing of data history. If not specified, the default is DISABLED."
+    },
+    "name": {
+      "description": "A fully qualified name that uniquely identifies a data object.\n\n For example, a table's fully qualified name is in the format of \u003ccatalog\u003e.\u003cschema\u003e.\u003ctable\u003e,",
+      "type": "string"
+    },
+    "partitions": {
+      "description": "Array of partitions for the shared data.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "sharedAs": {
+      "description": "A user-provided new name for the data object within the share.\n\n If this new name is not provided, the object's original name will be used as the shared_as name.\n The shared_as name must be unique within a share.\n For tables, the new name must follow the format of \u003cschema\u003e.\u003ctable\u003e.",
+      "type": "string"
+    },
+    "startVersion": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "The start version associated with the object.\n\n This allows data providers to control the lowest object version that is accessible by clients.\n If specified, clients can query snapshots or changes for versions \u003e= start_version.\n If not specified, clients can only query starting from the version of the object at the time it was added to the share.\n\n NOTE: The start_version should be \u003c= the current version of the object."
+    }
+  },
+  "title": "Data Object",
+  "type": "object"
+}

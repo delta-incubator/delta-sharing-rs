@@ -1,0 +1,27 @@
+{
+  "$id": "delta_sharing.sharing.v1.ListShareTablesResponse.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Response for ListShareTablesRequest.",
+  "patternProperties": {
+    "^(nextPageToken)$": {
+      "description": "Token that can be used to retrieve the next page of tables.\n An empty or missing token means that no more tables are available for retrieval.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "items": {
+      "description": "The tables that were requested.",
+      "items": {
+        "$ref": "delta_sharing.sharing.v1.SharingTable.schema.json"
+      },
+      "type": "array"
+    },
+    "next_page_token": {
+      "description": "Token that can be used to retrieve the next page of tables.\n An empty or missing token means that no more tables are available for retrieval.",
+      "type": "string"
+    }
+  },
+  "title": "List Share Tables Response",
+  "type": "object"
+}

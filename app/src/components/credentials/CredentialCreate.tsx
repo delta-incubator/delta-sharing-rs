@@ -302,6 +302,7 @@ function CreateCredential() {
             createFn={ucClient.credentials.create}
             formComponent={CreateCredentialForm}
             resourceType="credential"
+            typeName="CreateCredentialRequest"
             defaultValues={{
                 readOnly: false,
                 skipValidation: false,

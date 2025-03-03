@@ -1,0 +1,34 @@
+# services used for locally running sharing server dependencies
+version: "3.8"
+
+networks:
+  sharing:
+
+services:
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: azurite
+    hostname: azurite
+    restart: always
+    networks:
+      - sharing
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    networks:
+      - sharing
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5

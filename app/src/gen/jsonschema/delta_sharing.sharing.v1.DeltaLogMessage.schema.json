@@ -1,0 +1,16 @@
+{
+  "$id": "delta_sharing.sharing.v1.DeltaLogMessage.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Log message for Delta response.",
+  "properties": {
+    "metadata": {
+      "$ref": "delta_sharing.sharing.v1.MetadatDelta.schema.json"
+    },
+    "protocol": {
+      "$ref": "delta_sharing.sharing.v1.ProtocolDelta.schema.json"
+    }
+  },
+  "title": "Delta Log Message",
+  "type": "object"
+}

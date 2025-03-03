@@ -1,0 +1,27 @@
+{
+  "$id": "delta_sharing.sharing.v1.ListSharesResponse.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Response for ListSharesRequest.",
+  "patternProperties": {
+    "^(next_page_token)$": {
+      "description": "Token that can be used to retrieve the next page of shares.\n An empty or missing token means that no more shares are available for retrieval.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "items": {
+      "description": "The shares that were requested.",
+      "items": {
+        "$ref": "delta_sharing.sharing.v1.Share.jsonschema.json"
+      },
+      "type": "array"
+    },
+    "nextPageToken": {
+      "description": "Token that can be used to retrieve the next page of shares.\n An empty or missing token means that no more shares are available for retrieval.",
+      "type": "string"
+    }
+  },
+  "title": "List Shares Response",
+  "type": "object"
+}

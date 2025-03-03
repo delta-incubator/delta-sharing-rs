@@ -7,7 +7,7 @@ use delta_sharing_common::api::shares::SharesHandler;
 use delta_sharing_common::api::sharing::{SharingDiscoveryHandler, SharingQueryHandler};
 use delta_sharing_common::rest::{
     get_catalog_router, get_credentials_router, get_external_locations_router,
-    get_recipients_router, get_schemas_router, get_shares_router, get_sharing_router,
+    get_recipients_router, get_schemas_router, get_shares_router,
     AuthenticationLayer, Authenticator,
 };
 use delta_sharing_common::{Error, Result};

@@ -1,0 +1,113 @@
+{
+  "$id": "delta_sharing.shares.v1.ShareInfo.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(createdAt)$": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this share was created, in epoch milliseconds."
+    },
+    "^(createdBy)$": {
+      "description": "Username of the creator of the share.",
+      "type": "string"
+    },
+    "^(dataObjects)$": {
+      "description": "A list of shared data objects within the share.",
+      "items": {
+        "$ref": "delta_sharing.shares.v1.DataObject.schema.json"
+      },
+      "type": "array"
+    },
+    "^(updatedAt)$": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this share was updated, in epoch milliseconds."
+    },
+    "^(updatedBy)$": {
+      "description": "Username of share updater.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "comment": {
+      "description": "User-provided free-form text description.",
+      "type": "string"
+    },
+    "created_at": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this share was created, in epoch milliseconds."
+    },
+    "created_by": {
+      "description": "Username of the creator of the share.",
+      "type": "string"
+    },
+    "data_objects": {
+      "description": "A list of shared data objects within the share.",
+      "items": {
+        "$ref": "delta_sharing.shares.v1.DataObject.schema.json"
+      },
+      "type": "array"
+    },
+    "id": {
+      "description": "Unique ID of the recipient.",
+      "type": "string"
+    },
+    "name": {
+      "description": "Name of the share.",
+      "type": "string"
+    },
+    "owner": {
+      "description": "Username of current owner of share.",
+      "type": "string"
+    },
+    "updated_at": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this share was updated, in epoch milliseconds."
+    },
+    "updated_by": {
+      "description": "Username of share updater.",
+      "type": "string"
+    }
+  },
+  "title": "Share Info",
+  "type": "object"
+}

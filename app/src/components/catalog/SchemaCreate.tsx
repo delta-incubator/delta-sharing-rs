@@ -43,7 +43,13 @@ function CreateSchema() {
             createFn={ucClient.schemas.create}
             formComponent={SchemaForm}
             resourceType="schema"
-            defaultValues={{ catalogName: scope[1] }}
+            defaultValues={{
+                catalogName: scope[1],
+                name: "",
+                comment: "",
+                properties: {},
+            }}
+            typeName="CreateSchemaRequest"
         />
     );
 }
