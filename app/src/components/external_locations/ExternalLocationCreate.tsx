@@ -121,6 +121,7 @@ function CreateExternalLocation() {
             formComponent={ExternalLocationForm}
             resourceType="external location"
             defaultValues={{ readOnly: false, skipValidation: false }}
+            typeName="CreateExternalLocationRequest"
         />
     );
 }

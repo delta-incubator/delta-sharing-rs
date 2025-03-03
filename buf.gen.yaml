@@ -45,4 +45,4 @@ plugins:
       - target=ts
       - json_types=true
   - remote: buf.build/bufbuild/protoschema-jsonschema:v0.2.0
-    out: app/src/jsonschema
+    out: app/src/gen/jsonschema

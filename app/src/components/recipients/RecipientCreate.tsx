@@ -103,6 +103,7 @@ function CreateExternalLocation() {
             formComponent={RecipientForm}
             resourceType="recipient"
             defaultValues={{ authenticationType: "TOKEN" }}
+            typeName="CreateRecipientRequest"
         />
     );
 }

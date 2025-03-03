@@ -4,11 +4,29 @@ import {
     ToolbarButton,
     tokens,
     Text,
+    ToolbarGroup,
+    ToolbarToggleButton,
+    ToolbarProps,
 } from "@fluentui/react-components";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState, Dispatch, SetStateAction } from "react";
+import {
+    useCallback,
+    useState,
+    Dispatch,
+    SetStateAction,
+    useRef,
+    useEffect,
+    useMemo,
+} from "react";
 import { useNotify, useExplorer, useTreeContext } from "../../context";
-import { ArrowLeftRegular, AddRegular } from "@fluentui/react-icons";
+import {
+    ArrowLeftRegular,
+    AddRegular,
+    BracesRegular,
+} from "@fluentui/react-icons";
+import type monaco from "monaco-editor";
+import JsonEditor from "./editor/JsonEditor";
+import { OnMount } from "@monaco-editor/react";
 
 const useStyles = makeStyles({
     root: {
@@ -33,6 +51,15 @@ const useStyles = makeStyles({
         flexDirection: "column",
         rowGap: "10px",
         overflowY: "auto",
+        backgroundColor: tokens.colorNeutralBackground2,
+    },
+
+    editor: {
+        flex: 1,
+    },
+
+    editorHidden: {
+        display: "none",
     },
 });
 
@@ -45,17 +72,37 @@ type CreateResourceProps<Req, Res> = {
     createFn: (values: Req) => Promise<Res>;
     formComponent: (props: CreateFormState<Req>) => JSX.Element;
     defaultValues?: Req;
-    resourceType?: string;
+    resourceType: string;
+    typeName: string;
 };
+type ToggleChange = ToolbarProps["onCheckedValueChange"];
 
 function CreateResource<Req, Res>({
     createFn,
     defaultValues,
     resourceType,
     formComponent,
+    typeName,
 }: CreateResourceProps<Req, Res>) {
     const styles = useStyles();
+    const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const [values, setValues] = useState<Req>(defaultValues ?? ({} as Req));
+    const [checkedValues, setCheckedValues] = useState<
+        Record<string, string[]>
+    >({
+        display: [],
+    });
+    const onChange: ToggleChange = (_e, { name, checkedItems }) => {
+        setCheckedValues((s) => {
+            return s
+                ? { ...s, [name]: checkedItems }
+                : { [name]: checkedItems };
+        });
+    };
+    const showJson = useMemo(
+        () => checkedValues.display.includes("json"),
+        [checkedValues],
+    );
 
     const notify = useNotify();
     const queryClient = useQueryClient();
@@ -73,6 +120,13 @@ function CreateResource<Req, Res>({
         },
     });
 
+    const onMount: OnMount = useCallback(
+        (editor) => {
+            editorRef.current = editor;
+        },
+        [editorRef],
+    );
+
     const onSubmit = useCallback(() => {
         mutation.mutate(values);
     }, [mutation, values]);
@@ -82,28 +136,57 @@ function CreateResource<Req, Res>({
         setValues({} as Req);
     }, [update]);
 
+    useEffect(() => {
+        if (showJson && editorRef.current) {
+            editorRef.current.setValue(JSON.stringify(values, null, 2));
+        } else if (editorRef.current) {
+            setValues(JSON.parse(editorRef.current.getValue()));
+        }
+    }, [showJson]);
+
     const FormComponent = formComponent;
 
     return (
         <div className={styles.root}>
-            <Toolbar className={styles.toolbar} size="medium">
+            <Toolbar
+                className={styles.toolbar}
+                size="medium"
+                checkedValues={checkedValues}
+                onCheckedValueChange={onChange}
+            >
                 <ToolbarButton
                     appearance="subtle"
                     icon={<ArrowLeftRegular />}
                     onClick={onCancel}
                 />
                 <Text>{`Create ${resourceType}`}</Text>
-                <ToolbarButton
-                    appearance="subtle"
-                    icon={<AddRegular />}
-                    onClick={onSubmit}
-                >
-                    Create
-                </ToolbarButton>
+                <ToolbarGroup>
+                    <ToolbarToggleButton
+                        aria-label="Toggle JSON editor"
+                        icon={<BracesRegular />}
+                        name="display"
+                        value="json"
+                    />
+
+                    <ToolbarButton
+                        appearance="subtle"
+                        icon={<AddRegular />}
+                        onClick={onSubmit}
+                    >
+                        Create
+                    </ToolbarButton>
+                </ToolbarGroup>
             </Toolbar>
-            <div className={styles.content}>
-                <FormComponent values={values} setValues={setValues} />
-            </div>
+            {!showJson && (
+                <div className={styles.content}>
+                    <FormComponent values={values} setValues={setValues} />
+                </div>
+            )}
+            {
+                <div className={showJson ? styles.editor : styles.editorHidden}>
+                    <JsonEditor onMount={onMount} typeName={typeName} />
+                </div>
+            }
         </div>
     );
 }

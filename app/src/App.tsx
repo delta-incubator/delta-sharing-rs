@@ -4,7 +4,6 @@ import {
     tokens,
     Toolbar,
     ToolbarButton,
-    shorthands,
 } from "@fluentui/react-components";
 import Explorer from "./components/Explorer";
 import { SettingsRegular } from "@fluentui/react-icons";
@@ -23,13 +22,6 @@ const useStyles = makeStyles({
         borderBottomStyle: "solid",
     },
 
-    button: {
-        ...shorthands.borderColor(tokens.colorBrandStroke2),
-        ":hover": {
-            ...shorthands.borderColor(tokens.colorNeutralStroke1),
-        },
-    },
-
     content: {
         flex: 1,
     },
@@ -43,7 +35,6 @@ function App() {
             <div className={styles.toolbar}>
                 <Toolbar size="medium">
                     <ToolbarButton
-                        className={styles.button}
                         appearance="subtle"
                         icon={<SettingsRegular />}
                     />

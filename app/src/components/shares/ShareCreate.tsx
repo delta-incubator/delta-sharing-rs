@@ -30,6 +30,7 @@ function CreateShare() {
             formComponent={ShareForm}
             resourceType="share"
             defaultValues={{ name: "", comment: "" }}
+            typeName="CreateShareRequest"
         />
     );
 }

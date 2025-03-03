@@ -102,7 +102,15 @@ function CreateCatalog() {
             createFn={ucClient.catalogs.create}
             formComponent={CatalogForm}
             resourceType="catalog"
-            defaultValues={{}}
+            defaultValues={{
+                name: "",
+                comment: "",
+                storageRoot: "",
+                providerName: "",
+                shareName: "",
+                properties: {},
+            }}
+            typeName="CreateCatalogRequest"
         />
     );
 }

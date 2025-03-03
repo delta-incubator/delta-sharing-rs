@@ -15,7 +15,6 @@ import CreateRecipient from "./recipients/RecipientCreate";
 import CreateShare from "./shares/ShareCreate";
 import { ExplorerProvider, ExplorerPropsInner, useExplorer } from "../context";
 import { useState } from "react";
-import JsonEditor from "./editor/JsonEditor";
 
 const useStyles = makeStyles({
     root: {
@@ -65,7 +64,7 @@ function ExplorerContent() {
         }
     }
 
-    return <JsonEditor />;
+    return "no content";
 }
 
 function Explorer() {
