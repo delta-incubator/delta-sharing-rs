@@ -1,0 +1,25 @@
+{
+  "$id": "delta_sharing.shares.v1.GetShareRequest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Get a share by name.",
+  "patternProperties": {
+    "^(includeSharedData)$": {
+      "description": "Query for data to include in the share.",
+      "type": "boolean"
+    }
+  },
+  "properties": {
+    "include_shared_data": {
+      "description": "Query for data to include in the share.",
+      "type": "boolean"
+    },
+    "name": {
+      "description": "Name of the share.",
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    }
+  },
+  "title": "Get Share Request",
+  "type": "object"
+}

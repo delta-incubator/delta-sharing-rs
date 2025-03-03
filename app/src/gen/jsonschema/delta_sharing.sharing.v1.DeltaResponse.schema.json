@@ -1,0 +1,16 @@
+{
+  "$id": "delta_sharing.sharing.v1.DeltaResponse.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Response for a query against a table in Delta format.",
+  "properties": {
+    "entries": {
+      "items": {
+        "$ref": "delta_sharing.sharing.v1.DeltaLogMessage.schema.json"
+      },
+      "type": "array"
+    }
+  },
+  "title": "Delta Response",
+  "type": "object"
+}

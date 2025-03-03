@@ -1,0 +1,15 @@
+{
+  "$id": "delta_sharing.recipients.v1.DeleteRecipientRequest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Delete a recipient",
+  "properties": {
+    "name": {
+      "description": "Name of the recipient.",
+      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "type": "string"
+    }
+  },
+  "title": "Delete Recipient Request",
+  "type": "object"
+}

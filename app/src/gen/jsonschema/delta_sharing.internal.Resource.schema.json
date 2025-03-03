@@ -1,0 +1,66 @@
+{
+  "$id": "delta_sharing.internal.Resource.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Dummy message to hold all resources.",
+  "patternProperties": {
+    "^(catalogInfo)$": {
+      "$ref": "delta_sharing.catalogs.v1.CatalogInfo.schema.json"
+    },
+    "^(credentialInfo)$": {
+      "$ref": "delta_sharing.credentials.v1.CredentialInfo.schema.json"
+    },
+    "^(externalLocationInfo)$": {
+      "$ref": "delta_sharing.external_locations.v1.ExternalLocationInfo.schema.json"
+    },
+    "^(recipientInfo)$": {
+      "$ref": "delta_sharing.recipients.v1.RecipientInfo.schema.json"
+    },
+    "^(schemaInfo)$": {
+      "$ref": "delta_sharing.schemas.v1.SchemaInfo.schema.json"
+    },
+    "^(shareInfo)$": {
+      "$ref": "delta_sharing.shares.v1.ShareInfo.schema.json"
+    },
+    "^(sharingSchemaInfo)$": {
+      "$ref": "delta_sharing.sharing.v1.SharingSchemaInfo.schema.json"
+    },
+    "^(sharingTable)$": {
+      "$ref": "delta_sharing.sharing.v1.SharingTable.schema.json"
+    },
+    "^(tableInfo)$": {
+      "$ref": "delta_sharing.tables.v1.TableInfo.schema.json"
+    }
+  },
+  "properties": {
+    "catalog_info": {
+      "$ref": "delta_sharing.catalogs.v1.CatalogInfo.schema.json"
+    },
+    "credential_info": {
+      "$ref": "delta_sharing.credentials.v1.CredentialInfo.schema.json"
+    },
+    "external_location_info": {
+      "$ref": "delta_sharing.external_locations.v1.ExternalLocationInfo.schema.json"
+    },
+    "recipient_info": {
+      "$ref": "delta_sharing.recipients.v1.RecipientInfo.schema.json"
+    },
+    "schema_info": {
+      "$ref": "delta_sharing.schemas.v1.SchemaInfo.schema.json"
+    },
+    "share_info": {
+      "$ref": "delta_sharing.shares.v1.ShareInfo.schema.json"
+    },
+    "sharing_schema_info": {
+      "$ref": "delta_sharing.sharing.v1.SharingSchemaInfo.schema.json"
+    },
+    "sharing_table": {
+      "$ref": "delta_sharing.sharing.v1.SharingTable.schema.json"
+    },
+    "table_info": {
+      "$ref": "delta_sharing.tables.v1.TableInfo.schema.json"
+    }
+  },
+  "title": "Resource",
+  "type": "object"
+}

@@ -1,0 +1,44 @@
+{
+  "$id": "delta_sharing.sharing.v1.ListSchemaTablesRequest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "List tables in a schema.",
+  "patternProperties": {
+    "^(maxResults)$": {
+      "description": "The maximum number of results per page that should be returned.",
+      "exclusiveMaximum": 2147483648,
+      "exclusiveMinimum": 0,
+      "type": "integer"
+    },
+    "^(pageToken)$": {
+      "description": "Specifies a page token to use. Set pageToken to the nextPageToken returned\n by a previous list request to get the next page of results.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "max_results": {
+      "description": "The maximum number of results per page that should be returned.",
+      "exclusiveMaximum": 2147483648,
+      "exclusiveMinimum": 0,
+      "type": "integer"
+    },
+    "name": {
+      "description": "The schema name to query. It's case-insensitive.",
+      "minLength": 1,
+      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "type": "string"
+    },
+    "page_token": {
+      "description": "Specifies a page token to use. Set pageToken to the nextPageToken returned\n by a previous list request to get the next page of results.",
+      "type": "string"
+    },
+    "share": {
+      "description": "The share name to query. It's case-insensitive.",
+      "minLength": 1,
+      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "type": "string"
+    }
+  },
+  "title": "List Schema Tables Request",
+  "type": "object"
+}

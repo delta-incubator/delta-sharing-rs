@@ -13,6 +13,7 @@
     "@bufbuild/protobuf": "^2.2.3",
     "@fluentui/react-components": "^9.60.0",
     "@fluentui/react-icons": "^2.0.274",
+    "@monaco-editor/react": "^4.7.0",
     "@tanstack/react-query": "^5.66.11",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",

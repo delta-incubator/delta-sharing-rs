@@ -1,0 +1,34 @@
+{
+  "$id": "delta_sharing.sharing.v1.ProtocolDelta.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Protocol for Delta response.",
+  "patternProperties": {
+    "^(min_reader_version)$": {
+      "description": "The minimum version of the protocol that a client must implement\n in order to correctly read a Delta Lake table.",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer"
+    },
+    "^(min_writer_version)$": {
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer"
+    }
+  },
+  "properties": {
+    "minReaderVersion": {
+      "description": "The minimum version of the protocol that a client must implement\n in order to correctly read a Delta Lake table.",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer"
+    },
+    "minWriterVersion": {
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer"
+    }
+  },
+  "title": "Protocol Delta",
+  "type": "object"
+}

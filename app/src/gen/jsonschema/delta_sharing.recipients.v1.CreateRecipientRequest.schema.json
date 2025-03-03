@@ -1,0 +1,95 @@
+{
+  "$id": "delta_sharing.recipients.v1.CreateRecipientRequest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Creates a new recipient",
+  "patternProperties": {
+    "^(authenticationType)$": {
+      "anyOf": [
+        {
+          "enum": [
+            "AUTHENTICATION_TYPE_UNSPECIFIED",
+            "TOKEN",
+            "OAUTH_CLIENT_CREDENTIALS"
+          ],
+          "title": "Authentication Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "The delta sharing authentication type."
+    },
+    "^(expirationTime)$": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Expiration timestamp of the token, in epoch milliseconds."
+    }
+  },
+  "properties": {
+    "authentication_type": {
+      "anyOf": [
+        {
+          "enum": [
+            "AUTHENTICATION_TYPE_UNSPECIFIED",
+            "TOKEN",
+            "OAUTH_CLIENT_CREDENTIALS"
+          ],
+          "title": "Authentication Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "The delta sharing authentication type."
+    },
+    "comment": {
+      "description": "Description about the recipient.",
+      "type": "string"
+    },
+    "expiration_time": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Expiration timestamp of the token, in epoch milliseconds."
+    },
+    "name": {
+      "description": "Name of the recipient.",
+      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "type": "string"
+    },
+    "owner": {
+      "description": "Username of the recipient owner.",
+      "type": "string"
+    },
+    "properties": {
+      "$ref": "google.protobuf.Struct.schema.json",
+      "description": "Recipient properties as map of string key-value pairs.\n\n When provided in update request, the specified properties will override the existing properties.\n To add and remove properties, one would need to perform a read-modify-write."
+    }
+  },
+  "title": "Create Recipient Request",
+  "type": "object"
+}

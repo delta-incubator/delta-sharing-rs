@@ -1,0 +1,19 @@
+{
+  "$id": "delta_sharing.shares.v1.CreateShareRequest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Creates a new share for data objects.\n\n Data objects can be added after creation with update.\n The caller must be a metastore admin or have the CREATE_SHARE privilege on the metastore.",
+  "properties": {
+    "comment": {
+      "description": "User-provided free-form text description.",
+      "type": "string"
+    },
+    "name": {
+      "description": "Name of the share.",
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    }
+  },
+  "title": "Create Share Request",
+  "type": "object"
+}

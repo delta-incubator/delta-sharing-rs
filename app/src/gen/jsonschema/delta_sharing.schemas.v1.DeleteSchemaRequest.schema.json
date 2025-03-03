@@ -1,0 +1,24 @@
+{
+  "$id": "delta_sharing.schemas.v1.DeleteSchemaRequest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Delete a Schema",
+  "patternProperties": {
+    "^(fullName)$": {
+      "description": "Full name of schema to delete.\n\n Format: catalog_name.schema_name",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "force": {
+      "description": "Force deletion even if the schema is not empty.",
+      "type": "boolean"
+    },
+    "full_name": {
+      "description": "Full name of schema to delete.\n\n Format: catalog_name.schema_name",
+      "type": "string"
+    }
+  },
+  "title": "Delete Schema Request",
+  "type": "object"
+}

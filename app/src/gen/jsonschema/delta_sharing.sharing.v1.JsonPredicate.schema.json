@@ -1,0 +1,38 @@
+{
+  "$id": "delta_sharing.sharing.v1.JsonPredicate.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(valueType)$": {
+      "description": "Specifies the value type of a column or a literal op.\n\n This is only applicate to column and literal ops.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "children": {
+      "description": "The inputs to the operation - if any.",
+      "items": {
+        "$ref": "delta_sharing.sharing.v1.JsonPredicate.schema.json"
+      },
+      "type": "array"
+    },
+    "name": {
+      "description": "Specifies the name of a column.\n\n This is only applicable to column ops.",
+      "type": "string"
+    },
+    "op": {
+      "description": "The operation to perform.",
+      "type": "string"
+    },
+    "value": {
+      "description": "Specifies the value of a literal.\n\n This is only applicable to literal ops.",
+      "type": "string"
+    },
+    "value_type": {
+      "description": "Specifies the value type of a column or a literal op.\n\n This is only applicate to column and literal ops.",
+      "type": "string"
+    }
+  },
+  "title": "Json Predicate",
+  "type": "object"
+}

@@ -1,0 +1,32 @@
+{
+  "$id": "delta_sharing.catalogs.v1.ListCatalogsRequest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "List catalogs",
+  "patternProperties": {
+    "^(maxResults)$": {
+      "description": "The maximum number of results per page that should be returned.",
+      "exclusiveMaximum": 1000,
+      "exclusiveMinimum": 0,
+      "type": "integer"
+    },
+    "^(pageToken)$": {
+      "description": "Opaque pagination token to go to next page based on previous query.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "max_results": {
+      "description": "The maximum number of results per page that should be returned.",
+      "exclusiveMaximum": 1000,
+      "exclusiveMinimum": 0,
+      "type": "integer"
+    },
+    "page_token": {
+      "description": "Opaque pagination token to go to next page based on previous query.",
+      "type": "string"
+    }
+  },
+  "title": "List Catalogs Request",
+  "type": "object"
+}
