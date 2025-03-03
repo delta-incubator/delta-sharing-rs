@@ -5,21 +5,18 @@ import {
 } from "@fluentui/react-components";
 import { Database20Regular } from "@fluentui/react-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-    RefObject,
-    useCallback,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import ucClient, { CatalogInfo } from "../../client";
-import { NotifyContext, TreeContext } from "../../context";
-import { useTreeScope } from "../../hooks";
+import {
+    useNotify,
+    useTreeContext,
+    useTreeScope,
+    TreeProvider,
+} from "../../context";
 import { TreeItemOnChange } from "../../types";
 import DeleteDialog from "../DeleteDialog";
-import { CreateItem } from "../TreeRoot";
-import SchemaItem from "./SchemaItem";
+import { CreateItem } from "../TreeBranch";
+import ItemLeaf from "../TreeLeaf";
 
 // helper type that asserts the name property is a string
 type LocCatalogInfo = {
@@ -38,7 +35,7 @@ const CatalogItem = ({ info, ref }: CatalogItemProps) => {
         [],
     );
 
-    const parentScope = useContext(TreeContext);
+    const parentScope = useTreeContext();
     const { scope, value, parentValue } = useTreeScope(info.name);
     const { data, status } = useQuery({
         queryKey: scope,
@@ -49,7 +46,7 @@ const CatalogItem = ({ info, ref }: CatalogItemProps) => {
     });
 
     const queryClient = useQueryClient();
-    const notify = useContext(NotifyContext);
+    const notify = useNotify();
     const mutation = useMutation({
         mutationFn: ucClient.catalogs.delete,
         onError: () => notify("error", `Failed to delete catalog`),
@@ -111,13 +108,13 @@ const CatalogItem = ({ info, ref }: CatalogItemProps) => {
                 data.map(
                     (item, index) =>
                         item.name && (
-                            <TreeContext.Provider value={scope}>
-                                <SchemaItem
+                            <TreeProvider value={scope}>
+                                <ItemLeaf
                                     key={`${value}.${item.name}`}
                                     ref={index === 0 ? firstItemRef : null}
                                     info={item as { name: string }}
                                 />
-                            </TreeContext.Provider>
+                            </TreeProvider>
                         ),
                 )}
         </>

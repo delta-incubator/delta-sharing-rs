@@ -1,7 +1,7 @@
 import { DatabaseMultipleRegular } from "@fluentui/react-icons";
 import ucClient from "../../client";
 import CatalogItem from "./CatalogItem";
-import ItemTree from "../TreeRoot";
+import ItemTree from "../TreeBranch";
 
 type CatalogTreeProps = {
     setSize: number;
