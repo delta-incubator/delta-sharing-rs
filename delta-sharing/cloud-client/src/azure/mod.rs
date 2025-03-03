@@ -17,7 +17,7 @@ pub type AzureCredentialProvider = Arc<dyn CredentialProvider<Credential = Azure
 
 /// Configuration for [AzureClient]
 #[derive(Debug, Clone)]
-pub(crate) struct AzureConfig {
+pub struct AzureConfig {
     pub credentials: AzureCredentialProvider,
     pub retry_config: RetryConfig,
     pub skip_signature: bool,

@@ -105,10 +105,9 @@ impl From<Error> for crate::Error {
 /// # let BUCKET_NAME = "foo";
 /// # let ACCESS_KEY_ID = "foo";
 /// # let SECRET_KEY = "foo";
-/// # use object_store::aws::AmazonS3Builder;
-/// let s3 = AmazonS3Builder::new()
+/// # use cloud_client::aws::AmazonBuilder;
+/// let s3 = AmazonBuilder::new()
 ///  .with_region(REGION)
-///  .with_bucket_name(BUCKET_NAME)
 ///  .with_access_key_id(ACCESS_KEY_ID)
 ///  .with_secret_access_key(SECRET_KEY)
 ///  .build();
@@ -155,14 +154,14 @@ pub struct AmazonBuilder {
     request_payer: ConfigValue<bool>,
 }
 
-/// Configuration keys for [`AmazonS3Builder`]
+/// Configuration keys for [`AmazonBuilder`]
 ///
-/// Configuration via keys can be done via [`AmazonS3Builder::with_config`]
+/// Configuration via keys can be done via [`AmazonBuilder::with_config`]
 ///
 /// # Example
 /// ```
-/// # use object_store::aws::{AmazonS3Builder, AmazonS3ConfigKey};
-/// let builder = AmazonS3Builder::new()
+/// # use cloud_client::aws::{AmazonBuilder, AmazonS3ConfigKey};
+/// let builder = AmazonBuilder::new()
 ///     .with_config("aws_access_key_id".parse().unwrap(), "my-access-key-id")
 ///     .with_config(AmazonS3ConfigKey::DefaultRegion, "my-default-region");
 /// ```
@@ -171,7 +170,7 @@ pub struct AmazonBuilder {
 pub enum AmazonS3ConfigKey {
     /// AWS Access Key
     ///
-    /// See [`AmazonS3Builder::with_access_key_id`] for details.
+    /// See [`AmazonBuilder::with_access_key_id`] for details.
     ///
     /// Supported keys:
     /// - `aws_access_key_id`
@@ -180,7 +179,7 @@ pub enum AmazonS3ConfigKey {
 
     /// Secret Access Key
     ///
-    /// See [`AmazonS3Builder::with_secret_access_key`] for details.
+    /// See [`AmazonBuilder::with_secret_access_key`] for details.
     ///
     /// Supported keys:
     /// - `aws_secret_access_key`
@@ -189,7 +188,7 @@ pub enum AmazonS3ConfigKey {
 
     /// Region
     ///
-    /// See [`AmazonS3Builder::with_region`] for details.
+    /// See [`AmazonBuilder::with_region`] for details.
     ///
     /// Supported keys:
     /// - `aws_region`
@@ -198,7 +197,7 @@ pub enum AmazonS3ConfigKey {
 
     /// Default region
     ///
-    /// See [`AmazonS3Builder::with_region`] for details.
+    /// See [`AmazonBuilder::with_region`] for details.
     ///
     /// Supported keys:
     /// - `aws_default_region`
@@ -207,7 +206,7 @@ pub enum AmazonS3ConfigKey {
 
     /// Token to use for requests (passed to underlying provider)
     ///
-    /// See [`AmazonS3Builder::with_token`] for details.
+    /// See [`AmazonBuilder::with_token`] for details.
     ///
     /// Supported keys:
     /// - `aws_session_token`
@@ -218,7 +217,7 @@ pub enum AmazonS3ConfigKey {
 
     /// Fall back to ImdsV1
     ///
-    /// See [`AmazonS3Builder::with_imdsv1_fallback`] for details.
+    /// See [`AmazonBuilder::with_imdsv1_fallback`] for details.
     ///
     /// Supported keys:
     /// - `aws_imdsv1_fallback`
@@ -227,7 +226,7 @@ pub enum AmazonS3ConfigKey {
 
     /// Avoid computing payload checksum when calculating signature.
     ///
-    /// See [`AmazonS3Builder::with_unsigned_payload`] for details.
+    /// See [`AmazonBuilder::with_unsigned_payload`] for details.
     ///
     /// Supported keys:
     /// - `aws_unsigned_payload`
@@ -236,12 +235,12 @@ pub enum AmazonS3ConfigKey {
 
     /// Set the checksum algorithm for this client
     ///
-    /// See [`AmazonS3Builder::with_checksum_algorithm`]
+    /// See [`AmazonBuilder::with_checksum_algorithm`]
     Checksum,
 
     /// Set the instance metadata endpoint
     ///
-    /// See [`AmazonS3Builder::with_metadata_endpoint`] for details.
+    /// See [`AmazonBuilder::with_metadata_endpoint`] for details.
     ///
     /// Supported keys:
     /// - `aws_metadata_endpoint`
@@ -340,12 +339,12 @@ impl FromStr for AmazonS3ConfigKey {
 }
 
 impl AmazonBuilder {
-    /// Create a new [`AmazonS3Builder`] with default values.
+    /// Create a new [`AmazonBuilder`] with default values.
     pub fn new() -> Self {
         Default::default()
     }
 
-    /// Fill the [`AmazonS3Builder`] with regular AWS environment variables
+    /// Fill the [`AmazonBuilder`] with regular AWS environment variables
     ///
     /// Variables extracted from environment:
     /// * `AWS_ACCESS_KEY_ID` -> access_key_id
@@ -357,10 +356,9 @@ impl AmazonBuilder {
     /// * `AWS_ALLOW_HTTP` -> set to "true" to permit HTTP connections without TLS
     /// # Example
     /// ```
-    /// use object_store::aws::AmazonS3Builder;
+    /// use cloud_client::aws::AmazonBuilder;
     ///
-    /// let s3 = AmazonS3Builder::from_env()
-    ///     .with_bucket_name("foo")
+    /// let s3 = AmazonBuilder::from_env()
     ///     .build();
     /// ```
     pub fn from_env() -> Self {
@@ -393,9 +391,9 @@ impl AmazonBuilder {
     ///
     /// # Example
     /// ```
-    /// use object_store::aws::AmazonS3Builder;
+    /// use cloud_client::aws::AmazonBuilder;
     ///
-    /// let s3 = AmazonS3Builder::from_env()
+    /// let s3 = AmazonBuilder::from_env()
     ///     .with_url("s3://bucket/path")
     ///     .build();
     /// ```
@@ -448,16 +446,6 @@ impl AmazonBuilder {
     }
 
     /// Get config value via a [`AmazonS3ConfigKey`].
-    ///
-    /// # Example
-    /// ```
-    /// use object_store::aws::{AmazonS3Builder, AmazonS3ConfigKey};
-    ///
-    /// let builder = AmazonS3Builder::from_env()
-    ///     .with_bucket_name("foo");
-    /// let bucket_name = builder.get_config_value(&AmazonS3ConfigKey::Bucket).unwrap_or_default();
-    /// assert_eq!("foo", &bucket_name);
-    /// ```
     pub fn get_config_value(&self, key: &AmazonS3ConfigKey) -> Option<String> {
         match key {
             AmazonS3ConfigKey::AccessKeyId => self.access_key_id.clone(),
@@ -694,7 +682,7 @@ impl AmazonBuilder {
             std::env::var("AWS_WEB_IDENTITY_TOKEN_FILE"),
             std::env::var("AWS_ROLE_ARN"),
         ) {
-            // TODO: Replace with `AmazonS3Builder::credentials_from_env`
+            // TODO: Replace with `AmazonBuilder::credentials_from_env`
             info!("Using WebIdentity credential provider");
 
             let session_name = std::env::var("AWS_ROLE_SESSION_NAME")
@@ -779,7 +767,7 @@ impl AmazonBuilder {
 /// Encryption configuration options for S3.
 ///
 /// These options are used to configure server-side encryption for S3 objects.
-/// To configure them, pass them to [`AmazonS3Builder::with_config`].
+/// To configure them, pass them to [`AmazonBuilder::with_config`].
 ///
 /// [SSE-S3]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingServerSideEncryption.html
 /// [SSE-KMS]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html

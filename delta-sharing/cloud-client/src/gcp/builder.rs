@@ -61,8 +61,8 @@ impl From<Error> for crate::Error {
 ///
 /// # Example
 /// ```
-/// # use object_store::gcp::GoogleCloudStorageBuilder;
-/// let gcs = GoogleCloudStorageBuilder::from_env().build();
+/// # use cloud_client::gcp::GoogleBuilder;
+/// let gcs = GoogleBuilder::from_env().build();
 /// ```
 #[derive(Debug, Clone)]
 pub struct GoogleBuilder {
@@ -80,14 +80,14 @@ pub struct GoogleBuilder {
     credentials: Option<GcpCredentialProvider>,
 }
 
-/// Configuration keys for [`GoogleCloudStorageBuilder`]
+/// Configuration keys for [`GoogleBuilder`]
 ///
-/// Configuration via keys can be done via [`GoogleCloudStorageBuilder::with_config`]
+/// Configuration via keys can be done via [`GoogleBuilder::with_config`]
 ///
 /// # Example
 /// ```
-/// # use object_store::gcp::{GoogleCloudStorageBuilder, GoogleConfigKey};
-/// let builder = GoogleCloudStorageBuilder::new()
+/// # use cloud_client::gcp::{GoogleBuilder, GoogleConfigKey};
+/// let builder = GoogleBuilder::new()
 ///     .with_config("google_service_account".parse().unwrap(), "my-service-account");
 /// ```
 #[derive(PartialEq, Eq, Hash, Clone, Debug, Copy, Serialize, Deserialize)]
@@ -111,7 +111,7 @@ pub enum GoogleConfigKey {
 
     /// Application credentials path
     ///
-    /// See [`GoogleCloudStorageBuilder::with_application_credentials`].
+    /// See [`GoogleBuilder::with_application_credentials`].
     ApplicationCredentials,
 
     /// Client options
@@ -162,12 +162,12 @@ impl Default for GoogleBuilder {
 }
 
 impl GoogleBuilder {
-    /// Create a new [`GoogleCloudStorageBuilder`] with default values.
+    /// Create a new [`GoogleBuilder`] with default values.
     pub fn new() -> Self {
         Default::default()
     }
 
-    /// Create an instance of [`GoogleCloudStorageBuilder`] with values pre-populated from environment variables.
+    /// Create an instance of [`GoogleBuilder`] with values pre-populated from environment variables.
     ///
     /// Variables extracted from environment:
     /// * GOOGLE_SERVICE_ACCOUNT: location of service account file
@@ -177,10 +177,9 @@ impl GoogleBuilder {
     ///
     /// # Example
     /// ```
-    /// use object_store::gcp::GoogleCloudStorageBuilder;
+    /// use cloud_client::gcp::GoogleBuilder;
     ///
-    /// let gcs = GoogleCloudStorageBuilder::from_env()
-    ///     .with_bucket_name("foo")
+    /// let gcs = GoogleBuilder::from_env()
     ///     .build();
     /// ```
     pub fn from_env() -> Self {
@@ -222,9 +221,9 @@ impl GoogleBuilder {
     ///
     /// # Example
     /// ```
-    /// use object_store::gcp::{GoogleCloudStorageBuilder, GoogleConfigKey};
+    /// use cloud_client::gcp::{GoogleBuilder, GoogleConfigKey};
     ///
-    /// let builder = GoogleCloudStorageBuilder::from_env()
+    /// let builder = GoogleBuilder::from_env()
     ///     .with_service_account_key("foo");
     /// let service_account_key = builder.get_config_value(&GoogleConfigKey::ServiceAccountKey).unwrap_or_default();
     /// assert_eq!("foo", &service_account_key);
@@ -240,7 +239,7 @@ impl GoogleBuilder {
 
     /// Set the path to the service account file.
     ///
-    /// This or [`GoogleCloudStorageBuilder::with_service_account_key`] must be
+    /// This or [`GoogleBuilder::with_service_account_key`] must be
     /// set.
     ///
     /// Example `"/tmp/gcs.json"`.
@@ -263,7 +262,7 @@ impl GoogleBuilder {
     /// Set the service account key. The service account must be in the JSON
     /// format.
     ///
-    /// This or [`GoogleCloudStorageBuilder::with_service_account_path`] must be
+    /// This or [`GoogleBuilder::with_service_account_path`] must be
     /// set.
     pub fn with_service_account_key(mut self, service_account: impl Into<String>) -> Self {
         self.service_account_key = Some(service_account.into());

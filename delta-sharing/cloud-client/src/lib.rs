@@ -12,14 +12,14 @@ use serde::Serialize;
 use self::azure::credential::AzureCredentialExt;
 use self::token::{TemporaryToken, TokenCache};
 
-mod aws;
-mod azure;
+pub mod aws;
+pub mod azure;
 mod backoff;
 mod client;
 mod config;
 mod credential;
 mod error;
-mod gcp;
+pub mod gcp;
 #[cfg(test)]
 mod mock_server;
 mod pagination;
@@ -27,7 +27,7 @@ mod retry;
 mod token;
 mod util;
 
-pub use client::{ClientConfigKey, ClientOptions};
+pub use client::{Certificate, ClientConfigKey, ClientOptions};
 pub use credential::*;
 pub use error::*;
 pub use pagination::stream_paginated;

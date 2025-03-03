@@ -110,8 +110,8 @@ impl From<Error> for crate::Error {
 /// # let ACCOUNT = "foo";
 /// # let BUCKET_NAME = "foo";
 /// # let ACCESS_KEY = "foo";
-/// # use object_store::azure::MicrosoftAzureBuilder;
-/// let azure = MicrosoftAzureBuilder::new()
+/// # use cloud_client::azure::AzureBuilder;
+/// let azure = AzureBuilder::new()
 ///  .with_account(ACCOUNT)
 ///  .with_access_key(ACCESS_KEY)
 ///  .with_container_name(BUCKET_NAME)
@@ -179,14 +179,14 @@ pub struct AzureBuilder {
     fabric_cluster_identifier: Option<String>,
 }
 
-/// Configuration keys for [`MicrosoftAzureBuilder`]
+/// Configuration keys for [`AzureBuilder`]
 ///
-/// Configuration via keys can be done via [`MicrosoftAzureBuilder::with_config`]
+/// Configuration via keys can be done via [`AzureBuilder::with_config`]
 ///
 /// # Example
 /// ```
-/// # use object_store::azure::{MicrosoftAzureBuilder, AzureConfigKey};
-/// let builder = MicrosoftAzureBuilder::new()
+/// # use cloud_client::azure::{AzureBuilder, AzureConfigKey};
+/// let builder = AzureBuilder::new()
 ///     .with_config("azure_client_id".parse().unwrap(), "my-client-id")
 ///     .with_config(AzureConfigKey::AuthorityId, "my-tenant-id");
 /// ```
@@ -477,19 +477,19 @@ impl std::fmt::Debug for AzureBuilder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "MicrosoftAzureBuilder {{ account: {:?}, container_name: {:?} }}",
+            "AzureBuilder {{ account: {:?}, container_name: {:?} }}",
             self.account_name, self.container_name
         )
     }
 }
 
 impl AzureBuilder {
-    /// Create a new [`MicrosoftAzureBuilder`] with default values.
+    /// Create a new [`AzureBuilder`] with default values.
     pub fn new() -> Self {
         Default::default()
     }
 
-    /// Create an instance of [`MicrosoftAzureBuilder`] with values pre-populated from environment variables.
+    /// Create an instance of [`AzureBuilder`] with values pre-populated from environment variables.
     ///
     /// Variables extracted from environment:
     /// * AZURE_STORAGE_ACCOUNT_NAME: storage account name
@@ -500,9 +500,9 @@ impl AzureBuilder {
     /// * AZURE_STORAGE_TENANT_ID -> tenant id used in oauth flows
     /// # Example
     /// ```
-    /// use object_store::azure::MicrosoftAzureBuilder;
+    /// use cloud_client::azure::AzureBuilder;
     ///
-    /// let azure = MicrosoftAzureBuilder::from_env()
+    /// let azure = AzureBuilder::from_env()
     ///     .with_container_name("foo")
     ///     .build();
     /// ```
@@ -547,9 +547,9 @@ impl AzureBuilder {
     ///
     /// # Example
     /// ```
-    /// use object_store::azure::MicrosoftAzureBuilder;
+    /// use cloud_client::azure::AzureBuilder;
     ///
-    /// let azure = MicrosoftAzureBuilder::from_env()
+    /// let azure = AzureBuilder::from_env()
     ///     .with_url("abfss://file_system@account.dfs.core.windows.net/")
     ///     .build();
     /// ```
@@ -599,9 +599,9 @@ impl AzureBuilder {
     ///
     /// # Example
     /// ```
-    /// use object_store::azure::{MicrosoftAzureBuilder, AzureConfigKey};
+    /// use cloud_client::azure::{AzureBuilder, AzureConfigKey};
     ///
-    /// let builder = MicrosoftAzureBuilder::from_env()
+    /// let builder = AzureBuilder::from_env()
     ///     .with_account("foo");
     /// let account_name = builder.get_config_value(&AzureConfigKey::AccountName).unwrap_or_default();
     /// assert_eq!("foo", &account_name);

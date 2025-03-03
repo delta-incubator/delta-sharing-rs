@@ -868,7 +868,7 @@ mod tests {
     use tempfile::NamedTempFile;
 
     use super::*;
-    // use crate::azure::MicrosoftAzureBuilder;
+    // use crate::azure::AzureBuilder;
     use crate::mock_server::MockServer;
     // use crate::{ObjectStore, Path};
 

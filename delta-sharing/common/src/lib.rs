@@ -10,7 +10,7 @@ mod kernel;
 pub mod memory;
 pub mod models;
 pub mod policy;
-mod resources;
+pub mod resources;
 #[cfg(feature = "axum")]
 pub mod rest;
 pub mod secrets;
