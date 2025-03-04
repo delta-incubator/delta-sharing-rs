@@ -3,6 +3,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "patternProperties": {
+    "^(column_id)$": {
+      "description": "a unique id for the column",
+      "type": "string"
+    },
     "^(partition_index)$": {
       "description": "Partition index for column.",
       "maximum": 2147483647,
@@ -74,6 +78,10 @@
     }
   },
   "properties": {
+    "columnId": {
+      "description": "a unique id for the column",
+      "type": "string"
+    },
     "comment": {
       "description": "User-provided free-form text description.",
       "type": "string"

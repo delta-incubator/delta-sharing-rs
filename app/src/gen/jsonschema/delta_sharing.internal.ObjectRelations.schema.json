@@ -1,0 +1,31 @@
+{
+  "$id": "delta_sharing.internal.ObjectRelations.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(createdBy)$": {
+      "description": "Username of table creator.",
+      "type": "string"
+    },
+    "^(updatedBy)$": {
+      "description": "Username of user who last modified table.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "created_by": {
+      "description": "Username of table creator.",
+      "type": "string"
+    },
+    "owner": {
+      "description": "Username of current owner of table.",
+      "type": "string"
+    },
+    "updated_by": {
+      "description": "Username of user who last modified table.",
+      "type": "string"
+    }
+  },
+  "title": "Object Relations",
+  "type": "object"
+}

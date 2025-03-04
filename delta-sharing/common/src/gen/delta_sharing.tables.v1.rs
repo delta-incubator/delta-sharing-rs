@@ -45,6 +45,9 @@ pub struct ColumnInfo {
     /// Partition index for column.
     #[prost(int32, optional, tag="11")]
     pub partition_index: ::core::option::Option<i32>,
+    /// a unique id for the column
+    #[prost(string, optional, tag="12")]
+    pub column_id: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -389,11 +392,11 @@ pub struct CreateTableRequest {
     #[prost(message, repeated, tag="6")]
     pub columns: ::prost::alloc::vec::Vec<ColumnInfo>,
     /// Storage root URL for external table.
-    #[prost(string, tag="7")]
-    pub storage_root_url: ::prost::alloc::string::String,
+    #[prost(string, optional, tag="7")]
+    pub storage_location: ::core::option::Option<::prost::alloc::string::String>,
     /// User-provided free-form text description.
-    #[prost(string, tag="8")]
-    pub comment: ::prost::alloc::string::String,
+    #[prost(string, optional, tag="8")]
+    pub comment: ::core::option::Option<::prost::alloc::string::String>,
     /// A map of key-value properties attached to the securable.
     #[prost(message, optional, tag="9")]
     pub properties: ::core::option::Option<::pbjson_types::Struct>,

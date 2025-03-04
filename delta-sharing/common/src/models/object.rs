@@ -2,10 +2,11 @@ use delta_sharing_derive::object_conversions;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::tables::v1::TableSummary;
 use super::{ExternalLocationInfo, ResourceExt};
 use crate::models::{
-    CatalogInfo, CredentialInfo, RecipientInfo, SchemaInfo, ShareInfo, SharingSchemaInfo,
-    SharingTable, TableInfo,
+    CatalogInfo, ColumnInfo, CredentialInfo, RecipientInfo, SchemaInfo, ShareInfo,
+    SharingSchemaInfo, SharingTable, TableInfo,
 };
 use crate::{Error, ObjectLabel, Resource, ResourceName, ResourceRef};
 
@@ -56,6 +57,7 @@ impl ResourceExt for Resource {
             Resource::TableInfo(_) => &ObjectLabel::TableInfo,
             Resource::ExternalLocationInfo(_) => &ObjectLabel::ExternalLocationInfo,
             Resource::RecipientInfo(_) => &ObjectLabel::RecipientInfo,
+            Resource::ColumnInfo(_) => &ObjectLabel::ColumnInfo,
         }
     }
 
@@ -70,6 +72,7 @@ impl ResourceExt for Resource {
             Resource::TableInfo(obj) => obj.resource_name(),
             Resource::ExternalLocationInfo(obj) => obj.resource_name(),
             Resource::RecipientInfo(obj) => obj.resource_name(),
+            Resource::ColumnInfo(obj) => obj.resource_name(),
         }
     }
 
@@ -84,6 +87,7 @@ impl ResourceExt for Resource {
             Resource::TableInfo(obj) => obj.resource_ref(),
             Resource::ExternalLocationInfo(obj) => obj.resource_ref(),
             Resource::RecipientInfo(obj) => obj.resource_ref(),
+            Resource::ColumnInfo(obj) => obj.resource_ref(),
         }
     }
 }
@@ -102,6 +106,7 @@ impl TryFrom<Resource> for Object {
             Resource::TableInfo(obj) => obj.try_into(),
             Resource::ExternalLocationInfo(obj) => obj.try_into(),
             Resource::RecipientInfo(obj) => obj.try_into(),
+            Resource::ColumnInfo(obj) => obj.try_into(),
         }
     }
 }
@@ -122,6 +127,21 @@ impl TryFrom<Object> for Resource {
                 Ok(Resource::ExternalLocationInfo(obj.try_into()?))
             }
             ObjectLabel::RecipientInfo => Ok(Resource::RecipientInfo(obj.try_into()?)),
+            ObjectLabel::ColumnInfo => Ok(Resource::ColumnInfo(obj.try_into()?)),
+        }
+    }
+}
+
+impl From<TableInfo> for TableSummary {
+    fn from(table: TableInfo) -> Self {
+        TableSummary {
+            table_type: table.table_type,
+            full_name: table.full_name.unwrap_or_else(|| {
+                format!(
+                    "{}.{}.{}",
+                    table.catalog_name, table.schema_name, table.name
+                )
+            }),
         }
     }
 }
@@ -134,6 +154,7 @@ object_conversions!(
     CatalogInfo, ObjectLabel::CatalogInfo, id, [name], true;
     SchemaInfo, ObjectLabel::SchemaInfo, schema_id, [catalog_name, name], true;
     TableInfo, ObjectLabel::TableInfo, table_id, [catalog_name, schema_name, name], true;
+    ColumnInfo, ObjectLabel::ColumnInfo, column_id, [name], true;
     CredentialInfo, ObjectLabel::CredentialInfo, id, [name];
     RecipientInfo, ObjectLabel::RecipientInfo, id, [name], true;
 );

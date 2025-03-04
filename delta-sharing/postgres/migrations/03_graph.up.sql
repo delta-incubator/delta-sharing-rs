@@ -3,6 +3,7 @@ CREATE TYPE object_label AS ENUM (
     'catalog_info',
     'schema_info',
     'table_info',
+    'column_info',
     'credential_info',
     'external_location_info',
     'recipient_info'

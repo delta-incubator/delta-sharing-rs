@@ -1,3 +1,7 @@
+// The types defined in this file are nor meant to be exposed to the user.
+// They are used internally by the service to manage the resources.
+// THis is mainly convenience as we can leverage the code generation to create the
+// necessary types to manage the resources and utilize the same macros etc.
 syntax = "proto3";
 
 package delta_sharing.internal;
@@ -21,7 +25,19 @@ message Resource {
     delta_sharing.catalogs.v1.CatalogInfo catalog_info = 6;
     delta_sharing.schemas.v1.SchemaInfo schema_info = 7;
     delta_sharing.tables.v1.TableInfo table_info = 8;
-    delta_sharing.external_locations.v1.ExternalLocationInfo external_location_info = 9;
-    delta_sharing.recipients.v1.RecipientInfo recipient_info = 10;
+    delta_sharing.tables.v1.ColumnInfo column_info = 9;
+    delta_sharing.external_locations.v1.ExternalLocationInfo external_location_info = 10;
+    delta_sharing.recipients.v1.RecipientInfo recipient_info = 11;
   }
+}
+
+message ObjectRelations {
+  // Username of current owner of table.
+  optional string owner = 1;
+
+  // Username of table creator.
+  optional string created_by = 2;
+
+  // Username of user who last modified table.
+  optional string updated_by = 3;
 }

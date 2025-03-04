@@ -106,6 +106,9 @@ message ColumnInfo {
 
   // Partition index for column.
   optional int32 partition_index = 11;
+
+  // a unique id for the column
+  optional string column_id = 12;
 }
 
 message TableInfo {

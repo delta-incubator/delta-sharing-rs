@@ -4,7 +4,7 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Resource {
-    #[prost(oneof="resource::Resource", tags="1, 2, 3, 4, 6, 7, 8, 9, 10")]
+    #[prost(oneof="resource::Resource", tags="1, 2, 3, 4, 6, 7, 8, 9, 10, 11")]
     pub resource: ::core::option::Option<resource::Resource>,
 }
 /// Nested message and enum types in `Resource`.
@@ -35,10 +35,25 @@ pub mod resource {
         #[prost(message, tag="8")]
         TableInfo(super::super::tables::v1::TableInfo),
         #[prost(message, tag="9")]
-        ExternalLocationInfo(super::super::external_locations::v1::ExternalLocationInfo),
+        ColumnInfo(super::super::tables::v1::ColumnInfo),
         #[prost(message, tag="10")]
+        ExternalLocationInfo(super::super::external_locations::v1::ExternalLocationInfo),
+        #[prost(message, tag="11")]
         RecipientInfo(super::super::recipients::v1::RecipientInfo),
     }
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ObjectRelations {
+    /// Username of current owner of table.
+    #[prost(string, optional, tag="1")]
+    pub owner: ::core::option::Option<::prost::alloc::string::String>,
+    /// Username of table creator.
+    #[prost(string, optional, tag="2")]
+    pub created_by: ::core::option::Option<::prost::alloc::string::String>,
+    /// Username of user who last modified table.
+    #[prost(string, optional, tag="3")]
+    pub updated_by: ::core::option::Option<::prost::alloc::string::String>,
 }
 include!("delta_sharing.internal.serde.rs");
 // @@protoc_insertion_point(module)

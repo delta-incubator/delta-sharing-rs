@@ -131,13 +131,13 @@ message CreateTableRequest {
   repeated ColumnInfo columns = 6;
 
   // Storage root URL for external table.
-  string storage_root_url = 7;
+  optional string storage_location = 7;
 
   // User-provided free-form text description.
-  string comment = 8;
+  optional string comment = 8;
 
   // A map of key-value properties attached to the securable.
-  google.protobuf.Struct properties = 9;
+  optional google.protobuf.Struct properties = 9;
 }
 
 // Get a table

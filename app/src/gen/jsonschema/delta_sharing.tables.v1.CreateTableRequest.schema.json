@@ -43,7 +43,7 @@
       "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     },
-    "^(storageRootUrl)$": {
+    "^(storageLocation)$": {
       "description": "Storage root URL for external table.",
       "type": "string"
     },
@@ -127,7 +127,7 @@
       "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     },
-    "storage_root_url": {
+    "storage_location": {
       "description": "Storage root URL for external table.",
       "type": "string"
     },

@@ -1555,6 +1555,9 @@ components:
           type: integer
           description: Partition index for column.
           format: int32
+        columnId:
+          type: string
+          description: a unique id for the column
     CreateCatalogRequest:
       required:
         - name
@@ -1730,7 +1733,7 @@ components:
           items:
             $ref: '#/components/schemas/ColumnInfo'
           description: The array of ColumnInfo definitions of the table's columns.
-        storageRootUrl:
+        storageLocation:
           type: string
           description: Storage root URL for external table.
         comment:

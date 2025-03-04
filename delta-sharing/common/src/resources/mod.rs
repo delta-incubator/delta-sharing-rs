@@ -74,6 +74,7 @@ pub enum ResourceIdent {
     Schema(ResourceRef),
     Table(ResourceRef),
     Recipient(ResourceRef),
+    Column(ResourceRef),
 }
 
 impl ResourceIdent {
@@ -113,6 +114,10 @@ impl ResourceIdent {
         Self::Table(name.into())
     }
 
+    pub fn column(name: impl Into<ResourceRef>) -> Self {
+        Self::Column(name.into())
+    }
+
     pub fn external_location(name: impl Into<ResourceRef>) -> Self {
         Self::ExternalLocation(name.into())
     }
@@ -134,6 +139,7 @@ impl std::fmt::Display for ResourceIdent {
             ResourceIdent::Schema(r) => write!(f, "schema:{}", r),
             ResourceIdent::Table(r) => write!(f, "table:{}", r),
             ResourceIdent::Recipient(r) => write!(f, "recipient:{}", r),
+            ResourceIdent::Column(r) => write!(f, "column:{}", r),
         }
     }
 }
@@ -150,6 +156,7 @@ impl AsRef<ResourceRef> for ResourceIdent {
             ResourceIdent::Schema(r) => r,
             ResourceIdent::Table(r) => r,
             ResourceIdent::Recipient(r) => r,
+            ResourceIdent::Column(r) => r,
         }
     }
 }
@@ -166,6 +173,7 @@ impl AsRef<ObjectLabel> for ResourceIdent {
             ResourceIdent::Schema(_) => &ObjectLabel::SchemaInfo,
             ResourceIdent::Table(_) => &ObjectLabel::TableInfo,
             ResourceIdent::Recipient(_) => &ObjectLabel::RecipientInfo,
+            ResourceIdent::Column(_) => &ObjectLabel::ColumnInfo,
         }
     }
 }
@@ -182,6 +190,7 @@ impl From<ResourceIdent> for ResourceRef {
             ResourceIdent::Schema(r) => r,
             ResourceIdent::Table(r) => r,
             ResourceIdent::Recipient(r) => r,
+            ResourceIdent::Column(r) => r,
         }
     }
 }

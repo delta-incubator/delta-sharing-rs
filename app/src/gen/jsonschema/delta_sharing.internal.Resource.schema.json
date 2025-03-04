@@ -7,6 +7,9 @@
     "^(catalogInfo)$": {
       "$ref": "delta_sharing.catalogs.v1.CatalogInfo.schema.json"
     },
+    "^(columnInfo)$": {
+      "$ref": "delta_sharing.tables.v1.ColumnInfo.schema.json"
+    },
     "^(credentialInfo)$": {
       "$ref": "delta_sharing.credentials.v1.CredentialInfo.schema.json"
     },
@@ -35,6 +38,9 @@
   "properties": {
     "catalog_info": {
       "$ref": "delta_sharing.catalogs.v1.CatalogInfo.schema.json"
+    },
+    "column_info": {
+      "$ref": "delta_sharing.tables.v1.ColumnInfo.schema.json"
     },
     "credential_info": {
       "$ref": "delta_sharing.credentials.v1.CredentialInfo.schema.json"

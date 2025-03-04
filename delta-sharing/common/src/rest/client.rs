@@ -373,7 +373,6 @@ impl SharesClient {
         let request = share::CreateShareRequest {
             name: name.into(),
             comment: comment.into(),
-            ..Default::default()
         };
         self.create_share(&request).await
     }
