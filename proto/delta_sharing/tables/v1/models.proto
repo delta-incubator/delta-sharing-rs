@@ -25,6 +25,13 @@ enum TableType {
   // EXTERNAL_SHALLOW_CLONE = 8;
 }
 
+message TableSummary {
+  // The full name of the table.
+  string full_name = 1;
+
+  TableType table_type = 2;
+}
+
 enum DataSourceFormat {
   DATA_SOURCE_FORMAT_UNSPECIFIED = 0;
   DELTA = 1;
@@ -38,6 +45,67 @@ enum DataSourceFormat {
   TEXT = 9;
   UNITY_CATALOG = 10;
   DELTASHARING = 11;
+}
+
+enum ColumnTypeName {
+  COLUMN_TYPE_NAME_UNSPECIFIED = 0;
+  BOOLEAN = 1;
+  BYTE = 2;
+  SHORT = 3;
+  INT = 4;
+  LONG = 5;
+  FLOAT = 6;
+  DOUBLE = 7;
+  DATE = 8;
+  TIMESTAMP = 9;
+  STRING = 10;
+  BINARY = 11;
+  DECIMAL = 12;
+  INTERVAL = 13;
+  ARRAY = 14;
+  STRUCT = 15;
+  MAP = 16;
+  CHAR = 17;
+  NULL = 18;
+  USER_DEFINED_TYPE = 19;
+  TIMESTAMP_NTZ = 20;
+  VARIANT = 21;
+  TABLE_TYPE = 22;
+}
+
+message ColumnInfo {
+  // Name of the column
+  string name = 1;
+
+  // Full data type specification as SQL/catalogString text.
+  string type_text = 2;
+
+  // Full data type specification, JSON-serialized.
+  string type_json = 3;
+
+  // Data type name.
+  ColumnTypeName type_name = 4;
+
+  // Digits of precision; required for DecimalTypes.
+  optional int32 type_precision = 5;
+
+  // Digits to right of decimal; Required for DecimalTypes.
+  optional int32 type_scale = 6;
+
+  // Format of IntervalType.
+  optional string type_interval_type = 7;
+
+  // Ordinal position of column (starting at position 0).
+  optional int32 position = 8;
+
+  // User-provided free-form text description.
+  optional string comment = 9;
+
+  // Whether field may be Null.
+  optional bool nullable = 10;
+
+  // Partition index for column.
+  optional int32 partition_index = 11;
 }
 
 message TableInfo {
@@ -55,30 +123,54 @@ message TableInfo {
   // Data source format of the table.
   DataSourceFormat data_source_format = 5;
 
-  // User-provided free-form text description.
-  optional string comment = 7;
+  // The array of ColumnInfo definitions of the table's columns.
+  repeated ColumnInfo columns = 6;
 
-  // A map of key-value properties attached to the securable.
-  optional google.protobuf.Struct properties = 8;
+  // Storage root URL for table (for MANAGED, EXTERNAL tables)
+  optional string storage_location = 7;
 
-  // Full name of table, in form of catalog_name.schema_name.table_name.
-  optional string full_name = 9;
+  // View definition SQL (when table_type is VIEW, MATERIALIZED_VIEW, or STREAMING_TABLE)
+  // optional string view_definition = 8;
+
+  // optional string view_dependencies = 9;
+
+  // optional string sql_path = 10;
 
   // Username of current owner of table.
-  optional string owner = 10;
+  optional string owner = 11;
+
+  // User-provided free-form text description.
+  optional string comment = 12;
+
+  // A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 13;
+
+  // Name of the storage credential, when a storage credential is configured for use with this table.
+  optional string storage_credential_name = 14;
+
+  // List of table constraints. Note: this field is not set in the output of the listTables API.
+  // repeated TableConstraint constraints = 15;
+
+  // optional string row_filter = 16;
+
+  // Full name of table, in form of catalog_name.schema_name.table_name.
+  optional string full_name = 17;
 
   // Time at which this table was created, in epoch milliseconds.
-  optional int64 created_at = 11;
+  optional int64 created_at = 18;
 
   // Username of table creator.
-  optional string created_by = 12;
+  optional string created_by = 19;
 
   // Time at which this table was last updated, in epoch milliseconds.
-  optional int64 updated_at = 13;
+  optional int64 updated_at = 20;
 
   // Username of user who last modified table.
-  optional string updated_by = 14;
+  optional string updated_by = 21;
+
+  // Time at which this table was deleted, in epoch milliseconds. Field is omitted if table is not deleted.
+  optional int64 deleted_at = 22;
 
   // Unique identifier for the table.
-  optional string table_id = 15;
+  optional string table_id = 23;
 }

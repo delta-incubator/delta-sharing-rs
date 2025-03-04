@@ -92,7 +92,7 @@ impl<'de> serde::Deserialize<'de> for Resource {
             {
                 struct GeneratedVisitor;
 
-                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

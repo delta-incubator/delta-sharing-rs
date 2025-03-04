@@ -1,0 +1,19 @@
+{
+  "$id": "delta_sharing.tables.v1.GetTableExistsResponse.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(tableExists)$": {
+      "description": "Boolean reflecting if table exists.",
+      "type": "boolean"
+    }
+  },
+  "properties": {
+    "table_exists": {
+      "description": "Boolean reflecting if table exists.",
+      "type": "boolean"
+    }
+  },
+  "title": "Get Table Exists Response",
+  "type": "object"
+}

@@ -1,0 +1,55 @@
+{
+  "$id": "delta_sharing.tables.v1.TableSummary.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(full_name)$": {
+      "description": "The full name of the table.",
+      "type": "string"
+    },
+    "^(table_type)$": {
+      "anyOf": [
+        {
+          "enum": [
+            "TABLE_TYPE_UNSPECIFIED",
+            "MANAGED",
+            "EXTERNAL"
+          ],
+          "title": "Table Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "fullName": {
+      "description": "The full name of the table.",
+      "type": "string"
+    },
+    "tableType": {
+      "anyOf": [
+        {
+          "enum": [
+            "TABLE_TYPE_UNSPECIFIED",
+            "MANAGED",
+            "EXTERNAL"
+          ],
+          "title": "Table Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ]
+    }
+  },
+  "title": "Table Summary",
+  "type": "object"
+}

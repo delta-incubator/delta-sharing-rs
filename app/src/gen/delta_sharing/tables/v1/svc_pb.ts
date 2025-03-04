@@ -4,18 +4,512 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv1";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv1";
-import type { TableInfoSchema } from "./models_pb";
+import { file_buf_validate_validate } from "../../../buf/validate/validate_pb";
+import type { ColumnInfo, ColumnInfoJson, DataSourceFormat, DataSourceFormatJson, TableInfo, TableInfoJson, TableInfoSchema, TableSummary, TableSummaryJson, TableType, TableTypeJson } from "./models_pb";
 import { file_delta_sharing_tables_v1_models } from "./models_pb";
 import { file_gnostic_openapi_v3_annotations } from "../../../gnostic/openapi/v3/annotations_pb";
 import { file_google_api_annotations } from "../../../google/api/annotations_pb";
-import { file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
-import type { Message } from "@bufbuild/protobuf";
+import { file_google_api_field_behavior } from "../../../google/api/field_behavior_pb";
+import type { EmptySchema, StructJson } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_empty, file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
+import type { JsonObject, Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file delta_sharing/tables/v1/svc.proto.
  */
 export const file_delta_sharing_tables_v1_svc: GenFile = /*@__PURE__*/
-  fileDesc("CiFkZWx0YV9zaGFyaW5nL3RhYmxlcy92MS9zdmMucHJvdG8SF2RlbHRhX3NoYXJpbmcudGFibGVzLnYxIiQKD0dldFRhYmxlUmVxdWVzdBIRCglmdWxsX25hbWUYASABKAkylAEKDVRhYmxlc1NlcnZpY2USggEKCEdldFRhYmxlEiguZGVsdGFfc2hhcmluZy50YWJsZXMudjEuR2V0VGFibGVSZXF1ZXN0GiIuZGVsdGFfc2hhcmluZy50YWJsZXMudjEuVGFibGVJbmZvIii6RwoqCEdldFRhYmxlgtPkkwIVEhMvdGFibGVzL3tmdWxsX25hbWV9QvIBChtjb20uZGVsdGFfc2hhcmluZy50YWJsZXMudjFCCFN2Y1Byb3RvUAFaT2dpdGh1Yi5jb20vZGVsdGEtaW5jdWJhdG9yL2RlbHRhLXNoYXJpbmctcnMvZ28vZGVsdGFfc2hhcmluZy90YWJsZXMvdjE7dGFibGVzdjGiAgNEVFiqAhZEZWx0YVNoYXJpbmcuVGFibGVzLlYxygIWRGVsdGFTaGFyaW5nXFRhYmxlc1xWMeICIkRlbHRhU2hhcmluZ1xUYWJsZXNcVjFcR1BCTWV0YWRhdGHqAhhEZWx0YVNoYXJpbmc6OlRhYmxlczo6VjFiBnByb3RvMw", [file_delta_sharing_tables_v1_models, file_gnostic_openapi_v3_annotations, file_google_api_annotations, file_google_protobuf_struct]);
+  fileDesc("CiFkZWx0YV9zaGFyaW5nL3RhYmxlcy92MS9zdmMucHJvdG8SF2RlbHRhX3NoYXJpbmcudGFibGVzLnYxIo0DChlMaXN0VGFibGVTdW1tYXJpZXNSZXF1ZXN0EjsKDGNhdGFsb2dfbmFtZRgBIAEoCUIl4EECukgfch0QAzIZXlthLXpdWzAtOWEtel9dKlswLTlhLXpdJBIlChNzY2hlbWFfbmFtZV9wYXR0ZXJuGAIgASgJQgPgQQFIAIgBARIkChJ0YWJsZV9uYW1lX3BhdHRlcm4YAyABKAlCA+BBAUgBiAEBEicKC21heF9yZXN1bHRzGGQgASgFQg3gQQG6SAcaBRiQTiAASAKIAQESHAoKcGFnZV90b2tlbhhlIAEoCUID4EEBSAOIAQESLwodaW5jbHVkZV9tYW5pZmVzdF9jYXBhYmlsaXRpZXMYZiABKAhCA+BBAUgEiAEBQhYKFF9zY2hlbWFfbmFtZV9wYXR0ZXJuQhUKE190YWJsZV9uYW1lX3BhdHRlcm5CDgoMX21heF9yZXN1bHRzQg0KC19wYWdlX3Rva2VuQiAKHl9pbmNsdWRlX21hbmlmZXN0X2NhcGFiaWxpdGllcyKFAQoaTGlzdFRhYmxlU3VtbWFyaWVzUmVzcG9uc2USNQoGdGFibGVzGAEgAygLMiUuZGVsdGFfc2hhcmluZy50YWJsZXMudjEuVGFibGVTdW1tYXJ5EhwKD25leHRfcGFnZV90b2tlbhgCIAEoCUgAiAEBQhIKEF9uZXh0X3BhZ2VfdG9rZW4i2QQKEUxpc3RUYWJsZXNSZXF1ZXN0EjoKC3NjaGVtYV9uYW1lGAEgASgJQiXgQQK6SB9yHRADMhleW2Etel1bMC05YS16X10qWzAtOWEtel0kEjsKDGNhdGFsb2dfbmFtZRgCIAEoCUIl4EECukgfch0QAzIZXlthLXpdWzAtOWEtel9dKlswLTlhLXpdJBImCgttYXhfcmVzdWx0cxgDIAEoBUIM4EEBukgGGgQYMiAASACIAQESHAoKcGFnZV90b2tlbhgEIAEoCUID4EEBSAGIAQESKAoWaW5jbHVkZV9kZWx0YV9tZXRhZGF0YRgFIAEoCEID4EEBSAKIAQESHgoMb21pdF9jb2x1bW5zGAYgASgIQgPgQQFIA4gBARIhCg9vbWl0X3Byb3BlcnRpZXMYByABKAhCA+BBAUgEiAEBEh8KDW9taXRfdXNlcm5hbWUYCCABKAhCA+BBAUgFiAEBEiAKDmluY2x1ZGVfYnJvd3NlGAkgASgIQgPgQQFIBogBARIvCh1pbmNsdWRlX21hbmlmZXN0X2NhcGFiaWxpdGllcxgKIAEoCEID4EEBSAeIAQFCDgoMX21heF9yZXN1bHRzQg0KC19wYWdlX3Rva2VuQhkKF19pbmNsdWRlX2RlbHRhX21ldGFkYXRhQg8KDV9vbWl0X2NvbHVtbnNCEgoQX29taXRfcHJvcGVydGllc0IQCg5fb21pdF91c2VybmFtZUIRCg9faW5jbHVkZV9icm93c2VCIAoeX2luY2x1ZGVfbWFuaWZlc3RfY2FwYWJpbGl0aWVzInoKEkxpc3RUYWJsZXNSZXNwb25zZRIyCgZ0YWJsZXMYASADKAsyIi5kZWx0YV9zaGFyaW5nLnRhYmxlcy52MS5UYWJsZUluZm8SHAoPbmV4dF9wYWdlX3Rva2VuGAIgASgJSACIAQFCEgoQX25leHRfcGFnZV90b2tlbiLPAwoSQ3JlYXRlVGFibGVSZXF1ZXN0EjMKBG5hbWUYASABKAlCJeBBArpIH3IdEAMyGV5bYS16XVswLTlhLXpfXSpbMC05YS16XSQSOgoLc2NoZW1hX25hbWUYAiABKAlCJeBBArpIH3IdEAMyGV5bYS16XVswLTlhLXpfXSpbMC05YS16XSQSOwoMY2F0YWxvZ19uYW1lGAMgASgJQiXgQQK6SB9yHRADMhleW2Etel1bMC05YS16X10qWzAtOWEtel0kEjYKCnRhYmxlX3R5cGUYBCABKA4yIi5kZWx0YV9zaGFyaW5nLnRhYmxlcy52MS5UYWJsZVR5cGUSRQoSZGF0YV9zb3VyY2VfZm9ybWF0GAUgASgOMikuZGVsdGFfc2hhcmluZy50YWJsZXMudjEuRGF0YVNvdXJjZUZvcm1hdBI0Cgdjb2x1bW5zGAYgAygLMiMuZGVsdGFfc2hhcmluZy50YWJsZXMudjEuQ29sdW1uSW5mbxIYChBzdG9yYWdlX3Jvb3RfdXJsGAcgASgJEg8KB2NvbW1lbnQYCCABKAkSKwoKcHJvcGVydGllcxgJIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3Qi4gEKD0dldFRhYmxlUmVxdWVzdBIRCglmdWxsX25hbWUYASABKAkSIwoWaW5jbHVkZV9kZWx0YV9tZXRhZGF0YRgCIAEoCEgAiAEBEhsKDmluY2x1ZGVfYnJvd3NlGAMgASgISAGIAQESKgodaW5jbHVkZV9tYW5pZmVzdF9jYXBhYmlsaXRpZXMYBCABKAhIAogBAUIZChdfaW5jbHVkZV9kZWx0YV9tZXRhZGF0YUIRCg9faW5jbHVkZV9icm93c2VCIAoeX2luY2x1ZGVfbWFuaWZlc3RfY2FwYWJpbGl0aWVzIioKFUdldFRhYmxlRXhpc3RzUmVxdWVzdBIRCglmdWxsX25hbWUYASABKAkiLgoWR2V0VGFibGVFeGlzdHNSZXNwb25zZRIUCgx0YWJsZV9leGlzdHMYASABKAgiJwoSRGVsZXRlVGFibGVSZXF1ZXN0EhEKCWZ1bGxfbmFtZRgBIAEoCTL+BgoNVGFibGVzU2VydmljZRKuAQoSTGlzdFRhYmxlU3VtbWFyaWVzEjIuZGVsdGFfc2hhcmluZy50YWJsZXMudjEuTGlzdFRhYmxlU3VtbWFyaWVzUmVxdWVzdBozLmRlbHRhX3NoYXJpbmcudGFibGVzLnYxLkxpc3RUYWJsZVN1bW1hcmllc1Jlc3BvbnNlIi+6RxQqEkxpc3RUYWJsZVN1bW1hcmllc4LT5JMCEhIQL3RhYmxlLXN1bW1hcmllcxKFAQoKTGlzdFRhYmxlcxIqLmRlbHRhX3NoYXJpbmcudGFibGVzLnYxLkxpc3RUYWJsZXNSZXF1ZXN0GisuZGVsdGFfc2hhcmluZy50YWJsZXMudjEuTGlzdFRhYmxlc1Jlc3BvbnNlIh66RwwqCkxpc3RUYWJsZXOC0+STAgkSBy90YWJsZXMSggEKC0NyZWF0ZVRhYmxlEisuZGVsdGFfc2hhcmluZy50YWJsZXMudjEuQ3JlYXRlVGFibGVSZXF1ZXN0GiIuZGVsdGFfc2hhcmluZy50YWJsZXMudjEuVGFibGVJbmZvIiK6Rw0qC0NyZWF0ZVRhYmxlgtPkkwIMOgEqIgcvdGFibGVzEoIBCghHZXRUYWJsZRIoLmRlbHRhX3NoYXJpbmcudGFibGVzLnYxLkdldFRhYmxlUmVxdWVzdBoiLmRlbHRhX3NoYXJpbmcudGFibGVzLnYxLlRhYmxlSW5mbyIoukcKKghHZXRUYWJsZYLT5JMCFRITL3RhYmxlcy97ZnVsbF9uYW1lfRKoAQoOR2V0VGFibGVFeGlzdHMSLi5kZWx0YV9zaGFyaW5nLnRhYmxlcy52MS5HZXRUYWJsZUV4aXN0c1JlcXVlc3QaLy5kZWx0YV9zaGFyaW5nLnRhYmxlcy52MS5HZXRUYWJsZUV4aXN0c1Jlc3BvbnNlIjW6RxAqDkdldFRhYmxlRXhpc3RzgtPkkwIcEhovdGFibGVzL3tmdWxsX25hbWV9L2V4aXN0cxJ/CgtEZWxldGVUYWJsZRIrLmRlbHRhX3NoYXJpbmcudGFibGVzLnYxLkRlbGV0ZVRhYmxlUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSIrukcNKgtEZWxldGVUYWJsZYLT5JMCFSoTL3RhYmxlcy97ZnVsbF9uYW1lfULyAQobY29tLmRlbHRhX3NoYXJpbmcudGFibGVzLnYxQghTdmNQcm90b1ABWk9naXRodWIuY29tL2RlbHRhLWluY3ViYXRvci9kZWx0YS1zaGFyaW5nLXJzL2dvL2RlbHRhX3NoYXJpbmcvdGFibGVzL3YxO3RhYmxlc3YxogIDRFRYqgIWRGVsdGFTaGFyaW5nLlRhYmxlcy5WMcoCFkRlbHRhU2hhcmluZ1xUYWJsZXNcVjHiAiJEZWx0YVNoYXJpbmdcVGFibGVzXFYxXEdQQk1ldGFkYXRh6gIYRGVsdGFTaGFyaW5nOjpUYWJsZXM6OlYxYgZwcm90bzM", [file_buf_validate_validate, file_delta_sharing_tables_v1_models, file_gnostic_openapi_v3_annotations, file_google_api_annotations, file_google_api_field_behavior, file_google_protobuf_empty, file_google_protobuf_struct]);
+
+/**
+ * @generated from message delta_sharing.tables.v1.ListTableSummariesRequest
+ */
+export type ListTableSummariesRequest = Message<"delta_sharing.tables.v1.ListTableSummariesRequest"> & {
+  /**
+   * Name of parent catalog for tables of interest.
+   *
+   * @generated from field: string catalog_name = 1;
+   */
+  catalogName: string;
+
+  /**
+   * A sql LIKE pattern (% and _) for schema names. All schemas will be returned if not set or empty.
+   *
+   * @generated from field: optional string schema_name_pattern = 2;
+   */
+  schemaNamePattern?: string;
+
+  /**
+   * A sql LIKE pattern (% and _) for table names. All tables will be returned if not set or empty.
+   *
+   * @generated from field: optional string table_name_pattern = 3;
+   */
+  tableNamePattern?: string;
+
+  /**
+   * The maximum number of results per page that should be returned.
+   *
+   * @generated from field: optional int32 max_results = 100;
+   */
+  maxResults?: number;
+
+  /**
+   * Opaque pagination token to go to next page based on previous query.
+   *
+   * @generated from field: optional string page_token = 101;
+   */
+  pageToken?: string;
+
+  /**
+   * Whether to include a manifest containing capabilities the table has.
+   *
+   * @generated from field: optional bool include_manifest_capabilities = 102;
+   */
+  includeManifestCapabilities?: boolean;
+};
+
+/**
+ * @generated from message delta_sharing.tables.v1.ListTableSummariesRequest
+ */
+export type ListTableSummariesRequestJson = {
+  /**
+   * Name of parent catalog for tables of interest.
+   *
+   * @generated from field: string catalog_name = 1;
+   */
+  catalogName?: string;
+
+  /**
+   * A sql LIKE pattern (% and _) for schema names. All schemas will be returned if not set or empty.
+   *
+   * @generated from field: optional string schema_name_pattern = 2;
+   */
+  schemaNamePattern?: string;
+
+  /**
+   * A sql LIKE pattern (% and _) for table names. All tables will be returned if not set or empty.
+   *
+   * @generated from field: optional string table_name_pattern = 3;
+   */
+  tableNamePattern?: string;
+
+  /**
+   * The maximum number of results per page that should be returned.
+   *
+   * @generated from field: optional int32 max_results = 100;
+   */
+  maxResults?: number;
+
+  /**
+   * Opaque pagination token to go to next page based on previous query.
+   *
+   * @generated from field: optional string page_token = 101;
+   */
+  pageToken?: string;
+
+  /**
+   * Whether to include a manifest containing capabilities the table has.
+   *
+   * @generated from field: optional bool include_manifest_capabilities = 102;
+   */
+  includeManifestCapabilities?: boolean;
+};
+
+/**
+ * Describes the message delta_sharing.tables.v1.ListTableSummariesRequest.
+ * Use `create(ListTableSummariesRequestSchema)` to create a new message.
+ */
+export const ListTableSummariesRequestSchema: GenMessage<ListTableSummariesRequest, ListTableSummariesRequestJson> = /*@__PURE__*/
+  messageDesc(file_delta_sharing_tables_v1_svc, 0);
+
+/**
+ * @generated from message delta_sharing.tables.v1.ListTableSummariesResponse
+ */
+export type ListTableSummariesResponse = Message<"delta_sharing.tables.v1.ListTableSummariesResponse"> & {
+  /**
+   * The table summaries returned.
+   *
+   * @generated from field: repeated delta_sharing.tables.v1.TableSummary tables = 1;
+   */
+  tables: TableSummary[];
+
+  /**
+   * The next_page_token value to include in the next List request.
+   *
+   * @generated from field: optional string next_page_token = 2;
+   */
+  nextPageToken?: string;
+};
+
+/**
+ * @generated from message delta_sharing.tables.v1.ListTableSummariesResponse
+ */
+export type ListTableSummariesResponseJson = {
+  /**
+   * The table summaries returned.
+   *
+   * @generated from field: repeated delta_sharing.tables.v1.TableSummary tables = 1;
+   */
+  tables?: TableSummaryJson[];
+
+  /**
+   * The next_page_token value to include in the next List request.
+   *
+   * @generated from field: optional string next_page_token = 2;
+   */
+  nextPageToken?: string;
+};
+
+/**
+ * Describes the message delta_sharing.tables.v1.ListTableSummariesResponse.
+ * Use `create(ListTableSummariesResponseSchema)` to create a new message.
+ */
+export const ListTableSummariesResponseSchema: GenMessage<ListTableSummariesResponse, ListTableSummariesResponseJson> = /*@__PURE__*/
+  messageDesc(file_delta_sharing_tables_v1_svc, 1);
+
+/**
+ * @generated from message delta_sharing.tables.v1.ListTablesRequest
+ */
+export type ListTablesRequest = Message<"delta_sharing.tables.v1.ListTablesRequest"> & {
+  /**
+   * Name of parent schema for tables of interest.
+   *
+   * @generated from field: string schema_name = 1;
+   */
+  schemaName: string;
+
+  /**
+   * Name of parent catalog for tables of interest.
+   *
+   * @generated from field: string catalog_name = 2;
+   */
+  catalogName: string;
+
+  /**
+   * The maximum number of results per page that should be returned.
+   *
+   * @generated from field: optional int32 max_results = 3;
+   */
+  maxResults?: number;
+
+  /**
+   * Opaque pagination token to go to next page based on previous query.
+   *
+   * @generated from field: optional string page_token = 4;
+   */
+  pageToken?: string;
+
+  /**
+   * Whether delta metadata should be included in the response.
+   *
+   * @generated from field: optional bool include_delta_metadata = 5;
+   */
+  includeDeltaMetadata?: boolean;
+
+  /**
+   * Whether to omit the columns of the table from the response or not.
+   *
+   * @generated from field: optional bool omit_columns = 6;
+   */
+  omitColumns?: boolean;
+
+  /**
+   * Whether to omit the properties of the table from the response or not.
+   *
+   * @generated from field: optional bool omit_properties = 7;
+   */
+  omitProperties?: boolean;
+
+  /**
+   * Whether to omit the username of the table (e.g. owner, updated_by, created_by) from the response or not.
+   *
+   * @generated from field: optional bool omit_username = 8;
+   */
+  omitUsername?: boolean;
+
+  /**
+   * Whether to include tables in the response for which the principal can only access selective metadata for
+   *
+   * @generated from field: optional bool include_browse = 9;
+   */
+  includeBrowse?: boolean;
+
+  /**
+   * Whether to include a manifest containing capabilities the table has.
+   *
+   * @generated from field: optional bool include_manifest_capabilities = 10;
+   */
+  includeManifestCapabilities?: boolean;
+};
+
+/**
+ * @generated from message delta_sharing.tables.v1.ListTablesRequest
+ */
+export type ListTablesRequestJson = {
+  /**
+   * Name of parent schema for tables of interest.
+   *
+   * @generated from field: string schema_name = 1;
+   */
+  schemaName?: string;
+
+  /**
+   * Name of parent catalog for tables of interest.
+   *
+   * @generated from field: string catalog_name = 2;
+   */
+  catalogName?: string;
+
+  /**
+   * The maximum number of results per page that should be returned.
+   *
+   * @generated from field: optional int32 max_results = 3;
+   */
+  maxResults?: number;
+
+  /**
+   * Opaque pagination token to go to next page based on previous query.
+   *
+   * @generated from field: optional string page_token = 4;
+   */
+  pageToken?: string;
+
+  /**
+   * Whether delta metadata should be included in the response.
+   *
+   * @generated from field: optional bool include_delta_metadata = 5;
+   */
+  includeDeltaMetadata?: boolean;
+
+  /**
+   * Whether to omit the columns of the table from the response or not.
+   *
+   * @generated from field: optional bool omit_columns = 6;
+   */
+  omitColumns?: boolean;
+
+  /**
+   * Whether to omit the properties of the table from the response or not.
+   *
+   * @generated from field: optional bool omit_properties = 7;
+   */
+  omitProperties?: boolean;
+
+  /**
+   * Whether to omit the username of the table (e.g. owner, updated_by, created_by) from the response or not.
+   *
+   * @generated from field: optional bool omit_username = 8;
+   */
+  omitUsername?: boolean;
+
+  /**
+   * Whether to include tables in the response for which the principal can only access selective metadata for
+   *
+   * @generated from field: optional bool include_browse = 9;
+   */
+  includeBrowse?: boolean;
+
+  /**
+   * Whether to include a manifest containing capabilities the table has.
+   *
+   * @generated from field: optional bool include_manifest_capabilities = 10;
+   */
+  includeManifestCapabilities?: boolean;
+};
+
+/**
+ * Describes the message delta_sharing.tables.v1.ListTablesRequest.
+ * Use `create(ListTablesRequestSchema)` to create a new message.
+ */
+export const ListTablesRequestSchema: GenMessage<ListTablesRequest, ListTablesRequestJson> = /*@__PURE__*/
+  messageDesc(file_delta_sharing_tables_v1_svc, 2);
+
+/**
+ * @generated from message delta_sharing.tables.v1.ListTablesResponse
+ */
+export type ListTablesResponse = Message<"delta_sharing.tables.v1.ListTablesResponse"> & {
+  /**
+   * The tables returned.
+   *
+   * @generated from field: repeated delta_sharing.tables.v1.TableInfo tables = 1;
+   */
+  tables: TableInfo[];
+
+  /**
+   * The next_page_token value to include in the next List request.
+   *
+   * @generated from field: optional string next_page_token = 2;
+   */
+  nextPageToken?: string;
+};
+
+/**
+ * @generated from message delta_sharing.tables.v1.ListTablesResponse
+ */
+export type ListTablesResponseJson = {
+  /**
+   * The tables returned.
+   *
+   * @generated from field: repeated delta_sharing.tables.v1.TableInfo tables = 1;
+   */
+  tables?: TableInfoJson[];
+
+  /**
+   * The next_page_token value to include in the next List request.
+   *
+   * @generated from field: optional string next_page_token = 2;
+   */
+  nextPageToken?: string;
+};
+
+/**
+ * Describes the message delta_sharing.tables.v1.ListTablesResponse.
+ * Use `create(ListTablesResponseSchema)` to create a new message.
+ */
+export const ListTablesResponseSchema: GenMessage<ListTablesResponse, ListTablesResponseJson> = /*@__PURE__*/
+  messageDesc(file_delta_sharing_tables_v1_svc, 3);
+
+/**
+ * Create a table
+ *
+ * WARNING: this API is experimental and subject to change.
+ *
+ * @generated from message delta_sharing.tables.v1.CreateTableRequest
+ */
+export type CreateTableRequest = Message<"delta_sharing.tables.v1.CreateTableRequest"> & {
+  /**
+   * Name of table, relative to parent schema.
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * Name of parent schema relative to its parent catalog.
+   *
+   * @generated from field: string schema_name = 2;
+   */
+  schemaName: string;
+
+  /**
+   * Name of parent catalog.
+   *
+   * @generated from field: string catalog_name = 3;
+   */
+  catalogName: string;
+
+  /**
+   * @generated from field: delta_sharing.tables.v1.TableType table_type = 4;
+   */
+  tableType: TableType;
+
+  /**
+   * @generated from field: delta_sharing.tables.v1.DataSourceFormat data_source_format = 5;
+   */
+  dataSourceFormat: DataSourceFormat;
+
+  /**
+   * The array of ColumnInfo definitions of the table's columns.
+   *
+   * @generated from field: repeated delta_sharing.tables.v1.ColumnInfo columns = 6;
+   */
+  columns: ColumnInfo[];
+
+  /**
+   * Storage root URL for external table.
+   *
+   * @generated from field: string storage_root_url = 7;
+   */
+  storageRootUrl: string;
+
+  /**
+   * User-provided free-form text description.
+   *
+   * @generated from field: string comment = 8;
+   */
+  comment: string;
+
+  /**
+   * A map of key-value properties attached to the securable.
+   *
+   * @generated from field: google.protobuf.Struct properties = 9;
+   */
+  properties?: JsonObject;
+};
+
+/**
+ * Create a table
+ *
+ * WARNING: this API is experimental and subject to change.
+ *
+ * @generated from message delta_sharing.tables.v1.CreateTableRequest
+ */
+export type CreateTableRequestJson = {
+  /**
+   * Name of table, relative to parent schema.
+   *
+   * @generated from field: string name = 1;
+   */
+  name?: string;
+
+  /**
+   * Name of parent schema relative to its parent catalog.
+   *
+   * @generated from field: string schema_name = 2;
+   */
+  schemaName?: string;
+
+  /**
+   * Name of parent catalog.
+   *
+   * @generated from field: string catalog_name = 3;
+   */
+  catalogName?: string;
+
+  /**
+   * @generated from field: delta_sharing.tables.v1.TableType table_type = 4;
+   */
+  tableType?: TableTypeJson;
+
+  /**
+   * @generated from field: delta_sharing.tables.v1.DataSourceFormat data_source_format = 5;
+   */
+  dataSourceFormat?: DataSourceFormatJson;
+
+  /**
+   * The array of ColumnInfo definitions of the table's columns.
+   *
+   * @generated from field: repeated delta_sharing.tables.v1.ColumnInfo columns = 6;
+   */
+  columns?: ColumnInfoJson[];
+
+  /**
+   * Storage root URL for external table.
+   *
+   * @generated from field: string storage_root_url = 7;
+   */
+  storageRootUrl?: string;
+
+  /**
+   * User-provided free-form text description.
+   *
+   * @generated from field: string comment = 8;
+   */
+  comment?: string;
+
+  /**
+   * A map of key-value properties attached to the securable.
+   *
+   * @generated from field: google.protobuf.Struct properties = 9;
+   */
+  properties?: StructJson;
+};
+
+/**
+ * Describes the message delta_sharing.tables.v1.CreateTableRequest.
+ * Use `create(CreateTableRequestSchema)` to create a new message.
+ */
+export const CreateTableRequestSchema: GenMessage<CreateTableRequest, CreateTableRequestJson> = /*@__PURE__*/
+  messageDesc(file_delta_sharing_tables_v1_svc, 4);
 
 /**
  * Get a table
@@ -29,6 +523,27 @@ export type GetTableRequest = Message<"delta_sharing.tables.v1.GetTableRequest">
    * @generated from field: string full_name = 1;
    */
   fullName: string;
+
+  /**
+   * Whether delta metadata should be included in the response.
+   *
+   * @generated from field: optional bool include_delta_metadata = 2;
+   */
+  includeDeltaMetadata?: boolean;
+
+  /**
+   * Whether to include tables in the response for which the principal can only access selective metadata for
+   *
+   * @generated from field: optional bool include_browse = 3;
+   */
+  includeBrowse?: boolean;
+
+  /**
+   * Whether to include a manifest containing capabilities the table has.
+   *
+   * @generated from field: optional bool include_manifest_capabilities = 4;
+   */
+  includeManifestCapabilities?: boolean;
 };
 
 /**
@@ -43,6 +558,27 @@ export type GetTableRequestJson = {
    * @generated from field: string full_name = 1;
    */
   fullName?: string;
+
+  /**
+   * Whether delta metadata should be included in the response.
+   *
+   * @generated from field: optional bool include_delta_metadata = 2;
+   */
+  includeDeltaMetadata?: boolean;
+
+  /**
+   * Whether to include tables in the response for which the principal can only access selective metadata for
+   *
+   * @generated from field: optional bool include_browse = 3;
+   */
+  includeBrowse?: boolean;
+
+  /**
+   * Whether to include a manifest containing capabilities the table has.
+   *
+   * @generated from field: optional bool include_manifest_capabilities = 4;
+   */
+  includeManifestCapabilities?: boolean;
 };
 
 /**
@@ -50,12 +586,154 @@ export type GetTableRequestJson = {
  * Use `create(GetTableRequestSchema)` to create a new message.
  */
 export const GetTableRequestSchema: GenMessage<GetTableRequest, GetTableRequestJson> = /*@__PURE__*/
-  messageDesc(file_delta_sharing_tables_v1_svc, 0);
+  messageDesc(file_delta_sharing_tables_v1_svc, 5);
+
+/**
+ * Get boolean reflecting if table exists
+ *
+ * @generated from message delta_sharing.tables.v1.GetTableExistsRequest
+ */
+export type GetTableExistsRequest = Message<"delta_sharing.tables.v1.GetTableExistsRequest"> & {
+  /**
+   * Full name of the table.
+   *
+   * @generated from field: string full_name = 1;
+   */
+  fullName: string;
+};
+
+/**
+ * Get boolean reflecting if table exists
+ *
+ * @generated from message delta_sharing.tables.v1.GetTableExistsRequest
+ */
+export type GetTableExistsRequestJson = {
+  /**
+   * Full name of the table.
+   *
+   * @generated from field: string full_name = 1;
+   */
+  fullName?: string;
+};
+
+/**
+ * Describes the message delta_sharing.tables.v1.GetTableExistsRequest.
+ * Use `create(GetTableExistsRequestSchema)` to create a new message.
+ */
+export const GetTableExistsRequestSchema: GenMessage<GetTableExistsRequest, GetTableExistsRequestJson> = /*@__PURE__*/
+  messageDesc(file_delta_sharing_tables_v1_svc, 6);
+
+/**
+ * @generated from message delta_sharing.tables.v1.GetTableExistsResponse
+ */
+export type GetTableExistsResponse = Message<"delta_sharing.tables.v1.GetTableExistsResponse"> & {
+  /**
+   * Boolean reflecting if table exists.
+   *
+   * @generated from field: bool table_exists = 1;
+   */
+  tableExists: boolean;
+};
+
+/**
+ * @generated from message delta_sharing.tables.v1.GetTableExistsResponse
+ */
+export type GetTableExistsResponseJson = {
+  /**
+   * Boolean reflecting if table exists.
+   *
+   * @generated from field: bool table_exists = 1;
+   */
+  tableExists?: boolean;
+};
+
+/**
+ * Describes the message delta_sharing.tables.v1.GetTableExistsResponse.
+ * Use `create(GetTableExistsResponseSchema)` to create a new message.
+ */
+export const GetTableExistsResponseSchema: GenMessage<GetTableExistsResponse, GetTableExistsResponseJson> = /*@__PURE__*/
+  messageDesc(file_delta_sharing_tables_v1_svc, 7);
+
+/**
+ * Delete a table
+ *
+ * @generated from message delta_sharing.tables.v1.DeleteTableRequest
+ */
+export type DeleteTableRequest = Message<"delta_sharing.tables.v1.DeleteTableRequest"> & {
+  /**
+   * Full name of the table.
+   *
+   * @generated from field: string full_name = 1;
+   */
+  fullName: string;
+};
+
+/**
+ * Delete a table
+ *
+ * @generated from message delta_sharing.tables.v1.DeleteTableRequest
+ */
+export type DeleteTableRequestJson = {
+  /**
+   * Full name of the table.
+   *
+   * @generated from field: string full_name = 1;
+   */
+  fullName?: string;
+};
+
+/**
+ * Describes the message delta_sharing.tables.v1.DeleteTableRequest.
+ * Use `create(DeleteTableRequestSchema)` to create a new message.
+ */
+export const DeleteTableRequestSchema: GenMessage<DeleteTableRequest, DeleteTableRequestJson> = /*@__PURE__*/
+  messageDesc(file_delta_sharing_tables_v1_svc, 8);
 
 /**
  * @generated from service delta_sharing.tables.v1.TablesService
  */
 export const TablesService: GenService<{
+  /**
+   * Gets an array of summaries for tables for a schema and catalog within the metastore. The table summaries returned are either:
+   * - summaries for tables (within the current metastore and parent catalog and schema), when the user is a metastore admin, or:
+   * - summaries for tables and schemas (within the current metastore and parent catalog) for which the user has ownership or the
+   *   SELECT privilege on the table and ownership or USE_SCHEMA privilege on the schema, provided that the user also has ownership
+   *   or the USE_CATALOG privilege on the parent catalog.
+   *
+   * There is no guarantee of a specific ordering of the elements in the array.
+   *
+   * @generated from rpc delta_sharing.tables.v1.TablesService.ListTableSummaries
+   */
+  listTableSummaries: {
+    methodKind: "unary";
+    input: typeof ListTableSummariesRequestSchema;
+    output: typeof ListTableSummariesResponseSchema;
+  },
+  /**
+   * Gets an array of all tables for the current metastore under the parent catalog and schema.
+   *
+   * The caller must be a metastore admin or an owner of (or have the SELECT privilege on) the table.
+   * For the latter case, the caller must also be the owner or have the USE_CATALOG privilege on the
+   * parent catalog and the USE_SCHEMA privilege on the parent schema. There is no guarantee of a
+   * specific ordering of the elements in the array.
+   *
+   * @generated from rpc delta_sharing.tables.v1.TablesService.ListTables
+   */
+  listTables: {
+    methodKind: "unary";
+    input: typeof ListTablesRequestSchema;
+    output: typeof ListTablesResponseSchema;
+  },
+  /**
+   * Create a table
+   *
+   * @generated from rpc delta_sharing.tables.v1.TablesService.CreateTable
+   */
+  createTable: {
+    methodKind: "unary";
+    input: typeof CreateTableRequestSchema;
+    output: typeof TableInfoSchema;
+  },
   /**
    * Get a table
    *
@@ -65,6 +743,26 @@ export const TablesService: GenService<{
     methodKind: "unary";
     input: typeof GetTableRequestSchema;
     output: typeof TableInfoSchema;
+  },
+  /**
+   * Get boolean reflecting if table exists
+   *
+   * @generated from rpc delta_sharing.tables.v1.TablesService.GetTableExists
+   */
+  getTableExists: {
+    methodKind: "unary";
+    input: typeof GetTableExistsRequestSchema;
+    output: typeof GetTableExistsResponseSchema;
+  },
+  /**
+   * Delete a table
+   *
+   * @generated from rpc delta_sharing.tables.v1.TablesService.DeleteTable
+   */
+  deleteTable: {
+    methodKind: "unary";
+    input: typeof DeleteTableRequestSchema;
+    output: typeof EmptySchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_delta_sharing_tables_v1_svc, 0);

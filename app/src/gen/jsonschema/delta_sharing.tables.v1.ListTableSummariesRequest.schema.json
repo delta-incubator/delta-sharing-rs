@@ -1,0 +1,67 @@
+{
+  "$id": "delta_sharing.tables.v1.ListTableSummariesRequest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(catalogName)$": {
+      "description": "Name of parent catalog for tables of interest.",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    },
+    "^(includeManifestCapabilities)$": {
+      "description": "Whether to include a manifest containing capabilities the table has.",
+      "type": "boolean"
+    },
+    "^(maxResults)$": {
+      "description": "The maximum number of results per page that should be returned.",
+      "exclusiveMinimum": 0,
+      "maximum": 10000,
+      "type": "integer"
+    },
+    "^(pageToken)$": {
+      "description": "Opaque pagination token to go to next page based on previous query.",
+      "type": "string"
+    },
+    "^(schemaNamePattern)$": {
+      "description": "A sql LIKE pattern (% and _) for schema names. All schemas will be returned if not set or empty.",
+      "type": "string"
+    },
+    "^(tableNamePattern)$": {
+      "description": "A sql LIKE pattern (% and _) for table names. All tables will be returned if not set or empty.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "catalog_name": {
+      "description": "Name of parent catalog for tables of interest.",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    },
+    "include_manifest_capabilities": {
+      "description": "Whether to include a manifest containing capabilities the table has.",
+      "type": "boolean"
+    },
+    "max_results": {
+      "description": "The maximum number of results per page that should be returned.",
+      "exclusiveMinimum": 0,
+      "maximum": 10000,
+      "type": "integer"
+    },
+    "page_token": {
+      "description": "Opaque pagination token to go to next page based on previous query.",
+      "type": "string"
+    },
+    "schema_name_pattern": {
+      "description": "A sql LIKE pattern (% and _) for schema names. All schemas will be returned if not set or empty.",
+      "type": "string"
+    },
+    "table_name_pattern": {
+      "description": "A sql LIKE pattern (% and _) for table names. All tables will be returned if not set or empty.",
+      "type": "string"
+    }
+  },
+  "title": "List Table Summaries Request",
+  "type": "object"
+}

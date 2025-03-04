@@ -1,0 +1,20 @@
+{
+  "$id": "delta_sharing.tables.v1.TableExistsRequest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Get boolean reflecting if table exists",
+  "patternProperties": {
+    "^(fullName)$": {
+      "description": "Full name of the table.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "full_name": {
+      "description": "Full name of the table.",
+      "type": "string"
+    }
+  },
+  "title": "Table Exists Request",
+  "type": "object"
+}

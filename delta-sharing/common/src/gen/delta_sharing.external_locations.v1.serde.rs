@@ -82,7 +82,7 @@ impl<'de> serde::Deserialize<'de> for CreateExternalLocationRequest {
             {
                 struct GeneratedVisitor;
 
-                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -230,7 +230,7 @@ impl<'de> serde::Deserialize<'de> for DeleteExternalLocationRequest {
             {
                 struct GeneratedVisitor;
 
-                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -443,7 +443,7 @@ impl<'de> serde::Deserialize<'de> for ExternalLocationInfo {
             {
                 struct GeneratedVisitor;
 
-                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -650,7 +650,7 @@ impl<'de> serde::Deserialize<'de> for GetExternalLocationRequest {
             {
                 struct GeneratedVisitor;
 
-                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -764,7 +764,7 @@ impl<'de> serde::Deserialize<'de> for ListExternalLocationsRequest {
             {
                 struct GeneratedVisitor;
 
-                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -889,7 +889,7 @@ impl<'de> serde::Deserialize<'de> for ListExternalLocationsResponse {
             {
                 struct GeneratedVisitor;
 
-                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -1061,7 +1061,7 @@ impl<'de> serde::Deserialize<'de> for UpdateExternalLocationRequest {
             {
                 struct GeneratedVisitor;
 
-                impl serde::de::Visitor<'_> for GeneratedVisitor {
+                impl<'de> serde::de::Visitor<'de> for GeneratedVisitor {
                     type Value = GeneratedField;
 
                     fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

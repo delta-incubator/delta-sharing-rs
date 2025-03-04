@@ -1,0 +1,26 @@
+{
+  "$id": "delta_sharing.tables.v1.ListTablesResponse.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(nextPageToken)$": {
+      "description": "The next_page_token value to include in the next List request.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "next_page_token": {
+      "description": "The next_page_token value to include in the next List request.",
+      "type": "string"
+    },
+    "tables": {
+      "description": "The tables returned.",
+      "items": {
+        "$ref": "delta_sharing.tables.v1.TableInfo.schema.json"
+      },
+      "type": "array"
+    }
+  },
+  "title": "List Tables Response",
+  "type": "object"
+}

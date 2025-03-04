@@ -1,0 +1,167 @@
+{
+  "$id": "delta_sharing.tables.v1.ColumnInfo.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(partition_index)$": {
+      "description": "Partition index for column.",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer"
+    },
+    "^(type_interval_type)$": {
+      "description": "Format of IntervalType.",
+      "type": "string"
+    },
+    "^(type_json)$": {
+      "description": "Full data type specification, JSON-serialized.",
+      "type": "string"
+    },
+    "^(type_name)$": {
+      "anyOf": [
+        {
+          "enum": [
+            "COLUMN_TYPE_NAME_UNSPECIFIED",
+            "BOOLEAN",
+            "BYTE",
+            "SHORT",
+            "INT",
+            "LONG",
+            "FLOAT",
+            "DOUBLE",
+            "DATE",
+            "TIMESTAMP",
+            "STRING",
+            "BINARY",
+            "DECIMAL",
+            "INTERVAL",
+            "ARRAY",
+            "STRUCT",
+            "MAP",
+            "CHAR",
+            "NULL",
+            "USER_DEFINED_TYPE",
+            "TIMESTAMP_NTZ",
+            "VARIANT",
+            "TABLE_TYPE"
+          ],
+          "title": "Column Type Name",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "Data type name."
+    },
+    "^(type_precision)$": {
+      "description": "Digits of precision; required for DecimalTypes.",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer"
+    },
+    "^(type_scale)$": {
+      "description": "Digits to right of decimal; Required for DecimalTypes.",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer"
+    },
+    "^(type_text)$": {
+      "description": "Full data type specification as SQL/catalogString text.",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "comment": {
+      "description": "User-provided free-form text description.",
+      "type": "string"
+    },
+    "name": {
+      "description": "Name of the column",
+      "type": "string"
+    },
+    "nullable": {
+      "description": "Whether field may be Null.",
+      "type": "boolean"
+    },
+    "partitionIndex": {
+      "description": "Partition index for column.",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer"
+    },
+    "position": {
+      "description": "Ordinal position of column (starting at position 0).",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer"
+    },
+    "typeIntervalType": {
+      "description": "Format of IntervalType.",
+      "type": "string"
+    },
+    "typeJson": {
+      "description": "Full data type specification, JSON-serialized.",
+      "type": "string"
+    },
+    "typeName": {
+      "anyOf": [
+        {
+          "enum": [
+            "COLUMN_TYPE_NAME_UNSPECIFIED",
+            "BOOLEAN",
+            "BYTE",
+            "SHORT",
+            "INT",
+            "LONG",
+            "FLOAT",
+            "DOUBLE",
+            "DATE",
+            "TIMESTAMP",
+            "STRING",
+            "BINARY",
+            "DECIMAL",
+            "INTERVAL",
+            "ARRAY",
+            "STRUCT",
+            "MAP",
+            "CHAR",
+            "NULL",
+            "USER_DEFINED_TYPE",
+            "TIMESTAMP_NTZ",
+            "VARIANT",
+            "TABLE_TYPE"
+          ],
+          "title": "Column Type Name",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ],
+      "description": "Data type name."
+    },
+    "typePrecision": {
+      "description": "Digits of precision; required for DecimalTypes.",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer"
+    },
+    "typeScale": {
+      "description": "Digits to right of decimal; Required for DecimalTypes.",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": "integer"
+    },
+    "typeText": {
+      "description": "Full data type specification as SQL/catalogString text.",
+      "type": "string"
+    }
+  },
+  "title": "Column Info",
+  "type": "object"
+}

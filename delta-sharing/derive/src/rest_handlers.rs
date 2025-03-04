@@ -226,7 +226,7 @@ pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
     // HACK: we should probably annotate the query fields that should be extracted for
     // the resource identification, but for now we just hardcode the fields that are
     // known to be excluded.
-    const KNOW_QUERY: [&str; 12] = [
+    const KNOW_QUERY: [&str; 26] = [
         "max_results",
         "page_token",
         "force",
@@ -239,6 +239,20 @@ pub(crate) fn to_action(handler: &HandlerDef) -> proc_macro2::TokenStream {
         "purpose",
         "include_shared_data",
         "includeSharedData",
+        "include_delta_metadata",
+        "includeDeltaMetadata",
+        "include_manifest_capabilities",
+        "includeManifestCapabilities",
+        "omit_columns",
+        "omitColumns",
+        "omit_properties",
+        "omitProperties",
+        "omit_username",
+        "omitUsername",
+        "schema_name_pattern",
+        "schemaNamePattern",
+        "table_name_pattern",
+        "tableNamePattern",
     ];
     let field_names: Vec<_> = handler
         .fields
