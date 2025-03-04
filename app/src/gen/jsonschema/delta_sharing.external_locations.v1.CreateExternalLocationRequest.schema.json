@@ -6,7 +6,8 @@
   "patternProperties": {
     "^(credentialName)$": {
       "description": "Name of the storage credential used with this location.",
-      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     },
     "^(readOnly)$": {
@@ -25,12 +26,14 @@
     },
     "credential_name": {
       "description": "Name of the storage credential used with this location.",
-      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     },
     "name": {
       "description": "Name of external location.",
-      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     },
     "read_only": {

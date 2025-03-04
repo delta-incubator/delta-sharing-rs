@@ -14,7 +14,7 @@ const CredentialTree = ({ setSize, setPos }: CatalogTreeProps) => {
             setSize={setSize}
             setPos={setPos}
             listFn={() => ucClient.credentials.list()}
-            itemComponent={ItemLeaf}
+            ItemComponent={ItemLeaf}
             icon={<KeyMultipleRegular />}
             rootName="Credentials"
         />

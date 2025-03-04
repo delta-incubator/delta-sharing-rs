@@ -13,11 +13,15 @@ function ShareForm({ values, setValues }: CreateFormState<CreateShareRequest>) {
 
     return (
         <>
-            <Input label="Name" value={values.name} onChange={onNameChange} />
+            <Input
+                label="Name"
+                value={values.name ?? ""}
+                onChange={onNameChange}
+            />
             <Input
                 label="Comment"
                 onChange={onCommentChange}
-                value={values.comment}
+                value={values.comment ?? ""}
             />
         </>
     );
@@ -29,7 +33,7 @@ function CreateShare() {
             createFn={ucClient.shares.create}
             formComponent={ShareForm}
             resourceType="share"
-            defaultValues={{ name: "", comment: "" }}
+            defaultValues={{}}
             typeName="CreateShareRequest"
         />
     );

@@ -17,11 +17,15 @@ function SchemaForm({
 
     return (
         <>
-            <Input label="Name" value={values.name} onChange={onNameChange} />
+            <Input
+                label="Name"
+                value={values.name ?? ""}
+                onChange={onNameChange}
+            />
             <Input
                 label="Comment"
                 onChange={onCommentChange}
-                value={values.comment}
+                value={values.comment ?? ""}
             />
         </>
     );
@@ -45,8 +49,6 @@ function CreateSchema() {
             resourceType="schema"
             defaultValues={{
                 catalogName: scope[1],
-                name: "",
-                comment: "",
                 properties: {},
             }}
             typeName="CreateSchemaRequest"

@@ -83,14 +83,14 @@ function RecipientForm({
                 <Input
                     label="Name"
                     style={{ flex: "1" }}
-                    value={values.name}
+                    value={values.name ?? ""}
                     onChange={onNameChange}
                 />
             </div>
             <Input
                 label="Comment"
                 onChange={onCommentChange}
-                value={values.comment}
+                value={values.comment ?? ""}
             />
         </>
     );

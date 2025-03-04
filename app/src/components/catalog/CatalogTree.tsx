@@ -14,7 +14,7 @@ const CatalogTree = ({ setSize, setPos }: CatalogTreeProps) => {
             setSize={setSize}
             setPos={setPos}
             listFn={() => ucClient.catalogs.list()}
-            itemComponent={CatalogItem}
+            ItemComponent={CatalogItem}
             icon={<DatabaseMultipleRegular />}
             rootName="Catalogs"
         />

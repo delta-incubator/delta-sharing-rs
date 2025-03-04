@@ -11,7 +11,8 @@
     },
     "^(newName)$": {
       "description": "Name of schema.",
-      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     }
   },
@@ -27,7 +28,8 @@
     },
     "new_name": {
       "description": "Name of schema.",
-      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     },
     "properties": {

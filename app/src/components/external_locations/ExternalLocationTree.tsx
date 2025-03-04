@@ -14,7 +14,7 @@ const ExtLocTree = ({ setSize, setPos }: TreeProps) => {
             setSize={setSize}
             setPos={setPos}
             listFn={() => ucClient.externalLocations.list()}
-            itemComponent={ItemLeaf}
+            ItemComponent={ItemLeaf}
             icon={<CloudCubeRegular />}
             rootName="External Locations"
         />

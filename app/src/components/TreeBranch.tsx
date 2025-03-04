@@ -7,7 +7,14 @@ import {
 } from "@fluentui/react-components";
 import { AddRegular } from "@fluentui/react-icons";
 import { useQuery } from "@tanstack/react-query";
-import { RefObject, useCallback, useEffect, useRef, useState } from "react";
+import {
+    ComponentType,
+    RefObject,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { TreeContext, useExplorer, useTreeContext } from "../context";
 import { TreeItemOnChange } from "../types";
 
@@ -17,10 +24,10 @@ type TreeRootProps<Item> = {
     setSize: number;
     setPos: number;
     listFn: () => Promise<Item[]>;
-    itemComponent: (props: {
+    ItemComponent: ComponentType<{
         info: Item & { name: string };
         ref: RefObject<HTMLDivElement> | null;
-    }) => JSX.Element;
+    }>;
     icon: Icon;
     rootName: string;
 };
@@ -41,7 +48,7 @@ function ItemTree<Item extends { name?: string }>({
     setPos,
     listFn,
     icon,
-    itemComponent,
+    ItemComponent,
     rootName,
 }: TreeRootProps<Item>) {
     const [open, setOpen] = useState(false);
@@ -64,7 +71,7 @@ function ItemTree<Item extends { name?: string }>({
         if (open && status === "success") firstItemRef.current?.focus();
     }, [open, status]);
 
-    const ItemComponent = itemComponent;
+    // const ItemComponent = itemComponent;
 
     return (
         <>

@@ -17,6 +17,7 @@ message ListSchemasRequest {
   // Name of parent catalog.
   string catalog_name = 1 [
     (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (buf.validate.field).string.min_len = 3,
     (google.api.field_behavior) = REQUIRED
   ];
 
@@ -46,10 +47,18 @@ message ListSchemasResponse {
 // Create a new Schema
 message CreateSchemaRequest {
   // Name of schema, relative to parent catalog.
-  string name = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (buf.validate.field).string.min_len = 3,
+    (google.api.field_behavior) = REQUIRED
+  ];
 
   // Name of parent catalog.
-  string catalog_name = 2 [(google.api.field_behavior) = REQUIRED];
+  string catalog_name = 2 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (buf.validate.field).string.min_len = 3,
+    (google.api.field_behavior) = REQUIRED
+  ];
 
   // User-provided free-form text description.
   optional string comment = 3 [(google.api.field_behavior) = OPTIONAL];
@@ -88,7 +97,8 @@ message UpdateSchemaRequest {
 
   // Name of schema.
   string new_name = 4 [
-    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (buf.validate.field).string.min_len = 3,
     (google.api.field_behavior) = OPTIONAL
   ];
 }
@@ -98,7 +108,10 @@ message DeleteSchemaRequest {
   // Full name of schema to delete.
   //
   // Format: catalog_name.schema_name
-  string full_name = 1 [(google.api.field_behavior) = REQUIRED];
+  string full_name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z._]*[0-9a-z]$",
+    (google.api.field_behavior) = REQUIRED
+  ];
 
   // Force deletion even if the schema is not empty.
   optional bool force = 2 [(google.api.field_behavior) = OPTIONAL];

@@ -138,7 +138,7 @@ function CreateResource<Req, Res>({
 
     useEffect(() => {
         if (showJson && editorRef.current) {
-            editorRef.current.setValue(JSON.stringify(values, null, 2));
+            editorRef.current.setValue(JSON.stringify(values, null, 4));
         } else if (editorRef.current) {
             setValues(JSON.parse(editorRef.current.getValue()));
         }

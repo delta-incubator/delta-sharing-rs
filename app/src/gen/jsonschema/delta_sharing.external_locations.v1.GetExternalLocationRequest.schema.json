@@ -6,7 +6,8 @@
   "properties": {
     "name": {
       "description": "Name of external location.",
-      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     }
   },

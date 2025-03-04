@@ -6,11 +6,13 @@
   "patternProperties": {
     "^(providerName)$": {
       "description": "The name of delta sharing provider.\n\n A Delta Sharing catalog is a catalog that is based on a Delta share on a remote sharing server.",
+      "minLength": 3,
       "pattern": "^[a-z][0-9a-z-_]*[0-9a-z]$",
       "type": "string"
     },
     "^(shareName)$": {
       "description": "The name of the share under the share provider.",
+      "minLength": 3,
       "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     },
@@ -27,6 +29,7 @@
     },
     "name": {
       "description": "Name of catalog.",
+      "minLength": 3,
       "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     },
@@ -36,11 +39,13 @@
     },
     "provider_name": {
       "description": "The name of delta sharing provider.\n\n A Delta Sharing catalog is a catalog that is based on a Delta share on a remote sharing server.",
+      "minLength": 3,
       "pattern": "^[a-z][0-9a-z-_]*[0-9a-z]$",
       "type": "string"
     },
     "share_name": {
       "description": "The name of the share under the share provider.",
+      "minLength": 3,
       "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     },

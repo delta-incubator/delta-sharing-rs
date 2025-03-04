@@ -14,7 +14,7 @@ const RecipientTree = ({ setSize, setPos }: TreeProps) => {
             setSize={setSize}
             setPos={setPos}
             listFn={() => ucClient.recipients.list()}
-            itemComponent={ItemLeaf}
+            ItemComponent={ItemLeaf}
             icon={<DatabasePlugConnectedRegular />}
             rootName="Recipients"
         />

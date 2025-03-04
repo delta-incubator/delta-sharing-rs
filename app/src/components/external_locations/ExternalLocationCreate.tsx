@@ -78,13 +78,13 @@ function ExternalLocationForm({
                 <Input
                     label="Name"
                     style={{ flex: "1" }}
-                    value={values.name}
+                    value={values.name ?? ""}
                     onChange={onNameChange}
                 />
                 <Input
                     label="Credential name"
                     style={{ flex: "1" }}
-                    value={values.credentialName}
+                    value={values.credentialName ?? ""}
                     onChange={onCredentialNameChange}
                 />
                 <Field label="Properties">
@@ -108,7 +108,7 @@ function ExternalLocationForm({
             <Input
                 label="Comment"
                 onChange={onCommentChange}
-                value={values.comment}
+                value={values.comment ?? ""}
             />
         </>
     );

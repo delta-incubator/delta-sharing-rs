@@ -14,7 +14,7 @@ const ShareTree = ({ setSize, setPos }: ShareTreeProps) => {
             setSize={setSize}
             setPos={setPos}
             listFn={() => ucClient.shares.list()}
-            itemComponent={ItemLeaf}
+            ItemComponent={ItemLeaf}
             icon={<ShareMultipleRegular />}
             rootName="Shares"
         />
