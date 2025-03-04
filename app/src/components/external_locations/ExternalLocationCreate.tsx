@@ -104,7 +104,12 @@ function ExternalLocationForm({
                     </div>
                 </Field>
             </div>
-            <Input label="Url" onChange={onUrlChange} value={values.url} />
+            <Input
+                label="Url"
+                onChange={onUrlChange}
+                value={values.url ?? ""}
+                type="url"
+            />
             <Input
                 label="Comment"
                 onChange={onCommentChange}
@@ -118,7 +123,7 @@ function CreateExternalLocation() {
     return (
         <CreateResource
             createFn={ucClient.externalLocations.create}
-            formComponent={ExternalLocationForm}
+            FormComponent={ExternalLocationForm}
             resourceType="external location"
             defaultValues={{ readOnly: false, skipValidation: false }}
             typeName="CreateExternalLocationRequest"

@@ -12,6 +12,7 @@ import React, {
     Dispatch,
     SetStateAction,
     useMemo,
+    ReactNode,
 } from "react";
 
 export const TreeContext = createContext<string[]>([]);
@@ -19,14 +20,14 @@ export const TreeProvider = TreeContext.Provider;
 export const useTreeContext = () => React.useContext(TreeContext);
 
 export const NotifyContext = createContext<
-    (intent: ToastIntent, message: string) => void
+    (intent: ToastIntent, message: ReactNode) => void
 >(() => {});
 export const useNotify = () => React.useContext(NotifyContext);
 export function NotifyProvider({ children }: { children: React.ReactNode }) {
     const toasterId = useId("toaster");
     const { dispatchToast } = useToastController(toasterId);
     const notify = useCallback(
-        (intent: ToastIntent, message: string) =>
+        (intent: ToastIntent, message: ReactNode) =>
             dispatchToast(
                 <Toast>
                     <ToastTitle>{message}</ToastTitle>

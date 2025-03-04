@@ -31,7 +31,7 @@ function CreateShare() {
     return (
         <CreateResource
             createFn={ucClient.shares.create}
-            formComponent={ShareForm}
+            FormComponent={ShareForm}
             resourceType="share"
             defaultValues={{}}
             typeName="CreateShareRequest"

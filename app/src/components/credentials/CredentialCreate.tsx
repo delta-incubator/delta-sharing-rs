@@ -300,7 +300,7 @@ function CreateCredential() {
     return (
         <CreateResource
             createFn={ucClient.credentials.create}
-            formComponent={CreateCredentialForm}
+            FormComponent={CreateCredentialForm}
             resourceType="credential"
             typeName="CreateCredentialRequest"
             defaultValues={{

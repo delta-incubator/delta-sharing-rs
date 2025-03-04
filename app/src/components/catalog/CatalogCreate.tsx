@@ -74,6 +74,7 @@ function CatalogForm({
                         label="Storage root"
                         value={values.storageRoot ?? ""}
                         onChange={onStorageChange}
+                        type="url"
                     />
                 )}
                 {selectedValue === "sharing" && (
@@ -99,7 +100,7 @@ function CreateCatalog() {
     return (
         <CreateResource
             createFn={ucClient.catalogs.create}
-            formComponent={CatalogForm}
+            FormComponent={CatalogForm}
             resourceType="catalog"
             defaultValues={{
                 properties: {},

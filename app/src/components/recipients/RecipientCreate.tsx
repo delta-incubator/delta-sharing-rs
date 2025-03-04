@@ -100,7 +100,7 @@ function CreateExternalLocation() {
     return (
         <CreateResource
             createFn={ucClient.recipients.create}
-            formComponent={RecipientForm}
+            FormComponent={RecipientForm}
             resourceType="recipient"
             defaultValues={{ authenticationType: "TOKEN" }}
             typeName="CreateRecipientRequest"

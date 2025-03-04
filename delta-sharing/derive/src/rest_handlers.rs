@@ -140,7 +140,9 @@ pub fn to_client(handler: &HandlerDef, path_segments: &[String]) -> proc_macro2:
                 ) -> Result<#response_type> {
                     #url
                     #(#query_params)*
-                    let result = self.client.post(url).json(req).send().await?.bytes().await?;
+                    let result = self.client.post(url).json(req).send().await?;
+                    result.error_for_status_ref()?;
+                    let result = result.bytes().await?;
                     Ok(::serde_json::from_slice(&result)?)
                 }
             }
@@ -153,7 +155,9 @@ pub fn to_client(handler: &HandlerDef, path_segments: &[String]) -> proc_macro2:
                 ) -> Result<#response_type> {
                     #url
                     #(#query_params)*
-                    let result = self.client.get(url).send().await?.bytes().await?;
+                    let result = self.client.get(url).send().await?;
+                    result.error_for_status_ref()?;
+                    let result = result.bytes().await?;
                     Ok(::serde_json::from_slice(&result)?)
                 }
             }
@@ -170,6 +174,7 @@ pub fn to_client(handler: &HandlerDef, path_segments: &[String]) -> proc_macro2:
                     #url
                     #(#query_params)*
                     let result = self.client.delete(url).send().await?;
+                    result.error_for_status()?;
                     Ok(())
                 }
             }

@@ -71,8 +71,6 @@ function ItemTree<Item extends { name?: string }>({
         if (open && status === "success") firstItemRef.current?.focus();
     }, [open, status]);
 
-    // const ItemComponent = itemComponent;
-
     return (
         <>
             <FlatTreeItem

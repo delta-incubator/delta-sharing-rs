@@ -1,4 +1,9 @@
-import { FlatTreeItem, TreeItemLayout } from "@fluentui/react-components";
+import {
+    FlatTreeItem,
+    TreeItemLayout,
+    Text,
+    Tag,
+} from "@fluentui/react-components";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefObject, useCallback, useMemo } from "react";
 import { useNotify, useTreeScope } from "../context";
@@ -63,7 +68,15 @@ function TreeLeaf<Info>({ info, ref }: ItemProps<Info>) {
         onError: () =>
             notify("error", `Failed to delete ${typeName.toLowerCase()}.`),
         onSuccess: () => {
-            notify("success", `${typeName} deleted successfully.`);
+            const fullName = scope.slice(1).join(".");
+            const message = (
+                <span>
+                    <Text>{typeName}</Text>
+                    <Tag>{fullName}</Tag>
+                    <Text>deleted successfully</Text>
+                </span>
+            );
+            notify("success", message);
             queryClient.invalidateQueries({ queryKey: parentScope });
         },
     });

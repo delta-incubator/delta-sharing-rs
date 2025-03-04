@@ -45,7 +45,7 @@ function CreateSchema() {
     return (
         <CreateResource
             createFn={ucClient.schemas.create}
-            formComponent={SchemaForm}
+            FormComponent={SchemaForm}
             resourceType="schema"
             defaultValues={{
                 catalogName: scope[1],
