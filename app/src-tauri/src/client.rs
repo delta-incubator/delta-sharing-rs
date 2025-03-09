@@ -8,6 +8,7 @@ use delta_sharing_common::models::external_locations::v1::{
 use delta_sharing_common::models::recipients::v1::{CreateRecipientRequest, RecipientInfo};
 use delta_sharing_common::models::schemas::v1::{CreateSchemaRequest, SchemaInfo};
 use delta_sharing_common::models::shares::v1::{CreateShareRequest, ShareInfo};
+use delta_sharing_common::models::tables::v1::{CreateTableRequest, TableInfo, TableSummary};
 use delta_sharing_common::rest::client::UnityCatalogClient;
 use futures::TryStreamExt;
 use tauri::State;
@@ -218,4 +219,65 @@ pub async fn create_share(
 #[tauri::command]
 pub async fn delete_share(state: State<'_, UnityCatalogClient>, name: String) -> Result<()> {
     Ok(state.shares().delete(name).await?)
+}
+
+#[tauri::command]
+pub async fn list_table_summaries(
+    state: State<'_, UnityCatalogClient>,
+    catalog: String,
+    schema_pattern: Option<String>,
+    table_pattern: Option<String>,
+    max_results: Option<i32>,
+) -> Result<Vec<TableSummary>> {
+    Ok(state
+        .tables()
+        .list_summaries(catalog, schema_pattern, table_pattern, max_results)
+        .try_collect()
+        .await?)
+}
+
+#[tauri::command]
+pub async fn list_tables(
+    state: State<'_, UnityCatalogClient>,
+    catalog: String,
+    schema: String,
+    max_results: Option<i32>,
+    omit_columns: Option<bool>,
+    omit_properties: Option<bool>,
+    omit_username: Option<bool>,
+) -> Result<Vec<TableInfo>> {
+    Ok(state
+        .tables()
+        .list(
+            catalog,
+            schema,
+            max_results,
+            None,
+            omit_columns,
+            omit_properties,
+            omit_username,
+        )
+        .try_collect()
+        .await?)
+}
+
+#[tauri::command]
+pub async fn get_table(
+    state: State<'_, UnityCatalogClient>,
+    full_name: String,
+) -> Result<TableInfo> {
+    Ok(state.tables().get(full_name, None).await?)
+}
+
+#[tauri::command]
+pub async fn create_table(
+    state: State<'_, UnityCatalogClient>,
+    request: CreateTableRequest,
+) -> Result<TableInfo> {
+    Ok(state.tables().create_table(&request).await?)
+}
+
+#[tauri::command]
+pub async fn delete_table(state: State<'_, UnityCatalogClient>, full_name: String) -> Result<()> {
+    Ok(state.tables().delete(full_name).await?)
 }

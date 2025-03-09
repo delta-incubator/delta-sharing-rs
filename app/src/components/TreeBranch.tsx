@@ -73,33 +73,37 @@ function ItemTree<Item extends { name?: string }>({
 
     return (
         <>
-            <FlatTreeItem
-                value={rootValue}
-                aria-level={1}
-                aria-setsize={setSize}
-                aria-posinset={setPos}
-                itemType="branch"
-                open={open}
-                onOpenChange={onOpenChange}
-            >
-                <TreeItemLayout
-                    iconBefore={icon}
-                    expandIcon={
-                        open && status === "pending" ? (
-                            <Spinner size="extra-tiny" />
-                        ) : undefined
-                    }
-                    actions={<CreateItem scope={rootScope} />}
+            <TreeContext.Provider value={rootScope}>
+                <FlatTreeItem
+                    value={rootValue}
+                    aria-level={rootScope.length}
+                    aria-setsize={setSize}
+                    aria-posinset={setPos}
+                    itemType="branch"
+                    open={open}
+                    onOpenChange={onOpenChange}
                 >
-                    {rootName}
-                </TreeItemLayout>
-            </FlatTreeItem>
+                    <TreeItemLayout
+                        iconBefore={icon}
+                        expandIcon={
+                            open && status === "pending" ? (
+                                <Spinner size="extra-tiny" />
+                            ) : undefined
+                        }
+                        actions={<CreateItem scope={rootScope} />}
+                    >
+                        {rootName}
+                    </TreeItemLayout>
+                </FlatTreeItem>
+            </TreeContext.Provider>
             {open &&
                 status === "success" &&
                 data.map(
                     (item, index) =>
                         item.name && (
-                            <TreeContext.Provider value={rootScope}>
+                            <TreeContext.Provider
+                                value={[...rootScope, item.name]}
+                            >
                                 <ItemComponent
                                     key={`${rootValue}.${item.name}`}
                                     ref={index === 0 ? firstItemRef : null}

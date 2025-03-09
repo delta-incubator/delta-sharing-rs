@@ -60,10 +60,35 @@ export const ExplorerContext = createContext<ExplorerProps>({
 export const useExplorer = () => React.useContext(ExplorerContext);
 export const ExplorerProvider = ExplorerContext.Provider;
 
-export const useTreeScope = (name: string) => {
-    const parentScope = useTreeContext();
-    const scope = useMemo(() => [...parentScope, name], [parentScope, name]);
-    const parentValue = useMemo(() => scope.join("."), [scope]);
-    const value = `${parentValue}.${name}`;
+export const useTreeScope = () => {
+    const scope = useTreeContext();
+    const parentScope = useMemo(
+        () => scope.slice(0, scope.length - 1),
+        [scope],
+    );
+    const parentValue = useMemo(() => parentScope.join("."), [scope]);
+    const value = useMemo(() => scope.join("."), [scope]);
     return { scope, value, parentScope, parentValue };
+};
+
+export const useTypeName = (scope: string[]) => {
+    if (scope.length === 2) {
+        switch (scope[0]) {
+            case "catalogs":
+                return "Catalog";
+            case "external_locations":
+                return "External location";
+            case "shares":
+                return "Share";
+            case "credentials":
+                return "Credential";
+            case "recipients":
+                return "Recipient";
+        }
+    }
+    if (scope[0] === "catalogs") {
+        if (scope.length === 3) return "Schema";
+        if (scope.length === 4) return "Table";
+    }
+    throw new Error(`Unknown scope: ${scope}`);
 };

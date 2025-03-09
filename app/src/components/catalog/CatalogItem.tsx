@@ -36,7 +36,7 @@ const CatalogItem = ({ info, ref }: CatalogItemProps) => {
     );
 
     const parentScope = useTreeContext();
-    const { scope, value, parentValue } = useTreeScope(info.name);
+    const { scope, value, parentValue } = useTreeScope();
     const { data, status } = useQuery({
         queryKey: scope,
         queryFn: ({ queryKey }) =>
@@ -71,44 +71,46 @@ const CatalogItem = ({ info, ref }: CatalogItemProps) => {
 
     return (
         <>
-            <FlatTreeItem
-                ref={ref}
-                value={value}
-                aria-level={parentScope.length + 1}
-                aria-setsize={data ? data.length : 1}
-                aria-posinset={1}
-                itemType="branch"
-                parentValue={parentValue}
-                open={open}
-                onOpenChange={onOpenChange}
-            >
-                <TreeItemLayout
-                    iconBefore={<Database20Regular />}
-                    expandIcon={
-                        open && status === "pending" ? (
-                            <Spinner size="extra-tiny" />
-                        ) : undefined
-                    }
-                    actions={
-                        <>
-                            <DeleteDialog
-                                onClick={onClick}
-                                title={title}
-                                content={content}
-                            />
-                            <CreateItem scope={scope} />
-                        </>
-                    }
+            <TreeProvider value={scope}>
+                <FlatTreeItem
+                    ref={ref}
+                    value={value}
+                    aria-level={scope.length}
+                    aria-setsize={data ? data.length : 1}
+                    aria-posinset={1}
+                    itemType="branch"
+                    parentValue={parentValue}
+                    open={open}
+                    onOpenChange={onOpenChange}
                 >
-                    {info.name}
-                </TreeItemLayout>
-            </FlatTreeItem>
+                    <TreeItemLayout
+                        iconBefore={<Database20Regular />}
+                        expandIcon={
+                            open && status === "pending" ? (
+                                <Spinner size="extra-tiny" />
+                            ) : undefined
+                        }
+                        actions={
+                            <>
+                                <DeleteDialog
+                                    onClick={onClick}
+                                    title={title}
+                                    content={content}
+                                />
+                                <CreateItem scope={scope} />
+                            </>
+                        }
+                    >
+                        {info.name}
+                    </TreeItemLayout>
+                </FlatTreeItem>
+            </TreeProvider>
             {open &&
                 status === "success" &&
                 data.map(
                     (item, index) =>
                         item.name && (
-                            <TreeProvider value={scope}>
+                            <TreeProvider value={[...scope, item.name]}>
                                 <ItemLeaf
                                     key={`${value}.${item.name}`}
                                     ref={index === 0 ? firstItemRef : null}

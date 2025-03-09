@@ -39,6 +39,11 @@ pub fn run() {
             client::get_share,
             client::create_share,
             client::delete_share,
+            client::list_table_summaries,
+            client::list_tables,
+            client::get_table,
+            client::create_table,
+            client::delete_table,
         ])
         .setup(|app| {
             app.manage(unity_client);

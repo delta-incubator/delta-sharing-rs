@@ -9,9 +9,14 @@ import {
     DialogTrigger,
     makeStyles,
     tokens,
+    Text,
+    Tag,
 } from "@fluentui/react-components";
 import { Delete20Regular } from "@fluentui/react-icons";
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useMemo, useCallback } from "react";
+import { useTreeContext, useNotify, useTypeName } from "../context";
+import ucClient from "../client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const useStyles = makeStyles({
     delete: {
@@ -34,9 +39,75 @@ type DeleteDialogProps = {
     content: ReactNode;
 };
 
-function DeleteDialog({ onClick, title, content }: DeleteDialogProps) {
+function DeleteDialog({ title, content }: DeleteDialogProps) {
     const [open, setOpen] = useState(false);
     const styles = useStyles();
+
+    const scope = useTreeContext();
+    const typeName = useTypeName(scope);
+    const { deleteFn } = useMemo(() => {
+        if (scope.length === 2) {
+            switch (scope[0]) {
+                case "catalogs":
+                    return {
+                        deleteFn: ucClient.catalogs.delete,
+                    };
+                case "external_locations":
+                    return {
+                        deleteFn: ucClient.externalLocations.delete,
+                    };
+                case "shares":
+                    return {
+                        deleteFn: ucClient.shares.delete,
+                    };
+                case "credentials":
+                    return {
+                        deleteFn: ucClient.credentials.delete,
+                    };
+                case "recipients":
+                    return {
+                        deleteFn: ucClient.recipients.delete,
+                    };
+            }
+        }
+
+        if (scope.length === 3 && scope[0] === "catalogs") {
+            return {
+                deleteFn: (name: string) =>
+                    ucClient.schemas.delete({ catalog: scope[1], name }),
+                typeName: "Schema",
+            };
+        }
+
+        throw new Error(`Unknown scope: ${scope}`);
+    }, [scope]);
+
+    const notify = useNotify();
+    const queryClient = useQueryClient();
+    const mutation = useMutation({
+        mutationFn: deleteFn,
+        onError: () =>
+            notify("error", `Failed to delete ${typeName.toLowerCase()}.`),
+        onSuccess: () => {
+            setOpen(false);
+            const fullName = scope.slice(1).join(".");
+            const message = (
+                <span>
+                    <Text>{typeName}</Text>
+                    <Tag>{fullName}</Tag>
+                    <Text>deleted successfully</Text>
+                </span>
+            );
+            notify("success", message);
+            queryClient.invalidateQueries({
+                queryKey: scope.slice(0, scope.length - 1),
+            });
+        },
+    });
+
+    const onClick = useCallback(() => {
+        mutation.mutate(scope[scope.length - 1]);
+    }, [mutation, scope]);
 
     return (
         <Dialog open={open} onOpenChange={(_ev, data) => setOpen(data.open)}>
@@ -55,10 +126,7 @@ function DeleteDialog({ onClick, title, content }: DeleteDialogProps) {
                         <Button
                             className={styles.delete}
                             appearance="primary"
-                            onClick={() => {
-                                onClick();
-                                setOpen(false);
-                            }}
+                            onClick={onClick}
                         >
                             Delete
                         </Button>

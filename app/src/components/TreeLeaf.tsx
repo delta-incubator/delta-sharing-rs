@@ -6,7 +6,7 @@ import {
 } from "@fluentui/react-components";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefObject, useCallback, useMemo } from "react";
-import { useNotify, useTreeScope } from "../context";
+import { useNotify, useTreeScope, useTypeName } from "../context";
 import DeleteDialog from "./DeleteDialog";
 import ucClient from "../client";
 
@@ -17,35 +17,31 @@ type ItemProps<Info> = {
 };
 
 function TreeLeaf<Info>({ info, ref }: ItemProps<Info>) {
-    const { scope, value, parentValue, parentScope } = useTreeScope(info.name);
+    const { scope, value, parentValue, parentScope } = useTreeScope();
 
-    const { deleteFn, typeName } = useMemo(() => {
+    const typeName = useTypeName(scope);
+    const { deleteFn } = useMemo(() => {
         if (scope.length === 2) {
             switch (scope[0]) {
                 case "catalogs":
                     return {
                         deleteFn: ucClient.catalogs.delete,
-                        typeName: "Catalog",
                     };
                 case "external_locations":
                     return {
                         deleteFn: ucClient.externalLocations.delete,
-                        typeName: "External location",
                     };
                 case "shares":
                     return {
                         deleteFn: ucClient.shares.delete,
-                        typeName: "Share",
                     };
                 case "credentials":
                     return {
                         deleteFn: ucClient.credentials.delete,
-                        typeName: "Credential",
                     };
                 case "recipients":
                     return {
                         deleteFn: ucClient.recipients.delete,
-                        typeName: "Recipient",
                     };
             }
         }
@@ -54,12 +50,11 @@ function TreeLeaf<Info>({ info, ref }: ItemProps<Info>) {
             return {
                 deleteFn: (name: string) =>
                     ucClient.schemas.delete({ catalog: scope[1], name }),
-                typeName: "Schema",
             };
         }
 
         throw new Error(`Unknown scope: ${scope}`);
-    }, [scope, info]);
+    }, [scope]);
 
     const notify = useNotify();
     const queryClient = useQueryClient();
