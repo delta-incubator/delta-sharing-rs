@@ -12,8 +12,18 @@ type CatalogTreeProps = {
 const CredentialLeaf = ({
     info,
     ref,
+    setPos,
+    setSize,
 }: Omit<TreeLeafProps<CredentialInfo>, "icon">) => {
-    return <TreeLeaf info={info} ref={ref} icon={<KeyRegular />} />;
+    return (
+        <TreeLeaf
+            info={info}
+            ref={ref}
+            icon={<KeyRegular />}
+            setSize={setSize}
+            setPos={setPos}
+        />
+    );
 };
 
 const CredentialTree = ({ setSize, setPos }: CatalogTreeProps) => {

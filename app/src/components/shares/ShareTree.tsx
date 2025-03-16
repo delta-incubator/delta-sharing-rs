@@ -9,8 +9,21 @@ type ShareTreeProps = {
 };
 
 // Leaf component with the icon
-const ShareLeaf = ({ info, ref }: Omit<TreeLeafProps<ShareInfo>, "icon">) => {
-    return <TreeLeaf info={info} ref={ref} icon={<ShareRegular />} />;
+const ShareLeaf = ({
+    info,
+    ref,
+    setPos,
+    setSize,
+}: Omit<TreeLeafProps<ShareInfo>, "icon">) => {
+    return (
+        <TreeLeaf
+            info={info}
+            ref={ref}
+            icon={<ShareRegular />}
+            setSize={setSize}
+            setPos={setPos}
+        />
+    );
 };
 
 const ShareTree = ({ setSize, setPos }: ShareTreeProps) => {

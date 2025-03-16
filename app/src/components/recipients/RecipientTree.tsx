@@ -15,8 +15,18 @@ type TreeProps = {
 const RecipientLeaf = ({
     info,
     ref,
+    setPos,
+    setSize,
 }: Omit<TreeLeafProps<RecipientInfo>, "icon">) => {
-    return <TreeLeaf info={info} ref={ref} icon={<PlugConnectedRegular />} />;
+    return (
+        <TreeLeaf
+            info={info}
+            ref={ref}
+            icon={<PlugConnectedRegular />}
+            setSize={setSize}
+            setPos={setPos}
+        />
+    );
 };
 
 const RecipientTree = ({ setSize, setPos }: TreeProps) => {

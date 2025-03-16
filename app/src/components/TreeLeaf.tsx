@@ -15,9 +15,17 @@ export type TreeLeafProps<Info> = {
     info: Info & { name: string };
     ref: RefObject<HTMLDivElement> | null;
     icon?: TreeItemLayoutProps["iconBefore"];
+    setSize: number;
+    setPos: number;
 };
 
-function TreeLeaf<Info>({ info, ref, icon }: TreeLeafProps<Info>) {
+function TreeLeaf<Info>({
+    info,
+    ref,
+    icon,
+    setSize,
+    setPos,
+}: TreeLeafProps<Info>) {
     const { scope, value, parentValue, parentScope } = useTreeScope();
 
     const typeName = useTypeName(scope);
@@ -89,8 +97,8 @@ function TreeLeaf<Info>({ info, ref, icon }: TreeLeafProps<Info>) {
             parentValue={parentValue}
             value={value}
             aria-level={scope.length}
-            aria-setsize={1}
-            aria-posinset={1}
+            aria-setsize={setSize}
+            aria-posinset={setPos}
             itemType="leaf"
         >
             <TreeItemLayout

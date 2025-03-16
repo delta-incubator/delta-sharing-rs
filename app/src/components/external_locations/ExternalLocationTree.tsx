@@ -12,8 +12,18 @@ type TreeProps = {
 const ExtLocLeaf = ({
     info,
     ref,
+    setPos,
+    setSize,
 }: Omit<TreeLeafProps<ExternalLocationInfo>, "icon">) => {
-    return <TreeLeaf info={info} ref={ref} icon={<CubeRegular />} />;
+    return (
+        <TreeLeaf
+            info={info}
+            ref={ref}
+            icon={<CubeRegular />}
+            setSize={setSize}
+            setPos={setPos}
+        />
+    );
 };
 
 const ExtLocTree = ({ setSize, setPos }: TreeProps) => {

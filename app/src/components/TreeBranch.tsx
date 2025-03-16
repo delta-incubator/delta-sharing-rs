@@ -27,6 +27,8 @@ type TreeRootProps<Item> = {
     ItemComponent: ComponentType<{
         info: Item & { name: string };
         ref: RefObject<HTMLDivElement> | null;
+        setSize: number;
+        setPos: number;
     }>;
     icon: Icon;
     rootName: string;
@@ -109,6 +111,8 @@ function ItemTree<Item extends { name?: string }>({
                                     ref={index === 0 ? firstItemRef : null}
                                     // @ts-expect-error
                                     info={item}
+                                    setSize={data.length}
+                                    setPos={index + 1}
                                 />
                             </TreeContext.Provider>
                         ),
