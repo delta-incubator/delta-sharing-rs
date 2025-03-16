@@ -1,20 +1,28 @@
-import { CloudCubeRegular } from "@fluentui/react-icons";
-import ucClient from "../../client";
-import ItemTree from "../TreeBranch";
-import ItemLeaf from "../TreeLeaf";
+import { CloudCubeRegular, CubeRegular } from "@fluentui/react-icons";
+import ucClient, { ExternalLocationInfo } from "../../client";
+import TreeBranch from "../TreeBranch";
+import TreeLeaf, { type TreeLeafProps } from "../TreeLeaf";
 
 type TreeProps = {
     setSize: number;
     setPos: number;
 };
 
+// Leaf component with the icon
+const ExtLocLeaf = ({
+    info,
+    ref,
+}: Omit<TreeLeafProps<ExternalLocationInfo>, "icon">) => {
+    return <TreeLeaf info={info} ref={ref} icon={<CubeRegular />} />;
+};
+
 const ExtLocTree = ({ setSize, setPos }: TreeProps) => {
     return (
-        <ItemTree
+        <TreeBranch
             setSize={setSize}
             setPos={setPos}
             listFn={() => ucClient.externalLocations.list()}
-            ItemComponent={ItemLeaf}
+            ItemComponent={ExtLocLeaf}
             icon={<CloudCubeRegular />}
             rootName="External Locations"
         />

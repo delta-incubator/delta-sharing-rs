@@ -3,6 +3,7 @@ import {
     TreeItemLayout,
     Text,
     Tag,
+    TreeItemLayoutProps,
 } from "@fluentui/react-components";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefObject, useCallback, useMemo } from "react";
@@ -10,13 +11,13 @@ import { useNotify, useTreeScope, useTypeName } from "../context";
 import DeleteDialog from "./DeleteDialog";
 import ucClient from "../client";
 
-// helper type that asserts the name property is a string
-type ItemProps<Info> = {
+export type TreeLeafProps<Info> = {
     info: Info & { name: string };
     ref: RefObject<HTMLDivElement> | null;
+    icon?: TreeItemLayoutProps["iconBefore"];
 };
 
-function TreeLeaf<Info>({ info, ref }: ItemProps<Info>) {
+function TreeLeaf<Info>({ info, ref, icon }: TreeLeafProps<Info>) {
     const { scope, value, parentValue, parentScope } = useTreeScope();
 
     const typeName = useTypeName(scope);
@@ -93,6 +94,7 @@ function TreeLeaf<Info>({ info, ref }: ItemProps<Info>) {
             itemType="leaf"
         >
             <TreeItemLayout
+                iconBefore={icon}
                 actions={
                     <DeleteDialog
                         onClick={onClick}

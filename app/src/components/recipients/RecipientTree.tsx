@@ -1,20 +1,31 @@
-import { DatabasePlugConnectedRegular } from "@fluentui/react-icons";
-import ucClient from "../../client";
-import ItemTree from "../TreeBranch";
-import ItemLeaf from "../TreeLeaf";
+import {
+    DatabasePlugConnectedRegular,
+    PlugConnectedRegular,
+} from "@fluentui/react-icons";
+import ucClient, { RecipientInfo } from "../../client";
+import TreeBranch from "../TreeBranch";
+import TreeLeaf, { type TreeLeafProps } from "../TreeLeaf";
 
 type TreeProps = {
     setSize: number;
     setPos: number;
 };
 
+// Leaf component with the icon
+const RecipientLeaf = ({
+    info,
+    ref,
+}: Omit<TreeLeafProps<RecipientInfo>, "icon">) => {
+    return <TreeLeaf info={info} ref={ref} icon={<PlugConnectedRegular />} />;
+};
+
 const RecipientTree = ({ setSize, setPos }: TreeProps) => {
     return (
-        <ItemTree
+        <TreeBranch
             setSize={setSize}
             setPos={setPos}
             listFn={() => ucClient.recipients.list()}
-            ItemComponent={ItemLeaf}
+            ItemComponent={RecipientLeaf}
             icon={<DatabasePlugConnectedRegular />}
             rootName="Recipients"
         />
