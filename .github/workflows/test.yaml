@@ -88,19 +88,11 @@ jobs:
           toolchain: stable
 
       # install linux dependencies
-      - name: Install dependencies
-        if: startsWith(matrix.os, 'ubuntu')
+      - name: install dependencies (ubuntu only)
+        if: matrix.os == 'ubuntu-latest' # This must match the platform value defined above.
         run: |
           sudo apt-get update
-          sudo apt=get install libwebkit2gtk-4.1-dev \
-            build-essential \
-            curl \
-            wget \
-            file \
-            libxdo-dev \
-            libssl-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev
+          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Run unit tests
         run: cargo test --lib
