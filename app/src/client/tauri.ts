@@ -167,7 +167,9 @@ export async function delete_table(
     schema: string,
     name: string,
 ) {
-    return await invoke<void>("delete_table", { catalog, schema, name });
+    return await invoke<void>("delete_table", {
+        fullName: `${catalog}.${schema}.${name}`,
+    });
 }
 
 export default {

@@ -125,7 +125,10 @@ impl<T: ResourceStore + Policy> TablesHandler for T {
         let (mut resources, next_page_token) = self
             .list(
                 &ObjectLabel::TableInfo,
-                Some(&ResourceName::new([&request.catalog_name])),
+                Some(&ResourceName::new([
+                    &request.catalog_name,
+                    &request.schema_name,
+                ])),
                 request
                     .max_results
                     .map(|v| usize::min(v as usize, MAX_RESULTS_TABLES)),

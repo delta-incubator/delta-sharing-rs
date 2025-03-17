@@ -1,6 +1,10 @@
-import { Database20Regular } from "@fluentui/react-icons";
+import {
+    DatabaseRegular,
+    TableRegular,
+    TableSimpleMultipleRegular,
+} from "@fluentui/react-icons";
 import { RefObject } from "react";
-import ucClient, { CatalogInfo, SchemaInfo } from "../../client";
+import ucClient, { CatalogInfo, SchemaInfo, TableInfo } from "../../client";
 import TreeBranch from "../TreeBranch";
 import TreeLeaf, { type TreeLeafProps } from "../TreeLeaf";
 
@@ -16,27 +20,67 @@ type CatalogItemProps = {
     setPos: number;
 };
 
-// Leaf component for schemas
-const SchemaLeaf = ({
+// Leaf component for tables
+const TableLeaf = ({
     info,
     ref,
-    setPos,
     setSize,
-}: Omit<TreeLeafProps<SchemaInfo>, "icon">) => {
-    return <TreeLeaf info={info} ref={ref} setSize={setSize} setPos={setPos} />;
+    setPos,
+}: Omit<TreeLeafProps<TableInfo>, "icon">) => {
+    return (
+        <TreeLeaf
+            info={info}
+            ref={ref}
+            icon={<TableRegular />}
+            setSize={setSize}
+            setPos={setPos}
+        />
+    );
 };
+
+// Branch component for schemas with tables as children
+function SchemaItem({
+    info,
+    setSize,
+    setPos,
+}: {
+    info: SchemaInfo & { name: string; catalogName: string };
+    ref: RefObject<HTMLDivElement> | null;
+    setSize: number;
+    setPos: number;
+}) {
+    // List function for tables
+    const listTables = () => {
+        return ucClient.tables.list({
+            catalog: info.catalogName,
+            schema: info.name,
+        });
+    };
+
+    return (
+        <TreeBranch
+            setSize={setSize}
+            setPos={setPos}
+            listFn={listTables}
+            ItemComponent={TableLeaf}
+            icon={<TableSimpleMultipleRegular />}
+            rootName={info.name}
+        />
+    );
+}
 
 const CatalogItem = ({ info }: CatalogItemProps) => {
     // List function for schemas
-    const listSchemas = () => ucClient.schemas.list(info.name);
+    const listSchemas = () => ucClient.schemas.list({ catalog: info.name });
 
     return (
         <TreeBranch
             setSize={1}
             setPos={1}
             listFn={listSchemas}
-            ItemComponent={SchemaLeaf}
-            icon={<Database20Regular />}
+            // @ts-expect-error: catalogName is not optional. need to propagete more constrained type
+            ItemComponent={SchemaItem}
+            icon={<DatabaseRegular />}
             rootName={info.name}
         />
     );

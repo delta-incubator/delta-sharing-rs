@@ -33,16 +33,16 @@ impl serde::Serialize for CreateExternalLocationRequest {
             struct_ser.serialize_field("url", &self.url)?;
         }
         if !self.credential_name.is_empty() {
-            struct_ser.serialize_field("credential_name", &self.credential_name)?;
+            struct_ser.serialize_field("credentialName", &self.credential_name)?;
         }
         if let Some(v) = self.read_only.as_ref() {
-            struct_ser.serialize_field("read_only", v)?;
+            struct_ser.serialize_field("readOnly", v)?;
         }
         if let Some(v) = self.comment.as_ref() {
             struct_ser.serialize_field("comment", v)?;
         }
         if let Some(v) = self.skip_validation.as_ref() {
-            struct_ser.serialize_field("skip_validation", v)?;
+            struct_ser.serialize_field("skipValidation", v)?;
         }
         struct_ser.end()
     }
@@ -349,10 +349,10 @@ impl serde::Serialize for ExternalLocationInfo {
             struct_ser.serialize_field("url", &self.url)?;
         }
         if !self.credential_name.is_empty() {
-            struct_ser.serialize_field("credential_name", &self.credential_name)?;
+            struct_ser.serialize_field("credentialName", &self.credential_name)?;
         }
         if self.read_only {
-            struct_ser.serialize_field("read_only", &self.read_only)?;
+            struct_ser.serialize_field("readOnly", &self.read_only)?;
         }
         if let Some(v) = self.comment.as_ref() {
             struct_ser.serialize_field("comment", v)?;
@@ -361,29 +361,29 @@ impl serde::Serialize for ExternalLocationInfo {
             struct_ser.serialize_field("owner", v)?;
         }
         if !self.credential_id.is_empty() {
-            struct_ser.serialize_field("credential_id", &self.credential_id)?;
+            struct_ser.serialize_field("credentialId", &self.credential_id)?;
         }
         if let Some(v) = self.created_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("created_at", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("createdAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.created_by.as_ref() {
-            struct_ser.serialize_field("created_by", v)?;
+            struct_ser.serialize_field("createdBy", v)?;
         }
         if let Some(v) = self.updated_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("updated_at", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("updatedAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.updated_by.as_ref() {
-            struct_ser.serialize_field("updated_by", v)?;
+            struct_ser.serialize_field("updatedBy", v)?;
         }
         if let Some(v) = self.browse_only.as_ref() {
-            struct_ser.serialize_field("browse_only", v)?;
+            struct_ser.serialize_field("browseOnly", v)?;
         }
         if let Some(v) = self.external_location_id.as_ref() {
-            struct_ser.serialize_field("external_location_id", v)?;
+            struct_ser.serialize_field("externalLocationId", v)?;
         }
         struct_ser.end()
     }
@@ -724,13 +724,13 @@ impl serde::Serialize for ListExternalLocationsRequest {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.external_locations.v1.ListExternalLocationsRequest", len)?;
         if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("max_results", v)?;
+            struct_ser.serialize_field("maxResults", v)?;
         }
         if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("page_token", v)?;
+            struct_ser.serialize_field("pageToken", v)?;
         }
         if let Some(v) = self.include_browse.as_ref() {
-            struct_ser.serialize_field("include_browse", v)?;
+            struct_ser.serialize_field("includeBrowse", v)?;
         }
         struct_ser.end()
     }
@@ -855,10 +855,10 @@ impl serde::Serialize for ListExternalLocationsResponse {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.external_locations.v1.ListExternalLocationsResponse", len)?;
         if !self.external_locations.is_empty() {
-            struct_ser.serialize_field("external_locations", &self.external_locations)?;
+            struct_ser.serialize_field("externalLocations", &self.external_locations)?;
         }
         if let Some(v) = self.next_page_token.as_ref() {
-            struct_ser.serialize_field("next_page_token", v)?;
+            struct_ser.serialize_field("nextPageToken", v)?;
         }
         struct_ser.end()
     }
@@ -996,10 +996,10 @@ impl serde::Serialize for UpdateExternalLocationRequest {
             struct_ser.serialize_field("url", v)?;
         }
         if let Some(v) = self.credential_name.as_ref() {
-            struct_ser.serialize_field("credential_name", v)?;
+            struct_ser.serialize_field("credentialName", v)?;
         }
         if let Some(v) = self.read_only.as_ref() {
-            struct_ser.serialize_field("read_only", v)?;
+            struct_ser.serialize_field("readOnly", v)?;
         }
         if let Some(v) = self.owner.as_ref() {
             struct_ser.serialize_field("owner", v)?;
@@ -1008,13 +1008,13 @@ impl serde::Serialize for UpdateExternalLocationRequest {
             struct_ser.serialize_field("comment", v)?;
         }
         if let Some(v) = self.new_name.as_ref() {
-            struct_ser.serialize_field("new_name", v)?;
+            struct_ser.serialize_field("newName", v)?;
         }
         if let Some(v) = self.force.as_ref() {
             struct_ser.serialize_field("force", v)?;
         }
         if let Some(v) = self.skip_validation.as_ref() {
-            struct_ser.serialize_field("skip_validation", v)?;
+            struct_ser.serialize_field("skipValidation", v)?;
         }
         struct_ser.end()
     }

@@ -8,6 +8,7 @@ import {
 } from "@fluentui/react-components";
 import TreeView from "./TreeView";
 import CreateSchema from "./catalog/SchemaCreate";
+import CreateTable from "./catalog/TableCreate";
 import CreateCatalog from "./catalog/CatalogCreate";
 import CreateCredential from "./credentials/CredentialCreate";
 import CreateExternalLocation from "./external_locations/ExternalLocationCreate";
@@ -57,9 +58,11 @@ function ExplorerContent() {
             } else if (scope[0] === "shares") {
                 return <CreateShare />;
             }
-        } else if (scope?.length === 2) {
-            if (scope[0] === "catalogs") {
+        } else if (scope && scope[0] === "catalogs") {
+            if (scope?.length === 2) {
                 return <CreateSchema />;
+            } else if (scope?.length === 3) {
+                return <CreateTable />;
             }
         }
     }

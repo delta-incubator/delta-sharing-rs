@@ -6,6 +6,7 @@ pub use recipients::get_router as get_recipients_router;
 pub use schemas::get_router as get_schemas_router;
 pub use shares::get_router as get_shares_router;
 pub use sharing::get_router as get_sharing_router;
+pub use tables::get_router as get_tables_router;
 
 mod auth;
 pub mod client;
@@ -112,6 +113,22 @@ mod shares {
             .route("/shares/{name}", get(get_share::<T>))
             //.route("/shares/{name}", patch(update_share::<T>))
             .route("/shares/{name}", delete(delete_share::<T>))
+            .with_state(handler)
+    }
+}
+
+mod tables {
+    use crate::api::tables::*;
+    use axum::routing::{delete, get, post, Router};
+
+    /// Create a new [Router] for the Delta Sharing REST API.
+    pub fn get_router<T: TablesHandler + Clone>(handler: T) -> Router {
+        Router::new()
+            .route("/tables", post(create_table::<T>))
+            .route("/tables", get(list_tables::<T>))
+            .route("/tables/{name}", get(get_table::<T>))
+            // .route("/tables/{name}", patch(update_table::<T>))
+            .route("/tables/{name}", delete(delete_table::<T>))
             .with_state(handler)
     }
 }

@@ -34,7 +34,6 @@ const useStyles = makeStyles({
 });
 
 type DeleteDialogProps = {
-    onClick: () => void;
     title: ReactNode;
     content: ReactNode;
 };
@@ -71,12 +70,23 @@ function DeleteDialog({ title, content }: DeleteDialogProps) {
             }
         }
 
-        if (scope.length === 3 && scope[0] === "catalogs") {
-            return {
-                deleteFn: (name: string) =>
-                    ucClient.schemas.delete({ catalog: scope[1], name }),
-                typeName: "Schema",
-            };
+        if (scope[0] === "catalogs") {
+            if (scope.length === 3) {
+                return {
+                    deleteFn: (name: string) =>
+                        ucClient.schemas.delete({ catalog: scope[1], name }),
+                };
+            }
+            if (scope.length === 4) {
+                return {
+                    deleteFn: (name: string) =>
+                        ucClient.tables.delete({
+                            catalog: scope[1],
+                            schema: scope[2],
+                            name,
+                        }),
+                };
+            }
         }
 
         throw new Error(`Unknown scope: ${scope}`);

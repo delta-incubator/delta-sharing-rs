@@ -21,10 +21,10 @@ impl serde::Serialize for ObjectRelations {
             struct_ser.serialize_field("owner", v)?;
         }
         if let Some(v) = self.created_by.as_ref() {
-            struct_ser.serialize_field("created_by", v)?;
+            struct_ser.serialize_field("createdBy", v)?;
         }
         if let Some(v) = self.updated_by.as_ref() {
-            struct_ser.serialize_field("updated_by", v)?;
+            struct_ser.serialize_field("updatedBy", v)?;
         }
         struct_ser.end()
     }
@@ -145,34 +145,34 @@ impl serde::Serialize for Resource {
         if let Some(v) = self.resource.as_ref() {
             match v {
                 resource::Resource::ShareInfo(v) => {
-                    struct_ser.serialize_field("share_info", v)?;
+                    struct_ser.serialize_field("shareInfo", v)?;
                 }
                 resource::Resource::SharingSchemaInfo(v) => {
-                    struct_ser.serialize_field("sharing_schema_info", v)?;
+                    struct_ser.serialize_field("sharingSchemaInfo", v)?;
                 }
                 resource::Resource::SharingTable(v) => {
-                    struct_ser.serialize_field("sharing_table", v)?;
+                    struct_ser.serialize_field("sharingTable", v)?;
                 }
                 resource::Resource::CredentialInfo(v) => {
-                    struct_ser.serialize_field("credential_info", v)?;
+                    struct_ser.serialize_field("credentialInfo", v)?;
                 }
                 resource::Resource::CatalogInfo(v) => {
-                    struct_ser.serialize_field("catalog_info", v)?;
+                    struct_ser.serialize_field("catalogInfo", v)?;
                 }
                 resource::Resource::SchemaInfo(v) => {
-                    struct_ser.serialize_field("schema_info", v)?;
+                    struct_ser.serialize_field("schemaInfo", v)?;
                 }
                 resource::Resource::TableInfo(v) => {
-                    struct_ser.serialize_field("table_info", v)?;
+                    struct_ser.serialize_field("tableInfo", v)?;
                 }
                 resource::Resource::ColumnInfo(v) => {
-                    struct_ser.serialize_field("column_info", v)?;
+                    struct_ser.serialize_field("columnInfo", v)?;
                 }
                 resource::Resource::ExternalLocationInfo(v) => {
-                    struct_ser.serialize_field("external_location_info", v)?;
+                    struct_ser.serialize_field("externalLocationInfo", v)?;
                 }
                 resource::Resource::RecipientInfo(v) => {
-                    struct_ser.serialize_field("recipient_info", v)?;
+                    struct_ser.serialize_field("recipientInfo", v)?;
                 }
             }
         }

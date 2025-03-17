@@ -48,24 +48,24 @@ impl serde::Serialize for ColumnInfo {
             struct_ser.serialize_field("name", &self.name)?;
         }
         if !self.type_text.is_empty() {
-            struct_ser.serialize_field("type_text", &self.type_text)?;
+            struct_ser.serialize_field("typeText", &self.type_text)?;
         }
         if !self.type_json.is_empty() {
-            struct_ser.serialize_field("type_json", &self.type_json)?;
+            struct_ser.serialize_field("typeJson", &self.type_json)?;
         }
         if self.type_name != 0 {
             let v = ColumnTypeName::try_from(self.type_name)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.type_name)))?;
-            struct_ser.serialize_field("type_name", &v)?;
+            struct_ser.serialize_field("typeName", &v)?;
         }
         if let Some(v) = self.type_precision.as_ref() {
-            struct_ser.serialize_field("type_precision", v)?;
+            struct_ser.serialize_field("typePrecision", v)?;
         }
         if let Some(v) = self.type_scale.as_ref() {
-            struct_ser.serialize_field("type_scale", v)?;
+            struct_ser.serialize_field("typeScale", v)?;
         }
         if let Some(v) = self.type_interval_type.as_ref() {
-            struct_ser.serialize_field("type_interval_type", v)?;
+            struct_ser.serialize_field("typeIntervalType", v)?;
         }
         if let Some(v) = self.position.as_ref() {
             struct_ser.serialize_field("position", v)?;
@@ -77,10 +77,10 @@ impl serde::Serialize for ColumnInfo {
             struct_ser.serialize_field("nullable", v)?;
         }
         if let Some(v) = self.partition_index.as_ref() {
-            struct_ser.serialize_field("partition_index", v)?;
+            struct_ser.serialize_field("partitionIndex", v)?;
         }
         if let Some(v) = self.column_id.as_ref() {
-            struct_ser.serialize_field("column_id", v)?;
+            struct_ser.serialize_field("columnId", v)?;
         }
         struct_ser.end()
     }
@@ -473,26 +473,26 @@ impl serde::Serialize for CreateTableRequest {
             struct_ser.serialize_field("name", &self.name)?;
         }
         if !self.schema_name.is_empty() {
-            struct_ser.serialize_field("schema_name", &self.schema_name)?;
+            struct_ser.serialize_field("schemaName", &self.schema_name)?;
         }
         if !self.catalog_name.is_empty() {
-            struct_ser.serialize_field("catalog_name", &self.catalog_name)?;
+            struct_ser.serialize_field("catalogName", &self.catalog_name)?;
         }
         if self.table_type != 0 {
             let v = TableType::try_from(self.table_type)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.table_type)))?;
-            struct_ser.serialize_field("table_type", &v)?;
+            struct_ser.serialize_field("tableType", &v)?;
         }
         if self.data_source_format != 0 {
             let v = DataSourceFormat::try_from(self.data_source_format)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.data_source_format)))?;
-            struct_ser.serialize_field("data_source_format", &v)?;
+            struct_ser.serialize_field("dataSourceFormat", &v)?;
         }
         if !self.columns.is_empty() {
             struct_ser.serialize_field("columns", &self.columns)?;
         }
         if let Some(v) = self.storage_location.as_ref() {
-            struct_ser.serialize_field("storage_location", v)?;
+            struct_ser.serialize_field("storageLocation", v)?;
         }
         if let Some(v) = self.comment.as_ref() {
             struct_ser.serialize_field("comment", v)?;
@@ -787,7 +787,7 @@ impl serde::Serialize for DeleteTableRequest {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.tables.v1.DeleteTableRequest", len)?;
         if !self.full_name.is_empty() {
-            struct_ser.serialize_field("full_name", &self.full_name)?;
+            struct_ser.serialize_field("fullName", &self.full_name)?;
         }
         struct_ser.end()
     }
@@ -883,7 +883,7 @@ impl serde::Serialize for GetTableExistsRequest {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.tables.v1.GetTableExistsRequest", len)?;
         if !self.full_name.is_empty() {
-            struct_ser.serialize_field("full_name", &self.full_name)?;
+            struct_ser.serialize_field("fullName", &self.full_name)?;
         }
         struct_ser.end()
     }
@@ -979,7 +979,7 @@ impl serde::Serialize for GetTableExistsResponse {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.tables.v1.GetTableExistsResponse", len)?;
         if self.table_exists {
-            struct_ser.serialize_field("table_exists", &self.table_exists)?;
+            struct_ser.serialize_field("tableExists", &self.table_exists)?;
         }
         struct_ser.end()
     }
@@ -1084,16 +1084,16 @@ impl serde::Serialize for GetTableRequest {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.tables.v1.GetTableRequest", len)?;
         if !self.full_name.is_empty() {
-            struct_ser.serialize_field("full_name", &self.full_name)?;
+            struct_ser.serialize_field("fullName", &self.full_name)?;
         }
         if let Some(v) = self.include_delta_metadata.as_ref() {
-            struct_ser.serialize_field("include_delta_metadata", v)?;
+            struct_ser.serialize_field("includeDeltaMetadata", v)?;
         }
         if let Some(v) = self.include_browse.as_ref() {
-            struct_ser.serialize_field("include_browse", v)?;
+            struct_ser.serialize_field("includeBrowse", v)?;
         }
         if let Some(v) = self.include_manifest_capabilities.as_ref() {
-            struct_ser.serialize_field("include_manifest_capabilities", v)?;
+            struct_ser.serialize_field("includeManifestCapabilities", v)?;
         }
         struct_ser.end()
     }
@@ -1240,22 +1240,22 @@ impl serde::Serialize for ListTableSummariesRequest {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.tables.v1.ListTableSummariesRequest", len)?;
         if !self.catalog_name.is_empty() {
-            struct_ser.serialize_field("catalog_name", &self.catalog_name)?;
+            struct_ser.serialize_field("catalogName", &self.catalog_name)?;
         }
         if let Some(v) = self.schema_name_pattern.as_ref() {
-            struct_ser.serialize_field("schema_name_pattern", v)?;
+            struct_ser.serialize_field("schemaNamePattern", v)?;
         }
         if let Some(v) = self.table_name_pattern.as_ref() {
-            struct_ser.serialize_field("table_name_pattern", v)?;
+            struct_ser.serialize_field("tableNamePattern", v)?;
         }
         if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("max_results", v)?;
+            struct_ser.serialize_field("maxResults", v)?;
         }
         if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("page_token", v)?;
+            struct_ser.serialize_field("pageToken", v)?;
         }
         if let Some(v) = self.include_manifest_capabilities.as_ref() {
-            struct_ser.serialize_field("include_manifest_capabilities", v)?;
+            struct_ser.serialize_field("includeManifestCapabilities", v)?;
         }
         struct_ser.end()
     }
@@ -1419,7 +1419,7 @@ impl serde::Serialize for ListTableSummariesResponse {
             struct_ser.serialize_field("tables", &self.tables)?;
         }
         if let Some(v) = self.next_page_token.as_ref() {
-            struct_ser.serialize_field("next_page_token", v)?;
+            struct_ser.serialize_field("nextPageToken", v)?;
         }
         struct_ser.end()
     }
@@ -1553,34 +1553,34 @@ impl serde::Serialize for ListTablesRequest {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.tables.v1.ListTablesRequest", len)?;
         if !self.schema_name.is_empty() {
-            struct_ser.serialize_field("schema_name", &self.schema_name)?;
+            struct_ser.serialize_field("schemaName", &self.schema_name)?;
         }
         if !self.catalog_name.is_empty() {
-            struct_ser.serialize_field("catalog_name", &self.catalog_name)?;
+            struct_ser.serialize_field("catalogName", &self.catalog_name)?;
         }
         if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("max_results", v)?;
+            struct_ser.serialize_field("maxResults", v)?;
         }
         if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("page_token", v)?;
+            struct_ser.serialize_field("pageToken", v)?;
         }
         if let Some(v) = self.include_delta_metadata.as_ref() {
-            struct_ser.serialize_field("include_delta_metadata", v)?;
+            struct_ser.serialize_field("includeDeltaMetadata", v)?;
         }
         if let Some(v) = self.omit_columns.as_ref() {
-            struct_ser.serialize_field("omit_columns", v)?;
+            struct_ser.serialize_field("omitColumns", v)?;
         }
         if let Some(v) = self.omit_properties.as_ref() {
-            struct_ser.serialize_field("omit_properties", v)?;
+            struct_ser.serialize_field("omitProperties", v)?;
         }
         if let Some(v) = self.omit_username.as_ref() {
-            struct_ser.serialize_field("omit_username", v)?;
+            struct_ser.serialize_field("omitUsername", v)?;
         }
         if let Some(v) = self.include_browse.as_ref() {
-            struct_ser.serialize_field("include_browse", v)?;
+            struct_ser.serialize_field("includeBrowse", v)?;
         }
         if let Some(v) = self.include_manifest_capabilities.as_ref() {
-            struct_ser.serialize_field("include_manifest_capabilities", v)?;
+            struct_ser.serialize_field("includeManifestCapabilities", v)?;
         }
         struct_ser.end()
     }
@@ -1792,7 +1792,7 @@ impl serde::Serialize for ListTablesResponse {
             struct_ser.serialize_field("tables", &self.tables)?;
         }
         if let Some(v) = self.next_page_token.as_ref() {
-            struct_ser.serialize_field("next_page_token", v)?;
+            struct_ser.serialize_field("nextPageToken", v)?;
         }
         struct_ser.end()
     }
@@ -1953,26 +1953,26 @@ impl serde::Serialize for TableInfo {
             struct_ser.serialize_field("name", &self.name)?;
         }
         if !self.schema_name.is_empty() {
-            struct_ser.serialize_field("schema_name", &self.schema_name)?;
+            struct_ser.serialize_field("schemaName", &self.schema_name)?;
         }
         if !self.catalog_name.is_empty() {
-            struct_ser.serialize_field("catalog_name", &self.catalog_name)?;
+            struct_ser.serialize_field("catalogName", &self.catalog_name)?;
         }
         if self.table_type != 0 {
             let v = TableType::try_from(self.table_type)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.table_type)))?;
-            struct_ser.serialize_field("table_type", &v)?;
+            struct_ser.serialize_field("tableType", &v)?;
         }
         if self.data_source_format != 0 {
             let v = DataSourceFormat::try_from(self.data_source_format)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.data_source_format)))?;
-            struct_ser.serialize_field("data_source_format", &v)?;
+            struct_ser.serialize_field("dataSourceFormat", &v)?;
         }
         if !self.columns.is_empty() {
             struct_ser.serialize_field("columns", &self.columns)?;
         }
         if let Some(v) = self.storage_location.as_ref() {
-            struct_ser.serialize_field("storage_location", v)?;
+            struct_ser.serialize_field("storageLocation", v)?;
         }
         if let Some(v) = self.owner.as_ref() {
             struct_ser.serialize_field("owner", v)?;
@@ -1984,34 +1984,34 @@ impl serde::Serialize for TableInfo {
             struct_ser.serialize_field("properties", v)?;
         }
         if let Some(v) = self.storage_credential_name.as_ref() {
-            struct_ser.serialize_field("storage_credential_name", v)?;
+            struct_ser.serialize_field("storageCredentialName", v)?;
         }
         if let Some(v) = self.full_name.as_ref() {
-            struct_ser.serialize_field("full_name", v)?;
+            struct_ser.serialize_field("fullName", v)?;
         }
         if let Some(v) = self.created_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("created_at", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("createdAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.created_by.as_ref() {
-            struct_ser.serialize_field("created_by", v)?;
+            struct_ser.serialize_field("createdBy", v)?;
         }
         if let Some(v) = self.updated_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("updated_at", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("updatedAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.updated_by.as_ref() {
-            struct_ser.serialize_field("updated_by", v)?;
+            struct_ser.serialize_field("updatedBy", v)?;
         }
         if let Some(v) = self.deleted_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("deleted_at", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("deletedAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.table_id.as_ref() {
-            struct_ser.serialize_field("table_id", v)?;
+            struct_ser.serialize_field("tableId", v)?;
         }
         struct_ser.end()
     }
@@ -2315,12 +2315,12 @@ impl serde::Serialize for TableSummary {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.tables.v1.TableSummary", len)?;
         if !self.full_name.is_empty() {
-            struct_ser.serialize_field("full_name", &self.full_name)?;
+            struct_ser.serialize_field("fullName", &self.full_name)?;
         }
         if self.table_type != 0 {
             let v = TableType::try_from(self.table_type)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.table_type)))?;
-            struct_ser.serialize_field("table_type", &v)?;
+            struct_ser.serialize_field("tableType", &v)?;
         }
         struct_ser.end()
     }

@@ -45,7 +45,7 @@ export const CreateItem = ({ scope }: { scope: string[] }) => {
     );
 };
 
-function ItemTree<Item extends { name?: string }>({
+function TreeBranch<Item extends { name?: string }>({
     setSize,
     setPos,
     listFn,
@@ -121,4 +121,4 @@ function ItemTree<Item extends { name?: string }>({
     );
 }
 
-export default ItemTree;
+export default TreeBranch;

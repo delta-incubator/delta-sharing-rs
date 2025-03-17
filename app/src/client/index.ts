@@ -59,8 +59,14 @@ export async function deleteCatalog(name: string) {
     return await tauri.delete_catalog(name);
 }
 
-export async function listSchemas(catalog: string) {
-    return await tauri.list_schemas(catalog);
+export async function listSchemas({
+    catalog,
+    maxResults,
+}: {
+    catalog: string;
+    maxResults?: number;
+}) {
+    return await tauri.list_schemas(catalog, maxResults);
 }
 
 export async function createSchema(request: CreateSchemaRequestJson) {
@@ -161,11 +167,15 @@ export async function listTableSummaries(
     );
 }
 
-export async function listTables(
-    catalog: string,
-    schema: string,
-    maxResults?: number,
-) {
+export async function listTables({
+    catalog,
+    schema,
+    maxResults,
+}: {
+    catalog: string;
+    schema: string;
+    maxResults?: number;
+}) {
     return await tauri.list_tables(catalog, schema, maxResults);
 }
 
@@ -177,11 +187,15 @@ export async function getTable(catalog: string, schema: string, name: string) {
     return await tauri.get_table(catalog, schema, name);
 }
 
-export async function deleteTable(
-    catalog: string,
-    schema: string,
-    name: string,
-) {
+export async function deleteTable({
+    catalog,
+    schema,
+    name,
+}: {
+    catalog: string;
+    schema: string;
+    name: string;
+}) {
     return await tauri.delete_table(catalog, schema, name);
 }
 
