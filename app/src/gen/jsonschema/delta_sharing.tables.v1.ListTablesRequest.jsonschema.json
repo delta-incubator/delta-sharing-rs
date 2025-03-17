@@ -1,0 +1,103 @@
+{
+  "$id": "delta_sharing.tables.v1.ListTablesRequest.jsonschema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^(catalog_name)$": {
+      "description": "Name of parent catalog for tables of interest.",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    },
+    "^(include_browse)$": {
+      "description": "Whether to include tables in the response for which the principal can only access selective metadata for",
+      "type": "boolean"
+    },
+    "^(include_delta_metadata)$": {
+      "description": "Whether delta metadata should be included in the response.",
+      "type": "boolean"
+    },
+    "^(include_manifest_capabilities)$": {
+      "description": "Whether to include a manifest containing capabilities the table has.",
+      "type": "boolean"
+    },
+    "^(max_results)$": {
+      "description": "The maximum number of results per page that should be returned.",
+      "exclusiveMinimum": 0,
+      "maximum": 50,
+      "type": "integer"
+    },
+    "^(omit_columns)$": {
+      "description": "Whether to omit the columns of the table from the response or not.",
+      "type": "boolean"
+    },
+    "^(omit_properties)$": {
+      "description": "Whether to omit the properties of the table from the response or not.",
+      "type": "boolean"
+    },
+    "^(omit_username)$": {
+      "description": "Whether to omit the username of the table (e.g. owner, updated_by, created_by) from the response or not.",
+      "type": "boolean"
+    },
+    "^(page_token)$": {
+      "description": "Opaque pagination token to go to next page based on previous query.",
+      "type": "string"
+    },
+    "^(schema_name)$": {
+      "description": "Name of parent schema for tables of interest.",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "catalogName": {
+      "description": "Name of parent catalog for tables of interest.",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    },
+    "includeBrowse": {
+      "description": "Whether to include tables in the response for which the principal can only access selective metadata for",
+      "type": "boolean"
+    },
+    "includeDeltaMetadata": {
+      "description": "Whether delta metadata should be included in the response.",
+      "type": "boolean"
+    },
+    "includeManifestCapabilities": {
+      "description": "Whether to include a manifest containing capabilities the table has.",
+      "type": "boolean"
+    },
+    "maxResults": {
+      "description": "The maximum number of results per page that should be returned.",
+      "exclusiveMinimum": 0,
+      "maximum": 50,
+      "type": "integer"
+    },
+    "omitColumns": {
+      "description": "Whether to omit the columns of the table from the response or not.",
+      "type": "boolean"
+    },
+    "omitProperties": {
+      "description": "Whether to omit the properties of the table from the response or not.",
+      "type": "boolean"
+    },
+    "omitUsername": {
+      "description": "Whether to omit the username of the table (e.g. owner, updated_by, created_by) from the response or not.",
+      "type": "boolean"
+    },
+    "pageToken": {
+      "description": "Opaque pagination token to go to next page based on previous query.",
+      "type": "string"
+    },
+    "schemaName": {
+      "description": "Name of parent schema for tables of interest.",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    }
+  },
+  "title": "List Tables Request",
+  "type": "object"
+}

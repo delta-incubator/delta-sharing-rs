@@ -83,14 +83,14 @@ function RecipientForm({
                 <Input
                     label="Name"
                     style={{ flex: "1" }}
-                    value={values.name}
+                    value={values.name ?? ""}
                     onChange={onNameChange}
                 />
             </div>
             <Input
                 label="Comment"
                 onChange={onCommentChange}
-                value={values.comment}
+                value={values.comment ?? ""}
             />
         </>
     );
@@ -100,7 +100,7 @@ function CreateExternalLocation() {
     return (
         <CreateResource
             createFn={ucClient.recipients.create}
-            formComponent={RecipientForm}
+            FormComponent={RecipientForm}
             resourceType="recipient"
             defaultValues={{ authenticationType: "TOKEN" }}
             typeName="CreateRecipientRequest"

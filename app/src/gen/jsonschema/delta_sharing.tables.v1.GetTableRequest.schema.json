@@ -7,12 +7,36 @@
     "^(fullName)$": {
       "description": "Full name of the table.",
       "type": "string"
+    },
+    "^(includeBrowse)$": {
+      "description": "Whether to include tables in the response for which the principal can only access selective metadata for",
+      "type": "boolean"
+    },
+    "^(includeDeltaMetadata)$": {
+      "description": "Whether delta metadata should be included in the response.",
+      "type": "boolean"
+    },
+    "^(includeManifestCapabilities)$": {
+      "description": "Whether to include a manifest containing capabilities the table has.",
+      "type": "boolean"
     }
   },
   "properties": {
     "full_name": {
       "description": "Full name of the table.",
       "type": "string"
+    },
+    "include_browse": {
+      "description": "Whether to include tables in the response for which the principal can only access selective metadata for",
+      "type": "boolean"
+    },
+    "include_delta_metadata": {
+      "description": "Whether delta metadata should be included in the response.",
+      "type": "boolean"
+    },
+    "include_manifest_capabilities": {
+      "description": "Whether to include a manifest containing capabilities the table has.",
+      "type": "boolean"
     }
   },
   "title": "Get Table Request",

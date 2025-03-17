@@ -1,0 +1,155 @@
+{
+  "$id": "delta_sharing.tables.v1.CreateTableRequest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Create a table\n\n WARNING: this API is experimental and subject to change.",
+  "patternProperties": {
+    "^(catalogName)$": {
+      "description": "Name of parent catalog.",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    },
+    "^(dataSourceFormat)$": {
+      "anyOf": [
+        {
+          "enum": [
+            "DATA_SOURCE_FORMAT_UNSPECIFIED",
+            "DELTA",
+            "ICEBERG",
+            "HUDI",
+            "PARQUET",
+            "CSV",
+            "JSON",
+            "ORC",
+            "AVRO",
+            "TEXT",
+            "UNITY_CATALOG",
+            "DELTASHARING"
+          ],
+          "title": "Data Source Format",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ]
+    },
+    "^(schemaName)$": {
+      "description": "Name of parent schema relative to its parent catalog.",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    },
+    "^(storageLocation)$": {
+      "description": "Storage root URL for external table.",
+      "type": "string"
+    },
+    "^(tableType)$": {
+      "anyOf": [
+        {
+          "enum": [
+            "TABLE_TYPE_UNSPECIFIED",
+            "MANAGED",
+            "EXTERNAL"
+          ],
+          "title": "Table Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ]
+    }
+  },
+  "properties": {
+    "catalog_name": {
+      "description": "Name of parent catalog.",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    },
+    "columns": {
+      "description": "The array of ColumnInfo definitions of the table's columns.",
+      "items": {
+        "$ref": "delta_sharing.tables.v1.ColumnInfo.schema.json"
+      },
+      "type": "array"
+    },
+    "comment": {
+      "description": "User-provided free-form text description.",
+      "type": "string"
+    },
+    "data_source_format": {
+      "anyOf": [
+        {
+          "enum": [
+            "DATA_SOURCE_FORMAT_UNSPECIFIED",
+            "DELTA",
+            "ICEBERG",
+            "HUDI",
+            "PARQUET",
+            "CSV",
+            "JSON",
+            "ORC",
+            "AVRO",
+            "TEXT",
+            "UNITY_CATALOG",
+            "DELTASHARING"
+          ],
+          "title": "Data Source Format",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ]
+    },
+    "name": {
+      "description": "Name of table, relative to parent schema.",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    },
+    "properties": {
+      "$ref": "google.protobuf.Struct.schema.json",
+      "description": "A map of key-value properties attached to the securable."
+    },
+    "schema_name": {
+      "description": "Name of parent schema relative to its parent catalog.",
+      "minLength": 3,
+      "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
+      "type": "string"
+    },
+    "storage_location": {
+      "description": "Storage root URL for external table.",
+      "type": "string"
+    },
+    "table_type": {
+      "anyOf": [
+        {
+          "enum": [
+            "TABLE_TYPE_UNSPECIFIED",
+            "MANAGED",
+            "EXTERNAL"
+          ],
+          "title": "Table Type",
+          "type": "string"
+        },
+        {
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        }
+      ]
+    }
+  },
+  "title": "Create Table Request",
+  "type": "object"
+}

@@ -17,6 +17,11 @@ import {
 import { CreateRecipientRequestJson } from "../gen/delta_sharing/recipients/v1/svc_pb";
 import type { ShareInfoJson } from "../gen/delta_sharing/shares/v1/models_pb";
 import type { CreateShareRequestJson } from "../gen/delta_sharing/shares/v1/svc_pb";
+import type {
+    TableInfoJson,
+    TableSummaryJson,
+} from "../gen/delta_sharing/tables/v1/models_pb";
+import type { CreateTableRequestJson } from "../gen/delta_sharing/tables/v1/svc_pb";
 
 export type {
     CatalogInfoJson as CatalogInfo,
@@ -33,6 +38,9 @@ export type {
     CreateRecipientRequestJson as CreateRecipientRequest,
     ShareInfoJson as ShareInfo,
     CreateShareRequestJson as CreateShareRequest,
+    TableInfoJson as TableInfo,
+    TableSummaryJson as TableSummary,
+    CreateTableRequestJson as CreateTableRequest,
 };
 
 export async function listCatalogs(maxResults?: number) {
@@ -51,8 +59,14 @@ export async function deleteCatalog(name: string) {
     return await tauri.delete_catalog(name);
 }
 
-export async function listSchemas(catalog: string) {
-    return await tauri.list_schemas(catalog);
+export async function listSchemas({
+    catalog,
+    maxResults,
+}: {
+    catalog: string;
+    maxResults?: number;
+}) {
+    return await tauri.list_schemas(catalog, maxResults);
 }
 
 export async function createSchema(request: CreateSchemaRequestJson) {
@@ -139,6 +153,52 @@ export async function deleteShare(name: string) {
     return await tauri.delete_share(name);
 }
 
+export async function listTableSummaries(
+    catalog: string,
+    schemaPattern?: string,
+    tablePattern?: string,
+    maxResults?: number,
+) {
+    return await tauri.list_table_summaries(
+        catalog,
+        schemaPattern,
+        tablePattern,
+        maxResults,
+    );
+}
+
+export async function listTables({
+    catalog,
+    schema,
+    maxResults,
+}: {
+    catalog: string;
+    schema: string;
+    maxResults?: number;
+}) {
+    return await tauri.list_tables(catalog, schema, maxResults);
+}
+
+export async function createTable(request: CreateTableRequestJson) {
+    return await tauri.create_table(request);
+}
+
+export async function getTable(catalog: string, schema: string, name: string) {
+    return await tauri.get_table(catalog, schema, name);
+}
+
+export async function deleteTable({
+    catalog,
+    schema,
+    name,
+}: {
+    catalog: string;
+    schema: string;
+    name: string;
+}) {
+    return await tauri.delete_table(catalog, schema, name);
+}
+
 export default {
     catalogs: {
         list: listCatalogs,
@@ -175,5 +235,12 @@ export default {
         get: getShare,
         create: createShare,
         delete: deleteShare,
+    },
+    tables: {
+        listSummaries: listTableSummaries,
+        list: listTables,
+        create: createTable,
+        get: getTable,
+        delete: deleteTable,
     },
 };

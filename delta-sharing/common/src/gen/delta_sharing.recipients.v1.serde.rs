@@ -106,7 +106,7 @@ impl serde::Serialize for CreateRecipientRequest {
         if self.authentication_type != 0 {
             let v = AuthenticationType::try_from(self.authentication_type)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.authentication_type)))?;
-            struct_ser.serialize_field("authentication_type", &v)?;
+            struct_ser.serialize_field("authenticationType", &v)?;
         }
         if !self.owner.is_empty() {
             struct_ser.serialize_field("owner", &self.owner)?;
@@ -120,7 +120,7 @@ impl serde::Serialize for CreateRecipientRequest {
         if let Some(v) = self.expiration_time.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("expiration_time", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("expirationTime", ToString::to_string(&v).as_str())?;
         }
         struct_ser.end()
     }
@@ -467,10 +467,10 @@ impl serde::Serialize for ListRecipientsRequest {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.recipients.v1.ListRecipientsRequest", len)?;
         if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("max_results", v)?;
+            struct_ser.serialize_field("maxResults", v)?;
         }
         if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("page_token", v)?;
+            struct_ser.serialize_field("pageToken", v)?;
         }
         struct_ser.end()
     }
@@ -586,7 +586,7 @@ impl serde::Serialize for ListRecipientsResponse {
             struct_ser.serialize_field("recipients", &self.recipients)?;
         }
         if let Some(v) = self.next_page_token.as_ref() {
-            struct_ser.serialize_field("next_page_token", v)?;
+            struct_ser.serialize_field("nextPageToken", v)?;
         }
         struct_ser.end()
     }
@@ -731,7 +731,7 @@ impl serde::Serialize for RecipientInfo {
         if self.authentication_type != 0 {
             let v = AuthenticationType::try_from(self.authentication_type)
                 .map_err(|_| serde::ser::Error::custom(format!("Invalid variant {}", self.authentication_type)))?;
-            struct_ser.serialize_field("authentication_type", &v)?;
+            struct_ser.serialize_field("authenticationType", &v)?;
         }
         if !self.owner.is_empty() {
             struct_ser.serialize_field("owner", &self.owner)?;
@@ -745,10 +745,10 @@ impl serde::Serialize for RecipientInfo {
         if let Some(v) = self.created_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("created_at", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("createdAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.created_by.as_ref() {
-            struct_ser.serialize_field("created_by", v)?;
+            struct_ser.serialize_field("createdBy", v)?;
         }
         if !self.tokens.is_empty() {
             struct_ser.serialize_field("tokens", &self.tokens)?;
@@ -756,10 +756,10 @@ impl serde::Serialize for RecipientInfo {
         if let Some(v) = self.updated_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("updated_at", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("updatedAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.updated_by.as_ref() {
-            struct_ser.serialize_field("updated_by", v)?;
+            struct_ser.serialize_field("updatedBy", v)?;
         }
         struct_ser.end()
     }
@@ -996,26 +996,26 @@ impl serde::Serialize for RecipientToken {
         if self.created_at != 0 {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("created_at", ToString::to_string(&self.created_at).as_str())?;
+            struct_ser.serialize_field("createdAt", ToString::to_string(&self.created_at).as_str())?;
         }
         if !self.created_by.is_empty() {
-            struct_ser.serialize_field("created_by", &self.created_by)?;
+            struct_ser.serialize_field("createdBy", &self.created_by)?;
         }
         if !self.activation_url.is_empty() {
-            struct_ser.serialize_field("activation_url", &self.activation_url)?;
+            struct_ser.serialize_field("activationUrl", &self.activation_url)?;
         }
         if self.expiration_time != 0 {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("expiration_time", ToString::to_string(&self.expiration_time).as_str())?;
+            struct_ser.serialize_field("expirationTime", ToString::to_string(&self.expiration_time).as_str())?;
         }
         if self.updated_at != 0 {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("updated_at", ToString::to_string(&self.updated_at).as_str())?;
+            struct_ser.serialize_field("updatedAt", ToString::to_string(&self.updated_at).as_str())?;
         }
         if !self.updated_by.is_empty() {
-            struct_ser.serialize_field("updated_by", &self.updated_by)?;
+            struct_ser.serialize_field("updatedBy", &self.updated_by)?;
         }
         struct_ser.end()
     }
@@ -1206,7 +1206,7 @@ impl serde::Serialize for UpdateRecipientRequest {
             struct_ser.serialize_field("name", &self.name)?;
         }
         if let Some(v) = self.new_name.as_ref() {
-            struct_ser.serialize_field("new_name", v)?;
+            struct_ser.serialize_field("newName", v)?;
         }
         if let Some(v) = self.owner.as_ref() {
             struct_ser.serialize_field("owner", v)?;
@@ -1220,7 +1220,7 @@ impl serde::Serialize for UpdateRecipientRequest {
         if let Some(v) = self.expiration_time.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("expiration_time", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("expirationTime", ToString::to_string(&v).as_str())?;
         }
         struct_ser.end()
     }

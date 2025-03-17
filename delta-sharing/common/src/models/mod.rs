@@ -3,20 +3,19 @@ use std::collections::HashMap;
 
 use crate::{Error, ResourceIdent, ResourceName, ResourceRef};
 
-pub use internal::resource::{ObjectLabel, Resource};
-pub use object::*;
-pub use tables::v1::TableInfo;
-
-mod object;
-
 pub use catalogs::v1::CatalogInfo;
 pub use credentials::v1::CredentialInfo;
 pub use external_locations::v1::ExternalLocationInfo;
+pub use internal::resource::{ObjectLabel, Resource};
+pub use object::*;
 pub use profiles::v1::Profile;
 pub use recipients::v1::RecipientInfo;
 pub use schemas::v1::SchemaInfo;
 pub use shares::v1::ShareInfo;
 pub use sharing::v1::{Share, SharingSchema, SharingSchemaInfo, SharingTable};
+pub use tables::v1::{ColumnInfo, TableInfo};
+
+mod object;
 
 pub type PropertyMap = HashMap<String, serde_json::Value>;
 
@@ -109,6 +108,7 @@ impl ObjectLabel {
             ObjectLabel::TableInfo => ResourceIdent::table(id),
             ObjectLabel::ExternalLocationInfo => ResourceIdent::external_location(id),
             ObjectLabel::RecipientInfo => ResourceIdent::recipient(id),
+            ObjectLabel::ColumnInfo => ResourceIdent::column(id),
         }
     }
 }
@@ -193,6 +193,7 @@ mod tests {
                     assert_eq!(label.as_ref(), "external_location_info")
                 }
                 ObjectLabel::RecipientInfo => assert_eq!(label.as_ref(), "recipient_info"),
+                ObjectLabel::ColumnInfo => assert_eq!(label.as_ref(), "column_info"),
             }
         }
     }

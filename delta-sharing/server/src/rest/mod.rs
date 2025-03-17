@@ -5,9 +5,10 @@ use delta_sharing_common::api::recipients::RecipientsHandler;
 use delta_sharing_common::api::schemas::SchemasHandler;
 use delta_sharing_common::api::shares::SharesHandler;
 use delta_sharing_common::api::sharing::{SharingDiscoveryHandler, SharingQueryHandler};
+use delta_sharing_common::api::tables::TablesHandler;
 use delta_sharing_common::rest::{
     get_catalog_router, get_credentials_router, get_external_locations_router,
-    get_recipients_router, get_schemas_router, get_shares_router,
+    get_recipients_router, get_schemas_router, get_shares_router, get_tables_router,
     AuthenticationLayer, Authenticator,
 };
 use delta_sharing_common::{Error, Result};
@@ -32,6 +33,7 @@ where
         + SharingQueryHandler
         + SharesHandler
         + SchemasHandler
+        + TablesHandler
         + ExternalLocationsHandler
         + RecipientsHandler
         + Clone,
@@ -44,6 +46,7 @@ where
     };
     let router = get_catalog_router(handler.clone())
         .merge(get_schemas_router(handler.clone()))
+        .merge(get_tables_router(handler.clone()))
         .merge(get_credentials_router(handler.clone()))
         .merge(get_external_locations_router(handler.clone()))
         .merge(get_recipients_router(handler.clone()))

@@ -17,6 +17,7 @@ import {
     useRef,
     useEffect,
     useMemo,
+    ComponentType,
 } from "react";
 import { useNotify, useExplorer, useTreeContext } from "../../context";
 import {
@@ -70,7 +71,7 @@ export type CreateFormState<T> = {
 
 type CreateResourceProps<Req, Res> = {
     createFn: (values: Req) => Promise<Res>;
-    formComponent: (props: CreateFormState<Req>) => JSX.Element;
+    FormComponent: ComponentType<CreateFormState<Req>>;
     defaultValues?: Req;
     resourceType: string;
     typeName: string;
@@ -81,7 +82,7 @@ function CreateResource<Req, Res>({
     createFn,
     defaultValues,
     resourceType,
-    formComponent,
+    FormComponent,
     typeName,
 }: CreateResourceProps<Req, Res>) {
     const styles = useStyles();
@@ -138,13 +139,11 @@ function CreateResource<Req, Res>({
 
     useEffect(() => {
         if (showJson && editorRef.current) {
-            editorRef.current.setValue(JSON.stringify(values, null, 2));
+            editorRef.current.setValue(JSON.stringify(values, null, 4));
         } else if (editorRef.current) {
             setValues(JSON.parse(editorRef.current.getValue()));
         }
     }, [showJson]);
-
-    const FormComponent = formComponent;
 
     return (
         <div className={styles.root}>

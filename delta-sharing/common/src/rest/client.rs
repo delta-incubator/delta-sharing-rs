@@ -9,6 +9,7 @@ use crate::api::external_locations::ExternalLocationsClient;
 use crate::api::recipients::RecipientsClient;
 use crate::api::schemas::SchemasClient;
 use crate::api::shares::SharesClient;
+use crate::api::tables::TablesClient;
 use crate::credentials::v1::Purpose;
 use crate::models::catalogs::v1 as catalog;
 use crate::models::credentials::v1 as cred;
@@ -16,6 +17,7 @@ use crate::models::external_locations::v1 as loc;
 use crate::models::recipients::v1 as rec;
 use crate::models::schemas::v1 as schema;
 use crate::models::shares::v1 as share;
+use crate::models::tables::v1 as tbl;
 use crate::{Error, Result};
 
 pub struct UnityCatalogClient {
@@ -46,6 +48,10 @@ impl UnityCatalogClient {
 
     pub fn schemas(&self) -> SchemasClient {
         SchemasClient::new(self.client.clone(), self.base_url.clone())
+    }
+
+    pub fn tables(&self) -> TablesClient {
+        TablesClient::new(self.client.clone(), self.base_url.clone())
     }
 
     pub fn shares(&self) -> SharesClient {
@@ -180,6 +186,143 @@ impl SchemasClient {
         };
         tracing::info!("deleting schema {}", request.full_name);
         self.delete_schema(&request).await
+    }
+}
+
+impl TablesClient {
+    pub fn list_summaries(
+        &self,
+        catalog_name: impl Into<String>,
+        schema_name_pattern: impl Into<Option<String>>,
+        table_name_pattern: impl Into<Option<String>>,
+        max_results: impl Into<Option<i32>>,
+    ) -> BoxStream<'_, Result<tbl::TableSummary>> {
+        let max_results = max_results.into();
+        let catalog_name = catalog_name.into();
+        let schema_name_pattern = schema_name_pattern.into();
+        let table_name_pattern = table_name_pattern.into();
+        stream_paginated(
+            (
+                catalog_name,
+                schema_name_pattern,
+                table_name_pattern,
+                max_results,
+            ),
+            move |(catalog_name, schema_name_pattern, table_name_pattern, max_results),
+                  page_token| async move {
+                let request = tbl::ListTableSummariesRequest {
+                    catalog_name: catalog_name.clone(),
+                    schema_name_pattern: schema_name_pattern.clone(),
+                    table_name_pattern: table_name_pattern.clone(),
+                    page_token,
+                    max_results: None,
+                    include_manifest_capabilities: None,
+                };
+                let res = self
+                    .list_table_summaries(&request)
+                    .await
+                    .map_err(|e| Error::generic(e.to_string()))?;
+                Ok((
+                    res.tables,
+                    (
+                        catalog_name,
+                        schema_name_pattern,
+                        table_name_pattern,
+                        max_results,
+                    ),
+                    res.next_page_token,
+                ))
+            },
+        )
+        .map_ok(|resp| futures::stream::iter(resp.into_iter().map(Ok)))
+        .try_flatten()
+        .boxed()
+    }
+
+    pub fn list(
+        &self,
+        catalog_name: impl Into<String>,
+        schema_name: impl Into<String>,
+        max_results: impl Into<Option<i32>>,
+        include_delta_metadata: impl Into<Option<bool>>,
+        omit_columns: impl Into<Option<bool>>,
+        omit_properties: impl Into<Option<bool>>,
+        omit_username: impl Into<Option<bool>>,
+    ) -> BoxStream<'_, Result<tbl::TableInfo>> {
+        let max_results = max_results.into();
+        let catalog_name = catalog_name.into();
+        let schema_name = schema_name.into();
+        let include_delta_metadata = include_delta_metadata.into();
+        let omit_columns = omit_columns.into();
+        let omit_properties = omit_properties.into();
+        let omit_username = omit_username.into();
+        stream_paginated(
+            (catalog_name, schema_name, max_results),
+            move |(catalog_name, schema_name, max_results), page_token| async move {
+                let request = tbl::ListTablesRequest {
+                    catalog_name: catalog_name.clone(),
+                    schema_name: schema_name.clone(),
+                    include_delta_metadata,
+                    omit_columns,
+                    omit_properties,
+                    omit_username,
+                    max_results,
+                    page_token,
+                    include_browse: None,
+                    include_manifest_capabilities: None,
+                };
+                let res = self
+                    .list_tables(&request)
+                    .await
+                    .map_err(|e| Error::generic(e.to_string()))?;
+                Ok((
+                    res.tables,
+                    (catalog_name, schema_name, max_results),
+                    res.next_page_token,
+                ))
+            },
+        )
+        .map_ok(|resp| futures::stream::iter(resp.into_iter().map(Ok)))
+        .try_flatten()
+        .boxed()
+    }
+
+    pub async fn create(
+        &self,
+        catalog_name: impl Into<String>,
+        schema_name: impl Into<String>,
+        name: impl Into<String>,
+        comment: impl Into<Option<String>>,
+    ) -> Result<tbl::TableInfo> {
+        let request = tbl::CreateTableRequest {
+            catalog_name: catalog_name.into(),
+            schema_name: schema_name.into(),
+            name: name.into(),
+            comment: comment.into(),
+            ..Default::default()
+        };
+        self.create_table(&request).await
+    }
+
+    pub async fn get(
+        &self,
+        full_name: impl Into<String>,
+        include_delta_metadata: impl Into<Option<bool>>,
+    ) -> Result<tbl::TableInfo> {
+        let request = tbl::GetTableRequest {
+            full_name: full_name.into(),
+            include_delta_metadata: include_delta_metadata.into(),
+            include_browse: None,
+            include_manifest_capabilities: None,
+        };
+        self.get_table(&request).await
+    }
+
+    pub async fn delete(&self, full_name: impl Into<String>) -> Result<()> {
+        let request = tbl::DeleteTableRequest {
+            full_name: full_name.into(),
+        };
+        self.delete_table(&request).await
     }
 }
 
@@ -373,7 +516,6 @@ impl SharesClient {
         let request = share::CreateShareRequest {
             name: name.into(),
             comment: comment.into(),
-            ..Default::default()
         };
         self.create_share(&request).await
     }

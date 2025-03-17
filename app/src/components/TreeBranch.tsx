@@ -7,7 +7,14 @@ import {
 } from "@fluentui/react-components";
 import { AddRegular } from "@fluentui/react-icons";
 import { useQuery } from "@tanstack/react-query";
-import { RefObject, useCallback, useEffect, useRef, useState } from "react";
+import {
+    ComponentType,
+    RefObject,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { TreeContext, useExplorer, useTreeContext } from "../context";
 import { TreeItemOnChange } from "../types";
 
@@ -17,10 +24,12 @@ type TreeRootProps<Item> = {
     setSize: number;
     setPos: number;
     listFn: () => Promise<Item[]>;
-    itemComponent: (props: {
+    ItemComponent: ComponentType<{
         info: Item & { name: string };
         ref: RefObject<HTMLDivElement> | null;
-    }) => JSX.Element;
+        setSize: number;
+        setPos: number;
+    }>;
     icon: Icon;
     rootName: string;
 };
@@ -36,12 +45,12 @@ export const CreateItem = ({ scope }: { scope: string[] }) => {
     );
 };
 
-function ItemTree<Item extends { name?: string }>({
+function TreeBranch<Item extends { name?: string }>({
     setSize,
     setPos,
     listFn,
     icon,
-    itemComponent,
+    ItemComponent,
     rootName,
 }: TreeRootProps<Item>) {
     const [open, setOpen] = useState(false);
@@ -64,42 +73,46 @@ function ItemTree<Item extends { name?: string }>({
         if (open && status === "success") firstItemRef.current?.focus();
     }, [open, status]);
 
-    const ItemComponent = itemComponent;
-
     return (
         <>
-            <FlatTreeItem
-                value={rootValue}
-                aria-level={1}
-                aria-setsize={setSize}
-                aria-posinset={setPos}
-                itemType="branch"
-                open={open}
-                onOpenChange={onOpenChange}
-            >
-                <TreeItemLayout
-                    iconBefore={icon}
-                    expandIcon={
-                        open && status === "pending" ? (
-                            <Spinner size="extra-tiny" />
-                        ) : undefined
-                    }
-                    actions={<CreateItem scope={rootScope} />}
+            <TreeContext.Provider value={rootScope}>
+                <FlatTreeItem
+                    value={rootValue}
+                    aria-level={rootScope.length}
+                    aria-setsize={setSize}
+                    aria-posinset={setPos}
+                    itemType="branch"
+                    open={open}
+                    onOpenChange={onOpenChange}
                 >
-                    {rootName}
-                </TreeItemLayout>
-            </FlatTreeItem>
+                    <TreeItemLayout
+                        iconBefore={icon}
+                        expandIcon={
+                            open && status === "pending" ? (
+                                <Spinner size="extra-tiny" />
+                            ) : undefined
+                        }
+                        actions={<CreateItem scope={rootScope} />}
+                    >
+                        {rootName}
+                    </TreeItemLayout>
+                </FlatTreeItem>
+            </TreeContext.Provider>
             {open &&
                 status === "success" &&
                 data.map(
                     (item, index) =>
                         item.name && (
-                            <TreeContext.Provider value={rootScope}>
+                            <TreeContext.Provider
+                                value={[...rootScope, item.name]}
+                            >
                                 <ItemComponent
                                     key={`${rootValue}.${item.name}`}
                                     ref={index === 0 ? firstItemRef : null}
                                     // @ts-expect-error
                                     info={item}
+                                    setSize={data.length}
+                                    setPos={index + 1}
                                 />
                             </TreeContext.Provider>
                         ),
@@ -108,4 +121,4 @@ function ItemTree<Item extends { name?: string }>({
     );
 }
 
-export default ItemTree;
+export default TreeBranch;

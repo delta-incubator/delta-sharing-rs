@@ -6,12 +6,62 @@ pub mod tables_service_server {
     /// Generated trait containing gRPC methods that should be implemented for use with TablesServiceServer.
     #[async_trait]
     pub trait TablesService: Send + Sync + 'static {
+        /** Gets an array of summaries for tables for a schema and catalog within the metastore. The table summaries returned are either:
+ - summaries for tables (within the current metastore and parent catalog and schema), when the user is a metastore admin, or:
+ - summaries for tables and schemas (within the current metastore and parent catalog) for which the user has ownership or the
+   SELECT privilege on the table and ownership or USE_SCHEMA privilege on the schema, provided that the user also has ownership
+   or the USE_CATALOG privilege on the parent catalog.
+
+ There is no guarantee of a specific ordering of the elements in the array.
+*/
+        async fn list_table_summaries(
+            &self,
+            request: tonic::Request<super::ListTableSummariesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListTableSummariesResponse>,
+            tonic::Status,
+        >;
+        /** Gets an array of all tables for the current metastore under the parent catalog and schema.
+
+ The caller must be a metastore admin or an owner of (or have the SELECT privilege on) the table.
+ For the latter case, the caller must also be the owner or have the USE_CATALOG privilege on the
+ parent catalog and the USE_SCHEMA privilege on the parent schema. There is no guarantee of a
+ specific ordering of the elements in the array.
+*/
+        async fn list_tables(
+            &self,
+            request: tonic::Request<super::ListTablesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListTablesResponse>,
+            tonic::Status,
+        >;
+        /** Create a table
+*/
+        async fn create_table(
+            &self,
+            request: tonic::Request<super::CreateTableRequest>,
+        ) -> std::result::Result<tonic::Response<super::TableInfo>, tonic::Status>;
         /** Get a table
 */
         async fn get_table(
             &self,
             request: tonic::Request<super::GetTableRequest>,
         ) -> std::result::Result<tonic::Response<super::TableInfo>, tonic::Status>;
+        /** Get boolean reflecting if table exists
+*/
+        async fn get_table_exists(
+            &self,
+            request: tonic::Request<super::GetTableExistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetTableExistsResponse>,
+            tonic::Status,
+        >;
+        /** Delete a table
+*/
+        async fn delete_table(
+            &self,
+            request: tonic::Request<super::DeleteTableRequest>,
+        ) -> std::result::Result<tonic::Response<()>, tonic::Status>;
     }
     ///
     #[derive(Debug)]
@@ -90,6 +140,142 @@ pub mod tables_service_server {
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             match req.uri().path() {
+                "/delta_sharing.tables.v1.TablesService/ListTableSummaries" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListTableSummariesSvc<T: TablesService>(pub Arc<T>);
+                    impl<
+                        T: TablesService,
+                    > tonic::server::UnaryService<super::ListTableSummariesRequest>
+                    for ListTableSummariesSvc<T> {
+                        type Response = super::ListTableSummariesResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListTableSummariesRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as TablesService>::list_table_summaries(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ListTableSummariesSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.tables.v1.TablesService/ListTables" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListTablesSvc<T: TablesService>(pub Arc<T>);
+                    impl<
+                        T: TablesService,
+                    > tonic::server::UnaryService<super::ListTablesRequest>
+                    for ListTablesSvc<T> {
+                        type Response = super::ListTablesResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListTablesRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as TablesService>::list_tables(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ListTablesSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.tables.v1.TablesService/CreateTable" => {
+                    #[allow(non_camel_case_types)]
+                    struct CreateTableSvc<T: TablesService>(pub Arc<T>);
+                    impl<
+                        T: TablesService,
+                    > tonic::server::UnaryService<super::CreateTableRequest>
+                    for CreateTableSvc<T> {
+                        type Response = super::TableInfo;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::CreateTableRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as TablesService>::create_table(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = CreateTableSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 "/delta_sharing.tables.v1.TablesService/GetTable" => {
                     #[allow(non_camel_case_types)]
                     struct GetTableSvc<T: TablesService>(pub Arc<T>);
@@ -120,6 +306,97 @@ pub mod tables_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetTableSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.tables.v1.TablesService/GetTableExists" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetTableExistsSvc<T: TablesService>(pub Arc<T>);
+                    impl<
+                        T: TablesService,
+                    > tonic::server::UnaryService<super::GetTableExistsRequest>
+                    for GetTableExistsSvc<T> {
+                        type Response = super::GetTableExistsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetTableExistsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as TablesService>::get_table_exists(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetTableExistsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/delta_sharing.tables.v1.TablesService/DeleteTable" => {
+                    #[allow(non_camel_case_types)]
+                    struct DeleteTableSvc<T: TablesService>(pub Arc<T>);
+                    impl<
+                        T: TablesService,
+                    > tonic::server::UnaryService<super::DeleteTableRequest>
+                    for DeleteTableSvc<T> {
+                        type Response = ();
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::DeleteTableRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as TablesService>::delete_table(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = DeleteTableSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

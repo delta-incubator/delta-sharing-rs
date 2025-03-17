@@ -53,12 +53,34 @@
       ],
       "description": "Data source format of the table."
     },
+    "^(deletedAt)$": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this table was deleted, in epoch milliseconds. Field is omitted if table is not deleted."
+    },
     "^(fullName)$": {
       "description": "Full name of table, in form of catalog_name.schema_name.table_name.",
       "type": "string"
     },
     "^(schemaName)$": {
       "description": "Name of parent schema.",
+      "type": "string"
+    },
+    "^(storageCredentialName)$": {
+      "description": "Name of the storage credential, when a storage credential is configured for use with this table.",
+      "type": "string"
+    },
+    "^(storageLocation)$": {
+      "description": "Storage root URL for table (for MANAGED, EXTERNAL tables)",
       "type": "string"
     },
     "^(tableId)$": {
@@ -106,6 +128,13 @@
     "catalog_name": {
       "description": "Name of parent catalog.",
       "type": "string"
+    },
+    "columns": {
+      "description": "The array of ColumnInfo definitions of the table's columns.",
+      "items": {
+        "$ref": "delta_sharing.tables.v1.ColumnInfo.schema.json"
+      },
+      "type": "array"
     },
     "comment": {
       "description": "User-provided free-form text description.",
@@ -157,6 +186,20 @@
       ],
       "description": "Data source format of the table."
     },
+    "deleted_at": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 9223372036854776000,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        },
+        {
+          "pattern": "^-?[0-9]+$",
+          "type": "string"
+        }
+      ],
+      "description": "Time at which this table was deleted, in epoch milliseconds. Field is omitted if table is not deleted."
+    },
     "full_name": {
       "description": "Full name of table, in form of catalog_name.schema_name.table_name.",
       "type": "string"
@@ -175,6 +218,14 @@
     },
     "schema_name": {
       "description": "Name of parent schema.",
+      "type": "string"
+    },
+    "storage_credential_name": {
+      "description": "Name of the storage credential, when a storage credential is configured for use with this table.",
+      "type": "string"
+    },
+    "storage_location": {
+      "description": "Storage root URL for table (for MANAGED, EXTERNAL tables)",
       "type": "string"
     },
     "table_id": {

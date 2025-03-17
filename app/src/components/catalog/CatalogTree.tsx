@@ -1,7 +1,7 @@
 import { DatabaseMultipleRegular } from "@fluentui/react-icons";
 import ucClient from "../../client";
 import CatalogItem from "./CatalogItem";
-import ItemTree from "../TreeBranch";
+import TreeBranch from "../TreeBranch";
 
 type CatalogTreeProps = {
     setSize: number;
@@ -10,11 +10,11 @@ type CatalogTreeProps = {
 
 const CatalogTree = ({ setSize, setPos }: CatalogTreeProps) => {
     return (
-        <ItemTree
+        <TreeBranch
             setSize={setSize}
             setPos={setPos}
             listFn={() => ucClient.catalogs.list()}
-            itemComponent={CatalogItem}
+            ItemComponent={CatalogItem}
             icon={<DatabaseMultipleRegular />}
             rootName="Catalogs"
         />

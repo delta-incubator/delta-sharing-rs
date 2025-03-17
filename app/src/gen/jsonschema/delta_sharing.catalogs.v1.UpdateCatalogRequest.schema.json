@@ -6,6 +6,7 @@
   "patternProperties": {
     "^(newName)$": {
       "description": "Name of catalog.",
+      "minLength": 3,
       "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     }
@@ -17,11 +18,13 @@
     },
     "name": {
       "description": "Name of catalog.",
+      "minLength": 3,
       "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     },
     "new_name": {
       "description": "Name of catalog.",
+      "minLength": 3,
       "pattern": "^[a-z][0-9a-z_]*[0-9a-z]$",
       "type": "string"
     },

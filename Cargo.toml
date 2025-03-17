@@ -17,7 +17,7 @@ async-trait = "0.1.83"
 bytes = { version = "1.1" }
 chrono = { version = "0.4.38, <0.4.40", features = ["serde"] }
 clap = { version = "4.5", features = ["derive"] }
-delta_kernel = { version = "0.7", features = [
+delta_kernel = { version = "0.8", features = [
     "tokio",
     "developer-visibility",
     "default-engine",

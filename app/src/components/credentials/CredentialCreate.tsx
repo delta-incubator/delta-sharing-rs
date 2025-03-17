@@ -68,18 +68,18 @@ const AzureCredential = ({
         <>
             <Input
                 label="Directory ID"
-                value={values.azureServicePrincipal?.directoryId}
+                value={values.azureServicePrincipal?.directoryId ?? ""}
                 onChange={onDirectoryIdChange}
             />
             <Input
                 label="Application ID"
-                value={values.azureServicePrincipal?.applicationId}
+                value={values.azureServicePrincipal?.applicationId ?? ""}
                 onChange={onApplicationIdChange}
             />
             <Input
                 label="Client sectret"
                 type="password"
-                value={values.azureServicePrincipal?.clientSecret}
+                value={values.azureServicePrincipal?.clientSecret ?? ""}
                 onChange={onClientSecretChange}
             />
         </>
@@ -124,17 +124,17 @@ const AzureManagedIdentity = ({
         <>
             <Input
                 label="Application ID"
-                value={values.azureManagedIdentity?.applicationId}
+                value={values.azureManagedIdentity?.applicationId ?? ""}
                 onChange={onApplicationIdChange}
             />
             <Input
                 label="Object ID"
-                value={values.azureManagedIdentity?.objectId}
+                value={values.azureManagedIdentity?.objectId ?? ""}
                 onChange={onObjectIdChange}
             />
             <Input
                 label="MSI Resource ID"
-                value={values.azureManagedIdentity?.msiResourceId}
+                value={values.azureManagedIdentity?.msiResourceId ?? ""}
                 onChange={onMsiResourceIdChange}
             />
         </>
@@ -169,12 +169,12 @@ const AzureStorageKey = ({
         <>
             <Input
                 label="Account Name"
-                value={values.azureStorageKey?.accountName}
+                value={values.azureStorageKey?.accountName ?? ""}
                 onChange={onAccountNameChange}
             />
             <Input
                 label="Account Key"
-                value={values.azureStorageKey?.accountKey}
+                value={values.azureStorageKey?.accountKey ?? ""}
                 onChange={onAccountKeyChange}
                 type="password"
             />
@@ -242,14 +242,14 @@ const RootProps = ({
                 <Input
                     label="Name"
                     style={{ flex: "1" }}
-                    value={values.name}
+                    value={values.name ?? ""}
                     onChange={onNameChange}
                 />
             </div>
             <Input
                 label="Comment"
                 onChange={onCommentChange}
-                value={values.comment}
+                value={values.comment ?? ""}
             />
         </>
     );
@@ -300,7 +300,7 @@ function CreateCredential() {
     return (
         <CreateResource
             createFn={ucClient.credentials.create}
-            formComponent={CreateCredentialForm}
+            FormComponent={CreateCredentialForm}
             resourceType="credential"
             typeName="CreateCredentialRequest"
             defaultValues={{

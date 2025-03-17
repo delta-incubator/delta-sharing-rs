@@ -2,21 +2,224 @@ syntax = "proto3";
 
 package delta_sharing.tables.v1;
 
+import "buf/validate/validate.proto";
 import "delta_sharing/tables/v1/models.proto";
 import "gnostic/openapi/v3/annotations.proto";
 import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
+
+message ListTableSummariesRequest {
+  // Name of parent catalog for tables of interest.
+  string catalog_name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (buf.validate.field).string.min_len = 3,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // A sql LIKE pattern (% and _) for schema names. All schemas will be returned if not set or empty.
+  optional string schema_name_pattern = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // A sql LIKE pattern (% and _) for table names. All tables will be returned if not set or empty.
+  optional string table_name_pattern = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 100 [
+    (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lte = 10000,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Opaque pagination token to go to next page based on previous query.
+  optional string page_token = 101 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether to include a manifest containing capabilities the table has.
+  optional bool include_manifest_capabilities = 102 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListTableSummariesResponse {
+  // The table summaries returned.
+  repeated TableSummary tables = 1;
+
+  // The next_page_token value to include in the next List request.
+  optional string next_page_token = 2;
+}
+
+message ListTablesRequest {
+  // Name of parent schema for tables of interest.
+  string schema_name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (buf.validate.field).string.min_len = 3,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Name of parent catalog for tables of interest.
+  string catalog_name = 2 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (buf.validate.field).string.min_len = 3,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // The maximum number of results per page that should be returned.
+  optional int32 max_results = 3 [
+    (buf.validate.field).int32.gt = 0,
+    (buf.validate.field).int32.lte = 50,
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Opaque pagination token to go to next page based on previous query.
+  optional string page_token = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether delta metadata should be included in the response.
+  optional bool include_delta_metadata = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether to omit the columns of the table from the response or not.
+  optional bool omit_columns = 6 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether to omit the properties of the table from the response or not.
+  optional bool omit_properties = 7 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether to omit the username of the table (e.g. owner, updated_by, created_by) from the response or not.
+  optional bool omit_username = 8 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether to include tables in the response for which the principal can only access selective metadata for
+  optional bool include_browse = 9 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether to include a manifest containing capabilities the table has.
+  optional bool include_manifest_capabilities = 10 [(google.api.field_behavior) = OPTIONAL];
+}
+
+message ListTablesResponse {
+  // The tables returned.
+  repeated TableInfo tables = 1;
+
+  // The next_page_token value to include in the next List request.
+  optional string next_page_token = 2;
+}
+
+// Create a table
+//
+// WARNING: this API is experimental and subject to change.
+message CreateTableRequest {
+  // Name of table, relative to parent schema.
+  string name = 1 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (buf.validate.field).string.min_len = 3,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Name of parent schema relative to its parent catalog.
+  string schema_name = 2 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (buf.validate.field).string.min_len = 3,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Name of parent catalog.
+  string catalog_name = 3 [
+    (buf.validate.field).string.pattern = "^[a-z][0-9a-z_]*[0-9a-z]$",
+    (buf.validate.field).string.min_len = 3,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  TableType table_type = 4;
+
+  DataSourceFormat data_source_format = 5;
+
+  // The array of ColumnInfo definitions of the table's columns.
+  repeated ColumnInfo columns = 6;
+
+  // Storage root URL for external table.
+  optional string storage_location = 7;
+
+  // User-provided free-form text description.
+  optional string comment = 8;
+
+  // A map of key-value properties attached to the securable.
+  optional google.protobuf.Struct properties = 9;
+}
 
 // Get a table
 message GetTableRequest {
   // Full name of the table.
   string full_name = 1;
+
+  // Whether delta metadata should be included in the response.
+  optional bool include_delta_metadata = 2;
+
+  // Whether to include tables in the response for which the principal can only access selective metadata for
+  optional bool include_browse = 3;
+
+  // Whether to include a manifest containing capabilities the table has.
+  optional bool include_manifest_capabilities = 4;
+}
+
+// Get boolean reflecting if table exists
+message GetTableExistsRequest {
+  // Full name of the table.
+  string full_name = 1;
+}
+
+message GetTableExistsResponse {
+  // Boolean reflecting if table exists.
+  bool table_exists = 1;
+}
+
+// Delete a table
+message DeleteTableRequest {
+  // Full name of the table.
+  string full_name = 1;
 }
 
 service TablesService {
+  // Gets an array of summaries for tables for a schema and catalog within the metastore. The table summaries returned are either:
+  // - summaries for tables (within the current metastore and parent catalog and schema), when the user is a metastore admin, or:
+  // - summaries for tables and schemas (within the current metastore and parent catalog) for which the user has ownership or the
+  //   SELECT privilege on the table and ownership or USE_SCHEMA privilege on the schema, provided that the user also has ownership
+  //   or the USE_CATALOG privilege on the parent catalog.
+  //
+  // There is no guarantee of a specific ordering of the elements in the array.
+  rpc ListTableSummaries(ListTableSummariesRequest) returns (ListTableSummariesResponse) {
+    option (google.api.http) = {get: "/table-summaries"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ListTableSummaries"};
+  }
+
+  // Gets an array of all tables for the current metastore under the parent catalog and schema.
+  //
+  // The caller must be a metastore admin or an owner of (or have the SELECT privilege on) the table.
+  // For the latter case, the caller must also be the owner or have the USE_CATALOG privilege on the
+  // parent catalog and the USE_SCHEMA privilege on the parent schema. There is no guarantee of a
+  // specific ordering of the elements in the array.
+  rpc ListTables(ListTablesRequest) returns (ListTablesResponse) {
+    option (google.api.http) = {get: "/tables"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "ListTables"};
+  }
+
+  // Create a table
+  rpc CreateTable(CreateTableRequest) returns (TableInfo) {
+    option (google.api.http) = {
+      post: "/tables"
+      body: "*"
+    };
+    option (gnostic.openapi.v3.operation) = {operation_id: "CreateTable"};
+  }
+
   // Get a table
   rpc GetTable(GetTableRequest) returns (TableInfo) {
     option (google.api.http) = {get: "/tables/{full_name}"};
     option (gnostic.openapi.v3.operation) = {operation_id: "GetTable"};
+  }
+
+  // Get boolean reflecting if table exists
+  rpc GetTableExists(GetTableExistsRequest) returns (GetTableExistsResponse) {
+    option (google.api.http) = {get: "/tables/{full_name}/exists"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "GetTableExists"};
+  }
+
+  // Delete a table
+  rpc DeleteTable(DeleteTableRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/tables/{full_name}"};
+    option (gnostic.openapi.v3.operation) = {operation_id: "DeleteTable"};
   }
 }

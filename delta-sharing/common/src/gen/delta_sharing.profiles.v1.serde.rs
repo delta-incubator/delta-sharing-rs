@@ -215,16 +215,16 @@ impl serde::Serialize for Profile {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.profiles.v1.Profile", len)?;
         if self.share_credentials_version != 0 {
-            struct_ser.serialize_field("share_credentials_version", &self.share_credentials_version)?;
+            struct_ser.serialize_field("shareCredentialsVersion", &self.share_credentials_version)?;
         }
         if !self.endpoint.is_empty() {
             struct_ser.serialize_field("endpoint", &self.endpoint)?;
         }
         if !self.bearer_token.is_empty() {
-            struct_ser.serialize_field("bearer_token", &self.bearer_token)?;
+            struct_ser.serialize_field("bearerToken", &self.bearer_token)?;
         }
         if let Some(v) = self.expiration_time.as_ref() {
-            struct_ser.serialize_field("expiration_time", v)?;
+            struct_ser.serialize_field("expirationTime", v)?;
         }
         struct_ser.end()
     }

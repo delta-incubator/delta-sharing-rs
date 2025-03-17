@@ -30,7 +30,7 @@ plugins:
     opt:
       # useful to build reusable extractors for axum
       - ignore_unknown_fields=true
-      - preserve_proto_field_names=true
+      # - preserve_proto_field_names=true
   - remote: buf.build/community/neoeinstein-tonic:v0.4.1
     out: delta-sharing/common/src/gen
     opt:

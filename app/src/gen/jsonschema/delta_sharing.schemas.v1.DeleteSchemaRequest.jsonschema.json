@@ -6,6 +6,7 @@
   "patternProperties": {
     "^(full_name)$": {
       "description": "Full name of schema to delete.\n\n Format: catalog_name.schema_name",
+      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
       "type": "string"
     }
   },
@@ -16,6 +17,7 @@
     },
     "fullName": {
       "description": "Full name of schema to delete.\n\n Format: catalog_name.schema_name",
+      "pattern": "^[a-z][0-9a-z._]*[0-9a-z]$",
       "type": "string"
     }
   },

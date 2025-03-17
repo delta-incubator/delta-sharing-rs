@@ -11,6 +11,11 @@ import { RecipientInfoJson } from "../gen/delta_sharing/recipients/v1/models_pb"
 import { CreateRecipientRequestJson } from "../gen/delta_sharing/recipients/v1/svc_pb";
 import { ShareInfoJson } from "../gen/delta_sharing/shares/v1/models_pb";
 import { CreateShareRequestJson } from "../gen/delta_sharing/shares/v1/svc_pb";
+import {
+    TableInfoJson,
+    TableSummaryJson,
+} from "../gen/delta_sharing/tables/v1/models_pb";
+import { CreateTableRequestJson } from "../gen/delta_sharing/tables/v1/svc_pb";
 
 export async function list_catalogs(maxResults?: number) {
     return await invoke<CatalogInfoJson[]>("list_catalogs", { maxResults });
@@ -123,6 +128,50 @@ export async function delete_share(name: string) {
     return await invoke<void>("delete_share", { name });
 }
 
+export async function list_table_summaries(
+    catalog: string,
+    schemaPattern?: string,
+    tablePattern?: string,
+    maxResults?: number,
+) {
+    return await invoke<TableSummaryJson[]>("list_table_summaries", {
+        catalog,
+        schemaPattern,
+        tablePattern,
+        maxResults,
+    });
+}
+
+export async function list_tables(
+    catalog: string,
+    schema: string,
+    maxResults?: number,
+) {
+    return await invoke<TableInfoJson[]>("list_tables", {
+        catalog,
+        schema,
+        maxResults,
+    });
+}
+
+export async function create_table(request: CreateTableRequestJson) {
+    return await invoke<TableInfoJson>("create_table", { request });
+}
+
+export async function get_table(catalog: string, schema: string, name: string) {
+    return await invoke<TableInfoJson>("get_table", { catalog, schema, name });
+}
+
+export async function delete_table(
+    catalog: string,
+    schema: string,
+    name: string,
+) {
+    return await invoke<void>("delete_table", {
+        fullName: `${catalog}.${schema}.${name}`,
+    });
+}
+
 export default {
     list_catalogs,
     create_catalog,
@@ -148,4 +197,9 @@ export default {
     create_share,
     get_share,
     delete_share,
+    list_table_summaries,
+    list_tables,
+    create_table,
+    get_table,
+    delete_table,
 };

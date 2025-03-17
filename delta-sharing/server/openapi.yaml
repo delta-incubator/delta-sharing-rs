@@ -1166,6 +1166,165 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
+  /table-summaries:
+    get:
+      tags:
+        - TablesService
+      description: |-
+        Gets an array of summaries for tables for a schema and catalog within the metastore. The table summaries returned are either:
+         - summaries for tables (within the current metastore and parent catalog and schema), when the user is a metastore admin, or:
+         - summaries for tables and schemas (within the current metastore and parent catalog) for which the user has ownership or the
+           SELECT privilege on the table and ownership or USE_SCHEMA privilege on the schema, provided that the user also has ownership
+           or the USE_CATALOG privilege on the parent catalog.
+
+         There is no guarantee of a specific ordering of the elements in the array.
+      operationId: ListTableSummaries
+      parameters:
+        - name: catalogName
+          in: query
+          description: Name of parent catalog for tables of interest.
+          schema:
+            type: string
+        - name: schemaNamePattern
+          in: query
+          description: A sql LIKE pattern (% and _) for schema names. All schemas will be returned if not set or empty.
+          schema:
+            type: string
+        - name: tableNamePattern
+          in: query
+          description: A sql LIKE pattern (% and _) for table names. All tables will be returned if not set or empty.
+          schema:
+            type: string
+        - name: maxResults
+          in: query
+          description: The maximum number of results per page that should be returned.
+          schema:
+            type: integer
+            format: int32
+        - name: pageToken
+          in: query
+          description: Opaque pagination token to go to next page based on previous query.
+          schema:
+            type: string
+        - name: includeManifestCapabilities
+          in: query
+          description: Whether to include a manifest containing capabilities the table has.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTableSummariesResponse'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /tables:
+    get:
+      tags:
+        - TablesService
+      description: |-
+        Gets an array of all tables for the current metastore under the parent catalog and schema.
+
+         The caller must be a metastore admin or an owner of (or have the SELECT privilege on) the table.
+         For the latter case, the caller must also be the owner or have the USE_CATALOG privilege on the
+         parent catalog and the USE_SCHEMA privilege on the parent schema. There is no guarantee of a
+         specific ordering of the elements in the array.
+      operationId: ListTables
+      parameters:
+        - name: schemaName
+          in: query
+          description: Name of parent schema for tables of interest.
+          schema:
+            type: string
+        - name: catalogName
+          in: query
+          description: Name of parent catalog for tables of interest.
+          schema:
+            type: string
+        - name: maxResults
+          in: query
+          description: The maximum number of results per page that should be returned.
+          schema:
+            type: integer
+            format: int32
+        - name: pageToken
+          in: query
+          description: Opaque pagination token to go to next page based on previous query.
+          schema:
+            type: string
+        - name: includeDeltaMetadata
+          in: query
+          description: Whether delta metadata should be included in the response.
+          schema:
+            type: boolean
+        - name: omitColumns
+          in: query
+          description: Whether to omit the columns of the table from the response or not.
+          schema:
+            type: boolean
+        - name: omitProperties
+          in: query
+          description: Whether to omit the properties of the table from the response or not.
+          schema:
+            type: boolean
+        - name: omitUsername
+          in: query
+          description: Whether to omit the username of the table (e.g. owner, updated_by, created_by) from the response or not.
+          schema:
+            type: boolean
+        - name: includeBrowse
+          in: query
+          description: Whether to include tables in the response for which the principal can only access selective metadata for
+          schema:
+            type: boolean
+        - name: includeManifestCapabilities
+          in: query
+          description: Whether to include a manifest containing capabilities the table has.
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTablesResponse'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    post:
+      tags:
+        - TablesService
+      description: Create a table
+      operationId: CreateTable
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTableRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
   /tables/{fullName}:
     get:
       tags:
@@ -1179,6 +1338,21 @@ paths:
           required: true
           schema:
             type: string
+        - name: includeDeltaMetadata
+          in: query
+          description: Whether delta metadata should be included in the response.
+          schema:
+            type: boolean
+        - name: includeBrowse
+          in: query
+          description: Whether to include tables in the response for which the principal can only access selective metadata for
+          schema:
+            type: boolean
+        - name: includeManifestCapabilities
+          in: query
+          description: Whether to include a manifest containing capabilities the table has.
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -1186,6 +1360,54 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TableInfo'
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+    delete:
+      tags:
+        - TablesService
+      description: Delete a table
+      operationId: DeleteTable
+      parameters:
+        - name: fullName
+          in: path
+          description: Full name of the table.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content: {}
+        default:
+          description: Default error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /tables/{fullName}/exists:
+    get:
+      tags:
+        - TablesService
+      description: Get boolean reflecting if table exists
+      operationId: GetTableExists
+      parameters:
+        - name: fullName
+          in: path
+          description: Full name of the table.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTableExistsResponse'
         default:
           description: Default error response
           content:
@@ -1292,6 +1514,50 @@ components:
              for the associated object through the BROWSE privilege when include_browse
              is enabled in the request.
       description: A catalog is a root-level namespace that contains schemas.
+    ColumnInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the column
+        typeText:
+          type: string
+          description: Full data type specification as SQL/catalogString text.
+        typeJson:
+          type: string
+          description: Full data type specification, JSON-serialized.
+        typeName:
+          type: integer
+          description: Data type name.
+          format: enum
+        typePrecision:
+          type: integer
+          description: Digits of precision; required for DecimalTypes.
+          format: int32
+        typeScale:
+          type: integer
+          description: Digits to right of decimal; Required for DecimalTypes.
+          format: int32
+        typeIntervalType:
+          type: string
+          description: Format of IntervalType.
+        position:
+          type: integer
+          description: Ordinal position of column (starting at position 0).
+          format: int32
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        nullable:
+          type: boolean
+          description: Whether field may be Null.
+        partitionIndex:
+          type: integer
+          description: Partition index for column.
+          format: int32
+        columnId:
+          type: string
+          description: a unique id for the column
     CreateCatalogRequest:
       required:
         - name
@@ -1440,6 +1706,46 @@ components:
 
          Data objects can be added after creation with update.
          The caller must be a metastore admin or have the CREATE_SHARE privilege on the metastore.
+    CreateTableRequest:
+      required:
+        - name
+        - schemaName
+        - catalogName
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of table, relative to parent schema.
+        schemaName:
+          type: string
+          description: Name of parent schema relative to its parent catalog.
+        catalogName:
+          type: string
+          description: Name of parent catalog.
+        tableType:
+          type: integer
+          format: enum
+        dataSourceFormat:
+          type: integer
+          format: enum
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColumnInfo'
+          description: The array of ColumnInfo definitions of the table's columns.
+        storageLocation:
+          type: string
+          description: Storage root URL for external table.
+        comment:
+          type: string
+          description: User-provided free-form text description.
+        properties:
+          type: object
+          description: A map of key-value properties attached to the securable.
+      description: |-
+        Create a table
+
+         WARNING: this API is experimental and subject to change.
     CredentialInfo:
       type: object
       properties:
@@ -1633,6 +1939,12 @@ components:
             type: string
           description: A map containing configuration options for the format
       description: File format for data files in a table
+    GetTableExistsResponse:
+      type: object
+      properties:
+        tableExists:
+          type: boolean
+          description: Boolean reflecting if table exists.
     GetTableVersionResponse:
       type: object
       properties:
@@ -1761,6 +2073,28 @@ components:
             Token that can be used to retrieve the next page of schemas.
              An empty or missing token means that no more schemas are available for retrieval.
       description: Response for ListSharingSchemasRequest.
+    ListTableSummariesResponse:
+      type: object
+      properties:
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableSummary'
+          description: The table summaries returned.
+        nextPageToken:
+          type: string
+          description: The next_page_token value to include in the next List request.
+    ListTablesResponse:
+      type: object
+      properties:
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableInfo'
+          description: The tables returned.
+        nextPageToken:
+          type: string
+          description: The next_page_token value to include in the next List request.
     MetadatDelta:
       type: object
       properties:
@@ -2117,18 +2451,29 @@ components:
           type: integer
           description: Data source format of the table.
           format: enum
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/ColumnInfo'
+          description: The array of ColumnInfo definitions of the table's columns.
+        storageLocation:
+          type: string
+          description: Storage root URL for table (for MANAGED, EXTERNAL tables)
+        owner:
+          type: string
+          description: Username of current owner of table.
         comment:
           type: string
           description: User-provided free-form text description.
         properties:
           type: object
           description: A map of key-value properties attached to the securable.
+        storageCredentialName:
+          type: string
+          description: Name of the storage credential, when a storage credential is configured for use with this table.
         fullName:
           type: string
           description: Full name of table, in form of catalog_name.schema_name.table_name.
-        owner:
-          type: string
-          description: Username of current owner of table.
         createdAt:
           type: string
           description: Time at which this table was created, in epoch milliseconds.
@@ -2141,9 +2486,21 @@ components:
         updatedBy:
           type: string
           description: Username of user who last modified table.
+        deletedAt:
+          type: string
+          description: Time at which this table was deleted, in epoch milliseconds. Field is omitted if table is not deleted.
         tableId:
           type: string
           description: Unique identifier for the table.
+    TableSummary:
+      type: object
+      properties:
+        fullName:
+          type: string
+          description: The full name of the table.
+        tableType:
+          type: integer
+          format: enum
     UpdateCatalogRequest:
       required:
         - name

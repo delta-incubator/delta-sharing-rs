@@ -14,13 +14,13 @@ impl serde::Serialize for AzureManagedIdentity {
         if let Some(v) = self.identifier.as_ref() {
             match v {
                 azure_managed_identity::Identifier::ObjectId(v) => {
-                    struct_ser.serialize_field("object_id", v)?;
+                    struct_ser.serialize_field("objectId", v)?;
                 }
                 azure_managed_identity::Identifier::ApplicationId(v) => {
-                    struct_ser.serialize_field("application_id", v)?;
+                    struct_ser.serialize_field("applicationId", v)?;
                 }
                 azure_managed_identity::Identifier::MsiResourceId(v) => {
-                    struct_ser.serialize_field("msi_resource_id", v)?;
+                    struct_ser.serialize_field("msiResourceId", v)?;
                 }
             }
         }
@@ -144,18 +144,18 @@ impl serde::Serialize for AzureServicePrincipal {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.AzureServicePrincipal", len)?;
         if !self.directory_id.is_empty() {
-            struct_ser.serialize_field("directory_id", &self.directory_id)?;
+            struct_ser.serialize_field("directoryId", &self.directory_id)?;
         }
         if !self.application_id.is_empty() {
-            struct_ser.serialize_field("application_id", &self.application_id)?;
+            struct_ser.serialize_field("applicationId", &self.application_id)?;
         }
         if let Some(v) = self.credential.as_ref() {
             match v {
                 azure_service_principal::Credential::ClientSecret(v) => {
-                    struct_ser.serialize_field("client_secret", v)?;
+                    struct_ser.serialize_field("clientSecret", v)?;
                 }
                 azure_service_principal::Credential::FederatedTokenFile(v) => {
-                    struct_ser.serialize_field("federated_token_file", v)?;
+                    struct_ser.serialize_field("federatedTokenFile", v)?;
                 }
             }
         }
@@ -290,10 +290,10 @@ impl serde::Serialize for AzureStorageKey {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.AzureStorageKey", len)?;
         if !self.account_name.is_empty() {
-            struct_ser.serialize_field("account_name", &self.account_name)?;
+            struct_ser.serialize_field("accountName", &self.account_name)?;
         }
         if !self.account_key.is_empty() {
-            struct_ser.serialize_field("account_key", &self.account_key)?;
+            struct_ser.serialize_field("accountKey", &self.account_key)?;
         }
         struct_ser.end()
     }
@@ -427,21 +427,21 @@ impl serde::Serialize for CreateCredentialRequest {
             struct_ser.serialize_field("comment", v)?;
         }
         if let Some(v) = self.read_only.as_ref() {
-            struct_ser.serialize_field("read_only", v)?;
+            struct_ser.serialize_field("readOnly", v)?;
         }
         if self.skip_validation {
-            struct_ser.serialize_field("skip_validation", &self.skip_validation)?;
+            struct_ser.serialize_field("skipValidation", &self.skip_validation)?;
         }
         if let Some(v) = self.credential.as_ref() {
             match v {
                 create_credential_request::Credential::AzureServicePrincipal(v) => {
-                    struct_ser.serialize_field("azure_service_principal", v)?;
+                    struct_ser.serialize_field("azureServicePrincipal", v)?;
                 }
                 create_credential_request::Credential::AzureManagedIdentity(v) => {
-                    struct_ser.serialize_field("azure_managed_identity", v)?;
+                    struct_ser.serialize_field("azureManagedIdentity", v)?;
                 }
                 create_credential_request::Credential::AzureStorageKey(v) => {
-                    struct_ser.serialize_field("azure_storage_key", v)?;
+                    struct_ser.serialize_field("azureStorageKey", v)?;
                 }
             }
         }
@@ -666,7 +666,7 @@ impl serde::Serialize for CredentialInfo {
             struct_ser.serialize_field("purpose", &v)?;
         }
         if self.read_only {
-            struct_ser.serialize_field("read_only", &self.read_only)?;
+            struct_ser.serialize_field("readOnly", &self.read_only)?;
         }
         if let Some(v) = self.comment.as_ref() {
             struct_ser.serialize_field("comment", v)?;
@@ -677,35 +677,35 @@ impl serde::Serialize for CredentialInfo {
         if let Some(v) = self.created_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("created_at", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("createdAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.created_by.as_ref() {
-            struct_ser.serialize_field("created_by", v)?;
+            struct_ser.serialize_field("createdBy", v)?;
         }
         if let Some(v) = self.updated_at.as_ref() {
             #[allow(clippy::needless_borrow)]
             #[allow(clippy::needless_borrows_for_generic_args)]
-            struct_ser.serialize_field("updated_at", ToString::to_string(&v).as_str())?;
+            struct_ser.serialize_field("updatedAt", ToString::to_string(&v).as_str())?;
         }
         if let Some(v) = self.updated_by.as_ref() {
-            struct_ser.serialize_field("updated_by", v)?;
+            struct_ser.serialize_field("updatedBy", v)?;
         }
         if self.used_for_managed_storage {
-            struct_ser.serialize_field("used_for_managed_storage", &self.used_for_managed_storage)?;
+            struct_ser.serialize_field("usedForManagedStorage", &self.used_for_managed_storage)?;
         }
         if let Some(v) = self.full_name.as_ref() {
-            struct_ser.serialize_field("full_name", v)?;
+            struct_ser.serialize_field("fullName", v)?;
         }
         if let Some(v) = self.credential.as_ref() {
             match v {
                 credential_info::Credential::AzureServicePrincipal(v) => {
-                    struct_ser.serialize_field("azure_service_principal", v)?;
+                    struct_ser.serialize_field("azureServicePrincipal", v)?;
                 }
                 credential_info::Credential::AzureManagedIdentity(v) => {
-                    struct_ser.serialize_field("azure_managed_identity", v)?;
+                    struct_ser.serialize_field("azureManagedIdentity", v)?;
                 }
                 credential_info::Credential::AzureStorageKey(v) => {
-                    struct_ser.serialize_field("azure_storage_key", v)?;
+                    struct_ser.serialize_field("azureStorageKey", v)?;
                 }
             }
         }
@@ -1165,10 +1165,10 @@ impl serde::Serialize for ListCredentialsRequest {
         }
         let mut struct_ser = serializer.serialize_struct("delta_sharing.credentials.v1.ListCredentialsRequest", len)?;
         if let Some(v) = self.max_results.as_ref() {
-            struct_ser.serialize_field("max_results", v)?;
+            struct_ser.serialize_field("maxResults", v)?;
         }
         if let Some(v) = self.page_token.as_ref() {
-            struct_ser.serialize_field("page_token", v)?;
+            struct_ser.serialize_field("pageToken", v)?;
         }
         if let Some(v) = self.purpose.as_ref() {
             let v = Purpose::try_from(*v)
@@ -1300,7 +1300,7 @@ impl serde::Serialize for ListCredentialsResponse {
             struct_ser.serialize_field("credentials", &self.credentials)?;
         }
         if let Some(v) = self.next_page_token.as_ref() {
-            struct_ser.serialize_field("next_page_token", v)?;
+            struct_ser.serialize_field("nextPageToken", v)?;
         }
         struct_ser.end()
     }
@@ -1505,19 +1505,19 @@ impl serde::Serialize for UpdateCredentialRequest {
             struct_ser.serialize_field("name", &self.name)?;
         }
         if let Some(v) = self.new_name.as_ref() {
-            struct_ser.serialize_field("new_name", v)?;
+            struct_ser.serialize_field("newName", v)?;
         }
         if let Some(v) = self.comment.as_ref() {
             struct_ser.serialize_field("comment", v)?;
         }
         if let Some(v) = self.read_only.as_ref() {
-            struct_ser.serialize_field("read_only", v)?;
+            struct_ser.serialize_field("readOnly", v)?;
         }
         if let Some(v) = self.owner.as_ref() {
             struct_ser.serialize_field("owner", v)?;
         }
         if let Some(v) = self.skip_validation.as_ref() {
-            struct_ser.serialize_field("skip_validation", v)?;
+            struct_ser.serialize_field("skipValidation", v)?;
         }
         if let Some(v) = self.force.as_ref() {
             struct_ser.serialize_field("force", v)?;
@@ -1525,13 +1525,13 @@ impl serde::Serialize for UpdateCredentialRequest {
         if let Some(v) = self.credential.as_ref() {
             match v {
                 update_credential_request::Credential::AzureServicePrincipal(v) => {
-                    struct_ser.serialize_field("azure_service_principal", v)?;
+                    struct_ser.serialize_field("azureServicePrincipal", v)?;
                 }
                 update_credential_request::Credential::AzureManagedIdentity(v) => {
-                    struct_ser.serialize_field("azure_managed_identity", v)?;
+                    struct_ser.serialize_field("azureManagedIdentity", v)?;
                 }
                 update_credential_request::Credential::AzureStorageKey(v) => {
-                    struct_ser.serialize_field("azure_storage_key", v)?;
+                    struct_ser.serialize_field("azureStorageKey", v)?;
                 }
             }
         }

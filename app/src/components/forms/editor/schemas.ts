@@ -13,6 +13,8 @@ import UpdateRecipientRequest from "../../../gen/jsonschema/delta_sharing.recipi
 import ShareInfo from "../../../gen/jsonschema/delta_sharing.shares.v1.ShareInfo.jsonschema.json";
 import CreateShareRequest from "../../../gen/jsonschema/delta_sharing.shares.v1.CreateShareRequest.jsonschema.json";
 import UpdateShareRequest from "../../../gen/jsonschema/delta_sharing.shares.v1.UpdateShareRequest.jsonschema.json";
+import CreateTableRequest from "../../../gen/jsonschema/delta_sharing.tables.v1.CreateTableRequest.jsonschema.json";
+// import UpdateShareRequest from "../../../gen/jsonschema/delta_sharing.shares.v1.UpdateShareRequest.jsonschema.json";
 
 // Credential schemas
 import CredentialInfo from "../../../gen/jsonschema/delta_sharing.credentials.v1.CredentialInfo.jsonschema.json";
@@ -35,6 +37,7 @@ export default {
     SchemaInfo,
     CreateSchemaRequest,
     UpdateSchemaRequest,
+    CreateTableRequest,
     CredentialInfo,
     CreateCredentialRequest,
     UpdateCredentialRequest,

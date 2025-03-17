@@ -78,13 +78,13 @@ function ExternalLocationForm({
                 <Input
                     label="Name"
                     style={{ flex: "1" }}
-                    value={values.name}
+                    value={values.name ?? ""}
                     onChange={onNameChange}
                 />
                 <Input
                     label="Credential name"
                     style={{ flex: "1" }}
-                    value={values.credentialName}
+                    value={values.credentialName ?? ""}
                     onChange={onCredentialNameChange}
                 />
                 <Field label="Properties">
@@ -104,11 +104,16 @@ function ExternalLocationForm({
                     </div>
                 </Field>
             </div>
-            <Input label="Url" onChange={onUrlChange} value={values.url} />
+            <Input
+                label="Url"
+                onChange={onUrlChange}
+                value={values.url ?? ""}
+                type="url"
+            />
             <Input
                 label="Comment"
                 onChange={onCommentChange}
-                value={values.comment}
+                value={values.comment ?? ""}
             />
         </>
     );
@@ -118,7 +123,7 @@ function CreateExternalLocation() {
     return (
         <CreateResource
             createFn={ucClient.externalLocations.create}
-            formComponent={ExternalLocationForm}
+            FormComponent={ExternalLocationForm}
             resourceType="external location"
             defaultValues={{ readOnly: false, skipValidation: false }}
             typeName="CreateExternalLocationRequest"

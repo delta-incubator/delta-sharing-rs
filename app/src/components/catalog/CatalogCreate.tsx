@@ -61,32 +61,32 @@ function CatalogForm({
             <div className={styles.tabs}>
                 <Input
                     label="Name"
-                    value={values.name}
+                    value={values.name ?? ""}
                     onChange={onNameChange}
                 />
                 <Input
                     label="Comment"
-                    value={values.comment}
+                    value={values.comment ?? ""}
                     onChange={onCommentChange}
                 />
                 {selectedValue === "managed" && (
                     <Input
                         label="Storage root"
-                        value={values.storageRoot}
+                        value={values.storageRoot ?? ""}
                         onChange={onStorageChange}
+                        type="url"
                     />
                 )}
                 {selectedValue === "sharing" && (
                     <>
                         <Input
                             label="Provider name"
-                            value={values.providerName}
+                            value={values.providerName ?? ""}
                             onChange={onProviderChange}
                         />
-
                         <Input
                             label="Share name"
-                            value={values.shareName}
+                            value={values.shareName ?? ""}
                             onChange={onShareChange}
                         />
                     </>
@@ -100,14 +100,9 @@ function CreateCatalog() {
     return (
         <CreateResource
             createFn={ucClient.catalogs.create}
-            formComponent={CatalogForm}
+            FormComponent={CatalogForm}
             resourceType="catalog"
             defaultValues={{
-                name: "",
-                comment: "",
-                storageRoot: "",
-                providerName: "",
-                shareName: "",
                 properties: {},
             }}
             typeName="CreateCatalogRequest"
