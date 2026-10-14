@@ -377,7 +377,7 @@ fn parse_escaped_field_name(chars: &mut Chars<'_>) -> Result<String> {
 /// ```
 ///
 /// ```fail_compile
-/// # use delta_kernel::expressions::simple_column_name;
+/// # use buoyant_kernel::expressions::simple_column_name;
 /// let name = simple_column_name!("a b"); // non-alphanumeric character
 /// ```
 // NOTE: Macros are only public if exported, which defines them at the root of the crate. But we
