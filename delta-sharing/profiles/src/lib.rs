@@ -1,3 +1,7 @@
+// `async_trait` adds `#[must_use]` to every trait method, which clippy reports as a duplicate of
+// the `must_use` on the boxed future it returns. The attribute comes from the macro.
+#![allow(clippy::double_must_use)]
+
 use chrono::{DateTime, Utc};
 use delta_sharing_common::{Profile, Result};
 use jsonwebtoken::Validation;

@@ -136,10 +136,7 @@ impl SessionCredential<'_> {
 #[derive(Debug, thiserror::Error)]
 pub enum RequestError {
     #[error(transparent)]
-    Generic {
-        #[from]
-        source: crate::Error,
-    },
+    Generic(#[from] crate::Error),
 
     #[error("Retry")]
     Retry { source: crate::retry::Error },
@@ -148,7 +145,7 @@ pub enum RequestError {
 impl From<RequestError> for crate::Error {
     fn from(value: RequestError) -> Self {
         match value {
-            RequestError::Generic { source } => source,
+            RequestError::Generic(source) => source,
             RequestError::Retry { source } => source.error(),
         }
     }

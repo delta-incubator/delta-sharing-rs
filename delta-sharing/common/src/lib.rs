@@ -1,3 +1,8 @@
+// `async_trait` adds `#[must_use]` to every trait method, which clippy reports as a duplicate of
+// the `must_use` on the boxed future it returns. The attribute comes from the macro, so it is
+// allowed for the crate instead of on each trait.
+#![allow(clippy::double_must_use)]
+
 use std::sync::Arc;
 
 pub mod api;

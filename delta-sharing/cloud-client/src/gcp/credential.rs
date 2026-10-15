@@ -56,11 +56,8 @@ pub(crate) enum Error {
     #[error("No RSA key found in pem file")]
     MissingKey,
 
-    #[error("Invalid RSA key: {}", source)]
-    InvalidKey {
-        #[from]
-        source: ring::error::KeyRejected,
-    },
+    #[error("Invalid RSA key: {0}")]
+    InvalidKey(#[from] ring::error::KeyRejected),
 
     #[error("Error signing: {}", source)]
     Sign { source: ring::error::Unspecified },
