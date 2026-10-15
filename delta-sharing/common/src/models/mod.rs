@@ -19,7 +19,11 @@ mod object;
 
 pub type PropertyMap = HashMap<String, serde_json::Value>;
 
-#[allow(clippy::empty_docs, clippy::large_enum_variant)]
+#[allow(
+    clippy::empty_docs,
+    clippy::large_enum_variant,
+    clippy::useless_borrows_in_formatting
+)]
 pub mod sharing {
     pub mod v1 {
         include!("../gen/delta_sharing.sharing.v1.rs");
@@ -28,6 +32,11 @@ pub mod sharing {
     }
 }
 
+#[allow(
+    clippy::empty_docs,
+    clippy::large_enum_variant,
+    clippy::useless_borrows_in_formatting
+)]
 pub mod catalogs {
     pub mod v1 {
         include!("../gen/delta_sharing.catalogs.v1.rs");
@@ -36,6 +45,11 @@ pub mod catalogs {
     }
 }
 
+#[allow(
+    clippy::empty_docs,
+    clippy::large_enum_variant,
+    clippy::useless_borrows_in_formatting
+)]
 pub mod schemas {
     pub mod v1 {
         include!("../gen/delta_sharing.schemas.v1.rs");
@@ -44,6 +58,11 @@ pub mod schemas {
     }
 }
 
+#[allow(
+    clippy::empty_docs,
+    clippy::large_enum_variant,
+    clippy::useless_borrows_in_formatting
+)]
 pub mod tables {
     pub mod v1 {
         include!("../gen/delta_sharing.tables.v1.rs");
@@ -52,6 +71,11 @@ pub mod tables {
     }
 }
 
+#[allow(
+    clippy::empty_docs,
+    clippy::large_enum_variant,
+    clippy::useless_borrows_in_formatting
+)]
 pub mod shares {
     pub mod v1 {
         include!("../gen/delta_sharing.shares.v1.rs");
@@ -60,6 +84,11 @@ pub mod shares {
     }
 }
 
+#[allow(
+    clippy::empty_docs,
+    clippy::large_enum_variant,
+    clippy::useless_borrows_in_formatting
+)]
 pub mod recipients {
     pub mod v1 {
         include!("../gen/delta_sharing.recipients.v1.rs");
@@ -68,6 +97,11 @@ pub mod recipients {
     }
 }
 
+#[allow(
+    clippy::empty_docs,
+    clippy::large_enum_variant,
+    clippy::useless_borrows_in_formatting
+)]
 pub mod external_locations {
     pub mod v1 {
         include!("../gen/delta_sharing.external_locations.v1.rs");
@@ -76,6 +110,11 @@ pub mod external_locations {
     }
 }
 
+#[allow(
+    clippy::empty_docs,
+    clippy::large_enum_variant,
+    clippy::useless_borrows_in_formatting
+)]
 pub mod credentials {
     pub mod v1 {
         include!("../gen/delta_sharing.credentials.v1.rs");
@@ -84,6 +123,11 @@ pub mod credentials {
     }
 }
 
+#[allow(
+    clippy::empty_docs,
+    clippy::large_enum_variant,
+    clippy::useless_borrows_in_formatting
+)]
 pub mod profiles {
     pub mod v1 {
         include!("../gen/delta_sharing.profiles.v1.rs");
@@ -92,6 +136,13 @@ pub mod profiles {
     }
 }
 
+#[allow(
+    clippy::empty_docs,
+    clippy::large_enum_variant,
+    clippy::useless_borrows_in_formatting,
+    clippy::duplicated_attributes,
+    dead_code
+)]
 pub(crate) mod internal {
     include!("../gen/delta_sharing.internal.rs");
 }

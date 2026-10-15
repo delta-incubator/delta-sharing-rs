@@ -1,6 +1,9 @@
 /// A convenience type for declaring Results in the Delta Sharing libraries.
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
+// `Error` wraps tonic's transport and status types, which are large. Boxing them would change
+// the public error type of this crate, so the lint is allowed here instead.
+#[allow(clippy::result_large_err)]
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]

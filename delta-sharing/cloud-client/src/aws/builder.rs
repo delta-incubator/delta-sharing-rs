@@ -844,7 +844,7 @@ impl std::fmt::Display for S3EncryptionType {
 /// Whether these headers are sent depends on both the kind of encryption set
 /// and the kind of request being made.
 #[derive(Default, Clone, Debug)]
-pub(super) struct S3EncryptionHeaders(pub HeaderMap);
+pub(crate) struct S3EncryptionHeaders(pub HeaderMap);
 
 impl S3EncryptionHeaders {
     fn try_new(
