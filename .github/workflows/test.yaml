@@ -96,10 +96,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Run model tests
-        uses: openfga/action-openfga-test@d0befaa722cf478570404d1b6f51c0d62b3c122b # v0.1.1
+      # Installs the fga CLI directly. openfga/action-openfga-test is a composite action that
+      # pulls in further unpinned actions, which the org policy rejects.
+      - name: Install OpenFGA CLI
+        uses: jaxxstorm/action-install-gh-release@cd6b2b78ad38bdd294341cda064ec0692b06215b # v1.14.0
         with:
-          store-file-path: ./delta-sharing/openfga/fga/dev.fga.yaml
+          repo: openfga/cli
+          tag: v0.8.1
+          cache: enable
+
+      - name: Run model tests
+        run: fga model test --tests ./delta-sharing/openfga/fga/dev.fga.yaml
 
       - name: Install OpenFGA server
         uses: jaxxstorm/action-install-gh-release@cd6b2b78ad38bdd294341cda064ec0692b06215b # v1.14.0
@@ -146,5 +153,6 @@ jobs:
         with:
           toolchain: stable
 
+      # The app crate needs the GTK/WebKit system libraries, which this job does not install.
       - name: Run integration tests
-        run: cargo test --tests --features integration-pg
+        run: cargo test --workspace --exclude app --tests --features integration-pg
