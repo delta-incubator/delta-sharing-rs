@@ -6,8 +6,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::Arc;
 
-use delta_kernel::snapshot::Snapshot;
-use delta_kernel::{Engine, Error, Table, Version};
+use buoyant_kernel::snapshot::Snapshot;
+use buoyant_kernel::{Engine, Error, Version};
 use futures::stream::TryStreamExt;
 use object_store::{local::LocalFileSystem, ObjectStore};
 use serde::{Deserialize, Serialize};
@@ -86,12 +86,13 @@ impl TestCaseInfo {
         assert_eq!(snapshot.version(), case.version);
 
         // assert correct metadata is read
-        let metadata = snapshot.metadata();
-        let protocol = snapshot.protocol();
+        let table_configuration = snapshot.table_configuration();
+        let metadata = table_configuration.metadata();
+        let protocol = table_configuration.protocol();
         let tvm = TableVersionMetaData {
             version: snapshot.version(),
             properties: metadata
-                .configuration
+                .configuration()
                 .iter()
                 .map(|(k, v)| (k.clone(), v.clone()))
                 .collect(),
@@ -104,15 +105,17 @@ impl TestCaseInfo {
 
     pub async fn assert_metadata(&self, engine: Arc<dyn Engine>) -> DatResult<()> {
         let engine = engine.as_ref();
-        let table = Table::new(self.table_root()?);
+        let table_root = self.table_root()?;
 
         let (latest, versions) = self.versions().await?;
 
-        let snapshot = table.snapshot(engine, None)?;
+        let snapshot = Snapshot::builder_for(table_root.as_str()).build(engine)?;
         self.assert_snapshot_meta(&latest, &snapshot)?;
 
         for table_version in versions {
-            let snapshot = table.snapshot(engine, Some(table_version.version))?;
+            let snapshot = Snapshot::builder_for(table_root.as_str())
+                .at_version(table_version.version)
+                .build(engine)?;
             self.assert_snapshot_meta(&table_version, &snapshot)?;
         }
 

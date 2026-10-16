@@ -15,18 +15,22 @@ version = "0.0.1"
 [workspace.dependencies]
 async-trait = "0.1.83"
 bytes = { version = "1.1" }
-chrono = { version = "0.4.38, <0.4.40", features = ["serde"] }
+chrono = { version = "0.4.41", features = ["serde"] }
 clap = { version = "4.5", features = ["derive"] }
-delta_kernel = { version = "0.8", features = [
+buoyant_kernel = { version = "0.21", features = [
     "tokio",
-    "developer-visibility",
-    "default-engine",
-    "arrow_54",
+    "default-engine-rustls",
+    "arrow",
+    # Exposes Metadata/Protocol accessors that 0.21 gates behind this feature.
+    "internal-api",
 ] }
+# buoyant_kernel 0.21.200 invokes `delta_kernel_derive::parse_column_name!`, which
+# buoyant_kernel_derive 1.2.0 removed. Pin the last release that still exports it.
+buoyant_kernel_derive = "=1.1.0"
 futures = { version = "0.3.31" }
 http = { version = "1.2" }
 hyper = { version = "1.6" }
-object_store = { version = "0.11.1" }
+object_store = { version = "0.13" }
 pbjson = { version = "0.7" }
 prost = { version = "0.13.3" }
 reqwest = { version = "0.12", default-features = false, features = [
