@@ -9,6 +9,8 @@ use crate::{
 
 const MAX_PAGE_SIZE: usize = 10000;
 
+type AssociationMap = DashMap<AssociationLabel, DashMap<Uuid, (Uuid, Option<PropertyMap>)>>;
+
 /// An in-memory implementation of a resource store.
 ///
 /// This store is not intended for production use, but is useful for testing and development.
@@ -16,7 +18,7 @@ const MAX_PAGE_SIZE: usize = 10000;
 pub struct InMemoryResourceStore {
     resources: Arc<DashMap<Uuid, Resource>>,
     id_map: Arc<DashMap<ObjectLabel, DashMap<ResourceName, Uuid>>>,
-    associations: Arc<DashMap<AssociationLabel, DashMap<Uuid, (Uuid, Option<PropertyMap>)>>>,
+    associations: Arc<AssociationMap>,
     secrets: Arc<DashMap<String, DashMap<Uuid, bytes::Bytes>>>,
 }
 
@@ -162,8 +164,8 @@ impl ResourceStore for InMemoryResourceStore {
                 map.value()
                     .iter()
                     .filter(|entry| {
-                        namespace.is_none_or(|ns| entry.key().prefix_matches(ns))
-                            && page_token.is_none_or(|t| &t > entry.value())
+                        namespace.map_or(true, |ns| entry.key().prefix_matches(ns))
+                            && page_token.map_or(true, |t| &t > entry.value())
                     })
                     .map(|entry| *entry.value())
                     .collect::<Vec<_>>()
@@ -272,8 +274,8 @@ impl ResourceStore for InMemoryResourceStore {
                     .get(&resource_uuid)
                     .iter()
                     .filter(|entry| {
-                        target_uuid.is_none_or(|uuid| entry.value().0 == uuid)
-                            && page_token.is_none_or(|t| &t > entry.key())
+                        target_uuid.map_or(true, |uuid| entry.value().0 == uuid)
+                            && page_token.map_or(true, |t| &t > entry.key())
                     })
                     .map(|entry| entry.value().0)
                     .collect::<Vec<_>>()

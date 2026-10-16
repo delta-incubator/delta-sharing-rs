@@ -8,12 +8,12 @@ on:
 
 jobs:
   format:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Setup rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1
         with:
           components: rustfmt
           toolchain: stable
@@ -26,27 +26,27 @@ jobs:
       fail-fast: true
       matrix:
         os:
-          - ubuntu-22.04
+          - ubuntu-latest
           - macos-latest
           - windows-latest
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Setup rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1
         with:
           components: clippy
           toolchain: stable
 
       # install linux dependencies
       - name: install dependencies (ubuntu only)
-        if: matrix.os == 'ubuntu-22.04' # This must match the platform value defined above.
+        if: matrix.os == 'ubuntu-latest' # This must match the platform value defined above.
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Check clippy
         run: cargo clippy --tests
@@ -59,7 +59,7 @@ jobs:
       fail-fast: true
       matrix:
         os:
-          - ubuntu-22.04
+          - ubuntu-latest
           - macos-latest
           - windows-latest
     runs-on: ${{ matrix.os }}
@@ -72,37 +72,44 @@ jobs:
       CARGO_INCREMENTAL: 0
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Setup rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1
         with:
           toolchain: stable
 
       # install linux dependencies
       - name: install dependencies (ubuntu only)
-        if: matrix.os == 'ubuntu-22.04' # This must match the platform value defined above.
+        if: matrix.os == 'ubuntu-latest' # This must match the platform value defined above.
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Run unit tests
         run: cargo test --lib
 
   policy-openfga:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      # Installs the fga CLI directly. openfga/action-openfga-test is a composite action that
+      # pulls in further unpinned actions, which the org policy rejects.
+      - name: Install OpenFGA CLI
+        uses: jaxxstorm/action-install-gh-release@cd6b2b78ad38bdd294341cda064ec0692b06215b # v1.14.0
+        with:
+          repo: openfga/cli
+          tag: v0.8.1
+          cache: enable
 
       - name: Run model tests
-        uses: openfga/action-openfga-test@v0.1.1
-        with:
-          store-file-path: ./delta-sharing/openfga/fga/dev.fga.yaml
+        run: fga model test --tests ./delta-sharing/openfga/fga/dev.fga.yaml
 
       - name: Install OpenFGA server
-        uses: jaxxstorm/action-install-gh-release@v1.14.0
+        uses: jaxxstorm/action-install-gh-release@cd6b2b78ad38bdd294341cda064ec0692b06215b # v1.14.0
         with:
           repo: openfga/openfga
           tag: v1.8.0
@@ -118,7 +125,7 @@ jobs:
           cargo test -p delta-sharing-openfga
 
   integration:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     services:
       postgres:
@@ -139,12 +146,13 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Setup rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1
         with:
           toolchain: stable
 
+      # The app crate needs the GTK/WebKit system libraries, which this job does not install.
       - name: Run integration tests
-        run: cargo test --tests --features integration-pg
+        run: cargo test --workspace --exclude app --tests --features integration-pg

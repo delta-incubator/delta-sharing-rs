@@ -124,7 +124,7 @@ impl From<Error> for std::io::Error {
             Error::Reqwest { source, .. } if source.is_connect() => {
                 Self::new(ErrorKind::NotConnected, err)
             }
-            _ => Self::new(ErrorKind::Other, err),
+            _ => Self::other(err),
         }
     }
 }

@@ -239,6 +239,8 @@ impl TablesClient {
         .boxed()
     }
 
+    // The table listing endpoint takes one argument per query parameter.
+    #[allow(clippy::too_many_arguments)]
     pub fn list(
         &self,
         catalog_name: impl Into<String>,

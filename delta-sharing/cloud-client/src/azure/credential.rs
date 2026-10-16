@@ -280,18 +280,18 @@ fn string_to_sign_service_sas(
         signed_start,
         signed_expiry,
         canonicalized_resource,
-        "",                               // signed identifier
-        "",                               // signed ip
-        "",                               // signed protocol
-        &AZURE_VERSION.to_str().unwrap(), // signed version
-        signed_resource,                  // signed resource
-        "",                               // signed snapshot time
-        "",                               // signed encryption scope
-        "",                               // rscc - response header: Cache-Control
-        "",                               // rscd - response header: Content-Disposition
-        "",                               // rsce - response header: Content-Encoding
-        "",                               // rscl - response header: Content-Language
-        "",                               // rsct - response header: Content-Type
+        "",                              // signed identifier
+        "",                              // signed ip
+        "",                              // signed protocol
+        AZURE_VERSION.to_str().unwrap(), // signed version
+        signed_resource,                 // signed resource
+        "",                              // signed snapshot time
+        "",                              // signed encryption scope
+        "",                              // rscc - response header: Cache-Control
+        "",                              // rscd - response header: Content-Disposition
+        "",                              // rsce - response header: Content-Encoding
+        "",                              // rscl - response header: Content-Language
+        "",                              // rsct - response header: Content-Type
     );
 
     let mut pairs = HashMap::new();

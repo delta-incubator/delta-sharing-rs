@@ -28,6 +28,8 @@ pub struct InMemoryBackendConfig {
 
 // storage crendentials
 
+// Deserialized from the config file, so it is never constructed in code.
+#[allow(dead_code)]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Credential {
     pub name: String,

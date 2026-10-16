@@ -41,7 +41,7 @@ futures = "0.3"
 
 # in-memory handler dependencies (in alphabetical order)
 dashmap = { version = "6", optional = true }
-uuid = { version = "1" }
+uuid = { version = "1", features = ["serde"] }
 
 # axum handler dependencies (in alphabetical order)
 axum = { version = "0.8", optional = true }

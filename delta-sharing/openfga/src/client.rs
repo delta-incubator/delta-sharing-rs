@@ -96,7 +96,7 @@ impl OpenFgaClient {
             stores
                 .stores
                 .into_iter()
-                .find(|s| s.name == store_name.as_ref())
+                .find(|s| s.name == store_name.as_str())
                 .ok_or_else(|| Error::store_not_found(store_name))?
                 .id
         } else {

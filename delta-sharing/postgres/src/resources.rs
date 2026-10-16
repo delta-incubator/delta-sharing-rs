@@ -168,9 +168,9 @@ impl ResourceStore for GraphStore {
 
     async fn remove_association(
         &self,
-        from: &ResourceIdent,
-        to: &ResourceIdent,
-        label: &AssociationLabel,
+        _from: &ResourceIdent,
+        _to: &ResourceIdent,
+        _label: &AssociationLabel,
     ) -> Result<()> {
         todo!("remove_association")
     }
