@@ -17,18 +17,20 @@ async-trait = "0.1.83"
 bytes = { version = "1.1" }
 chrono = { version = "0.4.41", features = ["serde"] }
 clap = { version = "4.5", features = ["derive"] }
-# The crate is `buoyant_kernel`, a distribution of `delta_kernel`. It is depended on under the
+# The kernel is `buoyant_kernel`, a distribution of `delta_kernel`. It is depended on under the
 # `delta_kernel` name so source and manifests keep the upstream import paths.
-delta_kernel = { package = "buoyant_kernel", version = "0.21", features = [
-    "tokio",
-    "default-engine-rustls",
-    "arrow",
-    # Exposes Metadata/Protocol accessors that 0.21 gates behind this feature.
+delta_kernel = { package = "buoyant_kernel", version = "0.28", features = [
+    "default-engine-base",
+    "arrow-59",
+    # Exposes Metadata/Protocol accessors that the kernel gates behind this feature.
     "internal-api",
 ] }
-# buoyant_kernel 0.21.200 invokes `delta_kernel_derive::parse_column_name!`, which
-# buoyant_kernel_derive 1.2.0 removed. Pin the last release that still exports it.
-buoyant_kernel_derive = "=1.1.0"
+# The default engine (DefaultEngine, executors, object store wiring) is a separate crate in 0.28,
+# so it is depended on separately from the kernel.
+buoyant_kernel_engine = { version = "0.28", default-features = false, features = [
+    "arrow-59",
+    "rustls",
+] }
 futures = { version = "0.3.31" }
 http = { version = "1.2" }
 hyper = { version = "1.6" }

@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use delta_kernel::engine::default::executor::tokio::{
-    TokioBackgroundExecutor, TokioMultiThreadExecutor,
-};
-use delta_kernel::engine::default::{executor::TaskExecutor, DefaultEngine};
+use buoyant_kernel_engine::executor::tokio::{TokioBackgroundExecutor, TokioMultiThreadExecutor};
+use buoyant_kernel_engine::executor::TaskExecutor;
+use buoyant_kernel_engine::DefaultEngineBuilder;
 use delta_kernel::snapshot::{Snapshot, SnapshotRef};
 use delta_kernel::Engine;
 use object_store::parse_url_opts;
@@ -55,10 +54,10 @@ impl<E: TaskExecutor> KernelEngineFactroy for DefaultKernelEngineFactroy<E> {
             ))
             .cloned()
             .unwrap_or_default();
-        // delta_kernel 0.21 no longer builds the object store from a URL; do it here.
+        // The kernel no longer builds the object store from a URL; the engine takes it directly.
         let (store, _path) = parse_url_opts(table_root, storage_config)
             .map_err(|e| crate::Error::InvalidTableLocation(e.to_string()))?;
-        let engine = DefaultEngine::builder(Arc::new(store))
+        let engine = DefaultEngineBuilder::new(Arc::new(store))
             .with_task_executor(self.task_executor.clone())
             .build();
         Ok(Arc::new(engine))
