@@ -25,9 +25,9 @@ delta_kernel = { package = "buoyant_kernel", version = "0.28", features = [
     # Exposes Metadata/Protocol accessors that the kernel gates behind this feature.
     "internal-api",
 ] }
-# The default engine (DefaultEngine, executors, object store wiring) is a separate crate in 0.28,
-# so it is depended on separately from the kernel.
-buoyant_kernel_engine = { version = "0.28", default-features = false, features = [
+# The default engine (DefaultEngine, executors, object store wiring) is a separate crate in 0.28.
+# It is depended on under the `delta_kernel_engine` name, like the kernel above.
+delta_kernel_engine = { package = "buoyant_kernel_engine", version = "0.28", default-features = false, features = [
     "arrow-59",
     "rustls",
 ] }

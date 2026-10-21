@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use buoyant_kernel_engine::executor::tokio::{TokioBackgroundExecutor, TokioMultiThreadExecutor};
-use buoyant_kernel_engine::executor::TaskExecutor;
-use buoyant_kernel_engine::DefaultEngineBuilder;
 use delta_kernel::snapshot::{Snapshot, SnapshotRef};
 use delta_kernel::Engine;
+use delta_kernel_engine::executor::tokio::{TokioBackgroundExecutor, TokioMultiThreadExecutor};
+use delta_kernel_engine::executor::TaskExecutor;
+use delta_kernel_engine::DefaultEngineBuilder;
 use object_store::parse_url_opts;
 use url::Url;
 
