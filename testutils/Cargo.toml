@@ -13,7 +13,7 @@ path = "src/lib.rs"
 [dependencies]
 chrono = { workspace = true }
 clap = { workspace = true }
-buoyant_kernel = { workspace = true }
+delta_kernel = { workspace = true }
 futures = { workspace = true }
 object_store = { workspace = true, features = ["azure"] }
 reqwest = { workspace = true }

@@ -1,10 +1,10 @@
-use buoyant_kernel::expressions::{ColumnName, Expression, Predicate};
-use buoyant_kernel::schema::{DataType, PrimitiveType};
+use delta_kernel::expressions::{ColumnName, Expression, Predicate};
+use delta_kernel::schema::{DataType, PrimitiveType};
 
 use crate::models::sharing::v1::JsonPredicate;
 use crate::{Error, Result};
 
-/// Convert a `JsonPredicate` to an [Expression](buoyant_kernel::expressions::Expression).
+/// Convert a `JsonPredicate` to an [Expression](delta_kernel::expressions::Expression).
 ///
 /// Boolean-valued operators (comparisons, `not`, `is_null`, `and`, `or`) are returned as
 /// [`Expression::Predicate`].
@@ -85,7 +85,7 @@ fn parse_binary(predicate: &JsonPredicate) -> Result<Predicate> {
     }
     let lhs = json_predicate_to_expression(&predicate.children[0])?;
     let rhs = json_predicate_to_expression(&predicate.children[1])?;
-    // buoyant_kernel 0.21 has no `<=` / `>=` predicate operators. Under SQL three-valued logic,
+    // delta_kernel 0.21 has no `<=` / `>=` predicate operators. Under SQL three-valued logic,
     // `a <= b` is equivalent to `NOT (a > b)` (and likewise for `>=`), since both sides are NULL
     // in exactly the same cases.
     match predicate.op.to_ascii_lowercase().as_str() {

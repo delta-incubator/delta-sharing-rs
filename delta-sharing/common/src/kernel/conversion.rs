@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use buoyant_kernel::actions::{Metadata, Protocol};
+use delta_kernel::actions::{Metadata, Protocol};
 
 use crate::error::Result;
 use crate::models::sharing::v1::{
@@ -27,7 +27,7 @@ impl From<&Metadata> for MetadataParquet {
 
 /// The `format.options` map of a [`Metadata`] action.
 ///
-/// buoyant_kernel 0.21 exposes no accessor for the format options, only for the provider. The
+/// delta_kernel 0.21 exposes no accessor for the format options, only for the provider. The
 /// `Metadata` type serializes its `format` as `{"provider", "options"}`, so read the map from that
 /// representation. Serializing a `Metadata` (strings and maps of strings) cannot fail, so a
 /// failure here would indicate a kernel change and is treated as empty options.

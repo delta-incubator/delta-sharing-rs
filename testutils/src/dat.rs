@@ -6,8 +6,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::Arc;
 
-use buoyant_kernel::snapshot::Snapshot;
-use buoyant_kernel::{Engine, Error, Version};
+use delta_kernel::snapshot::Snapshot;
+use delta_kernel::{Engine, Error, Version};
 use futures::stream::TryStreamExt;
 use object_store::{local::LocalFileSystem, ObjectStore};
 use serde::{Deserialize, Serialize};

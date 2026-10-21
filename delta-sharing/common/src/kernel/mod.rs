@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use buoyant_kernel::engine::default::executor::tokio::{
+use delta_kernel::engine::default::executor::tokio::{
     TokioBackgroundExecutor, TokioMultiThreadExecutor,
 };
-use buoyant_kernel::engine::default::{executor::TaskExecutor, DefaultEngine};
-use buoyant_kernel::snapshot::{Snapshot, SnapshotRef};
-use buoyant_kernel::Engine;
+use delta_kernel::engine::default::{executor::TaskExecutor, DefaultEngine};
+use delta_kernel::snapshot::{Snapshot, SnapshotRef};
+use delta_kernel::Engine;
 use object_store::parse_url_opts;
 use url::Url;
 
@@ -46,7 +46,7 @@ impl<E: TaskExecutor> DefaultKernelEngineFactroy<E> {
 
 #[async_trait::async_trait]
 impl<E: TaskExecutor> KernelEngineFactroy for DefaultKernelEngineFactroy<E> {
-    async fn create(&self, table_root: &Url) -> Result<Arc<dyn buoyant_kernel::Engine>> {
+    async fn create(&self, table_root: &Url) -> Result<Arc<dyn delta_kernel::Engine>> {
         let storage_config = self
             .storage_configs
             .get(&(
@@ -55,7 +55,7 @@ impl<E: TaskExecutor> KernelEngineFactroy for DefaultKernelEngineFactroy<E> {
             ))
             .cloned()
             .unwrap_or_default();
-        // buoyant_kernel 0.21 no longer builds the object store from a URL; do it here.
+        // delta_kernel 0.21 no longer builds the object store from a URL; do it here.
         let (store, _path) = parse_url_opts(table_root, storage_config)
             .map_err(|e| crate::Error::InvalidTableLocation(e.to_string()))?;
         let engine = DefaultEngine::builder(Arc::new(store))
