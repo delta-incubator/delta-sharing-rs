@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use delta_kernel::engine::default::executor::tokio::{
-    TokioBackgroundExecutor, TokioMultiThreadExecutor,
-};
-use delta_kernel::engine::default::{executor::TaskExecutor, DefaultEngine};
-use delta_kernel::snapshot::Snapshot;
-use delta_kernel::{Engine, Table};
+use delta_kernel::snapshot::{Snapshot, SnapshotRef};
+use delta_kernel::Engine;
+use delta_kernel_engine::executor::tokio::{TokioBackgroundExecutor, TokioMultiThreadExecutor};
+use delta_kernel_engine::executor::TaskExecutor;
+use delta_kernel_engine::DefaultEngineBuilder;
+use object_store::parse_url_opts;
+use url::Url;
 
 use crate::api::sharing::SharingQueryHandler;
 use crate::api::{RequestContext, SecuredAction};
@@ -22,7 +23,7 @@ mod predicate;
 
 #[async_trait::async_trait]
 pub trait KernelEngineFactroy: Send + Sync {
-    async fn create(&self, table: &Table) -> Result<Arc<dyn Engine>>;
+    async fn create(&self, table_root: &Url) -> Result<Arc<dyn Engine>>;
 }
 
 pub struct DefaultKernelEngineFactroy<E: TaskExecutor> {
@@ -44,17 +45,21 @@ impl<E: TaskExecutor> DefaultKernelEngineFactroy<E> {
 
 #[async_trait::async_trait]
 impl<E: TaskExecutor> KernelEngineFactroy for DefaultKernelEngineFactroy<E> {
-    async fn create(&self, table: &Table) -> Result<Arc<dyn delta_kernel::Engine>> {
+    async fn create(&self, table_root: &Url) -> Result<Arc<dyn delta_kernel::Engine>> {
         let storage_config = self
             .storage_configs
             .get(&(
-                table.location().scheme().to_string(),
-                table.location().host_str().unwrap_or_default().to_string(),
+                table_root.scheme().to_string(),
+                table_root.host_str().unwrap_or_default().to_string(),
             ))
             .cloned()
             .unwrap_or_default();
-        let engine =
-            DefaultEngine::try_new(table.location(), storage_config, self.task_executor.clone())?;
+        // The kernel no longer builds the object store from a URL; the engine takes it directly.
+        let (store, _path) = parse_url_opts(table_root, storage_config)
+            .map_err(|e| crate::Error::InvalidTableLocation(e.to_string()))?;
+        let engine = DefaultEngineBuilder::new(Arc::new(store))
+            .with_task_executor(self.task_executor.clone())
+            .build();
         Ok(Arc::new(engine))
     }
 }
@@ -107,11 +112,10 @@ impl KernelQueryHandler {
         Arc::new(Self::new(engine_factory, location_resolver, policy))
     }
 
-    async fn get_snapshot(&self, table_ref: &ResourceRef) -> Result<Snapshot> {
+    async fn get_snapshot(&self, table_ref: &ResourceRef) -> Result<SnapshotRef> {
         let location = self.location_resolver.resolve(table_ref).await?;
-        let table = Table::new(location);
-        let engine = self.engine_factory.create(&table).await?;
-        let snapshot = table.snapshot(engine.as_ref(), None)?;
+        let engine = self.engine_factory.create(&location).await?;
+        let snapshot = Snapshot::builder_for(location.as_str()).build(engine.as_ref())?;
         Ok(snapshot)
     }
 }
@@ -145,6 +149,11 @@ impl SharingQueryHandler for KernelQueryHandler {
             .await?;
         let res = request.resource();
         let snapshot = self.get_snapshot(res.as_ref()).await?;
-        Ok([snapshot.metadata().into(), snapshot.protocol().into()].into())
+        let table_configuration = snapshot.table_configuration();
+        Ok([
+            table_configuration.metadata().into(),
+            table_configuration.protocol().into(),
+        ]
+        .into())
     }
 }

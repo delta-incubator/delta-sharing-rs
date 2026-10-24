@@ -14,6 +14,7 @@ async-trait = { workspace = true }
 bytes = { workspace = true }
 chrono = { workspace = true }
 delta_kernel = { workspace = true }
+delta_kernel_engine = { workspace = true }
 http = { workspace = true, optional = true }
 object_store = { workspace = true }
 pbjson = { workspace = true }

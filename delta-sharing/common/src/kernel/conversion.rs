@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use delta_kernel::actions::{Metadata, Protocol};
 
 use crate::error::Result;
@@ -10,17 +12,31 @@ use crate::models::sharing::v1::{
 impl From<&Metadata> for MetadataParquet {
     fn from(value: &Metadata) -> Self {
         MetadataParquet {
-            id: value.id.clone(),
-            name: value.name.clone(),
-            description: value.description.clone(),
+            id: value.id().to_string(),
+            name: value.name().map(str::to_string),
+            description: value.description().map(str::to_string),
             format: Some(FormatMessage {
-                provider: value.format.provider.clone(),
-                options: value.format.options.clone(),
+                provider: value.format_provider().to_string(),
+                options: format_options(value),
             }),
-            schema_string: value.schema_string.clone(),
-            partition_columns: value.partition_columns.clone(),
+            schema_string: value.schema_string().clone(),
+            partition_columns: value.partition_columns().to_vec(),
         }
     }
+}
+
+/// The `format.options` map of a [`Metadata`] action.
+///
+/// delta_kernel 0.21 exposes no accessor for the format options, only for the provider. The
+/// `Metadata` type serializes its `format` as `{"provider", "options"}`, so read the map from that
+/// representation. Serializing a `Metadata` (strings and maps of strings) cannot fail, so a
+/// failure here would indicate a kernel change and is treated as empty options.
+fn format_options(value: &Metadata) -> HashMap<String, String> {
+    serde_json::to_value(value)
+        .ok()
+        .and_then(|v| v.get("format")?.get("options").cloned())
+        .and_then(|options| serde_json::from_value(options).ok())
+        .unwrap_or_default()
 }
 
 impl From<&Metadata> for ParquetLogMessage {

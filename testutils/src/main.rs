@@ -4,7 +4,7 @@ use std::process::Command;
 use clap::{Parser, Subcommand};
 use object_store::azure::MicrosoftAzureBuilder;
 use object_store::local::LocalFileSystem;
-use object_store::ObjectStore;
+use object_store::ObjectStoreExt;
 
 use crate::utils::TestResult;
 
